@@ -1,7 +1,11 @@
 "use client"
 
+import HowItWorks from "@/components/HowItWorks"
+
 export default function Home() {
   return (
-    <div>Welcome to Expendit, Your Ultimate Expense Management Solution</div>
+    <main>
+      <HowItWorks/>
+    </main>
   )
 }
