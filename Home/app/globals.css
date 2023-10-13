@@ -2,26 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #F3E8FF;
+  overflow-x: hidden;
+  /* font-family: 'AR One Sans', sans-serif; */
+  /* font-family: 'Barlow', sans-serif; */
+  /* font-family: 'Cabin', sans-serif; */
 }
+
+.purple-glassmorphism{
+  background: rgba( 191, 146, 213, 0.9 );
+  box-shadow: 0 8px 32px 0 rgba( 191, 146, 213, 0.9 );
+  backdrop-filter: blur( 4px );
+  -webkit-backdrop-filter: blur( 4px );
+  border-radius: 10px;
+  border: 1px solid rgba( 255, 255, 255, 0.18 );
+}
+
+/* color combinations
+Primary Color: #0077B6 (Deep Blue)
+Secondary Color: #6C757D (Gray)
+Accent Color: #F44C00 (Red-Orange)
+-------------------------
+Primary Color: #34A853 (Green)
+Secondary Color: #2E9CCA (Teal)
+Accent Color: #FF6B6B (Coral)
+-------------------------
+Primary Color: #FF8800 (Orange)
+Secondary Color: #333333 (Charcoal)
+Accent Color: #52D5FF (Sky Blue)
+*/
