@@ -10,7 +10,7 @@ const Contact = () => {
         <div className={styles.innerContainer}>
           <div className='grid grid-cols-1 sm:grid-cols-2 m-auto p-8'>
             <div className='md:ps-14'>
-              <h1 className={styles.header}>Contact Us</h1>
+              <h1 className={styles.header}>Get a personal consultation</h1>
               <ul>
                 <li className='mb-16'>
                   <div className='flex gap-4'>
