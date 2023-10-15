@@ -8,7 +8,7 @@ const Contact = () => {
     <main className="">
       <div className= {styles.sectionContainer}>
         <div className={styles.innerContainer}>
-          <div className='grid grid-cols-1 sm:grid-cols-2 m-auto p-8'>
+          <div className={styles.grid}>
             <div className='md:ps-14'>
               <h1 className={styles.header}>Get a personal consultation</h1>
               <ul>
