@@ -1,0 +1,1 @@
+import genStyles from '../CustomStyles';
