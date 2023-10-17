@@ -15,7 +15,7 @@ const FeatureCard = ({ heading, subText, icon  }: props) => {
     <div className={styles.cardContainer}>
       <span className='text-purple-600'>{icon}</span>
       <h2 className='font-semibold my-6'>{heading}</h2>
-      <p>{subText}</p>
+      <p className={styles.subtext}>{subText}</p>
     </div>
   )
 };
