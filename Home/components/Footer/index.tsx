@@ -1,15 +1,16 @@
 import React from 'react'
 import Logo from '@/assets/images/logo-white.png';
 import Image from 'next/image';
+import styles from "./styles"
 
 const Footer = () => {
   return (
-    <div className='bg-black text-white'>
-      <div className='flex justify-center py-10'>
+    <div className={styles.container}>
+      <div className={styles.copyright}>
         <p>© 2023 Copyright: All rights reserved</p>
       </div>
-      <div className='grid md:grid-cols-4 grid-cols-2 pb-10'>
-        <div className='mx-auto pb-6'>
+      <div className={styles.grid}>
+        <div className={styles.logo}>
           <Image src={Logo} alt="Expendit Logo" width="100" />
         </div>
         <div className='pb-6'>
