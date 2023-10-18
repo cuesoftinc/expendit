@@ -15,7 +15,7 @@ function HowItWorks() {
             </div>
             <div className="mt-2">
               <strong className={styles.cardTitle}>Create an account</strong>
-              <p className={styles.cardContent}>Create an account by providing yoour email and choosing a secure passwords</p>
+              <p className={styles.cardContent}>Create an account by providing your email and choosing a secure passwords</p>
             </div>
           </div>
           <div className={styles.cardContainer}>
