@@ -8,8 +8,8 @@ const styles = {
   btnTwo: `${genStyles.btn} px-14 py-4`,
   heroSection: 'md:mt-[8%] mt-[15%] flex md:flex-row flex-col gap-10',
   header: `${genStyles.header}`,
-  subtext: 'md:text-lg text-base mb-6',
-  imgContainer: `${genStyles.flexCenter} md:w-1/2`,
+  subtext: `${genStyles.subtext} md:text-lg mb-6`,
+  imgContainer: `${genStyles.flexCenter} md:w-[45%] w-full`,
   img: 'object-contain w-[60%]',
 
   // Mobile Navbar Styles 
