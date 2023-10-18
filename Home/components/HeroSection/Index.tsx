@@ -44,9 +44,11 @@ const HeroSection = () => {
         }
       </nav>
       <div className={styles.heroSection}>
-        <div className='md:w-1/2 w-full'>
-          <h1 className={styles.header}>Empower Your Finances: 
-            <br /> Expense Management Made Simple.
+        <div className='md:w-[55%] w-full'>
+          <h1 className={styles.header}>
+            Empower Your Finances: 
+            <br /> Expense Management 
+            <br /> Made Simple.
           </h1>
           <p className={styles.subtext}>
             Discover a smarter way to manage your money, effortlessly. 
