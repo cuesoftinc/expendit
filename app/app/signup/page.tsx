@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { Fragment } from 'react';
+import Page from '@/components/signup/Index';
 
 const Signup = () => {
   return (
-    <div>
-      
-    </div>
+    <Fragment>
+      <Page />
+    </Fragment>
   )
 }
 
