@@ -12,6 +12,8 @@ const config: Config = {
         secondary: "#121212",
         input: "#EDEEF9",
         purpleTheme: "#A259FF"
+        purpleTheme: "#A259FF",
+        grayTheme: "#EDEEF9"
       }
     },
   },
