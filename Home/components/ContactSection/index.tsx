@@ -36,22 +36,22 @@ const Contact = () => {
               </ul>
             </div>
             <div>
-              <form className='bg-purple-200 p-8 md:mx-12 rounded-lg'>
-                <div className='flex flex-col text-slate-800 py-2'>
+              <form className='bg-white p-8 md:mx-12 rounded-lg shadow-xl'>
+                <div className='flex flex-col text-black py-2'>
                   <label htmlFor='name'>Name </label>
-                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100' type="text"/>
+                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]' type="text"/>
                 </div>
-                <div className='flex flex-col text-slate-800 py-2'>
+                <div className='flex flex-col text-black py-2'>
                   <label htmlFor='email'>Email </label>
-                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100' type="email"/>
+                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]' type="email"/>
                 </div>
-                <div className='flex flex-col text-slate-800 py-2'>
+                <div className='flex flex-col text-black py-2'>
                   <label htmlFor='subject'>Subject </label>
-                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100' type="text"/>
+                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]' type="text"/>
                 </div>
-                <div className='flex flex-col text-slate-800 py-2'>
+                <div className='flex flex-col text-black py-2'>
                   <label>How can we help? </label>
-                  <textarea className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100'/>
+                  <textarea className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]'/>
                 </div>
                 <div className={styles.btn}>
                   <input className='cursor-pointer w-full mx-auto' type="submit" value="Submit"/>
