@@ -11,7 +11,7 @@ const Footer = () => {
       </div>
       <div className={styles.grid}>
         <div className={styles.logo}>
-          <Image src={Logo} alt="Expendit Logo" width="100" />
+          <Image src={Logo} alt="Expendit Logo" width="100" className='invert' />
         </div>
         <div className='pb-6'>
           <p className='font-bold mb-3 text-lg'>Overview</p>

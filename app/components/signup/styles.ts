@@ -10,7 +10,7 @@ const styles = {
 
   // Input Styles --------------
   label: 'my-3 block font-semibold tracking-widest text-sm',
-  input:'text-sm outline-none px-4 py-4 w-full bg-[#EDEEF9] w-[80%] rounded-lg focus:border-primaryBtn focus:border-2',
+  input:'text-sm outline-none px-4 py-4 w-full bg-grayTheme w-[80%] rounded-lg focus:border-primaryBtn focus:border-2',
 };
 
 export default styles;
