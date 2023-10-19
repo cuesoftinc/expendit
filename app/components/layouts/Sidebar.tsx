@@ -20,8 +20,8 @@ const Sidebar = () => {
         <Image 
           src={Logo} 
           alt='Expendit Logo' 
-          width={80} 
-          className='ml-5 mt-4' 
+          width={85}
+          className='ml-5 mt-6' 
         />
       </Link>
   
@@ -41,7 +41,7 @@ const Sidebar = () => {
       <div className={styles.logout} 
         onClick={() => {}}>
         <AiOutlinePoweroff className='mr-3'/>
-        <span className='font-semibold '>Logout</span>
+        <span>Logout</span>
       </div>
     </div>
   )

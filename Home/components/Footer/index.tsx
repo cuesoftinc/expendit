@@ -10,7 +10,7 @@ const Footer = () => {
       </div>
       <div className='grid md:grid-cols-4 grid-cols-2 pb-10'>
         <div className='mx-auto pb-6'>
-          <Image src={Logo} alt="Expendit Logo" width="100" className='backdrop-invert' />
+          <Image src={Logo} alt="Expendit Logo" width="100" className='invert' />
         </div>
         <div className='pb-6'>
           <p className='font-bold mb-3 text-lg'>Overview</p>
