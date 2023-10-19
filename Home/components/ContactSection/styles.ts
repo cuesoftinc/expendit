@@ -2,9 +2,9 @@ import genStyles from '../CustomStyles';
 
 const styles = {
   sectionContainer: `${genStyles.pagePad}`,
-  innerContainer: 'bg-secondary text-white rounded-3xl min-h-screen p-6',
+  innerContainer: 'bg-secondary text-white rounded-3xl min-h-screen p-6 mb-12',
   header: `mb-10 ${genStyles.header}`,
-  btn: `mt-10 p-2 ${genStyles.btn}`,
+  // btn: `mt-10 p-2 ${genStyles.btn}`,
   grid: 'grid grid-cols-1 sm:grid-cols-2 m-auto p-8',
   listItem: "mb-16",
   itemWrapper: "flex gap-4",
@@ -14,6 +14,8 @@ const styles = {
   inputContainer: "flex flex-col text-slate-800 py-2",
   input: "rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100",
   submit: "cursor-pointer w-full mx-auto"
+  btn: `mt-10 p-2 py-4 text-center rounded-md text-white bg-secondary hover:opacity-90`,
+  grid: 'grid grid-cols-1 sm:grid-cols-2 m-auto p-8'
 }
 
 export default styles;
