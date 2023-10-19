@@ -1,7 +1,5 @@
 import React from 'react';
 import { HomeProvider, NavProvider } from '@/context';
-import Sidebar from '@/components/layouts/Sidebar';
-import PageLayout from '@/components/layouts/PageLayout';
 import './globals.css'
 
 export const metadata = {
@@ -20,10 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       <body className=''>
         <HomeProvider>
         <NavProvider>
-          <Sidebar />
-          <PageLayout>
-            {children}
-          </PageLayout>
+          {children}
         </NavProvider>
         </HomeProvider>
       </body>
