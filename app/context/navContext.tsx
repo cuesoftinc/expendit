@@ -9,11 +9,20 @@ ReactNode,
 SetStateAction 
 } from "react";
 
+// interface isClickedProps {
+//   chat: boolean;
+//   cart: boolean;
+//   userProfile: boolean;
+//   notification: boolean;
+// };
+
 export interface NavContextProps {
   navState: string;
   setNavState: Dispatch<SetStateAction<string>>;
   isNavOpen: boolean;
   setIsNavOpen: Dispatch<SetStateAction<boolean>>;
+  isProfileOpen: boolean;
+  setIsProfileOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 export interface NavProviderProps {
@@ -23,6 +32,7 @@ export interface NavProviderProps {
 export const NavContext = createContext<NavContextProps | undefined>(undefined);
 
 export const NavProvider = ({ children }: NavProviderProps) => {
+ const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [navState, setNavState] = useState<string>("/");
   const [isNavOpen, setIsNavOpen] = useState<boolean>(false);
 
@@ -33,6 +43,8 @@ export const NavProvider = ({ children }: NavProviderProps) => {
         setNavState,
         isNavOpen,
         setIsNavOpen,
+        isProfileOpen, 
+        setIsProfileOpen
       }}
     >
       {children}
