@@ -1,8 +1,11 @@
+import PageLayout from '@/components/layouts/PageLayout'
 import React from 'react'
 
 const Income = () => {
   return (
-    <div>Income</div>
+    <PageLayout>
+      <h1>Income</h1>
+    </PageLayout>
   )
 }
 
