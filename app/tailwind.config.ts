@@ -10,7 +10,6 @@ const config: Config = {
     extend: {
       colors: {
         secondary: "#121212",
-        input: "#EDEEF9",
         purpleTheme: "#A259FF",
         grayTheme: "#EDEEF9"
       }
