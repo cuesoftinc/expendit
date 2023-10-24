@@ -15,3 +15,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
+
+.slick-list{
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}

@@ -1,7 +1,7 @@
 import genStyles from '../CustomStyles';
 
 const styles = {
-  container: 'fixed lg:block hidden h-screen w-[25%] shadow-xl pl-3',
+  container: (mb?: boolean) => `fixed ${mb? 'block w-[80%] bg-white rounded-lg': 'md:block hidden w-[25%]'} h-screen  shadow-xl pl-3`,
   logout: `flex gap-5 items-center absolute bottom-6 left-2 cursor-pointer ml-3 pl-4 py-3 rounded-lg w-[90%] bg-purpleTheme text-white font-semibold hover:opacity-90`,
   link: (url: string, ln: string) => `flex gap-5 items-center pl-4 py-3 rounded-lg m-2 my-4 hover:bg-purple-200 ${url === ln && 'bg-purpleTheme text-white hover:bg-purpleTheme'}`,
 
@@ -10,15 +10,15 @@ const styles = {
   bodyContainer: 'my-10 md:mx-4 mx-2 md:pl-0 pl-2',
 
   // Navbar Styles -------------
-  navCont: 'flex justify-between p-2 relative bg-white w-full px-6',
+  navCont: 'flex justify-between p-2 relative bg-white w-full md:pr-6 md:pl-4 pl-0 pr-2',
   center: `${genStyles.flexCenter}`,
   searchIcon: 'translate-x-6 cursor-pointer dark:text-gray-200',
-  navInput: 'outline-none bg-grayTheme pl-8 px-3 py-2 rounded-md',
-  navBtn: 'flex items-center gap-3 rounded-md p-2 bg-grayTheme hover:opacity-80 shadow-sm text-gray-500',
+  navInput: 'outline-none bg-grayTheme pl-8 px-3 py-2 rounded-md md:text-base text-sm',
+  navBtn: 'md:flex items-center gap-3 rounded-md p-2 px-3 bg-grayTheme hover:opacity-80 shadow-sm hidden',
   profileCont: 'flex items-center p-1 rounded-full bg-grayTheme hover:opacity-80 gap-2 cursor-pointer',
 
   // UserProfile Styles --------
-  userProfileCont: "nav-item absolute right-1 top-16 bg-white p-8 rounded-lg w-96",
+  userProfileCont: "nav-item absolute right-1 top-16 bg-white p-8 rounded-lg w-96 z-10",
   avatarCont: "flex gap-5 items-center mt-6 border-color border-b-1 pb-6",
   between: `${genStyles.flexBtw}`,
   textLg: "font-semibold text-lg",
