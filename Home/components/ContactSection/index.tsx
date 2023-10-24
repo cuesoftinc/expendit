@@ -12,49 +12,49 @@ const Contact = () => {
             <div className='md:ps-14'>
               <h1 className={styles.header}>Get a personal consultation</h1>
               <ul>
-                <li className='mb-16'>
-                  <div className='flex gap-4'>
-                    <FaLocationDot className='text-purple-500 text-2xl' />
+                <li className={styles.listItem}>
+                  <div className={styles.itemWrapper}>
+                    <FaLocationDot className={styles.icon} />
                     <p>Office</p>
                   </div>
-                  <p className='md:w-96 mt-4'>39 Alfred Rewane Road, Mulliner Towers, Ikoyi, 101233, Lagos, Nigeria</p>
+                  <p className={styles.itemParagraph}>39 Alfred Rewane Road, Mulliner Towers, Ikoyi, 101233, Lagos, Nigeria</p>
                 </li>
-                <li className='mb-16'>
-                  <div className='flex gap-4'>
-                    <IoMdContact className='text-purple-500 text-2xl' />
+                <li className={styles.listItem}>
+                  <div className={styles.itemWrapper}>
+                    <IoMdContact className={styles.icon} />
                     <p>Office</p>
                   </div>
-                  <p className='w-96 mt-4'>info@expendit.com</p>
+                  <p className={styles.itemParagraph}>info@expendit.com</p>
                 </li>
-                <li className='mb-16'>
-                  <div className='flex gap-4'>
-                    <BsClockFill className='text-purple-500 text-2xl' />
+                <li className={styles.listItem}>
+                  <div className={styles.itemWrapper}>
+                    <BsClockFill className={styles.icon} />
                     <p>Open hours</p>
                   </div>
-                  <p className='w-96 mt-4'>Monday - Friday:<br/> 9am - 5pm</p>
+                  <p className={styles.itemParagraph}>Monday - Friday:<br/> 9am - 5pm</p>
                 </li>
               </ul>
             </div>
             <div>
-              <form className='bg-white p-8 md:mx-12 rounded-lg shadow-xl'>
-                <div className='flex flex-col text-black py-2'>
+              <form className={styles.form}>
+                <div className={styles.inputContainer}>
                   <label htmlFor='name'>Name </label>
-                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]' type="text"/>
+                  <input className={styles.input} type="text"/>
                 </div>
-                <div className='flex flex-col text-black py-2'>
+                <div className={styles.inputContainer}>
                   <label htmlFor='email'>Email </label>
-                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]' type="email"/>
+                  <input className={styles.input} type="email"/>
                 </div>
-                <div className='flex flex-col text-black py-2'>
+                <div className={styles.inputContainer}>
                   <label htmlFor='subject'>Subject </label>
-                  <input className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]' type="text"/>
+                  <input className={styles.input} type="text"/>
                 </div>
-                <div className='flex flex-col text-black py-2'>
+                <div className={styles.inputContainer}>
                   <label>How can we help? </label>
-                  <textarea className='rounded-lg mt-2 p-2 focus:border-slate-300 focus:bg-slate-100 bg-[#EDEEF9]'/>
+                  <textarea className={styles.input}/>
                 </div>
                 <div className={styles.btn}>
-                  <input className='cursor-pointer w-full mx-auto' type="submit" value="Submit"/>
+                  <input className={styles.submit} type="submit" value="Submit"/>
                 </div>
               </form>
             </div>
