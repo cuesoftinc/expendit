@@ -1,6 +1,6 @@
 "use client";
-
 import React, { 
+useEffect,
 useContext, 
 createContext, 
 useState, 
@@ -8,13 +8,6 @@ Dispatch,
 ReactNode, 
 SetStateAction 
 } from "react";
-
-// interface isClickedProps {
-//   chat: boolean;
-//   cart: boolean;
-//   userProfile: boolean;
-//   notification: boolean;
-// };
 
 export interface NavContextProps {
   navState: string;
@@ -35,6 +28,14 @@ export const NavProvider = ({ children }: NavProviderProps) => {
  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [navState, setNavState] = useState<string>("/");
   const [isNavOpen, setIsNavOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsNavOpen(false);
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <NavContext.Provider

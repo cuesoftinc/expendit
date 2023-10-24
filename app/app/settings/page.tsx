@@ -1,8 +1,14 @@
-import React from 'react'
+import React from 'react';
+import PageLayout from "@/components/layouts/PageLayout";
+import styles from '@/components/CustomStyles';
 
 const Settings = () => {
   return (
-    <div>Settings</div>
+    <PageLayout>
+      <main className={styles.pagePad}>
+        Settings
+      </main>
+    </PageLayout>
   )
 }
 
