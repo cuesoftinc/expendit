@@ -1,11 +1,16 @@
-import React from 'react'
+import React from 'react';
+import PageLayout from "@/components/layouts/PageLayout";
+import Page from '@/components/expense';
+import styles from '@/components/CustomStyles';
 
-const Dashboard = () => {
+const Expense = () => {
   return (
-    <div>
-      
-    </div>
+    <PageLayout>
+      <main className={styles.pagePad}>
+       <Page />
+      </main>
+    </PageLayout>
   )
 }
 
-export default Dashboard
+export default Expense
