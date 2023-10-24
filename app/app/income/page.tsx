@@ -1,8 +1,15 @@
-import React from 'react'
+import React from 'react';
+import PageLayout from '@/components/layouts/PageLayout'
+import Page from '@/components/income';
+import styles from '@/components/CustomStyles';
 
 const Income = () => {
   return (
-    <div>Income</div>
+    <PageLayout>
+      <main className={styles.pagePad}>
+       <Page />
+      </main>
+    </PageLayout>
   )
 }
 
