@@ -1,10 +1,14 @@
 import PageLayout from "@/components/layouts/PageLayout";
+import TopBoard from "@/components/home/TopBoard";
+import LinearChart from "@/components/home/LinearChart";
+import styles from '@/components/CustomStyles';
 
 export default function Home() {
   return (
     <PageLayout>
-      <main className="flex min-h-screen  items-center  p-24">
-        <div>Overview</div>
+      <main className={styles.pagePad}>
+        <TopBoard />
+        <LinearChart/>
       </main>
     </PageLayout>
   )
