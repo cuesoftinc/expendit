@@ -18,11 +18,11 @@ func main() {
 	// Load environment variables
 	config.LoadEnv()
 
-	lis, err := net.Listen("tcp", "[::1]:8080")
+	lis, err := net.Listen("tcp", "[::1]:9090")
 	if err != nil {
 		log.Fatalln("App: Failed to start server:", err)
 	}
-	log.Println("Server listening on port 8080")
+	log.Println("Server listening on port 9090")
 
 	// Create gRPC server
 	grpcServer := grpc.NewServer(
