@@ -1,9 +1,11 @@
 "use client"
+import { useGrpcClientMethods } from '@/grpc_methods';
 import styles from './styles';
 import Input  from './Input';
 
   
 const Form = () => {
+  const { client } = useGrpcClientMethods();
   const handleChange = () => {};
   const handleSubmit = () => {};
 

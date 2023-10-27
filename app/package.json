@@ -9,13 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "google-protobuf": "^3.21.2",
+    "grpc-web": "^1.4.2",
     "next": "13.5.4",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^4.11.0",
     "react-slick": "^0.29.0",
     "recharts": "^2.9.0",
-    "slick-carousel": "^1.8.1"
+    "slick-carousel": "^1.8.1",
+    "ts-protoc-gen": "^0.15.0"
   },
   "devDependencies": {
     "@types/node": "^20",
