@@ -1,3 +1,12 @@
-FROM envoyproxy/envoy-dev:latest
-COPY envoy.yaml /etc/envoy/envoy.yaml
-RUN chmod go+r /etc/envoy/envoy.yaml
+FROM node:18.14.1-alpine AS development
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY . .
+
+RUN npm install
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
