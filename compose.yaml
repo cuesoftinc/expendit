@@ -1,0 +1,27 @@
+services:
+  envoy:
+    build: ./App/envoy
+    ports:
+      - '9901:9901'
+      - '8080:8080'
+      - '9090:9090'
+    networks:
+      - next-envoy
+      - envoy-go
+
+  app-frontend:
+    build:
+      context: ./App
+      target: development
+    ports:
+      - 3000:3000
+    volumes:
+      - ./App:/app
+    restart: always
+    networks:
+      - next-envoy
+
+networks:
+  next-envoy:
+  envoy-go:
+  go-db:
