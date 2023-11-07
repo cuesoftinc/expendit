@@ -1,8 +1,15 @@
-import React from 'react'
+import React from 'react';
+import PageLayout from "@/components/layouts/PageLayout";
+import styles from '@/components/CustomStyles';
+import Page from '@/components/history';
 
 const History = () => {
   return (
-    <div>History</div>
+    <PageLayout>
+      <main className={styles.pagePad}>
+        <Page />
+      </main>
+    </PageLayout>
   )
 }
 
