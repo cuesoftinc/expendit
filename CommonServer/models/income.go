@@ -2,12 +2,15 @@ package models
 
 import (
 	"gorm.io/gorm"
+    "time"
 )
 
 type Income struct {
     gorm.Model
+    ID          int
     Amount      int    `gorm:"size:255;not null;unique" json:amount"`     
-    Date        string `gorm:"size:255;not null;unique" json:date`
-    Source      string `gorm:"size:255;not null;unique" json:source`
+    Date        time.Time 
+    Category    IncomeCategory 
+    Description string `gorm:"size:255;not null;unique" json:description`
     UserID      uint 
 }
