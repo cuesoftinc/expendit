@@ -12,7 +12,7 @@ const styles = {
 
   // Input Styles --------------
   label: 'my-3 block font-semibold tracking-widest text-sm',
-  input: (cst?: boolean) => `text-sm outline-none px-4 py-4 w-full ${cst ? 'bg-white/50 shadow-sm border-black/80 border-[1px]' : ' bg-grayTheme'} w-[80%] rounded-lg focus:border-2`,
+  input: (cst?: boolean) => `text-sm outline-none px-4 py-4 w-full ${cst && 'shadow-sm border-black/80 border-[1px]'} bg-grayTheme w-[80%] rounded-lg focus:border-2`,
 };
 
 export default styles;

@@ -4,7 +4,7 @@ import React from 'react';
 import styles from './styles';
 import Image from 'next/image';
 import { FiCheckCircle } from 'react-icons/fi';
-import Phone from '@/assets/images/coin.jpg';
+import handshake from '@/assets/images/handshake.png';
 
 const CTASection = () => {
   const features = [
@@ -29,10 +29,10 @@ const CTASection = () => {
       </div>
       <div className={styles.featuresContainer}>
         <div className='md:w-1/2 w-full'>
-          <Image src={Phone} alt='A Phone' className='rounded-md'/>
+          <Image src={handshake} alt='A Phone' className={styles.img} />
         </div>
-        <div className='md:w-1/2 w-full'>
-          <h1 className={styles.header}>
+        <div className={styles.rightSide}>
+          <h1 className={styles.headerTwo}>
             Helping you to make sound financial decisions
           </h1>
           <p className={styles.subtextTwo}>
@@ -42,7 +42,7 @@ const CTASection = () => {
             {
              features.map((feature, index) => (
               <div className={styles.feature} key={index}>
-                <FiCheckCircle fontSize={20} />
+                <FiCheckCircle fontSize={20} color="#A259FF" />
                 <p>{feature}</p>
               </div>
              )) 

@@ -8,9 +8,10 @@ const Index = () => {
   const handleChange = () => {};
 
   return (
-    <div className=''>
-      <div className='md:px-[13%]'>
+    <div className='md:ml-3 ml-0'>
+      <div className='md:w-[70%] w-full'>
         <h3 className={styles.header}>Add your new expense</h3>
+        <div>
         <Input 
         label='Amount'
         name='amount'
@@ -42,6 +43,7 @@ const Index = () => {
         <button type='submit' className={inputStyles.btn}>
           Add expense
         </button>
+        </div>
       </div>
     </div>
   )

@@ -20,3 +20,15 @@ body {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
+
+.header{
+  font-weight: 900;
+  font-size: 1.3rem;
+  background-color: #F7F7F7;
+}
+
+@media screen and (max-width: 500px) {
+  .header{
+    font-size: 1rem;
+  } 
+}
