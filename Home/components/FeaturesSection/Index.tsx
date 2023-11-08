@@ -3,7 +3,6 @@
 import React from 'react';
 import styles from './styles';
 import { TbTrack, TbMoneybag, TbReportMoney } from 'react-icons/tb';
-import { IconType } from 'react-icons';
 
 type props = {
   heading: string; 
@@ -23,10 +22,9 @@ const FeatureCard = ({ heading, subText, icon  }: props) => {
 const FeaturesSection = () => {
   return (
     <section className={styles.sectionContainer} id='features'>
-      <div className={styles.innerContainer}>
+      <div className='p-6'>
         <h1 className={styles.header}>
-          Solution for personal 
-          and <br /> business need
+          Solutions for Personal and Business Need
         </h1>
         <div className={styles.cardsContainer}>
           <FeatureCard 

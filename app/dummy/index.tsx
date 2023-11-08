@@ -6,6 +6,13 @@ import { MdOutlineCategory, MdOutlineSupervisorAccount, MdShowChart } from "reac
 import { RxDashboard } from 'react-icons/rx';
 import { TbMoneybag, TbTransferOut, TbReportAnalytics } from 'react-icons/tb';
 
+import { GridColDef } from '@mui/x-data-grid';
+
+
+const day = new Date().getDate();
+const month = new Date().getMonth() + 1; 
+const year = new Date().getFullYear();
+const presentDate = month + '/' + day + '/' + year;
 
 export const links = [
   {
@@ -113,5 +120,41 @@ export const AreaHomeChart = [
   { x: 'Oct', 'expense': 700 },
   { x: 'Nov', 'expense': 160 },
   { x: 'Dec', 'expense': 980 },
+];
+
+export const expenseGrid: GridColDef[] = [
+  {
+    field: 'Category',
+    headerName: 'Category',
+    flex: 1,
+    headerClassName: 'header'
+  },
+  {
+    field: 'Amount',
+    headerName: 'Amount',
+    flex: 1,
+    headerClassName: 'header'
+  },
+  { field: 'Note',
+    headerName: 'Note',
+    flex: 1,
+    headerClassName: 'header'
+  },
+  {
+    field: 'Date',
+    headerName: 'Date',
+    flex: 1,
+    headerClassName: 'header'
+  }
+];
+
+export const expenseRow = [
+  {
+    id: 1,
+    Category: 'Food',
+    Amount: 2000,
+    Note: 'I used it to buy Food',
+    Date: presentDate
+  }
 ];
 

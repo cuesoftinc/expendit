@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { AiOutlineMenu } from 'react-icons/ai';
 import Link from 'next/link';
-import Logo from '@/assets/images/logo.png';
+import Logo from '@/assets/images/logo2.png';
 import Chart from '@/assets/images/chart4.png';
 import MobileNavbar from './MobileNavbar';
 import { useCustomState } from '@/hooks/responsive';
@@ -14,12 +14,12 @@ import styles from './styles';
 const HeroSection = () => {
   const [ openNav, setOpenNav ] = useState<boolean>(false);
   const [ mobile ] = useCustomState(setOpenNav);
-  const navLinks = [ 'Home', 'About us', 'Services'];
+  const navLinks = [ 'Home', 'About us', 'Services', 'Contact'];
 
   return (
     <section className={styles.heroContainer} id='home'>
       <nav className={styles.navContainer}>
-        <Image src={Logo} alt="Expendit Logo" width={mobile ? 80 : 100 } />
+        <Image src={Logo} alt="Expendit Logo" width={mobile ? 80 : 100} />
         {!mobile && 
           <ul className={styles.navLinksContainer}>
             {navLinks.map((link, index) => (
@@ -46,9 +46,9 @@ const HeroSection = () => {
       <div className={styles.heroSection}>
         <div className='md:w-[55%] w-full'>
           <h1 className={styles.header}>
-            Empower Your Finances: 
-            <br /> Expense Management 
-            <br /> Made Simple.
+            Empower Your Finances 
+            <br />with <span className='text-purpleTheme'>Expendit</span>: Expense  
+            <br /> Management Made Simple.
           </h1>
           <p className={styles.subtext}>
             Discover a smarter way to manage your money, effortlessly. 
