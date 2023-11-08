@@ -1,5 +1,6 @@
 "use client"
 
+import { Fragment } from 'react';
 import HowItWorks from "@/components/HowItWorksSection"
 import HeroSection from '@/components/HeroSection/Index';
 import FeaturesSection from '@/components/FeaturesSection/Index';
@@ -9,13 +10,13 @@ import Services from "@/components/ServiceSection";
 
 export default function Home() {
   return (
-    <>
+    <Fragment>
       <HeroSection />
       <Services />
       <FeaturesSection />
       <CTASection />
       <HowItWorks />
       <Contact />
-    </>
+    </Fragment>
   )
 }
