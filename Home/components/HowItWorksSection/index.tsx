@@ -1,17 +1,18 @@
 import styles from './styles'
-import {IoIosCreate, IoIosLogIn} from 'react-icons/io'
-import {GiExpense} from 'react-icons/gi'
-import {BiSolidReport, BiCategory, BiMoney} from 'react-icons/bi'
+import { IoIosLogIn } from 'react-icons/io'
+import {BiSolidReport, BiCategory, BiDollarCircle} from 'react-icons/bi'
+import { MdPersonAddAlt } from 'react-icons/md'
+import {LiaFileInvoiceDollarSolid} from 'react-icons/lia'
 
 function HowItWorks() {
   return (
     <section className={`${styles.sectionContainer} min-h-screen flex justify-center items-center`}>
       <div>
-        <h2 className={styles.header}>Our Finance Solution<br/> Usage Flow</h2>
+        <h2 className={styles.header}>Our Finance Solution Usage Flow</h2>
         <div className={styles.grid}>
           <div className={styles.cardContainer}>
-            <div className={styles.icon}>
-              <IoIosCreate />
+            <div>
+              <MdPersonAddAlt className={styles.icon} />
             </div>
             <div className="mt-2">
               <strong className={styles.cardTitle}>Create an account</strong>
@@ -19,8 +20,8 @@ function HowItWorks() {
             </div>
           </div>
           <div className={styles.cardContainer}>
-            <div className={styles.icon}>
-              <IoIosLogIn />
+            <div>
+              <IoIosLogIn className={styles.icon} />
             </div>
             <div>
               <strong className={styles.cardTitle}>Log into your account</strong>
@@ -28,8 +29,8 @@ function HowItWorks() {
             </div>
           </div>
           <div className={styles.cardContainer}>
-            <div className={styles.icon}>
-              <BiMoney />
+            <div>
+              <BiDollarCircle className={styles.icon} />
             </div>
             <div>
               <strong className={styles.cardTitle}>Input your budget</strong>
@@ -37,8 +38,8 @@ function HowItWorks() {
             </div>
           </div>
           <div className={styles.cardContainer}>
-            <div className={styles.icon}>
-              <BiCategory />
+            <div>
+              <BiCategory className={styles.icon} />
             </div>
             <div>
               <strong className={styles.cardTitle}>Customize Expense Categories</strong>
@@ -46,8 +47,8 @@ function HowItWorks() {
             </div>
           </div>
           <div className={styles.cardContainer}>
-            <div className={styles.icon}>
-              <GiExpense />
+            <div>
+              <LiaFileInvoiceDollarSolid className={styles.icon} />
             </div>
             <div>
               <strong className={styles.cardTitle}>Input your Expenses</strong>
@@ -55,8 +56,8 @@ function HowItWorks() {
             </div>
           </div>
           <div className={styles.cardContainer}>
-            <div className={styles.icon}>
-              <BiSolidReport />
+            <div>
+              <BiSolidReport className={styles.icon} />
             </div>
             <div>
               <strong className={styles.cardTitle}>View Real-Time Reports</strong>
