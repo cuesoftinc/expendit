@@ -1,6 +1,8 @@
 "use client"
 
 import React, { Component } from 'react';
+import { TbCurrencyNaira } from 'react-icons/tb';
+// import { useCustomState } from '@/hooks/responsive';
 import { summaryData } from '@/dummy';
 import Slider from  "react-slick";
 import styles from './styles';
@@ -14,6 +16,8 @@ interface boardProps{
 };
 
 const Board = ({icon, title, amount, percentage, chart}: boardProps) => {
+  // const [ mobile ] = useCustomState();
+
   return (
     <div className={styles.boardCont}>
       <div className={styles.leftCont}>
@@ -23,7 +27,7 @@ const Board = ({icon, title, amount, percentage, chart}: boardProps) => {
       </div>
       <div className={styles.rightCont}>
         <p className={styles.title}>{title}</p>
-        <p className={styles.amount}>{amount}</p>
+        <p className={styles.amount}><TbCurrencyNaira fontSize={30} />  {amount}</p>
         <div className={styles.chartCont}>
           <span className='mr-2'>{chart}</span>
           <p className={styles.percent}>{percentage}</p>

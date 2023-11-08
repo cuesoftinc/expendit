@@ -11,38 +11,43 @@ CartesianGrid,
 Tooltip, 
 Area } from 'recharts';
 import styles from './styles';
-import { AreaHomeChart } from '@/dummy';
+import { AreaHomeChart, categories } from '@/dummy';
 
 const LinearChart = () => {
   return (
     <div className={styles.lineChartCont}>
-      <p className={styles.header}>Expense Analytic</p>
+      <p className={styles.header}>Expense Categories</p>
       <ResponsiveContainer 
         width="100%" 
-        height='80%' 
+        height={380} 
       >
         <AreaChart 
           data={AreaHomeChart} 
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: 10, left: 1, bottom: 10 }}
         > 
           <defs>
             <linearGradient id="colorMonth" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#8884d8" stopOpacity={0.2}/>
+              <stop offset="95%" stopColor="#8884d8" stopOpacity={0.4}/>
             </linearGradient>
           </defs>
-          <XAxis dataKey="x" minTickGap={10} tickLine={false} tickSize={2}  />
+          <XAxis dataKey="month" minTickGap={10} tickLine={false} tickSize={2}  />
           <YAxis tickLine={false} minTickGap={10} tickSize={2} />
           <CartesianGrid stroke='3 3'  />
           <Legend />
           <Tooltip />
-          <Area 
+          {categories.map((propName, index) => (
+            <Area 
+            key={index}
             type="monotone" 
-            dataKey="expense" 
-            stroke="#8884d8"  
+            dataKey={propName} 
+            stroke={`#${Math.floor(Math.random() * 16777215).toString(16)}`} 
+            strokeWidth={1}
+            stackId="1"
             fillOpacity={1} 
             fill="url(#colorMonth)" 
           />
+          ))}
         </AreaChart>
       </ResponsiveContainer>
     </div>
