@@ -1,7 +1,7 @@
 import styles from './styles';
 import {FaLocationDot} from 'react-icons/fa6'
-import {IoMdContact} from 'react-icons/io'
 import {BsClockFill} from 'react-icons/bs'
+import {MdEmail} from 'react-icons/md'
 
 const Contact = () => {
   return (
@@ -9,8 +9,9 @@ const Contact = () => {
       <div className= {styles.sectionContainer}>
         <div className={styles.innerContainer}>
           <div className={styles.grid}>
-            <div className='md:ps-14'>
-              <h1 className={styles.header}>Get a personal consultation</h1>
+            <div className='md:ps-10 my-auto'>
+              <h1 className={styles.header}>Contact Us</h1>
+              <p className='mb-7'>Get a personal consultation</p>
               <ul>
                 <li className={styles.listItem}>
                   <div className={styles.itemWrapper}>
@@ -21,8 +22,8 @@ const Contact = () => {
                 </li>
                 <li className={styles.listItem}>
                   <div className={styles.itemWrapper}>
-                    <IoMdContact className={styles.icon} />
-                    <p>Office</p>
+                    <MdEmail className={styles.icon} />
+                    <p>Email</p>
                   </div>
                   <p className={styles.itemParagraph}>info@expendit.com</p>
                 </li>
@@ -50,11 +51,11 @@ const Contact = () => {
                   <input className={styles.input} type="text"/>
                 </div>
                 <div className={styles.inputContainer}>
-                  <label>How can we help? </label>
-                  <textarea className={styles.input}/>
+                  <label>How can we Help You? </label>
+                  <textarea className={styles.textarea}/>
                 </div>
                 <div className={styles.btn}>
-                  <input className={styles.submit} type="submit" value="Submit"/>
+                  <input className={styles.submit} type="submit" value="Send a message"/>
                 </div>
               </form>
             </div>

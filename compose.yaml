@@ -20,6 +20,16 @@ services:
     restart: always
     networks:
       - next-envoy
+  
+  home:
+    build:
+      context: ./Home
+      target: development
+    ports:
+      - 5000:5000
+    volumes:
+      - ./Home:/app
+    restart: always
 
 networks:
   next-envoy:
