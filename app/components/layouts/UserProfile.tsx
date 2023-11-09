@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useNavContext } from '@/context';
 import { AiOutlineClose } from 'react-icons/ai';
 
@@ -34,14 +35,15 @@ const UserProfile = () => {
       <div>
         {userProfileData.map((item, index) => (
           <div key={index} className={styles.barCont}>
-            <button
-              type="button"
-              style={{ color: item.iconColor, backgroundColor: item.iconBg }}
-              className="text-xl rounded-lg p-3"
-            >
-              {item.icon}
-            </button>
-
+            <Link href={item.url}>
+              <button
+                type="button"
+                style={{ color: item.iconColor, backgroundColor: item.iconBg }}
+                className="text-xl rounded-lg p-3"
+              >
+                {item.icon}
+              </button>
+            </Link>
             <div>
               <p className="font-semibold">{item.title}</p>
               <p className={styles.textSm}> {item.desc} </p>
