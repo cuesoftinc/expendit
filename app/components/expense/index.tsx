@@ -1,11 +1,18 @@
 "use client"
-import React from 'react'
+import React, { useRef, useState } from 'react'
+import { CiImport } from 'react-icons/ci';
 import Input from '@/components/signup/Input';
 import inputStyles from '@/components/signup/styles';
 import styles from './styles';
 
 const Index = () => {
   const handleChange = () => {};
+  const fileInput = useRef<any>(null);
+  const [ selectedFiles, setSelectedFiles ] = useState(null);
+
+  const handleFileUpload = (e: any) => {
+    setSelectedFiles(e.target.files)
+  };
 
   return (
     <div className='md:ml-3 ml-0'>
@@ -38,7 +45,23 @@ const Index = () => {
         </div>
         <div className='w-full'>
           <label className={inputStyles.label}>Note</label>
-          <textarea rows={5} className={styles.textarea} />
+          <textarea rows={5} className={styles.textarea} maxLength={50} />
+        </div>
+        <div className={styles.divider}> 
+          <hr className='w-full' />
+          <span>OR</span>
+          <hr className='w-full' />
+        </div>
+        <div className={styles.space}>
+          <input type="file" hidden ref={fileInput} 
+            onChange={(e) => handleFileUpload(e)}
+          />
+          <div 
+            className={styles.iconWrapper}
+            onClick={() => fileInput.current.click()}>
+            <CiImport fontSize={18} className='mr-2' />
+            <p className=''>Import</p>
+          </div>
         </div>
         <button type='submit' className={inputStyles.btn}>
           Add expense
