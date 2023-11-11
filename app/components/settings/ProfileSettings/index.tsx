@@ -1,35 +1,54 @@
 import React from 'react'
-import styles from '@/components/CustomStyles';
+import Avatar from '@/assets/images/avatar.jpg';
+import Image from 'next/image';
+import styles from './styles'
 
 const index = () => {
   return (
-    <div className="md:px-4 py-6">
+    <div className={styles.pagePad}>
       <section>
-        <h1 className='font-semibold'>Personal Info</h1>
-        <div className='flex justify-between border-b-2 pb-6 py-2'>
+        <div className={styles.introContainer}>
           <div>
-            <p className='text-sm text-gray-400'>Update your photo and personal details here</p>
+            <h1 className={styles.semibold}>Personal Info</h1>
+            <p className={styles.introParagraph}>Update your photo and personal details here</p>
           </div>
-          <div className='flex md:text-sm text-xs gap-4'>
-            <button className='text-purple-400 rounded-md border-2 px-2 font-semibold'>Cancel</button>
-            <button className='bg-purple-400 text-white rounded-md px-2'>Save Changes</button>
+          <div className={styles.controlContainer}>
+            <button className={styles.button}>Cancel</button>
+            <button className={styles.changeButton}>Save Changes</button>
           </div>
         </div>
-        <div className='md:flex justify-between border-b-2 py-8'>
+        <div className={styles.section}>
           <div>
-            <p className='font-semibold text-sm'>Name</p>
+            <p className={styles.Name}>Name</p>
           </div>
-          <div className='flex md:gap-10 text-sm'>
-            <input className='p-2 md:pr-8 rounded-md bg-gray-200 border border-gray-400' placeholder='first name'/>
-            <input className='p-2 md:pr-8 rounded-md bg-gray-200 border border-gray-400' placeholder='last name'/>
+          <div className={styles.inputContainer}>
+            <input className={styles.input} placeholder='first name'/>
+            <input className={styles.input} placeholder='last name'/>
           </div>
         </div>
-        <div className='flex justify-between border-b-2 py-8'>
+        <div className={styles.emailContainer}>
           <div>
-            <p className='font-semibold text-sm'>Email</p>
+            <p className={styles.email}>Email</p>
           </div>
-          <div className='flex gap-10 text-sm'>
-            <input className='p-2 md:pr-72 rounded-md bg-gray-200 border border-gray-400' placeholder='abdulsamad.raji@cuesoft.io'/>
+          <div className={styles.emailInputContainer}>
+            <input className={styles.emailInput} placeholder='abdulsamad.raji@cuesoft.io'/>
+          </div>
+        </div>
+        <div className={styles.section}>
+          <div className={styles.selfcenter}>
+            <h1 className={styles.semibold}>Your Avatar</h1>
+            <p className={styles.avatar}>This avatar would be displayed on your profile</p>
+          </div>
+          <div className={styles.imageContainer}>
+            <Image
+              className={styles.image}
+              src={Avatar}
+              alt="user-profile"
+            />
+          </div>
+          <div className={styles.imageButtons}>
+            <button className={styles.changeButton}>Upload New</button>
+            <button className={styles.button}>Delete Avatar</button>
           </div>
         </div>
       </section>
