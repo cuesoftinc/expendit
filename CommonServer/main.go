@@ -1,49 +1,39 @@
-package main
+package main 
 
 import (
-	"expendit-server/configs"
-	pb "expendit-server/proto"
-	"expendit-server/services"
-	"expendit-server/utils"
-	"google.golang.org/grpc"
+	"os"
 	"log"
-	"net"
-	"sync"
+	"github.com/gin-gonic/gin"
+    routes	"expendit-server/routes" 
+	"github.com/joho/godotenv"
 )
 
-var wg sync.WaitGroup
-
-
 func main() {
-	// Load environment variables
-	config.LoadEnv()
+	err := godotenv.Load(".env")
 
-	lis, err := net.Listen("tcp", "[::1]:9090")
 	if err != nil {
-		log.Fatalln("App: Failed to start server:", err)
+		log.Fatal("Error loading .env file")
 	}
-	log.Println("Server listening on port 9090")
+	port := os.Getenv("PORT")
 
-	// Create gRPC server
-	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(utils.AuthenticateInterceptor),
-	)
-	service := &services.UserServiceServer{}
+	if port == "" {
+		port = "8000"
+	} 
 
-	// Register the service with the server
-	pb.RegisterUserServiceServer(grpcServer, service)
+	router := gin.New()
+	router.Use(gin.Logger())
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done() // Mark this goroutine as done when it finishes
-		err := grpcServer.Serve(lis)
-		if err != nil {
-			log.Fatalln("gRPC: Failed to start server:", err)
-		}
-	}()
+	
+	routes.AuthRoutes(router)
+	routes.UserRoutes(router)
 
-	log.Println("gRPC server started")
+	router.GET("/api-1", func(c *gin.Context){
+		c.JSON(200, gin.H{"success": "Access granted for api-1"})
+	})
 
-	// Wait for both servers to start before exiting
-	wg.Wait()
+	router.GET("/api-2", func(c *gin.Context){
+		c.JSON(200, gin.H{"success": "Access granted for api-2"})
+	})
+
+	router.Run(":" + port)
 }
