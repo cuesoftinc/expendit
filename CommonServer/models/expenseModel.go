@@ -1,14 +1,15 @@
 package models 
 
 import (
-	"gorm.io/gorm"
+	"time"
+    
 )
 
 type Expense struct {
-	gorm.Model
-	Amount      int    `gorm:"size:255;not null;unique" json:amount`
-    Date        string `gorm:"size:255;not null;unique" json:date`
-    Items       string `gorm:size:255;not null; unique" json:items`
-    Description string  `gorm:size:255;not null; unique" json:description`  
+	Amount      string    `json:"amount" validate:"required,min=1,max=500`
+    Date        time.Time    `json:"date"`
+    Items       string    `json:"items" validate:"required,min=2,max=500`
+    Description string    `json:"description" validate:required,min=2,max=500` 
+    Category     ExpenseCategory 
     UserID      uint
 }
