@@ -8,11 +8,11 @@ import (
 )
 
 func ExpenseRoutes(incomingRoutes *gin.Engine){
-	incomingRoutes.GET("/expense", controller.GetExpense())
-	incomingRoutes.POST("/expense/create_expense",controller.CreateExpense())
+	
+	incomingRoutes.GET("/expense", controller.GetExpenses())
+	incomingRoutes.GET("/expense/:id", controller.GetExpenseById())
+	incomingRoutes.POST("/expense/create",controller.CreateExpense())
 	incomingRoutes.PUT("/expense/:id",controller.UpdateExpense())
 	incomingRoutes.DELETE("/expense/:id",controller.DeleteExpense())
-	incomingRoutes.GET("/expense/:id", controller.ListExpense())
-	incomingRoutes.GET("/expense/:id", controller.GetExpenses())
-
+	incomingRoutes.GET("/expense/search", controller.SearchExpense())
 }
