@@ -150,6 +150,7 @@ func DeleteExpense()gin.HandlerFunc{
 
 func SearchExpense() gin.HandlerFunc {
 	return func(c *gin.Context){
+
     cursor, err := expenseCollection.Find(context.Background(), bson.M{})
      if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
