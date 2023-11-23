@@ -150,14 +150,7 @@ func DeleteExpense()gin.HandlerFunc{
 
 func SearchExpense() gin.HandlerFunc {
 	return func(c *gin.Context){
-	query := c.Query("query")
-	if query == ""{
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Search query is required"})
-		return 
-	}
-
-	filter := bson.M{"items":bson.M{"$regex":primitive.Regex{Pattern:query,Options:"i"}}}
-    cursor, err := expenseCollection.Find(context.Background(), filter)
+    cursor, err := expenseCollection.Find(context.Background(), bson.M{})
      if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
 	    return 

@@ -13,4 +13,5 @@ type Expense struct {
     Description   string               `json:"description" validate:"required,min=2,max=500"` 
     CreatedAt     time.Time            `json:"created_at"`
 	UpdatedAt     time.Time            `json:"updated_at"`  
+    UserID        uint 
 }
