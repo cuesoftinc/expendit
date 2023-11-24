@@ -3,19 +3,29 @@ import styles from './styles';
 
 interface inputProps {
   name: string; 
-  type: string; 
+  type: string;
+  value: string; 
   placeholder: string;
-  handleChange: () => void; 
+  handleChange: (e: any) => void; 
   label: string;
   custom?: boolean;
-}
+};
 
-const Input = ({ name, type, placeholder, handleChange, label, custom }: inputProps) => {
+const Input = ({ 
+name, 
+type, 
+value, 
+placeholder, 
+handleChange, 
+label, 
+custom }: inputProps) => {
+
   return (
     <div className='mt-4 w-full'>
       <label className={styles.label}>{label}</label>
       <input 
         type={type} 
+        value={value}
         name={name} 
         placeholder={placeholder}
         onChange={handleChange}
