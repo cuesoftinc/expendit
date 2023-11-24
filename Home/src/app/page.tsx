@@ -11,7 +11,7 @@ import Services from "@/components/ServiceSection";
 export default function Home() {
   return (
     <Fragment>
-      <HeroSection />
+      <HeroSection data-testid="hero-section" />
       <Services />
       <FeaturesSection />
       <CTASection />

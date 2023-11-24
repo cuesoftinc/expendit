@@ -7,7 +7,7 @@ import styles from '@/components/CustomStyles';
 export default function Home() {
   return (
     <PageLayout>
-      <main className={styles.pagePad}>
+      <main className={styles.pagePad} data-testid="homepage">
         <TopBoard />
         <LinearChart />
         <LatestExpenses />
