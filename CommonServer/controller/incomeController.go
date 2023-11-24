@@ -165,30 +165,3 @@ func SearchIncome() gin.HandlerFunc {
 		c.JSON(http.StatusOK, income)
 	}
 }
-
-// func SearchIncome() gin.HandlerFunc {
-// 	return func(c *gin.Context){
-// 	query := c.Query("query")
-// 	if query == ""{
-// 		c.JSON(http.StatusBadRequest, gin.H{"error":"Search query is required"})
-// 		return 
-// 	}
-
-// 	filter := bson.M{"description", "amount":bson.M{"$regex":primitive.Regex{Pattern:query,Options:"i"}}}
-//     cursor, err := incomeCollection.Find(context.Background(), filter)
-//      if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-// 	    return 
-// 	}
-
-// 	defer cursor.Close(context.Background())
-
-//         var income []models.Income
-// 		if err := cursor.All(context.Background(), &income); err != nil{
-// 			   c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-// 		       return 
-// 			}
-		
-// }
-// }
-

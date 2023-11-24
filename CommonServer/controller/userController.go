@@ -61,21 +61,28 @@ func Signup()gin.HandlerFunc{
 			return 
 		}
 		count, err := userCollection.CountDocuments(ctx, bson.M{"email":user.Email})
-		defer cancel()
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for the user"})
+			defer cancel()
+			return
 		}
+
 		password := HashPassword(*user.Password)
 		user.Password = &password
+
 		count, err = userCollection.CountDocuments(ctx , bson.M{"phone":user.Phone})
-		defer cancel()
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for phone  number"})
+		    defer cancel()
+			return
 		}
 		if count > 0{
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"this email or phone number "})
+			c.JSON(http.StatusInternalServerError, gin.H{"message":"unsuccessful", "error":"this email or phone number "})
+		    defer cancel()
+			return
+		
 		}
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -89,10 +96,11 @@ func Signup()gin.HandlerFunc{
 	   if insertErr != nil{
 		msg := fmt.Sprintf("User item was not created")
 		c.JSON(http.StatusInternalServerError, gin.H{"error":msg})
+		defer cancel()
 		return 
 	   }
 	   defer cancel()
-	   c.JSON(http.StatusOK,resultInsertionNumber)
+	   c.JSON(http.StatusOK,gin.H{"message":"successful", "inserted_id":resultInsertionNumber})
 	}
 }
 
