@@ -61,21 +61,28 @@ func Signup()gin.HandlerFunc{
 			return 
 		}
 		count, err := userCollection.CountDocuments(ctx, bson.M{"email":user.Email})
-		defer cancel()
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for the user"})
+			defer cancel()
+			return
 		}
+
 		password := HashPassword(*user.Password)
 		user.Password = &password
+
 		count, err = userCollection.CountDocuments(ctx , bson.M{"phone":user.Phone})
-		defer cancel()
 		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for phone  number"})
+		    defer cancel()
+			return
 		}
 		if count > 0{
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"this email or phone number "})
+			c.JSON(http.StatusInternalServerError, gin.H{"message":"unsuccessful", "error":"this email or phone number "})
+		    defer cancel()
+			return
+		
 		}
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
@@ -89,10 +96,11 @@ func Signup()gin.HandlerFunc{
 	   if insertErr != nil{
 		msg := fmt.Sprintf("User item was not created")
 		c.JSON(http.StatusInternalServerError, gin.H{"error":msg})
+		defer cancel()
 		return 
 	   }
 	   defer cancel()
-	   c.JSON(http.StatusOK,resultInsertionNumber)
+	   c.JSON(http.StatusOK,gin.H{"message":"successful", "inserted_id":resultInsertionNumber})
 	}
 }
 
@@ -210,3 +218,62 @@ func GetUser()  gin.HandlerFunc{
 		
 	}
 }
+
+
+func ChangePassword() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+		// Get user ID from context
+		userId, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id not found in context"})
+			return
+		}
+
+		var changePasswordRequest models.ChangePasswordRequest
+
+		if err := c.BindJSON(&changePasswordRequest); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Validate the request data
+		validationErr := validate.Struct(changePasswordRequest)
+		if validationErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+			return
+		}
+
+		// Get the user from the database
+		var user models.User
+		err := userCollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&user)
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching user data"})
+			return
+		}
+
+		// Verify the old password
+		passwordIsValid, msg := VerifyPassword(*changePasswordRequest.OldPassword, *user.Password)
+		if !passwordIsValid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": msg})
+			return
+		}
+
+		// Hash the new password
+		newHashedPassword := HashPassword(*changePasswordRequest.NewPassword)
+
+		// Update the user's password in the database
+		update := bson.M{"$set": bson.M{"password": newHashedPassword}}
+		filter := bson.M{"user_id": userId}
+
+		_, err = userCollection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
+	}
+}		
