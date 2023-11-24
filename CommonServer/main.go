@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
     routes	"expendit-server/routes" 
 	"github.com/joho/godotenv"
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
@@ -17,11 +18,13 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "8000"
+		port = "9000"
 	} 
 
 	router := gin.New()
 	router.Use(gin.Logger())
+	router.Use(cors.Default())
+
  
 	
 	routes.AuthRoutes(router)
