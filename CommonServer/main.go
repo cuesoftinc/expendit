@@ -25,10 +25,12 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
+ 
 	
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
-
+    routes.ExpenseRoutes(router)
+	   
 	router.GET("/api-1", func(c *gin.Context){
 		c.JSON(200, gin.H{"success": "Access granted for api-1"})
 	})
