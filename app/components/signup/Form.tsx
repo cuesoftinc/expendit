@@ -1,13 +1,45 @@
 "use client"
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { useGrpcClientMethods } from '@/grpc_methods';
 import styles from './styles';
 import Input  from './Input';
-
+import { signUpForm } from './types';
+import { signUpApi } from '@/API/APIS/authApi';
   
 const Form = () => {
   const { client } = useGrpcClientMethods();
-  const handleChange = () => {};
-  const handleSubmit = () => {};
+
+  const initialForm: signUpForm = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: ""
+  };
+
+  const [ form, setForm ] = useState<signUpForm>(initialForm);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    if(name === "firstName" || name === "lastName"){
+      const pattern = /^([a-zA-Z]*)$/;
+      if(pattern.test(value)){
+        setForm((prev) => ({...prev, [name]: value}))
+        console.log(form)
+      } else{
+        return;
+      }
+    } else{
+      setForm((prev) => ({...prev, [name]: value}))
+      console.log(form)
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    await signUpApi({ form, })
+  };
 
   return (
     <form className={`${styles.formCont}`} onSubmit={handleSubmit}>
@@ -16,25 +48,36 @@ const Form = () => {
       </p>
 
       <Input 
-      label='Full Name'
-      name='firstname'
-      type='text'
-      placeholder='Firstname Lastname'
-      handleChange={handleChange}
+        label='First Name'
+        name='firstName'
+        type='text'
+        value={form.firstName}
+        placeholder='Firstname'
+        handleChange={handleChange}
       />
       <Input 
-      label='Email'
-      name='email'
-      type='email'
-      placeholder='name@email.com'
-      handleChange={handleChange}
+        label='Last Name'
+        name='lastName'
+        type='text'
+        value={form.lastName}
+        placeholder='Lastname'
+        handleChange={handleChange}
       />
       <Input 
-      label='Password'
-      name='Password'
-      type='password'
-      placeholder='*******'
-      handleChange={handleChange}
+        label='Email'
+        name='email'
+        type='email'
+        value={form.email}
+        placeholder='name@email.com'
+        handleChange={handleChange}
+      />
+      <Input 
+        label='Password'
+        name='password'
+        type='password'
+        value={form.password}
+        placeholder='*******'
+        handleChange={handleChange}
       />
 
       <div className='w-full'>
