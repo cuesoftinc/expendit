@@ -1,13 +1,29 @@
 import { API } from '../axiosSetup'
-import { signUpForm } from '@/components/signup/types'
+import { SignUpProps } from '../types';
 
-interface props {
-  form: signUpForm;
-};
+export const signUpApi = async ({ 
+  completeForm, 
+  setFormError, 
+  setFormSuccess, 
+  setFormLoading,
+  router 
+}: SignUpProps) => {
 
-export const signUpApi = async ({ form }: props) => {
-  console.log(form);
-  const response = await API.post('/users/signup', { form });
+  try {
+    const payload = JSON.stringify(completeForm)
+    const {data, status } = await API.post('/users/signup', payload);
 
-  console.log(response);
+    if(data && status === 200){
+      setFormSuccess("Successful!");
+      setFormLoading(false);
+
+      router.push('/login');
+      console.log(data);
+    }
+  } catch (error) {
+    setFormError("an error occurred, try again");
+    setFormLoading(false);
+    console.log(error)
+  }
+  
 }
