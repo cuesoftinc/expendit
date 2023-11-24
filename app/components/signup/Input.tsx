@@ -1,15 +1,6 @@
 "use client"
 import styles from './styles';
-
-interface inputProps {
-  name: string; 
-  type: string;
-  value: string; 
-  placeholder: string;
-  handleChange: (e: any) => void; 
-  label: string;
-  custom?: boolean;
-};
+import { inputProps } from './types';
 
 const Input = ({ 
 name, 
@@ -28,6 +19,7 @@ custom }: inputProps) => {
         value={value}
         name={name} 
         placeholder={placeholder}
+        autoComplete="off"
         onChange={handleChange}
         className={styles.input(custom)}
       />
