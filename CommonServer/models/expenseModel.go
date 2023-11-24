@@ -1,14 +1,16 @@
 package models 
 
 import (
-	"gorm.io/gorm"
+	"time"
+    "go.mongodb.org/mongo-driver/bson/primitive" 
 )
 
 type Expense struct {
-	gorm.Model
-	Amount      int    `gorm:"size:255;not null;unique" json:amount`
-    Date        string `gorm:"size:255;not null;unique" json:date`
-    Items       string `gorm:size:255;not null; unique" json:items`
-    Description string  `gorm:size:255;not null; unique" json:description`  
-    UserID      uint
+    ID            primitive.ObjectID   `bson:"_id"`
+	Amount        float64              `json:"amount" validate:"required,min=1,max=500"`
+    Date          string               `json:"date"`
+    Items         string               `json:"items" validate:"required,min=2,max=500"`
+    Description   string               `json:"description" validate:"required,min=2,max=500"` 
+    CreatedAt     time.Time            `json:"created_at"`
+	UpdatedAt     time.Time            `json:"updated_at"`  
 }

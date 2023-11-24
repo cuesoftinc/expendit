@@ -137,6 +137,10 @@ func Login() gin.HandlerFunc{
 		}
 }
 
+
+
+		
+
 func  GetUsers()  gin.HandlerFunc{
 	return func (c *gin.Context){
 	if err := helper.CheckUserType(c, "ADMIN"); err != nil{
@@ -156,12 +160,12 @@ func  GetUsers()  gin.HandlerFunc{
 
 		startIndex := (page - 1 ) * recordPerPage
 		startIndex, err = strconv.Atoi(c.Query("startIndex"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid value for startIndex"})
-			return
-		}
-		matchStage := bson.D{{Key:"$match",Value: bson.D{{}}}}
-		groupStage := bson.D{{Key: "$group", Value: bson.D{
+		// if err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid value for startIndex"})
+		// 	return
+		// }
+		matchStage := bson.D{{Key:"$match", Value: bson.D{{}}}}
+		groupStage := bson.D{{Key:"$group", Value: bson.D{
 			        {Key: "_id", Value: bson.D{{Key: "_id",Value: "null"}}},
 			 {Key:"total_count", Value: bson.D{{Key:"$sum",Value: 1}}},
 			 {Key: "data", Value: bson.D{{Key:"$push", Value:"$$ROOT"}}}}}}
@@ -169,7 +173,7 @@ func  GetUsers()  gin.HandlerFunc{
 				{Key:"$project",Value: bson.D{
 					{Key:"_id",Value: 0},
 					{Key:"total_count",Value:1},
-					{Key: "user_items", Value: bson.D{{Key:"$sliValue: ce", Value: []interface{}{"$data",startIndex, recordPerPage}}}},}}}
+					{Key: "user_items", Value: bson.D{{Key:"$slice", Value: []interface{}{"$data",startIndex, recordPerPage}}}},}}}
 		       result, err := userCollection.Aggregate(ctx, mongo.Pipeline{
 				   matchStage, groupStage, projectStage})
 				defer cancel()
