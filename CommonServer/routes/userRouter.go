@@ -9,6 +9,8 @@ import (
 
 func UserRoutes(incomingRoutes *gin.Engine){
 	incomingRoutes.Use(middleware.Authenticate())
+	incomingRoutes.Use(middleware.AuthMiddleware())
 	incomingRoutes.GET("/users",controller.GetUsers())
 	incomingRoutes.GET("/users/:user_id",controller.GetUser())
+	incomingRoutes.PUT("users/change-password", controller.ChangePassword())
 }
