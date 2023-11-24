@@ -218,3 +218,62 @@ func GetUser()  gin.HandlerFunc{
 		
 	}
 }
+
+
+func ChangePassword() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+		// Get user ID from context
+		userId, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id not found in context"})
+			return
+		}
+
+		var changePasswordRequest models.ChangePasswordRequest
+
+		if err := c.BindJSON(&changePasswordRequest); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Validate the request data
+		validationErr := validate.Struct(changePasswordRequest)
+		if validationErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+			return
+		}
+
+		// Get the user from the database
+		var user models.User
+		err := userCollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&user)
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching user data"})
+			return
+		}
+
+		// Verify the old password
+		passwordIsValid, msg := VerifyPassword(*changePasswordRequest.OldPassword, *user.Password)
+		if !passwordIsValid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": msg})
+			return
+		}
+
+		// Hash the new password
+		newHashedPassword := HashPassword(*changePasswordRequest.NewPassword)
+
+		// Update the user's password in the database
+		update := bson.M{"$set": bson.M{"password": newHashedPassword}}
+		filter := bson.M{"user_id": userId}
+
+		_, err = userCollection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
+	}
+}		
