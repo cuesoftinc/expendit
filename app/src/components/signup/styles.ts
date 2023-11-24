@@ -14,8 +14,8 @@ const styles = {
   btn: 'rounded-md py-4 text-center bg-secondary hover:opacity-90 text-white w-full',
 
   // Input Styles --------------
-  label: 'my-3 block font-bold tracking-widest',
-  input: (cst?: boolean) => `outline-none px-4 py-4 w-full ${cst && 'shadow-sm border-black/80 border-[1px]'} bg-grayTheme rounded-lg focus:border-2`,
+  label: 'my-3 block font-bold tracking-widest md:text-base text-sm',
+  input: (cst?: boolean) => `outline-none px-4 py-4 w-full ${cst && 'shadow-sm border-black/80 border-[1px]'} bg-grayTheme rounded-lg focus:border-2 md:text-base text-sm`,
 };
 
 export default styles;
