@@ -17,3 +17,17 @@ export interface SignUpProps {
   setFormLoading: Dispatch<SetStateAction<boolean>>;
   router: AppRouterInstance;
 };
+
+export interface SignInPayload {
+  Email: string;
+  Password: string;
+  User_type?: string;
+}
+
+export interface SignInProps {
+  completeForm: SignInPayload;
+  setFormError: Dispatch<SetStateAction<string>>;
+  setFormSuccess: Dispatch<SetStateAction<string>>;
+  setFormLoading: Dispatch<SetStateAction<boolean>>;
+  router: AppRouterInstance;
+};
