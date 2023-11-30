@@ -17,7 +17,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
       router.push('/signin');
     }
-  }, [session]);
+  }, [session, router]);
 
   return <>{children}</>;
 };
