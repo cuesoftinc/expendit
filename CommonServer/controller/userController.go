@@ -68,6 +68,12 @@ func Signup()gin.HandlerFunc{
 			return
 		}
 
+		if count > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error":"email already exist, try using another email"})
+			defer cancel()
+			return 
+		}
+
 		password := HashPassword(*user.Password)
 		user.Password = &password
 
@@ -168,10 +174,7 @@ func  GetUsers()  gin.HandlerFunc{
 
 		startIndex := (page - 1 ) * recordPerPage
 		startIndex, err = strconv.Atoi(c.Query("startIndex"))
-		// if err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid value for startIndex"})
-		// 	return
-		// }
+		
 		matchStage := bson.D{{Key:"$match", Value: bson.D{{}}}}
 		groupStage := bson.D{{Key:"$group", Value: bson.D{
 			        {Key: "_id", Value: bson.D{{Key: "_id",Value: "null"}}},
