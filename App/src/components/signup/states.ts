@@ -108,6 +108,9 @@ export const useSignUpCustomState = () => {
     formSuccess,
     formLoading,
     handleChange,
-    handleSubmit
+    handleSubmit,
+    setFormLoading,
+    setFormError,
+    setFormSuccess,
   }
 }
