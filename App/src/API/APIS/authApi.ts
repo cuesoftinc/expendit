@@ -1,6 +1,5 @@
-import { API } from '../axiosSetup'
-import { SignUpProps } from '../types';
-import { SignInProps } from '../types';
+import { API } from '../axiosSetup';
+import { SignUpProps, SignInProps, LogoutProps } from '../types';
 
 export const signUpApi = async ({ 
   completeForm, 
@@ -41,12 +40,15 @@ export const signInApi = async ({
     const payload = JSON.stringify(completeForm)
     const {data, status } = await API.post('/users/signin', payload);
 
-    const jwt = data.ID
-    localStorage.setItem('token', jwt)
-
     if(data && status === 200){
       setFormSuccess("Successful!");
       setFormLoading(false);
+
+      const jwt = data.token;
+      console.log(jwt);
+      localStorage.setItem('Expendit-token', JSON.stringify(jwt));
+      localStorage.setItem('ExpenditLoggedIn', JSON.stringify(true));
+
 
       router.push('/');
       console.log(data);
@@ -57,4 +59,18 @@ export const signInApi = async ({
     console.log(error)
   }
   
+}
+
+export const logoutApi = async ({router, setIsLoading }: LogoutProps) => {
+  try {
+    setIsLoading(true);
+    localStorage.removeItem("Expendit-token");
+    localStorage.removeItem("ExpenditLoggedIn");
+
+    router.push("/signin");
+    setIsLoading(false);
+  } catch (error) {
+    console.log(error);
+    setIsLoading(false);
+  }
 }
