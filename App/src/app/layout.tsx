@@ -2,7 +2,7 @@ import React from 'react';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { HomeProvider, NavProvider, SessionProvider } from '@/context';
-import './globals.css'
+import './globals.css';
 
 export const metadata = {
   title: 'Expendit',
