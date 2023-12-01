@@ -2,17 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { AiOutlinePoweroff, AiOutlineClose } from 'react-icons/ai';
 import { links } from '@/dummy';
-import { useNavContext } from '@/context';
+import { useNavContext, useSession } from '@/context';
 import styles from './styles';
 import Image from 'next/image';
 import Logo from '@/assets/images/logo.png';
+import { logoutApi } from '@/API/APIS/authApi';
 
 const Sidebar = ({ mobile }: { mobile?: boolean}) => {
   const { isNavOpen, setIsNavOpen } = useNavContext();
+  const { setIsLoading } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <div className={styles.container(mobile)}>
@@ -46,7 +49,7 @@ const Sidebar = ({ mobile }: { mobile?: boolean}) => {
         ))}
       </div>
       <div className={styles.logout} 
-        onClick={() => {}}>
+        onClick={async () => await logoutApi({router, setIsLoading })}>
         <AiOutlinePoweroff className='mr-3'/>
         <span>Logout</span>
       </div>
