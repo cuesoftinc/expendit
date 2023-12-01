@@ -1,10 +1,10 @@
 "use client"
 import React, { Fragment } from 'react';
 import styles from './styles';
-import Input  from './Input';
+import Input  from '../signup/Input';
 import LoaderSpinner from '../helpers/LoaderSpinner';
 import Notification from '../helpers/Notification';
-import { useSignUpCustomState } from './states';
+import { useSignInCustomState } from './states';
 import Link from 'next/link'
 import { FcGoogle } from 'react-icons/fc'
   
@@ -16,7 +16,7 @@ const Form = () => {
     formLoading,
     handleChange,
     handleSubmit 
-  } = useSignUpCustomState();
+  } = useSignInCustomState();
 
   return (
     <Fragment>

@@ -2,24 +2,50 @@
 
 import React, { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '@/context/sessionProvider';
+import FullPageLoader from './FullPageLoader';
+import { getLocalStorageItem } from '@/utils/localStorage';
+import { useSession } from '@/context';
 
 interface ProtectedRouteProps {
   children: ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const router = useRouter();
-  const session = useSession();
+  const { isLoading } = useSession();
+
+  const storedValue: string | null = getLocalStorageItem('ExpenditLoggedIn');
+  const isUserLoggedIn: string = storedValue !== null ? JSON.parse(storedValue) : null;
 
   useEffect(() => {
-    if (!session) {
-
+    if (!isUserLoggedIn) {
       router.push('/signin');
     }
-  }, [session, router]);
+  }, [router, isUserLoggedIn]);
 
-  return <>{children}</>;
+  if (
+    !isUserLoggedIn || isLoading 
+  ) return <FullPageLoader />;
+
+  return <>{ children}</>;
 };
 
-export default ProtectedRoute;
+export const PublicRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const router = useRouter();
+  const { isLoading } = useSession();
+
+  const storedValue: string | null = getLocalStorageItem('ExpenditLoggedIn');
+  const isUserLoggedIn: string = storedValue !== null ? JSON.parse(storedValue) : null;
+
+  useEffect(() => {
+    if (isUserLoggedIn) {
+      router.push('/');
+    }
+  }, [router, isUserLoggedIn]);
+
+  if (
+    isUserLoggedIn || isLoading 
+  ) return <FullPageLoader />;
+
+  return <>{ children}</>;
+}

@@ -1,5 +1,6 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import Page from '@/components/signup/Index';
+import { PublicRoute } from '@/components/helpers/RouteProtection';
 
 export const metadata = {
   title: 'Expendit | Sign-up',
@@ -8,9 +9,9 @@ export const metadata = {
 
 const Signup = () => {
   return (
-    <Fragment>
+    <PublicRoute>
       <Page />
-    </Fragment>
+    </PublicRoute>
   )
 }
 

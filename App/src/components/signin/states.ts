@@ -10,7 +10,7 @@ import { signInRequiredFields } from '@/utils/formatSignInForm';
 import { SignInPayload } from '@/API/types';
 
 
-export const useSignUpCustomState = () => {
+export const useSignInCustomState = () => {
   const router = useRouter();
   // const { client } = useGrpcClientMethods();
   const [formError, setFormError] = useState("");

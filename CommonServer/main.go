@@ -29,7 +29,7 @@ func main() {
 	
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
-    routes.ExpenseRoutes(router)
+  routes.ExpenseRoutes(router)
 	routes.IncomeRoutes(router)
 	   
 	router.GET("/api-1", func(c *gin.Context){

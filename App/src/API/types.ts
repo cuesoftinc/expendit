@@ -31,3 +31,8 @@ export interface SignInProps {
   setFormLoading: Dispatch<SetStateAction<boolean>>;
   router: AppRouterInstance;
 };
+
+export interface LogoutProps {
+  router: AppRouterInstance; 
+  setIsLoading: Dispatch<SetStateAction<boolean>>;
+}
