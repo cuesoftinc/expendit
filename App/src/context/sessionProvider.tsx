@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useEffect, ReactNode, useState } from 'react';
+import React, { createContext, useEffect, ReactNode, useState, useContext } from 'react';
 
 export interface SessionProviderProps {
   children: ReactNode;
@@ -23,4 +23,8 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   );
 };
 
-export const useSession = () =>  React.useContext(SessionContext);
+export const useSession = () => {
+  const context = useContext(SessionContext);
+  // if (!context) throw new Error("useSession must be used within a SessionProvider");
+  return context;
+} 

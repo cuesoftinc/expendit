@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useEffect, ReactNode } from 'react';
+import React, { useEffect, ReactNode, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '@/context/sessionProvider';
+import { useSession } from '@/context';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -14,10 +14,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   useEffect(() => {
     if (!session) {
-
-      router.push('/signin');
+      const storedToken = localStorage.getItem('token');
+      if (!storedToken) {
+        router.push('/signin');
+      }
     }
-  }, [session]);
+  }, [session, router]);
 
   return <>{children}</>;
 };
