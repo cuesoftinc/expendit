@@ -14,6 +14,11 @@ const config: Config = {
         grayTheme: "#F7F7F7"
       }
     },
+    screens: {
+      'lg': '912px',
+      'sm': '640px',
+      'md': '768px',
+    }
   },
   plugins: [],
 }

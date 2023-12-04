@@ -23,7 +23,7 @@ const styles = {
   transactionsContainer: 'flex flex-col',
   link: 'cursor-pointer underline hover:text-purpleTheme',
   transactionsHeader: `${genStyles.flexBtw} md:text-base font-semibold sm:text-[0.9rem] text-[0.85rem] text-slate-600 mb-3 bg-grayTheme p-4`,
-  transactionContainer: `${genStyles.flexBtw} md:text-[0.9rem] sm:text-sm text-[0.8rem] mb-3 bg-grayTheme rounded-lg p-4`,
+  transactionContainer: `${genStyles.flexBtw} md:text-[0.9rem] sm:text-sm text-[0.8rem] mb-3 bg-grayTheme rounded-lg p-4 gap-3`,
   text: 'flex-1 flex items-center',
 };
 
