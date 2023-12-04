@@ -7,29 +7,34 @@ import styles from './styles';
 import { expenses } from '@/dummy';
 
 export interface expense {
-  category: String;
-  amount: String;
-  note: String
+  id?: number;
+  category: string;
+  amount: number;
+  note: string;
+  date?: string;
+  history?: boolean;
 };
 
-const Expense = ({ category, amount, note }: expense) => {
+export const Expense = ({ id, category, amount, note, date, history }: expense) => {
   const [ mobile ] = useCustomState();
 
   return (
-    <div 
-      className={styles.transactionContainer}
-    >
+    <div className={styles.transactionContainer}>
       <span className="flex-1">{category}</span>
       <p className={styles.text}>
         <TbCurrencyNaira fontSize={mobile ? 15 : 20} /> 
-        {amount}
+        {amount.toString()}
       </p>
-      <p className="flex-1">{
-        mobile 
-        ? `${note?.slice(0, 20)}...` 
-        : `${note?.slice(0, 35)}...`
+      <p className="flex-1">
+        {!history 
+        ? ( mobile 
+          ? `${note?.slice(0, 20)}...` 
+          : `${note?.slice(0, 35)}...`
+        )
+        : note
         }
       </p>
+      {date && <p className="flex-1 md:text-center text-left">{date}</p>}
     </div>
   )
 };
