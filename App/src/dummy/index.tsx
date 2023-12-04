@@ -1,4 +1,5 @@
 import { expense } from '@/components/home/LatestExpenses';
+import dayjs from "dayjs";
 import { AiOutlineSetting, AiOutlineHistory } from 'react-icons/ai';
 import { BsBoxSeam } from 'react-icons/bs';
 import { FiCreditCard, FiUser, FiBarChart, } from 'react-icons/fi';
@@ -9,11 +10,7 @@ import { TbMoneybag, TbTransferOut, TbReportAnalytics } from 'react-icons/tb';
 
 import { GridColDef } from '@mui/x-data-grid';
 
-
-const day = new Date().getDate();
-const month = new Date().getMonth() + 1; 
-const year = new Date().getFullYear();
-const presentDate = month + '/' + day + '/' + year;
+const presentDate = dayjs().format('MMM D, YYYY h:mm A');
 
 export const links = [
   {
@@ -246,66 +243,68 @@ export const expenseGrid: GridColDef[] = [
   }
 ];
 
-export const expenseRow = [
+export const expenseRow: expense[] = [
   {
     id: 1,
-    Category: 'Food',
-    Amount: 2000,
-    Note: 'I used it to buy Food',
-    Date: presentDate
+    category: 'Food',
+    amount: 2000,
+    note: 'I used it to buy Food',
+    date: presentDate
   },
   {
     id: 2,
-    Category: 'Transportation',
-    Amount: 1500,
-    Note: 'I entered bus to mainland',
-    Date: presentDate
+    category: 'Transport',
+    amount: 1500,
+    note: 'I entered bus to mainland',
+    date: presentDate
   },
   {
     id: 3,
-    Category: 'Groceries',
-    Amount: 5000,
-    Note: 'I visited the mall to get some groceries',
-    Date: presentDate
+    category: 'Groceries',
+    amount: 5000,
+    note: 'I visited the mall to get some groceries',
+    date: presentDate
   },
   {
     id: 4,
-    Category: 'Food',
-    Amount: 2000,
-    Note: 'I used it to buy Food',
-    Date: presentDate
+    category: 'Food',
+    amount: 2000,
+    note: 'I used it to buy Food',
+    date: presentDate
   },
   {
     id: 5,
-    Category: 'Transportation',
-    Amount: 1500,
-    Note: 'I entered bus to mainland',
-    Date: presentDate
+    category: 'Transport',
+    amount: 1500,
+    note: 'I entered bus to mainland',
+    date: presentDate
   },
   {
     id: 6,
-    Category: 'Groceries',
-    Amount: 5000,
-    Note: 'I visited the mall to get some groceries ',
-    Date: presentDate
+    category: 'Groceries',
+    amount: 5000,
+    note: 'I visited the mall to get some groceries ',
+    date: presentDate
   },
 ];
 
 export const expenses: expense[] = [
   {
+    id: 1,
     category: 'Food',
-    amount: '2000',
+    amount: 2000,
     note: 'I used it to buy food'
   },
   {
-    category: 'Transportation',
-    amount: '1500',
+    id: 2,
+    category: 'Transport',
+    amount: 1500,
     note: 'I entered bus to mainland'
   },
   {
+    id: 3,
     category: 'Groceries',
-    amount: '5000',
+    amount: 5000,
     note: 'I visited the mall to get some groceries'
   },
 ];
-

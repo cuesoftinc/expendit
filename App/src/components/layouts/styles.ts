@@ -1,7 +1,7 @@
 import genStyles from '../CustomStyles';
 
 const styles = {
-  container: (mb?: boolean) => `fixed ${mb? 'block w-[80%] bg-white rounded-tr-lg rounded-br-lg ': 'md:block hidden w-[25%]'} h-screen  shadow-xl pl-3`,
+  container: (mb?: boolean) => `fixed ${mb ? 'block sm:w-[45%] w-[80%] bg-white rounded-tr-lg rounded-br-lg ': 'lg:block hidden w-[25%]'} h-screen  shadow-xl pl-3`,
   logout: `flex gap-5 items-center absolute bottom-6 left-2 cursor-pointer ml-3 pl-4 py-3 rounded-lg w-[90%] bg-purpleTheme text-white font-semibold hover:opacity-90`,
   link: (url: string, ln: string) => `flex gap-5 items-center pl-4 py-3 rounded-lg m-2 my-4 hover:bg-purple-200 ${url === ln && 'bg-purpleTheme text-white hover:bg-purpleTheme'}`,
 

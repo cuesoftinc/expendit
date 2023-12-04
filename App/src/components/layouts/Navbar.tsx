@@ -20,7 +20,7 @@ const Navbar = () => {
   return (
     <div className={styles.navCont}>
       <div className={styles.center}>
-        <button className='block md:hidden ml-2 text-purpleTheme' onClick={() => setIsNavOpen(true)}>
+        <button className='block lg:hidden ml-2 text-purpleTheme' onClick={() => setIsNavOpen(true)}>
           <AiOutlineMenu fontSize={25} />
         </button>
         <span><BsSearch className={styles.searchIcon} /></span>
