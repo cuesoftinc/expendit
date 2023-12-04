@@ -36,3 +36,17 @@ export interface LogoutProps {
   router: AppRouterInstance; 
   setIsLoading: Dispatch<SetStateAction<boolean>>;
 }
+
+export interface IncomeProps {
+  completeForm: IncomePayload;
+  setFormError: Dispatch<SetStateAction<string>>;
+  setFormSuccess: Dispatch<SetStateAction<string>>;
+  setFormLoading: Dispatch<SetStateAction<boolean>>;
+};
+
+export interface IncomePayload {
+  Source : string;
+  Amount : string;
+  Date : string;
+  User_type?: string;
+};
