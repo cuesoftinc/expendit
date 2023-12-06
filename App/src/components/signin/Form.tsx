@@ -5,8 +5,8 @@ import Input  from '../signup/Input';
 import LoaderSpinner from '../helpers/LoaderSpinner';
 import Notification from '../helpers/Notification';
 import { useSignInCustomState } from './states';
-import Link from 'next/link'
-import { FcGoogle } from 'react-icons/fc'
+import Link from 'next/link';
+import { FcGoogle } from 'react-icons/fc';
   
 const Form = () => {
   const {
