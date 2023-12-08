@@ -7,6 +7,7 @@ import (
     routes	"expendit-server/routes" 
 	"github.com/joho/godotenv"
 	"github.com/gin-contrib/cors"
+	"expendit-server/middleware"
 )
 
 func main() {
@@ -24,12 +25,12 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
-
  
+   router.Use(middler.Authenticate())
 	
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
-  routes.ExpenseRoutes(router)
+    routes.ExpenseRoutes(router)
 	routes.IncomeRoutes(router)
 	   
 	router.GET("/api-1", func(c *gin.Context){
