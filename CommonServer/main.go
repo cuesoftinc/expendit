@@ -26,7 +26,7 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
  
-   router.Use(middler.Authenticate())
+   router.Use(middleware.Authenticate())
 	
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
