@@ -36,8 +36,6 @@ func GetIncomeById()gin.HandlerFunc {
 }    
 
 
-
-
 func GetIncomes()gin.HandlerFunc{
 	return func(c *gin.Context){
 	cursor, err  := incomeCollection.Find(context.Background(), bson.M{})
