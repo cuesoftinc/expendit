@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { AiOutlineMenu } from 'react-icons/ai';
 import Link from 'next/link';
 import Logo from '@/assets/images/logo2.png';
-import Chart from '@/assets/images/chart4.png';
+import Chart from '@/assets/images/expendit_hero.png';
 import MobileNavbar from './MobileNavbar';
 import { useCustomState } from '@/hooks/responsive';
 
@@ -44,18 +44,22 @@ const HeroSection = () => {
         }
       </nav>
       <div className={styles.heroSection}>
-        <div className='md:w-[55%] w-full'>
+        <div className='lg:w-[55%] w-full'>
           <h1 className={styles.header}>
             Empower Your Finances 
-            <br />with <span className='text-purpleTheme'>Expendit</span>: Expense  
-            <br /> Management Made Simple.
+            <br /> with <span className='text-purpleTheme'>Expendit</span>: 
+            <br />Expense Management 
+            <br /> Made Simple.
           </h1>
           <p className={styles.subtext}>
             Discover a smarter way to manage your money, effortlessly. 
             Whether you&apos;re a budgeting pro or just getting started, 
             Expendit is here to empower you.
           </p>
-          <button type='button' className={styles.btnTwo}>Sign up</button>
+          <div className='flex gap-3 items-center'>
+            <button type='button' className={styles.btnTwo}>sign up</button>
+            <button type='button' className={styles.btnThree}>self-host</button>
+          </div>
         </div>
         <div className={styles.imgContainer}>
           <Image src={Chart} alt='Line Chart' className={styles.img} />

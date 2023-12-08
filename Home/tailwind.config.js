@@ -13,6 +13,12 @@ module.exports = {
         purpleTheme: "#A259FF",
       }
     },
+    screens: {
+      'xl': '1280px',
+      'lg': '912px',
+      'sm': '640px',
+      'md': '768px',
+    }
   },
   plugins: [],
 }
