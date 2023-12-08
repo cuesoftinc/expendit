@@ -11,33 +11,23 @@ import (
 )
 
 
-func Authenticate() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
+func Authenticate() gin.HandlerFunc{
+       return func(c *gin.Context){
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusOK)
-			return
-		}
-
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No Authorization header provided"})
+			// Handle preflight request
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Token") 
+			c.Writer.WriteHeader(http.StatusNoContent)
 			c.Abort()
 			return
 		}
-
-	
-		splitToken := strings.Split(authHeader, " ")
-		if len(splitToken) != 2 || splitToken[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Authorization header format"})
-			c.Abort()
+		clientToken := c.Request.Header.Get("token")
+		if clientToken == ""{
+			c.JSON(http.StatusInternalServerError, gin.H{"error":fmt.Sprintf("No Authorization header provided")})
+		    c.Abort()
 			return
 		}
-
-		clientToken := splitToken[1]
 
 		claims, err := helper.ValidateToken(clientToken)
 		if err != "" {
