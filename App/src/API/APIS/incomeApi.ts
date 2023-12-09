@@ -9,6 +9,7 @@ export const incomeCreateApi = async ({
 } : IncomeProps) => {
   try {
     const payload = JSON.stringify(completeForm)
+    console.log(completeForm)
     const {data, status } = await API.post('/income/create', payload);
 
     if(data && status === 200){

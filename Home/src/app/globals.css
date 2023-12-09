@@ -30,6 +30,22 @@ body {
 }
 
 .card{
+  border-radius: 0.75rem;
+  border: 0.7px solid #DEDDDD;
   background: #FCFCFC;
-  box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.15);
+}
+
+.open-source-card{
+  border-radius: 0.625rem;
+  border: 0.7px solid #DEDDDD;
+  background: #F6EBFF;
+  padding: 2.6185rem 2rem 1.3815rem 1.25rem;
+}
+
+.hero-bg{
+  background-image: url("/hero/Frame1.svg"), url("/hero/Frame2.svg"), url("/hero/Frame3.svg"), url("/hero/Frame4.svg"), url("/hero/Frame5.svg");
+  background-position:left top, center, right top, left bottom, right bottom;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: 100px, 100px, 100px, 100px, 100px;
+  background-origin: content-box;
 }

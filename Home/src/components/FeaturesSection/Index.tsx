@@ -22,7 +22,7 @@ const FeatureCard = ({ heading, subText, icon  }: props) => {
 const FeaturesSection = () => {
   return (
     <section className={styles.sectionContainer} id='features'>
-      <div className='p-6'>
+      <div className=''>
         <h1 className={styles.header}>
           Solutions for Personal and Business Need
         </h1>

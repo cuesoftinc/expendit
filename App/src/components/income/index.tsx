@@ -24,10 +24,10 @@ const Index = () => {
       <form className='md:w-[70%] w-full' onSubmit={handleSubmit}>
         <Input
         label='Income Source'
-        name='amount'
+        name='source'
         type='text'
         placeholder='Your income source'
-        value = {form.amount}
+        value = {form.source}
         handleChange={handleChange}
         custom
         />
