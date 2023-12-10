@@ -8,13 +8,30 @@ import Logo from '@/assets/images/logo2.png';
 import Chart from '@/assets/images/expendit_hero.png';
 import MobileNavbar from './MobileNavbar';
 import { useCustomState } from '@/hooks/responsive';
-
 import styles from './styles';
+
+export const navLinks = [ 
+  {
+    title: 'Home',
+    url: "#home"
+  },
+  {
+    title: 'About us',
+    url: "#about"
+  },
+  {
+    title: 'Services',
+    url: "#services"
+  },
+  {
+    title: 'Contact',
+    url: "#contact"
+  },
+];
 
 const HeroSection = () => {
   const [ openNav, setOpenNav ] = useState<boolean>(false);
   const [ mobile ] = useCustomState(setOpenNav);
-  const navLinks = [ 'Home', 'About us', 'Services', 'Contact'];
 
   return (
     <section className={styles.heroContainer} id='home'>
@@ -26,7 +43,7 @@ const HeroSection = () => {
               <li 
                 className='hover:text-purple-600' 
                 key={index}>
-                <Link href="" >{link}</Link>
+                <Link href={link.url} >{link.title}</Link>
               </li>
             ))}
           </ul>

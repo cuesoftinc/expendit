@@ -1,7 +1,7 @@
 import genStyles from '../CustomStyles';
 
 const styles = {
-  sectionContainer: `${genStyles.pagePad}`,
+  sectionContainer: `${genStyles.pagePad} features-bg`,
   header: `text-center ${genStyles.headerTwo}`,
   subtext: `${genStyles.subtext}`,
   cardsContainer: 'flex gap-5 mt-12 lg:flex-row flex-col',
