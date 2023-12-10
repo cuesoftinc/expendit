@@ -10,7 +10,7 @@ import Phone from '../../assets/images/phone.png';
 
 const Index = () => {
   return (
-    <div className={styles.sectionContainer}>
+    <div className={styles.sectionContainer} id='about'>
       <h1 className={styles.header}>
         Open-source, transparent and 
         <br /> <span className='text-purpleTheme'>Community-driven</span>

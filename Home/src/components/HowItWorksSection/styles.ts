@@ -1,7 +1,7 @@
 import genStyles from '../CustomStyles';
 
 const styles = {
-  sectionContainer: `${genStyles.pagePad} min-h-screen flex justify-center items-center`,
+  sectionContainer: `${genStyles.pagePad} ${genStyles.flexCenter} min-h-screen CTA-bg`,
   center: 'flex justify-center items-center',
   grid: 'grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 mx-auto gap-4',
   cardContainer: 'py-8 px-4 flex-1 min-h-[200px] flex flex-col gap-3',
