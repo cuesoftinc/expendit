@@ -1,69 +1,61 @@
-import styles from './styles'
-import { IoIosLogIn } from 'react-icons/io'
-import {BiSolidReport, BiCategory, BiDollarCircle} from 'react-icons/bi'
-import { MdPersonAddAlt } from 'react-icons/md'
-import {LiaFileInvoiceDollarSolid} from 'react-icons/lia'
+import styles from './styles';
+import Image from 'next/image';
+import User from '../../assets/images/user.png';
+import Log from '../../assets/images/log.png';
+import Dollar from '../../assets/images/dollar.png';
+import Folder from '../../assets/images/folder.png';
+import DollarBook from '../../assets/images/dollarbook.png';
+import RealTime from '../../assets/images/realtime.png';
 
 function HowItWorks() {
+  const grids = [
+    {
+      title: "Create an account",
+      sub_title: "Create an Account by providing your email and choosing a secure password",
+      imgSrc: User,
+    },
+    {
+      title: "Log into your account",
+      sub_title: "With the credentials used in creating an account, log into your account",
+      imgSrc: Log,
+    },
+    {
+      title: "Input your budget",
+      sub_title: "Input the amount of money you intend to spend in a specific period of time",
+      imgSrc: Dollar,
+    },
+    {
+      title: "Customize Expense Categories",
+      sub_title: "Create expense categories unique to you",
+      imgSrc: Folder,
+    },
+    {
+      title: "Input your Expenses",
+      sub_title: "Input an expense that includes date, amount and a category you created earlier",
+      imgSrc: DollarBook,
+    },
+    {
+      title: "View Real-Time Reports",
+      sub_title: "View real-time reports about your expenses based on the data you provided",
+      imgSrc: RealTime,
+    }
+  ]
   return (
-    <section className={`${styles.sectionContainer} min-h-screen flex justify-center items-center`}>
+    <section className={styles.sectionContainer}>
       <div>
         <h2 className={styles.header}>Our Finance Solution Usage Flow</h2>
         <div className={styles.grid}>
-          <div className={styles.cardContainer}>
-            <div>
-              <MdPersonAddAlt className={styles.icon} />
+          {grids.map((grid, index) => (
+            <div className={styles.cardContainer} key={index}>
+              <div>
+                <Image src={grid.imgSrc} alt={`${grid.title} icon`} />
+              </div>
+              <div className="flex flex-col gap-3">
+                <strong className={styles.cardTitle}>{grid.title}</strong>
+                <p className={styles.cardContent}>{grid.sub_title}</p>
+              </div>
             </div>
-            <div className="mt-2">
-              <strong className={styles.cardTitle}>Create an account</strong>
-              <p className={styles.cardContent}>Create an account by providing your email and choosing a secure passwords</p>
-            </div>
-          </div>
-          <div className={styles.cardContainer}>
-            <div>
-              <IoIosLogIn className={styles.icon} />
-            </div>
-            <div>
-              <strong className={styles.cardTitle}>Log into your account</strong>
-              <p className={styles.cardContent}>With the credentials used in creating an account, log into your account</p>
-            </div>
-          </div>
-          <div className={styles.cardContainer}>
-            <div>
-              <BiDollarCircle className={styles.icon} />
-            </div>
-            <div>
-              <strong className={styles.cardTitle}>Input your budget</strong>
-              <p className={styles.cardContent}>Input the amount of money you intend to spend in a specific period of time</p>
-            </div>
-          </div>
-          <div className={styles.cardContainer}>
-            <div>
-              <BiCategory className={styles.icon} />
-            </div>
-            <div>
-              <strong className={styles.cardTitle}>Customize Expense Categories</strong>
-              <p className={styles.cardContent}>Create expense categories unique to you</p>
-            </div>
-          </div>
-          <div className={styles.cardContainer}>
-            <div>
-              <LiaFileInvoiceDollarSolid className={styles.icon} />
-            </div>
-            <div>
-              <strong className={styles.cardTitle}>Input your Expenses</strong>
-              <p className={styles.cardContent}>Input an expense that includes date, amount and a category yoou created earlier</p>
-            </div>
-          </div>
-          <div className={styles.cardContainer}>
-            <div>
-              <BiSolidReport className={styles.icon} />
-            </div>
-            <div>
-              <strong className={styles.cardTitle}>View Real-Time Reports</strong>
-              <p className={styles.cardContent}>View real-time reports about your expenses based on the data you provided</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>

@@ -4,16 +4,16 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const API = axios.create({
   baseURL: BASE_URL,
-})
+});
 
-// API.interceptors.request.use((req) => {
-//   if(localStorage.getItem('fintrust-token')){
-//     req.headers.authorization = `Bearer ${JSON.parse(localStorage.getItem('fintrust-token'))}`;
-//   }
+API.interceptors.request.use((req) => {
+  const token = localStorage.getItem('Expendit-token') || null;
+  if (token) {
+    console.log(token)
+    req.headers["Token"] = `${JSON.parse(token)}`;
+  }
 
-//   return req;
-// });
-
-
+  return req;
+});
 
 export { API };
