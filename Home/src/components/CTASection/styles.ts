@@ -1,7 +1,7 @@
 import genStyles from '../CustomStyles';
 
 const styles = {
-  sectionContainer: `${genStyles.pagePad} min-h-screen`,
+  sectionContainer: `${genStyles.pagePad} min-h-screen CTA-bg`,
   sectionHeader: `${genStyles.header} text-center`,
   subtext: `${genStyles.subtext} text-center`,
   featuresContainer: 'flex lg:flex-row flex-col mt-[7%] gap-12',

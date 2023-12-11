@@ -2,8 +2,7 @@ package middleware
 
 
 import (
-	// "fmt"
-	"strings"
+	"fmt"
 	"net/http"
 	
 	helper "expendit-server/helpers"
@@ -13,16 +12,17 @@ import (
 
 func Authenticate() gin.HandlerFunc{
        return func(c *gin.Context){
-		if c.Request.Method == "OPTIONS" {
-			// Handle preflight request
-			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Token") 
-			c.Writer.WriteHeader(http.StatusNoContent)
-			c.Abort()
-			return
-		}
-		clientToken := c.Request.Header.Get("token")
+		// if c.Request.Method == "OPTIONS" {
+		// 	// Handle preflight request
+		// 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		// 	c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+		// 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Token") 
+		// 	c.Writer.WriteHeader(http.StatusNoContent)
+		// 	c.Abort()
+		// 	return
+		// }
+
+		clientToken := c.Request.Header.Get("Token")
 		if clientToken == ""{
 			c.JSON(http.StatusInternalServerError, gin.H{"error":fmt.Sprintf("No Authorization header provided")})
 		    c.Abort()
