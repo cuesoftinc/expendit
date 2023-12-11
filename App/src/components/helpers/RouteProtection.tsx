@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, ReactNode, useState } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import FullPageLoader from './FullPageLoader';
 import { getLocalStorageItem } from '@/utils/localStorage';
