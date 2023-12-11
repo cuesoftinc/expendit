@@ -3,6 +3,7 @@
 import React, { Dispatch, SetStateAction } from 'react';
 import Link from 'next/link';
 import { AiOutlineClose } from 'react-icons/ai';
+import { navLinks } from './Index';
 import styles from './styles';
 
 interface Props {
@@ -10,8 +11,6 @@ interface Props {
 };
 
 const MobileNavbar = ({ setOpenNav }: Props) => {
-  const navLinks = [ 'Home', 'About us', 'Services'];
-
   const handleClick = () => {
     setOpenNav(false);
   };
@@ -32,7 +31,7 @@ const MobileNavbar = ({ setOpenNav }: Props) => {
               className='hover:text-purple-600' 
               key={index}
               onClick={handleClick}>
-              <Link href="" >{link}</Link>
+              <Link href={link.url} >{link.title}</Link>
             </li>
           ))}
         </ul>

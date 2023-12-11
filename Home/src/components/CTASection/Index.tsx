@@ -36,7 +36,7 @@ const CTASection = () => {
             Helping you to make sound financial decisions
           </h1>
           <p className={styles.subtextTwo}>
-            We help put you in control of your financial journey through:
+            We help put you in control of your financial journey <br /> through:
           </p>
           <div className={styles.features}>
             {
