@@ -5,7 +5,7 @@ import {MdEmail} from 'react-icons/md'
 
 const Contact = () => {
   return (
-    <div className= {styles.sectionContainer}>
+    <div className= {styles.sectionContainer} id='contact'>
       <div className={styles.innerContainer}>
         <div className={styles.grid}>
           <div className='md:ml-0 ml-2'>

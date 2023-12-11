@@ -7,12 +7,10 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((req) => {
-  if (localStorage.getItem('Expendit-token')) {
-    const token = localStorage.getItem('Expendit-token');
-    if (token !== null) {
-      console.log(token)
-      req.headers["Authorization"] = `Bearer ${JSON.parse(token)}`;
-    }
+  const token = localStorage.getItem('Expendit-token') || null;
+  if (token) {
+    console.log(token)
+    req.headers["Token"] = `${JSON.parse(token)}`;
   }
 
   return req;

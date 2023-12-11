@@ -7,7 +7,7 @@ import (
     routes	"expendit-server/routes" 
 	"github.com/joho/godotenv"
 	"github.com/gin-contrib/cors"
-	"expendit-server/middleware"
+	// "expendit-server/middleware"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
  
-   router.Use(middleware.Authenticate())
+  //  router.Use(middleware.Authenticate())
 	
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)

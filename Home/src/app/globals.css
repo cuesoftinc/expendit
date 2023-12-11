@@ -43,9 +43,36 @@ body {
 }
 
 .hero-bg{
-  background-image: url("/hero/Frame1.svg"), url("/hero/Frame2.svg"), url("/hero/Frame3.svg"), url("/hero/Frame4.svg"), url("/hero/Frame5.svg");
-  background-position:left top, center, right top, left bottom, right bottom;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-size: 100px, 100px, 100px, 100px, 100px;
-  background-origin: content-box;
+  background-image: url("/Group1.png");
+  background-position:center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.services-bg{
+  background-image: url("/Group2.png");
+  background-position:center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.features-bg{
+  background-image: url("/Group3.png");
+  background-position:center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.CTA-bg{
+  background-image: url("/Group4.png");
+  background-position:center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.open-source-bg{
+  background-image: url("/Group5.png");
+  background-position:center;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
