@@ -50,3 +50,15 @@ export interface IncomePayload {
   Date : string;
   User_type?: string;
 };
+
+export interface PasswordChangeProps {
+  completeForm: PasswordPayload;
+  setFormError: Dispatch<SetStateAction<string>>;
+  setFormSuccess: Dispatch<SetStateAction<string>>;
+  setFormLoading: Dispatch<SetStateAction<boolean>>;
+};
+
+export interface PasswordPayload {
+  OldPassword : string;
+  NewPassword : string;
+}

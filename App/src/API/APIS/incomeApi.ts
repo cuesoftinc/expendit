@@ -14,12 +14,9 @@ export const incomeCreateApi = async ({
     if(data && status === 200){
       setFormSuccess("Successful!");
       setFormLoading(false);
-
-      console.log(data);
     }
   } catch (error) {
     setFormError("an error occurred, try again");
     setFormLoading(false);
-    console.log(error)
   }
 }
