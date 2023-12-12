@@ -23,45 +23,45 @@ const Index = () => {
       {formSuccess !== "" && <Notification msg={formSuccess} type="success" />}
       <form className='md:w-[70%] w-full' onSubmit={handleSubmit}>
         <Input
-        label='Income Source'
-        name='source'
-        type='text'
-        placeholder='Your income source'
-        value = {form.source}
-        handleChange={handleChange}
-        custom
+          label='Income Source'
+          name='source'
+          type='text'
+          placeholder='Your income source'
+          value = {form.source}
+          handleChange={handleChange}
+          custom
         />
         <Input
-        label='Amount'
-        name='amount'
-        type='text'
-        placeholder='Your expense amount'
-        value = {form.amount}
-        handleChange={handleChange}
-        custom
+          label='Amount'
+          name='amount'
+          type='text'
+          placeholder='Your expense amount'
+          value = {form.amount}
+          handleChange={handleChange}
+          custom
         />
         <Input 
-        label='Date'
-        name='date'
-        type='date'
-        placeholder='Expense date'
-        value = {form.date}
-        handleChange={handleChange}
-        custom
+          label='Description'
+          name='description'
+          type='text'
+          placeholder='write a short description'
+          value = {form.description}
+          handleChange={handleChange}
+          custom
         />
         <button 
-            type='submit' 
-            className={styles.btn} 
-            disabled={formLoading}
-          >
-            { formLoading 
-              ? <LoaderSpinner 
-                style='spin' 
-                variant='spin-small' 
-              /> 
-              :  "Add income"
-            }
-          </button>
+          type='submit' 
+          className={styles.btn} 
+          disabled={formLoading}
+      >
+          { formLoading 
+            ? <LoaderSpinner 
+              style='spin' 
+              variant='spin-small' 
+            /> 
+            :  "Add income"
+          }
+        </button>
       </form>
     </div>
   )
