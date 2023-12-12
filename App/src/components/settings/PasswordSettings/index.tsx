@@ -14,7 +14,7 @@ const index = () => {
     handleChange,
     handleSubmit,
     handleCancel,
-    isSubmitDisabled } = usePasswordCustomState()
+  } = usePasswordCustomState()
   return (
     <div className={styles.pagePad}>
       <section>
@@ -26,8 +26,7 @@ const index = () => {
           <div className={styles.buttonContainer}>
             <button className={styles.button} onClick={handleCancel}>Cancel</button>
             <button 
-            className={styles.changeButton} 
-            disabled={isSubmitDisabled} 
+            className={styles.changeButton}  
             onClick={handleSubmit}>
             { formLoading 
               ? <LoaderSpinner 

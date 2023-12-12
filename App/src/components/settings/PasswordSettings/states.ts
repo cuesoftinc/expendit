@@ -88,7 +88,6 @@ export const usePasswordCustomState = () => {
     setForm(initialForm);
   };
 
-  const isSubmitDisabled = form.new_password !== form.confirm_password || formLoading;
 
   return {
     form,
@@ -98,6 +97,5 @@ export const usePasswordCustomState = () => {
     handleChange,
     handleSubmit,
     handleCancel,
-    isSubmitDisabled
   }
 }
