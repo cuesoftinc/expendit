@@ -13,6 +13,7 @@ const index = () => {
     formLoading,
     handleChange,
     handleSubmit,
+    handleCancel,
     isSubmitDisabled } = usePasswordCustomState()
   return (
     <div className={styles.pagePad}>
@@ -23,15 +24,7 @@ const index = () => {
             <p className={styles.paragraph}>Update your password here</p>
           </div>
           <div className={styles.buttonContainer}>
-            <button className={styles.button}>
-            { formLoading 
-              ? <LoaderSpinner 
-                style='spin' 
-                variant='spin-small' 
-              /> 
-              :  "Cancel" 
-            }
-            </button>
+            <button className={styles.button} onClick={handleCancel}>Cancel</button>
             <button 
             className={styles.changeButton} 
             disabled={isSubmitDisabled} 

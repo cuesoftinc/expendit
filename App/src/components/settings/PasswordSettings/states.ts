@@ -25,6 +25,12 @@ export const usePasswordCustomState = () => {
     setForm((prev) => ({...prev, [name]: value}))
   };
 
+  const handleCancel = (e: FormEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+
+    setForm(initialForm);
+  }
+
   useEffect(() => {
     const timerId = setTimeout(() => {
       if (formError !== "") {
@@ -91,6 +97,7 @@ export const usePasswordCustomState = () => {
     formLoading,
     handleChange,
     handleSubmit,
+    handleCancel,
     isSubmitDisabled
   }
 }
