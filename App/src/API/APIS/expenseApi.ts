@@ -23,8 +23,15 @@ export const expenseCreateApi = async ({
 }
 
 export const expenseGetApi = async () => {
-  const response = await API.get('/expense/search');
-  console.log(response)
+  try {
+    const { data } = await API.get('/expense');
+
+    if(data){
+      return data;
+    }
+  } catch (error) {
+    
+  }
 }
 
 export const expenseDeleteApi = async () => {

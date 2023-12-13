@@ -3,7 +3,7 @@ import { ExpensePayload } from "@/API/types";
 
 export function formatExpense( obj: expenseFormProps ): ExpensePayload {
   return {
-    Amount: obj.amount,
+    Amount: parseInt(obj.amount),
     Date: obj.date,
     Category: obj.category,
     Note: obj.note,

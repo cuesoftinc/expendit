@@ -71,7 +71,7 @@ export interface ExpenseProps {
 };
 
 export interface ExpensePayload {
-  Amount : string;
+  Amount : number;
   Date : string;
   Category : string;
   Note : string;
