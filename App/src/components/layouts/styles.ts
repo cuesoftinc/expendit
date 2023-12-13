@@ -16,6 +16,10 @@ const styles = {
   navInput: 'outline-none bg-grayTheme pl-8 px-3 py-2 rounded-md md:text-base text-sm',
   navBtn: 'md:flex items-center gap-3 rounded-md p-2 px-3 bg-grayTheme hover:opacity-80 shadow-sm hidden',
   profileCont: 'flex items-center p-1 rounded-full bg-grayTheme hover:opacity-80 gap-2 cursor-pointer',
+  imgCont: 'w-[45px] h-[45px] rounded-full',
+  text: 'font-semibold max-w-[150px] md:block hidden',
+  imgText: `${genStyles.flexCenter} object-contain rounded-full bg-purple-200 text-center w-full h-full font-bold text-lg`,
+  menu: 'block lg:hidden ml-2 text-purpleTheme',
 
   // UserProfile Styles --------
   userProfileCont: "nav-item absolute right-1 top-16 bg-white p-8 rounded-lg w-96 z-10",
