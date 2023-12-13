@@ -20,7 +20,7 @@ const Settings = () => {
     <PageLayout>
       <main className={styles.pagePad}>
         <h1 className='text-3xl font-semibold mb-2'>Settings</h1>
-        <section>
+        <section className='bg-white rounded-md p-3 py-6'>
           <Tabs>
             <TabList className="md:mx-4 font-semibold flex gap-6 border-b-2">
               <Tab 
