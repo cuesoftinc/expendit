@@ -106,7 +106,7 @@ func UpdateIncome()gin.HandlerFunc{
 
 	updatedIncome.UpdatedAt = time.Now()
 
-	result, err := expenseCollection.UpdateOne(
+	result, err := incomeCollection.UpdateOne(
 		   context.Background(),
 		   bson.M{"id":objectID},
 		   bson.D{{Key: "$set", Value: updatedIncome}},
@@ -168,3 +168,44 @@ func SearchIncome() gin.HandlerFunc {
 		c.JSON(http.StatusOK, income)
 	}
 }
+
+
+
+func GetMonthlyIncome() gin.HandlerFunc {
+	return func(c *gin.Context){
+		pipeline := bson.A{
+			bson.D{
+			  { Key: "$group",Value: bson.D{
+				{Key: "_id", Value: bson.D{
+					{Key: "$month", Value: "$createdAt"},
+                   
+				}},
+				{Key: "totalIncome", Value: bson.D{
+					{Key: "sum", Value: "$amount"},
+				}},
+			   }},
+		},
+		bson.D{
+			{Key:"$sort",Value: bson.D{
+				{Key: "_id", Value: 1},
+			}},
+		},
+	}
+
+	cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
+		return 
+	}
+	defer cursor.Close(context.Background())
+
+	var aggregateIncome  []models.Income 
+	if err := cursor.All(context.Background(), &aggregateIncome); err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
+		return 
+	}
+      c.JSON(http.StatusOK, aggregateIncome)
+	
+  }
+}
+
