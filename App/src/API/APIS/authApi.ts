@@ -1,5 +1,5 @@
 import { API } from '../axiosSetup';
-import { SignUpProps, SignInProps, LogoutProps } from '../types';
+import { SignUpProps, SignInProps, LogoutProps, PasswordChangeProps } from '../types';
 
 export const signUpApi = async ({ 
   completeForm, 
@@ -45,18 +45,15 @@ export const signInApi = async ({
       setFormLoading(false);
 
       const jwt = data.token;
-      console.log(jwt);
       localStorage.setItem('Expendit-token', JSON.stringify(jwt));
       localStorage.setItem('ExpenditLoggedIn', JSON.stringify(true));
 
 
       router.push('/');
-      console.log(data);
     }
   } catch (error) {
     setFormError("an error occurred, try again");
     setFormLoading(false);
-    console.log(error)
   }
   
 }
@@ -73,4 +70,26 @@ export const logoutApi = async ({router, setIsLoading }: LogoutProps) => {
     console.log(error);
     setIsLoading(false);
   }
+}
+
+export const passwordChangeApi = async ({ 
+  completeForm, 
+  setFormError, 
+  setFormSuccess, 
+  setFormLoading,
+}: PasswordChangeProps) => {
+
+  try {
+    const payload = JSON.stringify(completeForm)
+    const {data, status } = await API.post('/users/change-password', payload);
+
+    if(data && status === 200){
+      setFormSuccess("Successful!");
+      setFormLoading(false);
+    }
+  } catch (error) {
+    setFormError("an error occurred, try again");
+    setFormLoading(false);
+  }
+  
 }
