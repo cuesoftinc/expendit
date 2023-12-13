@@ -4,16 +4,15 @@ import { IncomePayload } from "@/API/types";
 export function formatIncome( obj: incomeFormProps ): IncomePayload {
   return {
     Source: obj.source,
-    Amount: obj.amount,
-    Date: obj.date,
-    User_type: "USER"
+    Amount: parseInt(obj.amount),
+    Description: obj.description,
   };
 }
 
 export const incomeRequiredFields = [
   "Source",
   "Amount",
-  "Date",
+  "Description",
 ];
 
 

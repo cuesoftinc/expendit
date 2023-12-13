@@ -46,8 +46,8 @@ export interface IncomeProps {
 
 export interface IncomePayload {
   Source : string;
-  Amount : string;
-  Date : string;
+  Amount : number;
+  Description : string;
   User_type?: string;
 };
 
