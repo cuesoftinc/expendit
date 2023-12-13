@@ -62,3 +62,18 @@ export interface PasswordPayload {
   OldPassword : string;
   NewPassword : string;
 }
+
+export interface ExpenseProps {
+  completeForm: ExpensePayload;
+  setFormError: Dispatch<SetStateAction<string>>;
+  setFormSuccess: Dispatch<SetStateAction<string>>;
+  setFormLoading: Dispatch<SetStateAction<boolean>>;
+};
+
+export interface ExpensePayload {
+  Amount : string;
+  Date : string;
+  Category : string;
+  Note : string;
+  User_type?: string;
+};
