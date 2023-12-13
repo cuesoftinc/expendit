@@ -1,29 +1,30 @@
-import { ChangeEvent, useState, useEffect, FormEvent } from "react";
+import { ChangeEvent, useState, useEffect, FormEvent, useRef } from "react";
 import { expenseFormProps } from "./types";
-import { expenseCreateApi } from "@/API/APIS/expenseApi";
-import { expenseRequiredFields, formatExpense } from "@/utils/formatExpenseForm";
-import { ExpensePayload } from "@/API/types";
-
 
 export const useExpenseCustomState = () => {
-
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
+  const fileInput = useRef<any>(null);
+  const [ selectedFiles, setSelectedFiles ] = useState(null);
+
   const initialForm: expenseFormProps = {
     amount: "",
-    date: "",
     category: "",
     note: ""
   };
   const [ form, setForm ] = useState<expenseFormProps>(initialForm);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
+    const numericValue = value.replace(/[^0-9]/g, '');
+    setForm((prev) => ({...prev, [name]: numericValue}));
+  };
 
-    setForm((prev) => ({...prev, [name]: value}))
-  }
+  const handleFileUpload = (e: any) => {
+    setSelectedFiles(e.target.files)
+  };
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -43,28 +44,8 @@ export const useExpenseCustomState = () => {
     };
   }, [formLoading, formError, formSuccess]);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const completeForm = formatExpense(form);
-    const isAnyRequiredFieldEmpty = expenseRequiredFields.some(
-      (field) =>!completeForm[field as keyof ExpensePayload],
-    );
-
-    if(isAnyRequiredFieldEmpty) {
-      setFormError("Please fill out all fields!");
-      setFormLoading(false);
-      return;
-    };
-
-    await expenseCreateApi({ 
-      completeForm,
-      setFormError, 
-      setFormSuccess, 
-      setFormLoading,
-    });
-
-    setForm(initialForm);
+  const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
+    
   }
 
   return {
@@ -72,6 +53,10 @@ export const useExpenseCustomState = () => {
     formError,
     formSuccess,
     formLoading,
+    fileInput,
+    selectedFiles,
+    setSelectedFiles,
+    handleFileUpload,
     handleChange,
     handleSubmit
   }
