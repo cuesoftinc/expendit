@@ -14,7 +14,7 @@ export const useIncomeCustomState = () => {
   const initialForm: incomeFormProps = {
     source: "",
     amount: "",
-    date: ""
+    description: ""
   };
   const [ form, setForm ] = useState<incomeFormProps>(initialForm);
 
