@@ -9,10 +9,9 @@ export const incomeCreateApi = async ({
 } : IncomeProps) => {
   try {
     const payload = JSON.stringify(completeForm)
-    console.log(completeForm)
-    const {data, status } = await API.post('/income/create', payload);
+    const { data, status } = await API.post('/income/create', payload);
 
-    if(data && status === 200){
+    if(data && status === 201){
       setFormSuccess("Successful!");
       setFormLoading(false);
 
@@ -22,5 +21,19 @@ export const incomeCreateApi = async ({
     setFormError("an error occurred, try again");
     setFormLoading(false);
     console.log(error)
+  }
+}
+
+export const getIncomeApi = async () => {
+  try {
+    const { data, status } = await API.get('/income');
+
+    if(data){
+      console.log(data);
+
+      return data;
+    }
+  } catch (error) {
+    
   }
 }

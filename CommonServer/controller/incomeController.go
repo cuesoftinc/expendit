@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"context"
 	"net/http"
 	"time"
@@ -58,29 +59,35 @@ func GetIncomes()gin.HandlerFunc{
 }
 
 
-func CreateIncome()gin.HandlerFunc{
-	return func(c *gin.Context){
-	var income models.Income
+func CreateIncome() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var income models.Income
 
-	if err := c.ShouldBindJSON(&income); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-		return 
+		if err := c.ShouldBindJSON(&income); err != nil {
+			fmt.Printf("Error during JSON binding: %s\n", err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind JSON data", "details": err.Error()})
+			return
+		}
+
+		uid, exists := c.Get("uid")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return
+		}
+
+		income.UserID = uid.(string)
+		income.ID = primitive.NewObjectID()
+		income.CreatedAt = time.Now()
+		income.UpdatedAt = time.Now()
+
+		_, err := incomeCollection.InsertOne(context.Background(), income)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		c.JSON(http.StatusCreated, income)
 	}
-
-	income.ID = primitive.NewObjectID()
-	income.CreatedAt = time.Now()
-	income.UpdatedAt = time.Now()
-
-
-	_, err := incomeCollection.InsertOne(context.Background(), income)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		  return 
-	}
-	c.JSON(http.StatusCreated,income)
 }
-}
-
 
 func UpdateIncome()gin.HandlerFunc{
 	return  func(c *gin.Context){

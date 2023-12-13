@@ -1,9 +1,10 @@
 "use client"
 
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import { TbCurrencyNaira } from 'react-icons/tb';
 // import { useCustomState } from '@/hooks/responsive';
 import { summaryData } from '@/dummy';
+import { getIncomeApi } from '@/API/APIS/incomeApi';
 import Slider from  "react-slick";
 import styles from './styles';
 
@@ -37,52 +38,51 @@ const Board = ({icon, title, amount, percentage, chart}: boardProps) => {
   )
 };
 
-export default class  TopBoard extends Component{
-  render (){
-    var settings = {
-      dots: false,
-      infinite: true,
-      slidesToShow: 3,
-      slidesToScroll: 3,
-      arrows: false,
-      initialSlide: 0,
-      responsive: [
-        {
-          breakpoint: 1024,
-          settings: {
-            slidesToShow: 2,
-            slidesToScroll: 2,
-          }
-        },
-        {
-          breakpoint: 768,
-          settings: {
-            slidesToShow: 1,
-            slidesToScroll: 1,
-            infinite: true,
-            dots: true
-          }
-        },
-        // {
-        //   breakpoint: 480,
-        //   settings: {
-        //     slidesToShow: 1,
-        //     slidesToScroll: 1,
-        //     dots: true
-        //   }
-        // }
-      ]
+const TopBoard = () => {
+  useEffect(() => {
+    async function getIncome(){
+      await getIncomeApi();
     }
-      
-    return ((
-      <div className="">
+
+    getIncome();
+  }, [])
+
+  var settings = {
+    dots: false,
+    infinite: true,
+    slidesToShow: 3,
+    slidesToScroll: 3,
+    arrows: false,
+    initialSlide: 0,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 2,
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          infinite: true,
+          dots: true
+        }
+      }
+    ]
+  }
+    
+  return ((
+    <div className="">
       <Slider {...settings}>
         {summaryData.map((item, index) => (
           <Board key={index} {...item} />
         ))}
       </Slider>
-      </div>
-    ))
-      
-  }
+    </div>
+  ))
 }
+
+export default TopBoard
