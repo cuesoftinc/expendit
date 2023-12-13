@@ -1,18 +1,22 @@
 "use client"
-import React, { useRef, useState } from 'react'
+import React from 'react'
 import { CiImport } from 'react-icons/ci';
 import Input from '@/components/signup/Input';
 import inputStyles from '@/components/signup/styles';
+import { useExpenseCustomState } from './states';
 import styles from './styles';
 
-const Index = () => {
-  const handleChange = () => {};
-  const fileInput = useRef<any>(null);
-  const [ selectedFiles, setSelectedFiles ] = useState(null);
 
-  const handleFileUpload = (e: any) => {
-    setSelectedFiles(e.target.files)
-  };
+const Index = () => {
+  const {
+    form,
+    fileInput,
+    selectedFiles,
+    setSelectedFiles,
+    handleFileUpload,
+    handleChange,
+    handleSubmit
+  } = useExpenseCustomState();
 
   return (
     <div className='md:ml-3 ml-0'>
@@ -20,20 +24,13 @@ const Index = () => {
         <h3 className={styles.header}>Add your new expense</h3>
         <div>
         <Input 
-        label='Amount'
-        name='amount'
-        type='text'
-        placeholder='Your expense amount'
-        handleChange={handleChange}
-        custom
-        />
-        <Input 
-        label='Date'
-        name='date'
-        type='date'
-        placeholder='Expense date'
-        handleChange={handleChange}
-        custom
+          label='Amount'
+          name='amount'
+          type='text'
+          value={form.amount}
+          placeholder='Your expense amount'
+          handleChange={handleChange}
+          custom
         />
         <div className=''>
           <label className={inputStyles.label}>Category</label>
@@ -63,7 +60,7 @@ const Index = () => {
             <p className=''>Import</p>
           </div>
         </div>
-        <button type='submit' className={inputStyles.btn}>
+        <button type='submit' className={inputStyles.btn} onClick={handleSubmit}>
           Add expense
         </button>
         </div>

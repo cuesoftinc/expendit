@@ -21,7 +21,12 @@ export const useIncomeCustomState = () => {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    setForm((prev) => ({...prev, [name]: value}))
+    if(name === "amount"){
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setForm((prev) => ({...prev, [name]: numericValue}));
+    } else {
+      setForm((prev) => ({...prev, [name]: value}))
+    }
   }
 
   useEffect(() => {

@@ -5,11 +5,20 @@ import { useNavContext } from '@/context';
 import { AiOutlineClose } from 'react-icons/ai';
 
 import styles from './styles';
+import { useRouter } from 'next/navigation';
 import { userProfileData } from '@/dummy';
 import Avatar from '@/assets/images/avatar.jpg';
 
 const UserProfile = () => {
-  const { setIsProfileOpen } = useNavContext();
+  const router = useRouter();
+  const { setIsProfileOpen, user } = useNavContext();
+  const picture = null;
+
+  const handleClick = (e: any, url:string) => {
+    setIsProfileOpen(false);
+
+    router.push(url);
+  }
 
   return (
     <div className={styles.userProfileCont}>
@@ -21,29 +30,31 @@ const UserProfile = () => {
         </button>
       </div>
       <div className={styles.avatarCont}>
-        <Image
-          className="rounded-full h-24 w-24"
+        <div className='h-24 w-24 rounded-full '>
+        {picture ? <Image
+          className="h-full w-full"
           src={Avatar}
           alt="user-profile"
-        />
+          /> 
+          : <p className={`${styles.imgText}`}>{user?.first_name.charAt(0)}</p>}
+        </div>
         <div>
-          <p className={styles.textXl}> Akolade Femi </p>
-          <p className={styles.textSm}>  Administrator   </p>
-          <p className={styles.textSmB}> info@shop.com </p>
+          <p className={styles.textXl}> {`${user?.first_name} ${user?.last_name}`}</p>
+          <p className={styles.textSm}>Administrator</p>
+          <p className={styles.textSmB}>{user?.email}</p>
         </div>
       </div>
       <div>
         {userProfileData.map((item, index) => (
-          <div key={index} className={styles.barCont}>
-            <Link href={item.url}>
-              <button
-                type="button"
-                style={{ color: item.iconColor, backgroundColor: item.iconBg }}
-                className="text-xl rounded-lg p-3"
-              >
-                {item.icon}
-              </button>
-            </Link>
+          <div key={index} className={styles.barCont}
+          onClick={(e) => handleClick(e, item.url)}>
+            <button
+              type="button"
+              style={{ color: item.iconColor, backgroundColor: item.iconBg }}
+              className="text-xl rounded-lg p-3"
+            >
+              {item.icon}
+            </button>
             <div>
               <p className="font-semibold">{item.title}</p>
               <p className={styles.textSm}> {item.desc} </p>
