@@ -10,7 +10,7 @@ API.interceptors.request.use((req) => {
   const token = localStorage.getItem('Expendit-token') || null;
   if (token) {
     console.log(token)
-    req.headers["Token"] = `${JSON.parse(token)}`;
+    req.headers["Authorization"] = `Bearer ${JSON.parse(token)}`;
   }
 
   return req;
