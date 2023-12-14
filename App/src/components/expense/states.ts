@@ -1,18 +1,13 @@
-<<<<<<< HEAD
-import { ChangeEvent, useState, useEffect, FormEvent, useRef } from "react";
-import { expenseFormProps } from "./types";
-import { expenseCreateApi } from "@/API/APIS/expenseApi";
-import { formatExpense } from "@/utils/formatExpenseForm";
-=======
-import { ChangeEvent, useState, FormEvent, useRef } from "react";
+import { ChangeEvent, useState, FormEvent, useEffect, useRef } from "react";
 import { formatNumberWithCommas } from "@/utils/formatWithCommas";
+import { formatExpense } from "@/utils/formatExpenseForm";
+import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { useHomeContext } from "@/context";
 
 export interface expenseFormProps {
   amount: string;
   note: string;
 };
->>>>>>> 704a5cb5d6b9485c6e7a8769dafdbb53387c9fa4
 
 export const useExpenseCustomState = () => {
 
@@ -51,24 +46,23 @@ export const useExpenseCustomState = () => {
     setSelectedFiles(e.target.files)
   };
 
-<<<<<<< HEAD
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      if (formError !== "") {
-        setFormLoading(false);
-        setFormError("An error occurred");
-      }
+  // useEffect(() => {
+  //   const timerId = setTimeout(() => {
+  //     if (formError !== "") {
+  //       setFormLoading(false);
+  //       setFormError("An error occurred");
+  //     }
 
-      if (formSuccess !== "") {
-        setFormLoading(false);
-        setFormSuccess("Expense successfully added");
-      }
-    }, 5000);
+  //     if (formSuccess !== "") {
+  //       setFormLoading(false);
+  //       setFormSuccess("Expense successfully added");
+  //     }
+  //   }, 5000);
 
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [formLoading, formError, formSuccess]);
+  //   return () => {
+  //     clearTimeout(timerId);
+  //   };
+  // }, [formLoading, formError, formSuccess]);
 
   const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -81,11 +75,6 @@ export const useExpenseCustomState = () => {
       setFormSuccess, 
       setFormLoading,
     })
-    
-=======
-  const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
-
->>>>>>> 704a5cb5d6b9485c6e7a8769dafdbb53387c9fa4
   }
 
   return {
