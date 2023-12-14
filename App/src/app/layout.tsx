@@ -19,11 +19,11 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       </head>
       <body className=''>
         <SessionProvider>
-          <HomeProvider>
-            <NavProvider>
+          <NavProvider>
+            <HomeProvider>
               {children}
-            </NavProvider>
-          </HomeProvider>
+            </HomeProvider>
+          </NavProvider>
         </SessionProvider>
       </body>
     </html>

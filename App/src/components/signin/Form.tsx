@@ -43,8 +43,8 @@ const Form = () => {
           handleChange={handleChange}
         />
         <div className={styles.checkboxWrapper}>
-            <p className={styles.checkbox}><input className='mr-2' type='checkbox'/>Remember me</p>
-            <p className={styles.link}>Forgot password?</p>
+          <p className={styles.checkbox}><input className='mr-2' type='checkbox'/>Remember me</p>
+          <p className={styles.link}>Forgot password?</p>
         </div>
 
         <div className='w-full mt-6'>
