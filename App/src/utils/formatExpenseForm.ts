@@ -4,7 +4,6 @@ import { ExpensePayload } from "@/API/types";
 export function formatExpense( obj: expenseFormProps ): ExpensePayload {
   return {
     Amount: parseInt(obj.amount),
-    Date: obj.date,
     Category: obj.category,
     Note: obj.note,
     User_type: "USER"
@@ -13,7 +12,6 @@ export function formatExpense( obj: expenseFormProps ): ExpensePayload {
 
 export const expenseRequiredFields = [
   "Amount",
-  "Date",
   "Category",
   "Note",
 ];

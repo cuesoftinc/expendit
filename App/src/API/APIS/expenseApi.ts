@@ -9,7 +9,6 @@ export const expenseCreateApi = async ({
 } : ExpenseProps) => {
   try {
     const payload = JSON.stringify(completeForm)
-    console.log(completeForm)
     const {data, status } = await API.post('/expense/create', payload);
 
     if(data && status === 200){
@@ -22,9 +21,10 @@ export const expenseCreateApi = async ({
   }
 }
 
-export const expenseGetApi = async () => {
+export const getExpenseApi = async () => {
   try {
     const { data } = await API.get('/expense');
+    console.log(data)
 
     if(data){
       return data;
@@ -34,10 +34,10 @@ export const expenseGetApi = async () => {
   }
 }
 
-export const expenseDeleteApi = async () => {
+export const deleteExpenseApi = async () => {
 
 }
 
-export const expenseEditApi = async () => {
+export const editExpenseApi = async () => {
   
 }

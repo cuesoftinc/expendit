@@ -1,10 +1,11 @@
 "use client"
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TbCurrencyNaira } from 'react-icons/tb';
 import { useCustomState } from '@/hooks/responsive';
 import Link from 'next/link';
 import styles from './styles';
 import { expenses } from '@/dummy';
+import { getExpenseApi } from '@/API/APIS/expenseApi';
 
 export interface expense {
   id?: number;
@@ -17,6 +18,14 @@ export interface expense {
 
 export const Expense = ({ id, category, amount, note, date, history }: expense) => {
   const [ mobile ] = useCustomState();
+
+  useEffect(() => {
+    async function getExpenseData() {
+      const expenseData = await getExpenseApi ()
+      console.log(expenseData)
+    }
+    getExpenseData()
+  })
 
   return (
     <div className={styles.transactionContainer}>

@@ -52,7 +52,6 @@ export const signInApi = async ({
 
       router.push('/');
 
-      // const userId = data.ID;
     }
   } catch (error) {
     setFormError("an error occurred, try again");
