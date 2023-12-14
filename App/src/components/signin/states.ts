@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useHomeContext } from '@/context';
 import { signInFormProps } from './types';
 import { signInApi } from '@/API/APIS/authApi';
 import { formatSignIn } from '@/utils/formatSignInForm';
@@ -12,9 +13,14 @@ import { SignInPayload } from '@/API/types';
 export const useSignInCustomState = () => {
   const router = useRouter();
   // const { client } = useGrpcClientMethods();
-  const [formError, setFormError] = useState("");
-  const [formSuccess, setFormSuccess] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
+  const { 
+    formError, 
+    setFormError, 
+    formSuccess, 
+    setFormSuccess, 
+    formLoading, 
+    setFormLoading 
+  } = useHomeContext();
 
   const initialForm: signInFormProps = {
     email: "",
@@ -42,24 +48,6 @@ export const useSignInCustomState = () => {
       setForm((prev) => ({...prev, [name]: value}))
     }
   };
-
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      if (formError !== "") {
-        setFormLoading(false);
-        setFormError("");
-      }
-
-      if (formSuccess !== "") {
-        setFormLoading(false);
-        setFormSuccess("");
-      }
-    }, 5000);
-
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [formLoading, formError, formSuccess]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

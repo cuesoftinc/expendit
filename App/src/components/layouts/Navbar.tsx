@@ -7,7 +7,7 @@ import { BsSearch } from "react-icons/bs";
 import { MdKeyboardArrowDown, MdAdd } from "react-icons/md";
 
 import styles from './styles';
-import { useNavContext } from '@/context';
+import { useNavContext, useHomeContext } from '@/context';
 import UserProfile from './UserProfile';
 import { getUserApi } from '@/API/APIS/userApi';
 import Avatar from '@/assets/images/avatar.jpg';
@@ -15,6 +15,7 @@ import FullPageLoader from '../helpers/FullPageLoader';
 
 
 const Navbar = () => {
+  const { setFormLoading, formLoading } = useHomeContext();
   const { 
     isProfileOpen, 
     setIsProfileOpen, 
@@ -29,14 +30,20 @@ const Navbar = () => {
     async function populateUser(){
       const userData = await getUserApi();
 
-      if(userData !== undefined) setUser(userData);
+      if(userData) {
+        setUser(userData);
+        setFormLoading(false);
+      }
     };
 
-    (async () => populateUser())();
+    (async () => {
+      setFormLoading(true);
+      await populateUser();
+    })();
   }, []);
 
-  if(user === null) return <FullPageLoader />;
-
+  if(formLoading) return (<FullPageLoader />);
+  
   return (
     <div className={styles.navCont}>
       <div className={styles.center}>

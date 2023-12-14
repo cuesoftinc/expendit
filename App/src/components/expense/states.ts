@@ -1,33 +1,57 @@
+<<<<<<< HEAD
 import { ChangeEvent, useState, useEffect, FormEvent, useRef } from "react";
 import { expenseFormProps } from "./types";
 import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { formatExpense } from "@/utils/formatExpenseForm";
+=======
+import { ChangeEvent, useState, FormEvent, useRef } from "react";
+import { formatNumberWithCommas } from "@/utils/formatWithCommas";
+import { useHomeContext } from "@/context";
+
+export interface expenseFormProps {
+  amount: string;
+  note: string;
+};
+>>>>>>> 704a5cb5d6b9485c6e7a8769dafdbb53387c9fa4
 
 export const useExpenseCustomState = () => {
-  const [formError, setFormError] = useState("");
-  const [formSuccess, setFormSuccess] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
+
+  const {
+    setFormError,
+    setFormSuccess,
+    formLoading,
+    setFormLoading
+  } = useHomeContext();
 
   const fileInput = useRef<any>(null);
-  const [ selectedFiles, setSelectedFiles ] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState(null);
+  const [cat, setCat] = useState('');
 
   const initialForm: expenseFormProps = {
     amount: "",
-    category: "",
     note: ""
   };
-  const [ form, setForm ] = useState<expenseFormProps>(initialForm);
+  const [form, setForm] = useState<expenseFormProps>(initialForm);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    const numericValue = value.replace(/[^0-9]/g, '');
-    setForm((prev) => ({...prev, [name]: numericValue}));
+  const handleChange = (e: any) => {
+    const { name, value } = e.target;
+
+    if (name === "amount") {
+      const numericValue = value.replace(/[^0-9]/g, '');
+      const formatedNumber = formatNumberWithCommas(numericValue);
+      setForm((prev) => ({ ...prev, [name]: formatedNumber }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
+    }
   };
+
+  const handleCategory = () => { };
 
   const handleFileUpload = (e: any) => {
     setSelectedFiles(e.target.files)
   };
 
+<<<<<<< HEAD
   useEffect(() => {
     const timerId = setTimeout(() => {
       if (formError !== "") {
@@ -58,17 +82,21 @@ export const useExpenseCustomState = () => {
       setFormLoading,
     })
     
+=======
+  const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
+
+>>>>>>> 704a5cb5d6b9485c6e7a8769dafdbb53387c9fa4
   }
 
   return {
     form,
-    formError,
-    formSuccess,
     formLoading,
     fileInput,
     selectedFiles,
+    cat,
     setSelectedFiles,
     handleFileUpload,
+    handleCategory,
     handleChange,
     handleSubmit
   }

@@ -27,7 +27,7 @@ export interface NavProviderProps {
 export const NavContext = createContext<NavContextProps | undefined>(undefined);
 
 export const NavProvider = ({ children }: NavProviderProps) => {
- const [isProfileOpen, setIsProfileOpen] = useState(false);
+ const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [navState, setNavState] = useState<string>("/");
   const [isNavOpen, setIsNavOpen] = useState<boolean>(false);
   const [ user, setUser ] = useState(null);
