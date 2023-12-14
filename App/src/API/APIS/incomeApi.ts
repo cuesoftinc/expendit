@@ -2,16 +2,18 @@ import { API } from '../axiosSetup';
 import { IncomeProps } from '../types';
 
 export const incomeCreateApi = async ({
-  completeForm, 
-  setFormError, 
-  setFormSuccess, 
+  completeForm,
+  setFormError,
+  setFormSuccess,
   setFormLoading,
-} : IncomeProps) => {
+}: IncomeProps) => {
+  setFormLoading(true);
+
   try {
     const payload = JSON.stringify(completeForm)
     const { data, status } = await API.post('/income/create', payload);
 
-    if(data && status === 201){
+    if (data && status === 201) {
       setFormSuccess("Successful!");
       setFormLoading(false);
     }
@@ -25,12 +27,12 @@ export const getIncomeApi = async () => {
   try {
     const { data, status } = await API.get('/income');
 
-    if(data){
+    if (data && status === 200) {
       console.log(data);
 
       return data;
     }
   } catch (error) {
-    
+
   }
 }

@@ -10,10 +10,13 @@ import styles from './styles';
 const Index = () => {
   const {
     form,
+    cat,
     fileInput,
     selectedFiles,
+    formLoading,
     setSelectedFiles,
     handleFileUpload,
+    handleCategory,
     handleChange,
     handleSubmit
   } = useExpenseCustomState();
@@ -34,7 +37,7 @@ const Index = () => {
         />
         <div className=''>
           <label className={inputStyles.label}>Category</label>
-          <select className={styles.select}>
+          <select className={styles.select} onSelect={handleCategory} value={cat}>
             <option value="food">Food</option>
             <option value="utility">utility</option>
             <option value="transportation">transportation</option>
@@ -42,7 +45,13 @@ const Index = () => {
         </div>
         <div className='w-full'>
           <label className={inputStyles.label}>Note</label>
-          <textarea rows={5} className={styles.textarea} maxLength={50} />
+          <textarea 
+            rows={5} 
+            value={form.note}
+            className={styles.textarea} 
+            maxLength={50} 
+            onChange={handleChange} 
+          />
         </div>
         <div className={styles.divider}> 
           <hr className='w-full' />
@@ -60,7 +69,11 @@ const Index = () => {
             <p className=''>Import</p>
           </div>
         </div>
-        <button type='submit' className={inputStyles.btn} onClick={handleSubmit}>
+        <button type='submit' 
+          disabled={formLoading} 
+          className={inputStyles.btn} 
+          onClick={handleSubmit}
+        >
           Add expense
         </button>
         </div>
