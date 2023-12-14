@@ -5,13 +5,10 @@ import React from 'react';
 import Input from '@/components/signup/Input';
 import { useIncomeCustomState } from './states';
 import LoaderSpinner from '../helpers/LoaderSpinner';
-import Notification from '../helpers/Notification';
 
 const Index = () => {
   const {
     form,
-    formError,
-    formSuccess,
     formLoading,
     handleChange,
     handleSubmit 
@@ -19,8 +16,6 @@ const Index = () => {
   return (
     <div className='md:ml-3 ml-0'>
       <h1 className={styles.header}>Add your income</h1>
-      {formError !== "" && <Notification msg={formError} type="error" />}
-      {formSuccess !== "" && <Notification msg={formSuccess} type="success" />}
       <form className='md:w-[70%] w-full' onSubmit={handleSubmit}>
         <Input
           label='Income Source'
