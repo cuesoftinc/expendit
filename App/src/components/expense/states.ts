@@ -1,5 +1,7 @@
 import { ChangeEvent, useState, useEffect, FormEvent, useRef } from "react";
 import { expenseFormProps } from "./types";
+import { expenseCreateApi } from "@/API/APIS/expenseApi";
+import { formatExpense } from "@/utils/formatExpenseForm";
 
 export const useExpenseCustomState = () => {
   const [formError, setFormError] = useState("");
@@ -30,12 +32,12 @@ export const useExpenseCustomState = () => {
     const timerId = setTimeout(() => {
       if (formError !== "") {
         setFormLoading(false);
-        setFormError("");
+        setFormError("An error occurred");
       }
 
       if (formSuccess !== "") {
         setFormLoading(false);
-        setFormSuccess("");
+        setFormSuccess("Expense successfully added");
       }
     }, 5000);
 
@@ -45,6 +47,16 @@ export const useExpenseCustomState = () => {
   }, [formLoading, formError, formSuccess]);
 
   const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+
+    const completeForm = formatExpense(form);
+
+    await expenseCreateApi({
+      completeForm, 
+      setFormError, 
+      setFormSuccess, 
+      setFormLoading,
+    })
     
   }
 
