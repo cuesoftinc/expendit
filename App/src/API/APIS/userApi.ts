@@ -1,13 +1,14 @@
 import { API } from '../axiosSetup';
+import { getLocalStorageItem } from '@/utils/localStorage';
 
-const userID = localStorage.getItem('Expendit-user') || null;
+const userID = getLocalStorageItem('Expendit-user') || null;
 const user_id = userID ? JSON.parse(userID) : null;
 
 export const getUserApi = async () => {
   try {
     const { data, status } = await API.get(`/users/${user_id}`);
 
-    if(data && status === 200){
+    if (data && status === 200) {
       // setFormSuccess("Successful!");
       // setFormLoading(false);
 
