@@ -45,6 +45,7 @@ export const useExpenseCustomState = () => {
 
   const handleCategory = (e: ChangeEvent<HTMLSelectElement>) => { 
     setCategory(e.target.value);
+    setForm((prev) => ({ ...prev, category: e.target.value }));
   };
 
   const handleFileUpload = (e: any) => {
