@@ -12,7 +12,7 @@ import styles from './styles';
 const Index = () => {
   const {
     form,
-    cat,
+    category,
     fileInput,
     selectedFiles,
     formLoading,
@@ -39,7 +39,7 @@ const Index = () => {
         />
         <div className=''>
           <label className={inputStyles.label}>Category</label>
-          <select className={styles.select} onChange={handleCategory} value={cat}>
+          <select className={styles.select} onChange={handleCategory} value={category}>
             <option value="food">Food</option>
             <option value="utility">utility</option>
             <option value="transportation">transportation</option>
