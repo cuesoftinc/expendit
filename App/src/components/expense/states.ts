@@ -7,7 +7,7 @@ import { SelectChangeEvent } from "@mui/material";
 
 export interface expenseFormProps {
   amount: string;
-  cat: string;
+  category: string;
   note: string;
 };
 
@@ -22,11 +22,11 @@ export const useExpenseCustomState = () => {
 
   const fileInput = useRef<any>(null);
   const [selectedFiles, setSelectedFiles] = useState(null);
-  const [cat, setCat] = useState('');
+  const [category, setCategory] = useState('');
 
   const initialForm: expenseFormProps = {
     amount: "",
-    cat: "",
+    category: "",
     note: ""
   };
   const [form, setForm] = useState<expenseFormProps>(initialForm);
@@ -44,7 +44,7 @@ export const useExpenseCustomState = () => {
   };
 
   const handleCategory = (e: ChangeEvent<HTMLSelectElement>) => { 
-    setCat(e.target.value);
+    setCategory(e.target.value);
   };
 
   const handleFileUpload = (e: any) => {
@@ -69,7 +69,7 @@ export const useExpenseCustomState = () => {
     formLoading,
     fileInput,
     selectedFiles,
-    cat,
+    category,
     setSelectedFiles,
     handleFileUpload,
     handleCategory,
