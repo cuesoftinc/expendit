@@ -39,7 +39,7 @@ const Index = () => {
         />
         <div className=''>
           <label className={inputStyles.label}>Category</label>
-          <select className={styles.select} onSelect={handleCategory} value={cat}>
+          <select className={styles.select} onChange={handleCategory} value={cat}>
             <option value="food">Food</option>
             <option value="utility">utility</option>
             <option value="transportation">transportation</option>
@@ -48,7 +48,8 @@ const Index = () => {
         <div className='w-full'>
           <label className={inputStyles.label}>Note</label>
           <textarea 
-            rows={5} 
+            rows={5}
+            name='note' 
             value={form.note}
             className={styles.textarea} 
             maxLength={50} 

@@ -72,6 +72,7 @@ export interface ExpenseProps {
 
 export interface ExpensePayload {
   Amount : number;
+  Cat : string;
   Note : string;
   User_type?: string;
 };

@@ -1,10 +1,10 @@
-import { expenseFormProps } from "@/components/expense/types";
+import { expenseFormProps } from "@/components/expense/states";
 import { ExpensePayload } from "@/API/types";
 
 export function formatExpense( obj: expenseFormProps ): ExpensePayload {
   return {
     Amount: parseInt(obj.amount),
-    Category: obj.category,
+    Cat: obj.cat,
     Note: obj.note,
     User_type: "USER"
   };
