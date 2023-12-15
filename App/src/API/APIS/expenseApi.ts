@@ -24,7 +24,6 @@ export const expenseCreateApi = async ({
 export const getExpenseApi = async () => {
   try {
     const { data } = await API.get('/expense');
-    console.log(data)
 
     if(data){
       return data;

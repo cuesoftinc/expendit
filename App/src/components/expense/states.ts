@@ -3,9 +3,11 @@ import { formatNumberWithCommas } from "@/utils/formatWithCommas";
 import { formatExpense } from "@/utils/formatExpenseForm";
 import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { useHomeContext } from "@/context";
+import { SelectChangeEvent } from "@mui/material";
 
 export interface expenseFormProps {
   amount: string;
+  cat: string;
   note: string;
 };
 
@@ -24,6 +26,7 @@ export const useExpenseCustomState = () => {
 
   const initialForm: expenseFormProps = {
     amount: "",
+    cat: "",
     note: ""
   };
   const [form, setForm] = useState<expenseFormProps>(initialForm);
@@ -40,29 +43,13 @@ export const useExpenseCustomState = () => {
     }
   };
 
-  const handleCategory = () => { };
+  const handleCategory = (e: ChangeEvent<HTMLSelectElement>) => { 
+    setCat(e.target.value);
+  };
 
   const handleFileUpload = (e: any) => {
     setSelectedFiles(e.target.files)
   };
-
-  // useEffect(() => {
-  //   const timerId = setTimeout(() => {
-  //     if (formError !== "") {
-  //       setFormLoading(false);
-  //       setFormError("An error occurred");
-  //     }
-
-  //     if (formSuccess !== "") {
-  //       setFormLoading(false);
-  //       setFormSuccess("Expense successfully added");
-  //     }
-  //   }, 5000);
-
-  //   return () => {
-  //     clearTimeout(timerId);
-  //   };
-  // }, [formLoading, formError, formSuccess]);
 
   const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
