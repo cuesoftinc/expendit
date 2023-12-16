@@ -45,9 +45,10 @@ export const signInApi = async ({
       setFormLoading(false);
 
       const jwt = data.token;
+      const user_id = data.user_id;
       localStorage.setItem('Expendit-token', JSON.stringify(jwt));
+      localStorage.setItem('Expendit-user', JSON.stringify(user_id));
       localStorage.setItem('ExpenditLoggedIn', JSON.stringify(true));
-
 
       router.push('/');
     }
@@ -62,6 +63,7 @@ export const logoutApi = async ({router, setIsLoading }: LogoutProps) => {
   try {
     setIsLoading(true);
     localStorage.removeItem("Expendit-token");
+    localStorage.removeItem("Expendit-user");
     localStorage.removeItem("ExpenditLoggedIn");
 
     router.push("/signin");
