@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useHomeContext } from '@/context';
 import { useGrpcClientMethods } from '@/grpc_methods';
 import { signUpFormProps } from './types';
 import { signUpApi } from '@/API/APIS/authApi';
@@ -13,9 +14,14 @@ import { SignUpPayload } from '@/API/types';
 export const useSignUpCustomState = () => {
   const router = useRouter();
   // const { client } = useGrpcClientMethods();
-  const [formError, setFormError] = useState("");
-  const [formSuccess, setFormSuccess] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
+  const { 
+    formError, 
+    setFormError, 
+    formSuccess, 
+    setFormSuccess, 
+    formLoading, 
+    setFormLoading 
+  } = useHomeContext();
 
   const initialForm: signUpFormProps = {
     firstName: "",
@@ -46,24 +52,6 @@ export const useSignUpCustomState = () => {
       setForm((prev) => ({...prev, [name]: value}))
     }
   };
-
-  useEffect(() => {
-    const timerId = setTimeout(() => {
-      if (formError !== "") {
-        setFormLoading(false);
-        setFormError("");
-      }
-
-      if (formSuccess !== "") {
-        setFormLoading(false);
-        setFormSuccess("");
-      }
-    }, 5000);
-
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [formLoading, formError, formSuccess]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
