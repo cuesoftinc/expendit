@@ -3,7 +3,7 @@ package routes
 
 
 import (
-	"expendit-server/controller"
+	"expendit-server/controllers"
 	middleware "expendit-server/middleware"
 	"github.com/gin-gonic/gin"
 )
