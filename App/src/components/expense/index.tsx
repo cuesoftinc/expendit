@@ -4,13 +4,15 @@ import { CiImport } from 'react-icons/ci';
 import Input from '@/components/signup/Input';
 import inputStyles from '@/components/signup/styles';
 import { useExpenseCustomState } from './states';
+import Notification from '../helpers/Notification';
+import LoaderSpinner from '../helpers/LoaderSpinner';
 import styles from './styles';
 
 
 const Index = () => {
   const {
     form,
-    cat,
+    category,
     fileInput,
     selectedFiles,
     formLoading,
@@ -37,7 +39,7 @@ const Index = () => {
         />
         <div className=''>
           <label className={inputStyles.label}>Category</label>
-          <select className={styles.select} onSelect={handleCategory} value={cat}>
+          <select className={styles.select} onChange={handleCategory} value={category}>
             <option value="food">Food</option>
             <option value="utility">utility</option>
             <option value="transportation">transportation</option>
@@ -46,7 +48,8 @@ const Index = () => {
         <div className='w-full'>
           <label className={inputStyles.label}>Note</label>
           <textarea 
-            rows={5} 
+            rows={5}
+            name='note' 
             value={form.note}
             className={styles.textarea} 
             maxLength={50} 
@@ -62,11 +65,13 @@ const Index = () => {
           <input type="file" hidden ref={fileInput} 
             onChange={(e) => handleFileUpload(e)}
           />
-          <div 
-            className={styles.iconWrapper}
-            onClick={() => fileInput.current.click()}>
-            <CiImport fontSize={18} className='mr-2' />
-            <p className=''>Import</p>
+          <div className=''>
+            <label className={inputStyles.label}>Category</label>
+            <select className={styles.select}>
+              <option value="food">Food</option>
+              <option value="utility">utility</option>
+              <option value="transportation">transportation</option>
+            </select>
           </div>
         </div>
         <button type='submit' 

@@ -1,9 +1,13 @@
-import { ChangeEvent, useState, FormEvent, useRef } from "react";
+import { ChangeEvent, useState, FormEvent, useEffect, useRef } from "react";
 import { formatNumberWithCommas } from "@/utils/formatWithCommas";
+import { formatExpense } from "@/utils/formatExpenseForm";
+import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { useHomeContext } from "@/context";
+import { SelectChangeEvent } from "@mui/material";
 
 export interface expenseFormProps {
   amount: string;
+  category: string;
   note: string;
 };
 
@@ -18,10 +22,11 @@ export const useExpenseCustomState = () => {
 
   const fileInput = useRef<any>(null);
   const [selectedFiles, setSelectedFiles] = useState(null);
-  const [cat, setCat] = useState('');
+  const [category, setCategory] = useState('');
 
   const initialForm: expenseFormProps = {
     amount: "",
+    category: "",
     note: ""
   };
   const [form, setForm] = useState<expenseFormProps>(initialForm);
@@ -38,14 +43,26 @@ export const useExpenseCustomState = () => {
     }
   };
 
-  const handleCategory = () => { };
+  const handleCategory = (e: ChangeEvent<HTMLSelectElement>) => { 
+    setCategory(e.target.value);
+    setForm((prev) => ({ ...prev, category: e.target.value }));
+  };
 
   const handleFileUpload = (e: any) => {
     setSelectedFiles(e.target.files)
   };
 
   const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
+    e.preventDefault();
 
+    const completeForm = formatExpense(form);
+
+    await expenseCreateApi({
+      completeForm, 
+      setFormError, 
+      setFormSuccess, 
+      setFormLoading,
+    })
   }
 
   return {
@@ -53,7 +70,7 @@ export const useExpenseCustomState = () => {
     formLoading,
     fileInput,
     selectedFiles,
-    cat,
+    category,
     setSelectedFiles,
     handleFileUpload,
     handleCategory,
