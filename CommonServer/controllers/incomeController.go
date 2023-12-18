@@ -5,7 +5,7 @@ import (
 	"context"
 	"net/http"
 	"time"
-  "expendit-server/models"
+    "expendit-server/models"
 	"expendit-server/database"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -74,7 +74,7 @@ func CreateIncome() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
-
+       
 		income.UserID = uid.(string)
 		income.ID = primitive.NewObjectID()
 		income.CreatedAt = time.Now()
