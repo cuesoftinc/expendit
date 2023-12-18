@@ -23,7 +23,7 @@ const Index = () => {
 
   return (
     <div className='md:ml-3 ml-0'>
-      <div className='md:w-[70%] w-full'>
+      <div className='md:w-[50%] w-full'>
         <h3 className={styles.header}>Add your new expense</h3>
         <div>
         <Input 

@@ -51,7 +51,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
     return () => {
       clearTimeout(timerId);
     };
-  }, [formError, formSuccess]);
+  }, [formError, formSuccess, formLoading]);
 
   return (
     <HomeContext.Provider
