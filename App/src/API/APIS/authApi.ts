@@ -51,6 +51,7 @@ export const signInApi = async ({
       localStorage.setItem('ExpenditLoggedIn', JSON.stringify(true));
 
       router.push('/');
+
     }
   } catch (error) {
     setFormError("an error occurred, try again");
