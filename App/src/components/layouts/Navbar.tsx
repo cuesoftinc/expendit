@@ -28,18 +28,14 @@ const Navbar = () => {
  
   useEffect(() => {
     async function populateUser(){
-      const userData = await getUserApi();
+      const userData = await getUserApi(setFormLoading);
 
       if(userData) {
         setUser(userData);
-        setFormLoading(false);
       }
     };
 
-    (async () => {
-      setFormLoading(true);
-      await populateUser();
-    })();
+    populateUser();
   }, []);
 
   if(formLoading) return (<FullPageLoader />);

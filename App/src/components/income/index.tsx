@@ -16,7 +16,7 @@ const Index = () => {
   return (
     <div className='md:ml-3 ml-0'>
       <h1 className={styles.header}>Add your income</h1>
-      <form className='md:w-[70%] w-full' onSubmit={handleSubmit}>
+      <form className='md:w-[50%] w-full' onSubmit={handleSubmit}>
         <Input
           label='Income Source'
           name='source'
