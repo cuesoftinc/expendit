@@ -51,7 +51,7 @@ func GetExpenses() gin.HandlerFunc {
 		}
 		defer cursor.Close(context.Background())
 
-		var expenses models.Expense
+		var expenses []models.Expense
 
 		if err := cursor.All(context.Background(), &expenses); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
