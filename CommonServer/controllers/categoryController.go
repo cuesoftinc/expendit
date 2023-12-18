@@ -1,4 +1,5 @@
-package controller
+package controller 
+
 
 import (
 	"context"
@@ -10,13 +11,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-  
-
-
 )
-var  expenseCollection *mongo.Collection = database.OpenCollection(database.Client, "expense")
 
-func GetExpenseById()gin.HandlerFunc {
+
+var  categoryCollection *mongo.Collection = database.OpenCollection(database.Client, "category")
+
+func GetCategoryById()gin.HandlerFunc {
 	return func(c *gin.Context){
 	id := c.Param("id")
 
@@ -27,66 +27,74 @@ func GetExpenseById()gin.HandlerFunc {
 
 		return
 	}
-	var expense models.Expense
-	err = expenseCollection.FindOne(context.Background(), bson.M{"_id":objectID}).Decode(&expense)
+	var category  models.Category
+	err = categoryCollection.FindOne(context.Background(), bson.M{"_id":objectID}).Decode(&category)
       if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found"})
 		 return 
 	  }
-	  c.JSON(http.StatusOK, expense)
+	  c.JSON(http.StatusOK, category)
 	}   
 }    
 
 
 
 
-func GetExpenses()gin.HandlerFunc{
+func GetCategories()gin.HandlerFunc{
 	return func(c *gin.Context){
-	cursor, err  := expenseCollection.Find(context.Background(), bson.M{})
+	cursor, err  := categoryCollection.Find(context.Background(), bson.M{})
     if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
          return 
 	}
 	defer cursor.Close(context.Background())
 
-	var expenses []models.Expense
+	var categories []models.Category
 
-	if err := cursor.All(context.Background(), &expenses); err != nil{
+	if err := cursor.All(context.Background(), &categories); err != nil{
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 
 		return 
 	}
 
-	c.JSON(http.StatusOK, expenses)
+	c.JSON(http.StatusOK,categories)
 }
 }
 
 
-func CreateExpense()gin.HandlerFunc{
+func CreateCategory()gin.HandlerFunc{
 	return func(c *gin.Context){
-	var expense models.Expense
+	var category models.Category
 
-	if err := c.ShouldBindJSON(&expense); err != nil {
+	if err := c.ShouldBindJSON(&category); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
 		return 
 	}
 
-	expense.ID = primitive.NewObjectID()
-	expense.CreatedAt = time.Now()
-	expense.UpdatedAt = time.Now()
+   uid, exists := c.Get("uid")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return
+		}
+       
+
+    category.UserID = uid.(string)
+	category.ID = primitive.NewObjectID()
+	category.CreatedAt = time.Now()
+	category.UpdatedAt = time.Now()
 
 
-	_, err := expenseCollection.InsertOne(context.Background(), expense)
+	_, err := categoryCollection.InsertOne(context.Background(), category)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
 		  return 
 	}
-	c.JSON(http.StatusCreated,expense)
+	c.JSON(http.StatusCreated,category)
 }
 }
 
 
-func UpdateExpense() gin.HandlerFunc {
+func UpdateCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		objectID, err := primitive.ObjectIDFromHex(id)
@@ -95,18 +103,18 @@ func UpdateExpense() gin.HandlerFunc {
 			return
 		}
 
-		var updatedExpense models.Expense
-		if err := c.ShouldBindJSON(&updatedExpense); err != nil {
+		var updatedCategory models.Expense
+		if err := c.ShouldBindJSON(&updatedCategory); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		updatedExpense.UpdatedAt = time.Now()
+		updatedCategory.UpdatedAt = time.Now()
 
-		result, err := expenseCollection.UpdateOne(
+		result, err := categoryCollection.UpdateOne(
 			context.Background(),
 			bson.M{"_id": objectID},
-			bson.D{{Key: "$set", Value: updatedExpense}},
+			bson.D{{Key: "$set", Value: updatedCategory}},
 		)
 
 		if err != nil {
@@ -118,12 +126,12 @@ func UpdateExpense() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, updatedExpense)
+		c.JSON(http.StatusOK, updatedCategory)
 	}
 }
 
 
-func DeleteExpense()gin.HandlerFunc{
+func DeleteCategory()gin.HandlerFunc{
 	return func(c *gin.Context){
 	id  := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -132,7 +140,7 @@ func DeleteExpense()gin.HandlerFunc{
 		return 
 	}
 
-	result , err := expenseCollection.DeleteOne(context.Background(), bson.M{"_id":objectID})
+	result , err := categoryCollection.DeleteOne(context.Background(), bson.M{"_id":objectID})
 	if err != nil{
 		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
 		return 
@@ -148,7 +156,7 @@ func DeleteExpense()gin.HandlerFunc{
 }
 
 
-func SearchExpense() gin.HandlerFunc {
+func SearchCategory() gin.HandlerFunc {
 	return func(c *gin.Context){
 	query := c.Query("query")
 	if query == ""{
@@ -157,7 +165,7 @@ func SearchExpense() gin.HandlerFunc {
 	}
 
 	filter := bson.M{"items":bson.M{"$regex":primitive.Regex{Pattern:query,Options:"i"}}}
-    cursor, err := expenseCollection.Find(context.Background(), filter)
+    cursor, err := categoryCollection.Find(context.Background(), filter)
      if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
 	    return 
@@ -165,12 +173,12 @@ func SearchExpense() gin.HandlerFunc {
 
 	defer cursor.Close(context.Background())
 
-        var expenses []models.Expense
-		if err := cursor.All(context.Background(), &expenses); err != nil{
+        var category []models.Category
+		if err := cursor.All(context.Background(), &category); err != nil{
 			   c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
 		       return 
 			}
-			c.JSON(http.StatusOK, expenses)
+			c.JSON(http.StatusOK, category)
 }
 }
 
