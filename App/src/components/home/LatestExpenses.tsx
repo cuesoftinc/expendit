@@ -1,10 +1,11 @@
 "use client"
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TbCurrencyNaira } from 'react-icons/tb';
 import { useCustomState } from '@/hooks/responsive';
 import Link from 'next/link';
 import styles from './styles';
 import { expenses } from '@/dummy';
+import { getExpenseApi } from '@/API/APIS/expenseApi';
 
 export interface expense {
   id?: number;
@@ -15,7 +16,7 @@ export interface expense {
   history?: boolean;
 };
 
-export const Expense = ({ id, category, amount, note, date, history }: expense) => {
+export const Expense = ({ category, amount, note, date, history }: expense) => {
   const [ mobile ] = useCustomState();
 
   return (
@@ -40,6 +41,21 @@ export const Expense = ({ id, category, amount, note, date, history }: expense) 
 };
 
 const LatestExpenses = () => {
+
+  const [expenseData, setExpenseData] = useState<expense[]>([]);
+
+  useEffect(() => {
+    async function getExpenseData() {
+      try {
+        const data = await getExpenseApi();
+        setExpenseData(data);
+      } catch (error) {
+        console.error('Error fetching expense data:', error);
+      }
+    }
+    getExpenseData();
+  }, []);
+
   return (
     <div className={styles.barContainer}>
       <div className={styles.transactionHeader}>
@@ -52,7 +68,7 @@ const LatestExpenses = () => {
           <p className="flex-1">Amount</p>
           <p className="flex-1">Note</p>
         </div>
-        {expenses.map((data, index) => (
+        {expenseData.map((data, index) => (
           <Expense key={index} {...data} />
         ))}
       </div>
