@@ -1,4 +1,4 @@
-import { incomeFormProps } from "@/components/income/types";
+import { incomeFormProps } from "@/components/income/states";
 import { IncomePayload } from "@/API/types";
 
 export function formatIncome( obj: incomeFormProps ): IncomePayload {
