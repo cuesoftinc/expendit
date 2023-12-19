@@ -33,7 +33,7 @@ export interface SignInProps {
 };
 
 export interface LogoutProps {
-  router: AppRouterInstance; 
+  router: AppRouterInstance;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -45,9 +45,9 @@ export interface IncomeProps {
 };
 
 export interface IncomePayload {
-  Source : string;
-  Amount : number;
-  Description : string;
+  Source: string;
+  Amount: number;
+  Description: string;
   User_type?: string;
 };
 
@@ -59,8 +59,8 @@ export interface PasswordChangeProps {
 };
 
 export interface PasswordPayload {
-  OldPassword : string;
-  NewPassword : string;
+  OldPassword: string;
+  NewPassword: string;
 }
 
 export interface ExpenseProps {
@@ -71,8 +71,7 @@ export interface ExpenseProps {
 };
 
 export interface ExpensePayload {
-  Amount : number;
-  Category : string;
-  Note : string;
-  User_type?: string;
+  Amount: number;
+  Category: string;
+  Note: string;
 };
