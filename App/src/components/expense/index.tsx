@@ -72,6 +72,18 @@ const Index = () => {
               <option value="utility">utility</option>
               <option value="transportation">transportation</option>
             </select>
+            {/* <select
+                className={styles.select}
+                onChange={(e) => setSelectedItemIndex(parseInt(e.target.value, 10))}
+                value={selectedItemIndex !== null ? selectedItemIndex.toString() : ""}
+              >
+                <option value="">Choose a category</option>
+                {memoizedItems.map((item, index) => (
+                  <option key={index} value={index.toString()}>
+                    {item.name}
+                  </option>
+                ))}
+              </select> */}
           </div>
         </div>
         <button type='submit' 
