@@ -10,13 +10,14 @@ const Index = () => {
   const {
     form,
     formLoading,
+    formatValue,
     handleChange,
     handleSubmit 
   } = useIncomeCustomState();
   return (
     <div className='md:ml-3 ml-0'>
       <h1 className={styles.header}>Add your income</h1>
-      <form className='md:w-[70%] w-full' onSubmit={handleSubmit}>
+      <form className='md:w-[50%] w-full' onSubmit={handleSubmit}>
         <Input
           label='Income Source'
           name='source'
@@ -31,7 +32,7 @@ const Index = () => {
           name='amount'
           type='text'
           placeholder='Your expense amount'
-          value = {form.amount}
+          value = {formatValue(form.amount)}
           handleChange={handleChange}
           custom
         />
