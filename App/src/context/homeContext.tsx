@@ -9,6 +9,11 @@ ReactNode,
 SetStateAction 
 } from "react";
 
+interface MyItem {
+  ID: string;
+  name: string;
+}
+
 export interface HomeContextProps {
   homeState: number;
   setHomeState: Dispatch<SetStateAction<number>>;
@@ -20,6 +25,8 @@ export interface HomeContextProps {
   setFormSuccess:  Dispatch<SetStateAction<string>>;
   formLoading: boolean;
   setFormLoading:  Dispatch<SetStateAction<boolean>>;
+  items: MyItem[];
+  setItems: Dispatch<SetStateAction<MyItem[]>>;
 };
 
 export interface HomeProviderProps {
@@ -34,6 +41,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
   const [formLoading, setFormLoading] = useState<boolean>(false);
+  const [items, setItems] = useState<{ ID: string; name: string; }[]>([]); 
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -65,7 +73,9 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         formSuccess, 
         setFormSuccess,
         formLoading, 
-        setFormLoading
+        setFormLoading,
+        items,
+        setItems,
        }}
     >
       {children}
