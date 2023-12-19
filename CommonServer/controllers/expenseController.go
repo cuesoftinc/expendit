@@ -16,6 +16,7 @@ import (
 )
 
 var  expenseCollection *mongo.Collection = database.OpenCollection(database.Client, "expense")
+var CategoryCollection *mongo.Collection = database.OpenCollection(database.Client, "category")
 
 func GetExpenseById()gin.HandlerFunc {
 	return func(c *gin.Context){
@@ -39,15 +40,10 @@ func GetExpenseById()gin.HandlerFunc {
 }    
 
 
-
-
-
-
-
 func GetExpenses() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-        page, err := strconv.Atoi(c.Query("page"))
+    page, err := strconv.Atoi(c.Query("page"))
 		if err != nil || page <= 0 {
 			page  = 1
 		}
@@ -74,39 +70,39 @@ func GetExpenses() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, expenses)
 	}
+};
+
+
+func CreateExpense() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var expense models.Expense
+
+		if err := c.ShouldBindJSON(&expense); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		uid, exists := c.Get("uid")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			return
+		}
+
+		expense.UserID = uid.(string)
+		expense.ID = primitive.NewObjectID()
+		expense.CreatedAt = time.Now()
+		expense.UpdatedAt = time.Now()
+
+		_, err := expenseCollection.InsertOne(context.Background(), expense)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		c.JSON(http.StatusCreated, expense)
+	}
 }
 
-
-func CreateExpense()gin.HandlerFunc{
-	return func(c *gin.Context){
-	var expense models.Expense
-
-	if err := c.ShouldBindJSON(&expense); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-		return 
-	}
-
-	uid, exists := c.Get("uid")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	
-	expense.UserID = uid.(string)
-	expense.CategoryID = primitive.NewObjectID()
-	expense.ID = primitive.NewObjectID()
-	expense.CreatedAt = time.Now()
-	expense.UpdatedAt = time.Now()
-
-
-	_, err := expenseCollection.InsertOne(context.Background(), expense)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		  return 
-	}
-	c.JSON(http.StatusCreated,expense)
-}
-}
 
 
 func UpdateExpense() gin.HandlerFunc {

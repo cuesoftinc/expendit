@@ -39,14 +39,6 @@ const Board = ({icon, title, amount, percentage, chart}: boardProps) => {
 };
 
 const TopBoard = () => {
-  useEffect(() => {
-    async function getIncome(){
-      await getIncomeApi();
-    }
-
-    getIncome();
-  }, [])
-
   var settings = {
     dots: false,
     infinite: true,
