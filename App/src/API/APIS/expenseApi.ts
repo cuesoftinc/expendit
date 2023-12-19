@@ -18,6 +18,7 @@ export const expenseCreateApi = async ({
       setFormLoading(false);
     }
   } catch (error) {
+    console.log(error)
     setFormError("an error occurred, try again");
     setFormLoading(false);
   }
@@ -25,7 +26,7 @@ export const expenseCreateApi = async ({
 
 export const getExpenseApi = async () => {
   try {
-    const { data } = await API.get('/expense');
+    const { data } = await API.get('/expense?page=1&per_page=10');
 
     if (data) {
       return data;
