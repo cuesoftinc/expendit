@@ -37,11 +37,6 @@ func GetExpenseById()gin.HandlerFunc {
 }    
 
 
-
-
-
-
-
 func GetExpenses() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cursor, err := expenseCollection.Find(context.Background(), bson.M{})

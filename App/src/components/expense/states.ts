@@ -1,5 +1,5 @@
 import { ChangeEvent, useState, FormEvent, useEffect, useRef } from "react";
-import { formatNumberWithCommas } from "@/utils/formatWithCommas";
+import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas";
 import { formatExpense } from "@/utils/formatExpenseForm";
 import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { useHomeContext } from "@/context";
@@ -36,14 +36,14 @@ export const useExpenseCustomState = () => {
 
     if (name === "amount") {
       const numericValue = value.replace(/[^0-9]/g, '');
-      const formatedNumber = formatNumberWithCommas(numericValue);
-      setForm((prev) => ({ ...prev, [name]: formatedNumber }));
+      // const formatedNumber = formatNumberWithCommas(numericValue);
+      setForm((prev) => ({ ...prev, [name]: numericValue }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }))
     }
   };
 
-  const handleCategory = (e: ChangeEvent<HTMLSelectElement>) => { 
+  const handleCategory = (e: ChangeEvent<HTMLSelectElement>) => {
     setCategory(e.target.value);
     setForm((prev) => ({ ...prev, category: e.target.value }));
   };
@@ -58,11 +58,13 @@ export const useExpenseCustomState = () => {
     const completeForm = formatExpense(form);
 
     await expenseCreateApi({
-      completeForm, 
-      setFormError, 
-      setFormSuccess, 
+      completeForm,
+      setFormError,
+      setFormSuccess,
       setFormLoading,
-    })
+    });
+
+    setForm(initialForm);
   }
 
   return {
@@ -70,6 +72,7 @@ export const useExpenseCustomState = () => {
     formLoading,
     fileInput,
     selectedFiles,
+    formatValue,
     category,
     setSelectedFiles,
     handleFileUpload,
