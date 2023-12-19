@@ -71,15 +71,8 @@ func CreateCategory()gin.HandlerFunc{
 		return 
 	}
 
-   uid, exists := c.Get("uid")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			return
-		}
-       
-
-    category.UserID = uid.(string)
-	category.ID = primitive.NewObjectID()
+   
+    category.ID = primitive.NewObjectID()
 	category.CreatedAt = time.Now()
 	category.UpdatedAt = time.Now()
 
