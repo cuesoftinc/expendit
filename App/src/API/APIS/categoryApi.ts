@@ -40,7 +40,7 @@ export const deleteCategoryApi = async ({
   try {
     const { data, status } = await API.delete(`/category/${id}`);
 
-    if (data && status === 200) {
+    if (data && status === 204) {
       setFormSuccess('Category has been deleted!');
       setFormLoading(false);
     } else {
