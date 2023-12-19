@@ -10,6 +10,7 @@ const Index = () => {
   const {
     form,
     formLoading,
+    formatValue,
     handleChange,
     handleSubmit 
   } = useIncomeCustomState();
@@ -31,7 +32,7 @@ const Index = () => {
           name='amount'
           type='text'
           placeholder='Your expense amount'
-          value = {form.amount}
+          value = {formatValue(form.amount)}
           handleChange={handleChange}
           custom
         />

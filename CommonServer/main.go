@@ -3,8 +3,10 @@ package main
 import (
 	"os"
 	"log"
+	"fmt"
 	"github.com/gin-gonic/gin"
     routes	"expendit-server/routes" 
+		"expendit-server/controllers" 
 	"github.com/joho/godotenv"
 	// "github.com/gin-contrib/cors"
 	"expendit-server/middleware"
@@ -28,9 +30,16 @@ func main() {
 	
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
-    routes.ExpenseRoutes(router)
+  routes.ExpenseRoutes(router)
 	routes.IncomeRoutes(router)
 	routes.CategoryRoutes(router)  
+
+	err = controller.CreateCategories()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Categories initialization completed.")
 
 	router.GET("/api-1", func(c *gin.Context){
 		c.JSON(200, gin.H{"success": "Access granted for api-1"})

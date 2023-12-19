@@ -4,6 +4,7 @@ package controller
 import (
 	"context"
 	"net/http"
+	"fmt"
 	"time"
     "expendit-server/models"
 	"expendit-server/database"
@@ -35,9 +36,47 @@ func GetCategoryById()gin.HandlerFunc {
 	  }
 	  c.JSON(http.StatusOK, category)
 	}   
-}    
+} 
+var CATEGORIES = []string{"Food",
+"Transport",
+"Groceries",
+"Utility",
+"Data",
+"School",
+"Netflix",
+"Gaming",}
+
+func CreateCategories() error {
+	count, err := categoryCollection.CountDocuments(context.Background(), bson.M{})
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		fmt.Println("Categories already exist.")
+		return nil
+	}
+
+	var defaultCategories []interface{}
+	for _, category := range CATEGORIES {
+		defaultCategories = append(defaultCategories, bson.M{"name": category})
+	}
+
+	_, err = categoryCollection.InsertMany(context.Background(), defaultCategories)
+	return err
+}
 
 
+func getCategoryByName(ctx context.Context, categoryName string) (models.Category, error) {
+	var category models.Category
+
+	err := categoryCollection.FindOne(ctx, bson.M{"name": categoryName}).Decode(&category)
+	if err != nil {
+		return models.Category{}, err
+	}
+
+	return category, nil
+}
 
 
 func GetCategories()gin.HandlerFunc{
