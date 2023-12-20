@@ -9,38 +9,19 @@ import { MdKeyboardArrowDown, MdAdd } from "react-icons/md";
 import styles from './styles';
 import { useNavContext, useHomeContext } from '@/context';
 import UserProfile from './UserProfile';
-import { getUserApi } from '@/API/APIS/userApi';
 import Avatar from '@/assets/images/avatar.jpg';
 import FullPageLoader from '../helpers/FullPageLoader';
 
 
 const Navbar = () => {
-  const { setFormLoading, formLoading } = useHomeContext();
+  const { formLoading,  user } = useHomeContext();
   const { 
     isProfileOpen, 
     setIsProfileOpen, 
-    setIsNavOpen, 
-    setUser, 
-    user 
+    setIsNavOpen
   } = useNavContext();
   const handleClick = () => { setIsProfileOpen(true)};
   const picture = null;
- 
-  useEffect(() => {
-    async function populateUser(){
-      const userData = await getUserApi();
-
-      if(userData) {
-        setUser(userData);
-        setFormLoading(false);
-      }
-    };
-
-    (async () => {
-      setFormLoading(true);
-      await populateUser();
-    })();
-  }, []);
 
   if(formLoading) return (<FullPageLoader />);
   

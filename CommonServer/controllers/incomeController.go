@@ -169,43 +169,47 @@ func SearchIncome() gin.HandlerFunc {
 	}
 }
 
-
-
 func GetMonthlyIncome() gin.HandlerFunc {
-	return func(c *gin.Context){
+	return func(c *gin.Context) {
+		userID := c.Param("userID")
+
+		now := time.Now()
+		currentMonth := now.Month()
+		currentYear := now.Year()
+
 		pipeline := bson.A{
 			bson.D{
-			  { Key: "$group",Value: bson.D{
-				{Key: "_id", Value: bson.D{
-					{Key: "$month", Value: "$createdAt"},
-                   
+				{Key: "$match", Value: bson.D{
+					{Key: "userID", Value: userID},
+					{Key: "createdAt", Value: bson.D{
+						{Key: "$gte", Value: time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)},
+						{Key: "$lt", Value: time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC)},
+					}},
 				}},
-				{Key: "totalIncome", Value: bson.D{
-					{Key: "sum", Value: "$amount"},
+			},
+			bson.D{
+				{Key: "$group", Value: bson.D{
+					{Key: "_id", Value: nil},
+					{Key: "totalIncome", Value: bson.D{
+						{Key: "$sum", Value: "$amount"},
+					}},
 				}},
-			   }},
-		},
-		bson.D{
-			{Key:"$sort",Value: bson.D{
-				{Key: "_id", Value: 1},
-			}},
-		},
-	}
+			},
+		}
 
-	cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		return 
-	}
-	defer cursor.Close(context.Background())
+		cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		defer cursor.Close(context.Background())
 
-	var aggregateIncome  []models.Income 
-	if err := cursor.All(context.Background(), &aggregateIncome); err != nil{
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		return 
+		var result []bson.M
+		if err := cursor.All(context.Background(), &result); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		c.JSON(http.StatusOK, result)
 	}
-      c.JSON(http.StatusOK, aggregateIncome)
-	
-  }
 }
-

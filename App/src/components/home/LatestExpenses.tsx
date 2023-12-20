@@ -4,8 +4,7 @@ import { TbCurrencyNaira } from 'react-icons/tb';
 import { useCustomState } from '@/hooks/responsive';
 import Link from 'next/link';
 import styles from './styles';
-import { expenses } from '@/dummy';
-import { getExpenseApi } from '@/API/APIS/expenseApi';
+import { useHomeContext } from '../../context';
 
 export interface expense {
   id?: number;
@@ -41,20 +40,7 @@ export const Expense = ({ category, amount, note, date, history }: expense) => {
 };
 
 const LatestExpenses = () => {
-
-  const [expenseData, setExpenseData] = useState<expense[]>([]);
-
-  useEffect(() => {
-    async function getExpenseData() {
-      try {
-        const data = await getExpenseApi();
-        setExpenseData(data);
-      } catch (error) {
-        console.error('Error fetching expense data:', error);
-      }
-    }
-    getExpenseData();
-  }, []);
+  const { expenseData } = useHomeContext();
 
   return (
     <div className={styles.barContainer}>
@@ -68,7 +54,7 @@ const LatestExpenses = () => {
           <p className="flex-1">Amount</p>
           <p className="flex-1">Note</p>
         </div>
-        {expenseData.map((data, index) => (
+        {expenseData?.reverse().slice(0, 5).map((data:any, index: any) => (
           <Expense key={index} {...data} />
         ))}
       </div>
