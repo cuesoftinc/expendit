@@ -1,5 +1,9 @@
 import { API } from '../axiosSetup';
 import { IncomeProps } from '../types';
+import { getLocalStorageItem } from '@/utils/localStorage';
+
+const userID = getLocalStorageItem('Expendit-user') || null;
+const user_id = userID ? JSON.parse(userID) : null;
 
 export const incomeCreateApi = async ({
   completeForm,
@@ -25,14 +29,14 @@ export const incomeCreateApi = async ({
 
 export const getIncomeApi = async () => {
   try {
-    const { data, status } = await API.get('/income');
+    const { data, status } = await API.get(`/income/incomes/month/${user_id}`);
 
-    if (data && status === 200) {
+    if (data) {
       console.log(data);
 
       return data;
     }
   } catch (error) {
-
+    console.log(error)
   }
 }

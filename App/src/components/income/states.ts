@@ -2,7 +2,7 @@ import { ChangeEvent, useState, useEffect, FormEvent } from "react";
 import { useHomeContext } from "@/context";
 import { incomeCreateApi } from "@/API/APIS/incomeApi";
 import { formatIncome, incomeRequiredFields } from "@/utils/formatIncomeForm";
-import { formatNumberWithCommas } from "@/utils/formatWithCommas";
+import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas";
 import { IncomePayload } from "@/API/types";
 
 export interface incomeFormProps {
@@ -33,8 +33,8 @@ export const useIncomeCustomState = () => {
 
     if (name === "amount") {
       const numericValue = value.replace(/[^0-9]/g, '');
-      const formatedNumber = formatNumberWithCommas(numericValue);
-      setForm((prev) => ({ ...prev, [name]: formatedNumber }));
+      // const formatedNumber = formatNumberWithCommas(numericValue);
+      setForm((prev) => ({ ...prev, [name]: numericValue }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }))
     }
@@ -69,6 +69,7 @@ export const useIncomeCustomState = () => {
     formError,
     formSuccess,
     formLoading,
+    formatValue,
     handleChange,
     handleSubmit
   }

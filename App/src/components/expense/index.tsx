@@ -15,6 +15,7 @@ const Index = () => {
     category,
     fileInput,
     selectedFiles,
+    formatValue,
     formLoading,
     setSelectedFiles,
     handleFileUpload,
@@ -25,14 +26,14 @@ const Index = () => {
 
   return (
     <div className='md:ml-3 ml-0'>
-      <div className='md:w-[70%] w-full'>
+      <div className='md:w-[50%] w-full'>
         <h3 className={styles.header}>Add your new expense</h3>
         <div>
         <Input 
           label='Amount'
           name='amount'
           type='text'
-          value={form.amount}
+          value={formatValue(form.amount)}
           placeholder='Your expense amount'
           handleChange={handleChange}
           custom
@@ -65,13 +66,11 @@ const Index = () => {
           <input type="file" hidden ref={fileInput} 
             onChange={(e) => handleFileUpload(e)}
           />
-          <div className=''>
-            <label className={inputStyles.label}>Category</label>
-            <select className={styles.select}>
-              <option value="food">Food</option>
-              <option value="utility">utility</option>
-              <option value="transportation">transportation</option>
-            </select>
+          <div 
+            className={styles.iconWrapper}
+            onClick={() => fileInput.current.click()}>
+            <CiImport fontSize={18} className='mr-2' />
+            <p className=''>Import</p>
           </div>
         </div>
         <button type='submit' 

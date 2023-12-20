@@ -5,14 +5,11 @@ import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MobileSidebar from './MobileSidebar';
 import Notification from '../helpers/Notification';
-import FullPageLoader from '../helpers/FullPageLoader';
 import styles from './styles';
 
 const PageLayout = ({ children}: { children: ReactNode }) => {
-  const { isNavOpen, user } = useNavContext();
-  const { formError, formSuccess, formLoading, setFormLoading } = useHomeContext();
-
-  // if(formLoading) return (<FullPageLoader />);
+  const { isNavOpen } = useNavContext();
+  const { formError, formSuccess } = useHomeContext();
 
   return (
     <Fragment>

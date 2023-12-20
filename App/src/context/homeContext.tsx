@@ -8,6 +8,9 @@ Dispatch,
 ReactNode, 
 SetStateAction 
 } from "react";
+import { getIncomeApi } from '../API/APIS/incomeApi';
+import { getUserApi } from '../API/APIS/userApi';
+import { getExpenseApi } from '../API/APIS/expenseApi';
 
 export interface HomeContextProps {
   homeState: number;
@@ -20,6 +23,12 @@ export interface HomeContextProps {
   setFormSuccess:  Dispatch<SetStateAction<string>>;
   formLoading: boolean;
   setFormLoading:  Dispatch<SetStateAction<boolean>>;
+  presentIncome: string;
+  setPresentIncome: Dispatch<SetStateAction<string>>;
+  user: any;
+  setUser: Dispatch<SetStateAction<any>>;
+  expenseData: any;
+  setExpenseData:  Dispatch<SetStateAction<any>>;
 };
 
 export interface HomeProviderProps {
@@ -34,6 +43,9 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
   const [formLoading, setFormLoading] = useState<boolean>(false);
+  const [presentIncome, setPresentIncome] = useState<string>("");
+  const [expenseData, setExpenseData] = useState<any>([]);
+  const [ user, setUser ] = useState(null);
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -51,7 +63,51 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
     return () => {
       clearTimeout(timerId);
     };
-  }, [formError, formSuccess]);
+  }, [formError, formSuccess, formLoading]);
+
+  useEffect(() => {
+    async function getIncome(){
+      try {
+        const res = await getIncomeApi();
+        if(res){
+          // setPresentIncome(res[0].ID)
+          console.log(res)
+        }
+      } catch (error) {
+        console.error('Error fetching expense data:', error);
+      }
+    }
+
+    getIncome();
+  }, [user]);
+
+  useEffect(() => {
+    async function populateUser(){
+      try {
+        const userData = await getUserApi(setFormLoading);
+        if(userData) {
+          setUser(userData);
+        }
+      } catch (error){
+        console.error('Error fetching expense data:', error);
+      }
+      
+    };
+
+    populateUser();
+  }, []);
+
+  useEffect(() => {
+    async function getExpenseData() {
+      try {
+        const data = await getExpenseApi();
+        setExpenseData(data);
+      } catch (error) {
+        console.error('Error fetching expense data:', error);
+      }
+    }
+    getExpenseData();
+  }, [user]);
 
   return (
     <HomeContext.Provider
@@ -65,7 +121,13 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         formSuccess, 
         setFormSuccess,
         formLoading, 
-        setFormLoading
+        setFormLoading,
+        presentIncome, 
+        setPresentIncome,
+        user, 
+        setUser,
+        expenseData, 
+        setExpenseData,
        }}
     >
       {children}

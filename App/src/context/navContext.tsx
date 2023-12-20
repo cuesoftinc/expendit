@@ -16,8 +16,6 @@ export interface NavContextProps {
   setIsNavOpen: Dispatch<SetStateAction<boolean>>;
   isProfileOpen: boolean;
   setIsProfileOpen: Dispatch<SetStateAction<boolean>>;
-  setUser: Dispatch<SetStateAction<any>>;
-  user: any;
 };
 
 export interface NavProviderProps {
@@ -30,7 +28,7 @@ export const NavProvider = ({ children }: NavProviderProps) => {
  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [navState, setNavState] = useState<string>("/");
   const [isNavOpen, setIsNavOpen] = useState<boolean>(false);
-  const [ user, setUser ] = useState(null);
+ 
 
   useEffect(() => {
     const handleResize = () => setIsNavOpen(false);
@@ -39,6 +37,7 @@ export const NavProvider = ({ children }: NavProviderProps) => {
     
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
 
   return (
     <NavContext.Provider
@@ -49,8 +48,6 @@ export const NavProvider = ({ children }: NavProviderProps) => {
         setIsNavOpen,
         isProfileOpen, 
         setIsProfileOpen,
-        setUser,
-        user
       }}
     >
       {children}
