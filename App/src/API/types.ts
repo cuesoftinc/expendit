@@ -75,3 +75,11 @@ export interface ExpensePayload {
   Category: string;
   Note: string;
 };
+
+export interface CategoryProps {
+  input?: string;
+  id?: string;
+  setFormError: React.Dispatch<React.SetStateAction<string>>;
+  setFormSuccess: React.Dispatch<React.SetStateAction<string>>;
+  setFormLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
