@@ -121,11 +121,19 @@ func UpdateExpense() gin.HandlerFunc {
 		}
 
 		updatedExpense.UpdatedAt = time.Now()
-
+         update := bson.D{
+			{
+				Key:"$set", Value: bson.D{
+					{Key:"amount", Value:updatedExpense.Amount},
+					{Key:"category",Value:updatedExpense.Category},
+		            {Key:"note",Value:updatedExpense.Note},		
+				}},
+		 }
 		result, err := expenseCollection.UpdateOne(
 			context.Background(),
 			bson.M{"_id": objectID},
-			bson.D{{Key: "$set", Value: updatedExpense}},
+			update,
+			
 		)
 
 		if err != nil {
