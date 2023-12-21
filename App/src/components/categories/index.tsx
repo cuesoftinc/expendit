@@ -30,7 +30,7 @@ const Index = () => {
                 value={selectedItemIndex !== null ? selectedItemIndex.toString() : ""}
               >
                 <option value="">Choose a category</option>
-                {memoizedItems.map((item, index) => (
+                {memoizedItems?.map((item, index) => (
                   <option key={index} value={index.toString()}>
                     {item.name}
                   </option>
