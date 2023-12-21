@@ -12,11 +12,6 @@ import { getIncomeApi } from '../API/APIS/incomeApi';
 import { getUserApi } from '../API/APIS/userApi';
 import { getExpenseApi } from '../API/APIS/expenseApi';
 
-interface MyItem {
-  ID: string;
-  name: string;
-}
-
 export interface HomeContextProps {
   homeState: number;
   setHomeState: Dispatch<SetStateAction<number>>;
@@ -34,8 +29,11 @@ export interface HomeContextProps {
   setUser: Dispatch<SetStateAction<any>>;
   expenseData: any;
   setExpenseData:  Dispatch<SetStateAction<any>>;
+<<<<<<< HEAD
   items: MyItem[];
   setItems: Dispatch<SetStateAction<MyItem[]>>;
+=======
+>>>>>>> upstream/main
 };
 
 export interface HomeProviderProps {
@@ -53,7 +51,6 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [presentIncome, setPresentIncome] = useState<string>("");
   const [expenseData, setExpenseData] = useState<any>([]);
   const [ user, setUser ] = useState(null);
-  const [items, setItems] = useState<{ ID: string; name: string; }[]>([]); 
 
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -136,8 +133,6 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         setUser,
         expenseData, 
         setExpenseData,
-        items,
-        setItems,
        }}
     >
       {children}

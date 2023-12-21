@@ -76,6 +76,7 @@ export interface ExpensePayload {
   Note: string;
 };
 
+
 export interface CategoryProps {
   input?: string;
   id?: string;
