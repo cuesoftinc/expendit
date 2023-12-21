@@ -105,11 +105,18 @@ func UpdateIncome()gin.HandlerFunc{
 	}
 
 	updatedIncome.UpdatedAt = time.Now()
+    update := bson.D{
+		{Key:"$set", Value:bson.D{
+			{Key:"amount", Value:updatedIncome.Amount},
+             {Key:"source", Value:updatedIncome.Source},
+			 {Key:"description", Value:updatedIncome.Description},
+		}},
 
+	}
 	result, err := incomeCollection.UpdateOne(
 		   context.Background(),
-		   bson.M{"id":objectID},
-		   bson.D{{Key: "$set", Value: updatedIncome}},
+		   bson.M{"_id":objectID},
+		    update,
 	)
       
 	if err != nil{

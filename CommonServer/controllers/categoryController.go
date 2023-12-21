@@ -126,6 +126,10 @@ func CreateCategory()gin.HandlerFunc{
 }
 
 
+
+
+	
+	
 func UpdateCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -135,24 +139,32 @@ func UpdateCategory() gin.HandlerFunc {
 			return
 		}
 
-		var updatedCategory models.Expense
+		var updatedCategory models.Category
 		if err := c.ShouldBindJSON(&updatedCategory); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
+		// Exclude the '_id' field from the update
 		updatedCategory.UpdatedAt = time.Now()
+		update := bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "name", Value: updatedCategory.Name},
+				// Add other fields as needed
+			}},
+		}
 
 		result, err := categoryCollection.UpdateOne(
 			context.Background(),
 			bson.M{"_id": objectID},
-			bson.D{{Key: "$set", Value: updatedCategory}},
+			update,
 		)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
 		if result.ModifiedCount == 0 {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Expense not found"})
 			return
@@ -161,6 +173,8 @@ func UpdateCategory() gin.HandlerFunc {
 		c.JSON(http.StatusOK, updatedCategory)
 	}
 }
+
+
 
 
 func DeleteCategory()gin.HandlerFunc{

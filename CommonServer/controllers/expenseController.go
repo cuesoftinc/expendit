@@ -121,11 +121,19 @@ func UpdateExpense() gin.HandlerFunc {
 		}
 
 		updatedExpense.UpdatedAt = time.Now()
-
+         update := bson.D{
+			{
+				Key:"$set", Value: bson.D{
+					{Key:"amount", Value:updatedExpense.Amount},
+					{Key:"category",Value:updatedExpense.Category},
+		            {Key:"note",Value:updatedExpense.Note},		
+				}},
+		 }
 		result, err := expenseCollection.UpdateOne(
 			context.Background(),
 			bson.M{"_id": objectID},
-			bson.D{{Key: "$set", Value: updatedExpense}},
+			update,
+			
 		)
 
 		if err != nil {
@@ -166,30 +174,33 @@ func DeleteExpense()gin.HandlerFunc{
 }
 }
 
-
 func SearchExpense() gin.HandlerFunc {
-	return func(c *gin.Context){
-	query := c.Query("query")
-	if query == ""{
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Search query is required"})
-		return 
+	return func(c *gin.Context) {
+		query := c.Query("query")
+		if query == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Search query is required"})
+			return
+		}
+
+		filter := bson.M{"items": bson.M{"$regex": primitive.Regex{Pattern: query, Options: "i"}}}
+		cursor, err := expenseCollection.Find(context.Background(), filter)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		defer cursor.Close(context.Background())
+
+		var expenseSearch []models.Expense
+		if err := cursor.All(context.Background(), &expenseSearch); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		if len(expenseSearch) == 0 {
+			c.JSON(http.StatusOK, gin.H{"message": "No matching expenses found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, expenseSearch)
 	}
-
-	filter := bson.M{"items":bson.M{"$regex":primitive.Regex{Pattern:query,Options:"i"}}}
-    cursor, err := expenseCollection.Find(context.Background(), filter)
-     if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-	    return 
-	}
-
-	defer cursor.Close(context.Background())
-
-        var expenseSearch []models.Expense
-		if err := cursor.All(context.Background(), &expenseSearch); err != nil{
-			   c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		       return 
-			}
-			c.JSON(http.StatusOK, expenseSearch)
 }
-}
-
