@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"log"
 	"context"
 	"net/http"
 	"time"
@@ -74,7 +75,7 @@ func CreateIncome() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			return
 		}
-       
+
 		income.UserID = uid.(string)
 		income.ID = primitive.NewObjectID()
 		income.CreatedAt = time.Now()
@@ -82,12 +83,14 @@ func CreateIncome() gin.HandlerFunc {
 
 		_, err := incomeCollection.InsertOne(context.Background(), income)
 		if err != nil {
+			log.Println("Error inserting income document:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			return
 		}
 		c.JSON(http.StatusCreated, income)
 	}
 }
+
 
 func UpdateIncome()gin.HandlerFunc{
 	return  func(c *gin.Context){
@@ -156,6 +159,7 @@ func DeleteIncome()gin.HandlerFunc{
 	c.JSON(http.StatusNoContent, nil)
 }
 }
+
 func SearchIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cursor, err := incomeCollection.Find(context.Background(), bson.M{})
@@ -184,39 +188,48 @@ func GetMonthlyIncome() gin.HandlerFunc {
 		currentMonth := now.Month()
 		currentYear := now.Year()
 
-		pipeline := bson.A{
-			bson.D{
-				{Key: "$match", Value: bson.D{
-					{Key: "userID", Value: userID},
-					{Key: "createdAt", Value: bson.D{
-						{Key: "$gte", Value: time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)},
-						{Key: "$lt", Value: time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC)},
-					}},
-				}},
-			},
-			bson.D{
-				{Key: "$group", Value: bson.D{
-					{Key: "_id", Value: nil},
-					{Key: "totalIncome", Value: bson.D{
-						{Key: "$sum", Value: "$amount"},
-					}},
-				}},
-			},
+		filter := bson.D{
+			{Key: "userid", Value: userID},
+			{Key: "createdat", Value: bson.D{
+				{Key: "$gte", Value: time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)},
+				{Key: "$lt", Value: time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC)},
+			}},
 		}
 
-		cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
+		cursor, err := incomeCollection.Find(context.Background(), filter)
 		if err != nil {
+			log.Println("Error in MongoDB query:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			return
 		}
 		defer cursor.Close(context.Background())
 
-		var result []bson.M
-		if err := cursor.All(context.Background(), &result); err != nil {
+		var totalIncome float64
+
+		for cursor.Next(context.Background()) {
+			var income bson.M
+			if err := cursor.Decode(&income); err != nil {
+				log.Println("Error decoding MongoDB document:", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				return
+			}
+
+			amount, ok := income["amount"].(float64)
+			if !ok {
+				log.Println("Error retrieving 'amount' field from document")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				return
+			}
+
+			totalIncome += amount
+		}
+
+		if err := cursor.Err(); err != nil {
+			log.Println("Error in MongoDB cursor:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			return
 		}
 
-		c.JSON(http.StatusOK, result)
+		c.JSON(http.StatusOK, gin.H{"totalIncome": totalIncome})
 	}
 }

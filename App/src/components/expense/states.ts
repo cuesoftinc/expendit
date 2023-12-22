@@ -3,7 +3,8 @@ import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas"
 import { formatExpense } from "@/utils/formatExpenseForm";
 import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { useHomeContext } from "@/context";
-import { SelectChangeEvent } from "@mui/material";
+import { getExpenseApi } from "@/API/APIS/expenseApi";
+
 
 export interface expenseFormProps {
   amount: string;
@@ -17,7 +18,9 @@ export const useExpenseCustomState = () => {
     setFormError,
     setFormSuccess,
     formLoading,
-    setFormLoading
+    setFormLoading,
+    setExpenseData,
+    categories
   } = useHomeContext();
 
   const fileInput = useRef<any>(null);
@@ -62,6 +65,7 @@ export const useExpenseCustomState = () => {
       setFormError,
       setFormSuccess,
       setFormLoading,
+      setExpenseData
     });
 
     setForm(initialForm);
@@ -74,6 +78,7 @@ export const useExpenseCustomState = () => {
     selectedFiles,
     formatValue,
     category,
+    categories,
     setSelectedFiles,
     handleFileUpload,
     handleCategory,
