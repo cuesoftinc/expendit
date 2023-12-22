@@ -124,7 +124,7 @@ func UpdateIncome()gin.HandlerFunc{
 	    return 
 	}
 	if result.ModifiedCount == 0  {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error":"Income not found"})
 		return 
 	}
 
