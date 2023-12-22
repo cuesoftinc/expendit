@@ -244,48 +244,48 @@ export const expenseGrid: GridColDef[] = [
 ];
 
 export const expenseRow: expense[] = [
-  {
-    id: 1,
-    category: 'Food',
-    amount: 2000,
-    note: 'I used it to buy Food',
-    date: presentDate
-  },
-  {
-    id: 2,
-    category: 'Transport',
-    amount: 1500,
-    note: 'I entered bus to mainland',
-    date: presentDate
-  },
-  {
-    id: 3,
-    category: 'Groceries',
-    amount: 5000,
-    note: 'I visited the mall to get some groceries',
-    date: presentDate
-  },
-  {
-    id: 4,
-    category: 'Food',
-    amount: 2000,
-    note: 'I used it to buy Food',
-    date: presentDate
-  },
-  {
-    id: 5,
-    category: 'Transport',
-    amount: 1500,
-    note: 'I entered bus to mainland',
-    date: presentDate
-  },
-  {
-    id: 6,
-    category: 'Groceries',
-    amount: 5000,
-    note: 'I visited the mall to get some groceries ',
-    date: presentDate
-  },
+  // {
+  //   id: 1,
+  //   category: 'Food',
+  //   amount: 2000,
+  //   note: 'I used it to buy Food',
+  //   date: presentDate
+  // },
+  // {
+  //   id: 2,
+  //   category: 'Transport',
+  //   amount: 1500,
+  //   note: 'I entered bus to mainland',
+  //   date: presentDate
+  // },
+  // {
+  //   id: 3,
+  //   category: 'Groceries',
+  //   amount: 5000,
+  //   note: 'I visited the mall to get some groceries',
+  //   date: presentDate
+  // },
+  // {
+  //   id: 4,
+  //   category: 'Food',
+  //   amount: 2000,
+  //   note: 'I used it to buy Food',
+  //   date: presentDate
+  // },
+  // {
+  //   id: 5,
+  //   category: 'Transport',
+  //   amount: 1500,
+  //   note: 'I entered bus to mainland',
+  //   date: presentDate
+  // },
+  // {
+  //   id: 6,
+  //   category: 'Groceries',
+  //   amount: 5000,
+  //   note: 'I visited the mall to get some groceries ',
+  //   date: presentDate
+  // },
 ];
 
 export const expenses: expense[] = [
