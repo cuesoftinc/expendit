@@ -35,7 +35,7 @@ func VerifyPassword(userPassword string, providedPassword string)(bool, string){
 	msg := ""
    
    if err != nil{
-	msg = fmt.Sprintf("email of password is not correct")
+	msg = fmt.Sprintf("email or password is not correct")
     check = false   
 }
 return check, msg
@@ -279,4 +279,60 @@ func ChangePassword() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
 	}
-}		
+}
+
+
+func UpdateUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+
+		
+		userId, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id not found in context"})
+			return
+		}
+
+		var updatedUserData models.User
+
+		if err := c.BindJSON(&updatedUserData); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Validate the updated user data
+		validationErr := validate.Struct(updatedUserData)
+		if validationErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+			return
+		}
+
+		// Get the user from the database
+		var existingUser models.User
+		err := userCollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&existingUser)
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching user data"})
+			return
+		}
+
+		existingUser.First_name = updatedUserData.First_name
+		existingUser.Last_name = updatedUserData.Last_name
+		existingUser.Email = updatedUserData.Email
+		existingUser.Phone = updatedUserData.Phone
+		existingUser.User_type = updatedUserData.User_type
+		existingUser.Updated_at = time.Now()
+
+		
+		update := bson.M{"$set": existingUser}
+		filter := bson.M{"user_id": userId}
+
+		_, err = userCollection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating user"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "User updated successfully", "updated_user": existingUser})
+	}
+} 
