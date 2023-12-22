@@ -13,6 +13,7 @@ const Index = () => {
   const {
     form,
     category,
+    categories,
     fileInput,
     selectedFiles,
     formatValue,
@@ -41,9 +42,11 @@ const Index = () => {
         <div className=''>
           <label className={inputStyles.label}>Category</label>
           <select className={styles.select} onChange={handleCategory} value={category}>
-            <option value="food">Food</option>
-            <option value="utility">utility</option>
-            <option value="transportation">transportation</option>
+            {categories?.map((cat: any, index: number) => (
+              <option value={cat.name} key={index}>{cat.name}</option>
+            ))}
+            {/* <option value="utility">utility</option>
+            <option value="transportation">transportation</option> */}
           </select>
         </div>
         <div className='w-full'>

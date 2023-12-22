@@ -13,18 +13,13 @@ export const useCategoryCustomState = () => {
     setFormSuccess,
     formLoading,
     setFormLoading,
-    items,
-    setItems
+    categories,
+    setCategories
   } = useHomeContext();
 
   const [input, setInput] = useState('');
   const [editedItem, setEditedItem] = useState('');
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
-
-  const fetchAndSetCategories = async () => {
-    const categories = await getCategoryApi();
-    setItems(categories);
-  };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -34,13 +29,18 @@ export const useCategoryCustomState = () => {
     setEditedItem(e.target.value);
   };
 
+  const fetchAndSetCategories = async () => {
+    const fetchedCat = await getCategoryApi();
+    setCategories(fetchedCat);
+  };
+
   useEffect(() => {
     fetchAndSetCategories();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     if (input.trim() !== '') {
       try {
         await createCategoryApi({
@@ -50,18 +50,18 @@ export const useCategoryCustomState = () => {
           setFormSuccess,
         });
         fetchAndSetCategories();
-  
+
         setInput('');
       } catch (error) {
         console.error('Error creating category:', error);
       }
     }
   };
-  
+
   const handleEdit = async () => {
     if (selectedItemIndex !== null) {
       try {
-        const categoryId = items[selectedItemIndex]?.ID;
+        const categoryId = categories[selectedItemIndex]?.ID;
 
         if (categoryId) {
           await editCategoryApi({
@@ -71,9 +71,9 @@ export const useCategoryCustomState = () => {
             setFormLoading,
             setFormSuccess,
           });
-  
+
           fetchAndSetCategories();
-  
+
           setEditedItem('');
           setSelectedItemIndex(null);
         }
@@ -82,11 +82,11 @@ export const useCategoryCustomState = () => {
       }
     }
   };
-  
+
   const handleDelete = async () => {
     if (selectedItemIndex !== null) {
       try {
-        const categoryId = items[selectedItemIndex]?.ID;
+        const categoryId = categories[selectedItemIndex]?.ID;
 
         if (categoryId) {
           await deleteCategoryApi({
@@ -95,9 +95,9 @@ export const useCategoryCustomState = () => {
             setFormLoading,
             setFormSuccess,
           });
-  
+
           fetchAndSetCategories();
-  
+
           setSelectedItemIndex(null);
         }
       } catch (error) {
@@ -106,7 +106,7 @@ export const useCategoryCustomState = () => {
     }
   };
 
-  const memoizedItems = useMemo(() => items, [items]);
+  const memoizedItems = useMemo(() => categories, [categories]);
 
   return {
     handleDelete,

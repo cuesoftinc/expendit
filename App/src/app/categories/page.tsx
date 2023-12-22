@@ -3,12 +3,15 @@
 import React from 'react';
 import PageLayout from '@/components/layouts/PageLayout';
 import Page from '@/components/categories'
+import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 
 const Categories: React.FC = () => {
   return (
-    <PageLayout>
-      <Page/>
-    </PageLayout>
+    <ProtectedRoute>
+      <PageLayout>
+        <Page/>
+      </PageLayout>
+    </ProtectedRoute>
   );
 }
 
