@@ -25,7 +25,7 @@ const Pagination = () => {
   console.log(pagination.join(', '));
 
   return (
-    <div className='w-full flex justify-end'>
+    <div className={styles.pagination}>
       <div className='flex gap-3'>
         <span onClick={handleBackward} className={styles.arrow(currentPage, totalLength, "back")}>
           <IoIosArrowBack fontSize={20} />

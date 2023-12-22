@@ -18,6 +18,7 @@ export interface SignUpProps {
   router: AppRouterInstance;
 };
 
+// ---- Sign In Types ----
 export interface SignInPayload {
   Email: string;
   Password: string;
@@ -35,13 +36,16 @@ export interface SignInProps {
 export interface LogoutProps {
   router: AppRouterInstance;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
-}
+};
+
+// ---- Income Types ----
 
 export interface IncomeProps {
   completeForm: IncomePayload;
   setFormError: Dispatch<SetStateAction<string>>;
   setFormSuccess: Dispatch<SetStateAction<string>>;
   setFormLoading: Dispatch<SetStateAction<boolean>>;
+  setPresentIncome: Dispatch<SetStateAction<any>>;
 };
 
 export interface IncomePayload {
@@ -50,6 +54,8 @@ export interface IncomePayload {
   Description: string;
   User_type?: string;
 };
+
+// ---- Password Types ----
 
 export interface PasswordChangeProps {
   completeForm: PasswordPayload;
@@ -63,11 +69,13 @@ export interface PasswordPayload {
   NewPassword: string;
 }
 
+// ---- Expense Types ----
 export interface ExpenseProps {
   completeForm: ExpensePayload;
   setFormError: Dispatch<SetStateAction<string>>;
   setFormSuccess: Dispatch<SetStateAction<string>>;
   setFormLoading: Dispatch<SetStateAction<boolean>>;
+  setExpenseData: Dispatch<SetStateAction<any>>;
 };
 
 export interface ExpensePayload {

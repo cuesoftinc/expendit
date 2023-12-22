@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useNavContext } from '@/context';
+import { useNavContext, useHomeContext } from '@/context';
 import { AiOutlineClose } from 'react-icons/ai';
 
 import styles from './styles';
@@ -11,7 +11,8 @@ import Avatar from '@/assets/images/avatar.jpg';
 
 const UserProfile = () => {
   const router = useRouter();
-  const { setIsProfileOpen, user } = useNavContext();
+  const { setIsProfileOpen } = useNavContext();
+  const { user } = useHomeContext();
   const picture = null;
 
   const handleClick = (e: any, url:string) => {

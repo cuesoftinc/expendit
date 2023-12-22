@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log"
 	"expendit-server/database"
 	"expendit-server/models"
 	"net/http"
@@ -71,6 +72,116 @@ func GetExpenses() gin.HandlerFunc {
 		c.JSON(http.StatusOK, expenses)
 	}
 };
+
+func GetUserExpense() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.Param("userID")
+
+		page, err := strconv.Atoi(c.Query("page"))
+		if err != nil || page <= 0 {
+			page = 1
+		}
+		perPage, err := strconv.Atoi(c.Query("per_page"))
+		if err != nil || perPage <= 0 {
+			perPage = 10
+		}
+
+		skip := (page - 1) * perPage
+
+		filter := bson.D{{Key: "userid", Value: userID}}
+
+		cursor, err := expenseCollection.Find(
+			context.Background(),
+			filter,
+			options.Find().SetSkip(int64(skip)).SetLimit(int64(perPage)),
+		)
+		if err != nil {
+			log.Println("Error in MongoDB query:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		defer cursor.Close(context.Background())
+
+		var results []bson.M 
+
+		for cursor.Next(context.Background()) {
+			var expense bson.M
+			if err := cursor.Decode(&expense); err != nil {
+				log.Println("Error decoding MongoDB document:", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				return
+			}
+			results = append(results, expense)
+
+		}
+
+		if err := cursor.Err(); err != nil {
+			log.Println("Error in MongoDB cursor:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		if len(results) == 0 {
+			log.Println("No expense records found.")
+		}
+
+		c.JSON(http.StatusOK, gin.H{"results": results})
+	}
+}
+
+func GetMonthlyExpense() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.Param("userID")
+
+		now := time.Now()
+		currentMonth := now.Month()
+		currentYear := now.Year()
+
+		filter := bson.D{
+			{Key: "userid", Value: userID},
+			{Key: "createdat", Value: bson.D{
+				{Key: "$gte", Value: time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)},
+				{Key: "$lt", Value: time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC)},
+			}},
+		}
+
+		cursor, err := expenseCollection.Find(context.Background(), filter)
+		if err != nil {
+			log.Println("Error in MongoDB query:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		defer cursor.Close(context.Background())
+
+		var totalExpense float64
+
+		for cursor.Next(context.Background()) {
+			var expense bson.M
+			if err := cursor.Decode(&expense); err != nil {
+				log.Println("Error decoding MongoDB document:", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				return
+			}
+
+			amount, ok := expense["amount"].(float64)
+			if !ok {
+				log.Println("Error retrieving 'amount' field from document")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+				return
+			}
+
+			totalExpense += amount
+		}
+
+		if err := cursor.Err(); err != nil {
+			log.Println("Error in MongoDB cursor:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"totalExpense": totalExpense})
+	}
+}
 
 
 func CreateExpense() gin.HandlerFunc {
