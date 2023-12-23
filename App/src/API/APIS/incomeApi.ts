@@ -2,7 +2,7 @@ import { API } from '../axiosSetup';
 import { IncomeProps } from '../types';
 import { getLocalStorageItem } from '@/utils/localStorage';
 
-const userID = getLocalStorageItem('Expendit-user') || null;
+const userID = getLocalStorageItem('Expendit-userID') || null;
 const user_id = userID ? JSON.parse(userID) : null;
 
 export const incomeCreateApi = async ({
@@ -10,6 +10,7 @@ export const incomeCreateApi = async ({
   setFormError,
   setFormSuccess,
   setFormLoading,
+  setPresentIncome
 }: IncomeProps) => {
   setFormLoading(true);
 
@@ -20,6 +21,23 @@ export const incomeCreateApi = async ({
     if (data && status === 201) {
       setFormSuccess("Successful!");
       setFormLoading(false);
+      console.log(data);
+
+      setTimeout(async () => {
+        try {
+          setFormLoading(true);
+          const res = await getIncomeApi();
+
+          if (res) {
+            console.log(res);
+            setPresentIncome(res?.totalIncome)
+            setFormLoading(false);
+          }
+        } catch (error) {
+          setFormError("an error occurred, try again");
+          setFormLoading(false);
+        }
+      }, 5000);
     }
   } catch (error) {
     setFormError("an error occurred, try again");
