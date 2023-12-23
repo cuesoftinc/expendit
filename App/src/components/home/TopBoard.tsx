@@ -1,12 +1,16 @@
 "use client"
 
 import React, { useEffect } from 'react';
+import { BsBoxSeam } from 'react-icons/bs';
+import { FiBarChart, } from 'react-icons/fi';
+import { HiOutlineRefresh } from 'react-icons/hi';
+import { MdShowChart } from "react-icons/md";
 import { TbCurrencyNaira } from 'react-icons/tb';
-// import { useCustomState } from '@/hooks/responsive';
-import { summaryData } from '@/dummy';
-import { getIncomeApi } from '@/API/APIS/incomeApi';
+import { formatNumberWithCommas as formatValue } from '@/utils/formatWithCommas';
 import Slider from  "react-slick";
 import styles from './styles';
+import { useHomeContext } from '@/context';
+
 
 interface boardProps{
   icon: any;
@@ -17,7 +21,6 @@ interface boardProps{
 };
 
 const Board = ({icon, title, amount, percentage, chart}: boardProps) => {
-  // const [ mobile ] = useCustomState();
 
   return (
     <div className={styles.boardCont}>
@@ -38,7 +41,21 @@ const Board = ({icon, title, amount, percentage, chart}: boardProps) => {
   )
 };
 
+
 const TopBoard = () => {
+  const { 
+    presentIncome, 
+    totalExpense, 
+    totalBalance, 
+    setTotalBalance 
+  } = useHomeContext();
+
+  useEffect(() => {
+    setTotalBalance(
+      presentIncome - totalExpense
+    )
+  }, [totalExpense, presentIncome])
+
   var settings = {
     dots: false,
     infinite: true,
@@ -69,9 +86,27 @@ const TopBoard = () => {
   return ((
     <div className="">
       <Slider {...settings}>
-        {summaryData.map((item, index) => (
-          <Board key={index} {...item} />
-        ))}
+        <Board 
+          icon={<HiOutlineRefresh />}
+          title='Total Income'
+          amount={formatValue(presentIncome) || "...loading"}
+          percentage='-12%'
+          chart={<MdShowChart  color='red'/>}
+        />
+        <Board 
+          icon={<FiBarChart />}
+          title='Total Expenses'
+          amount={formatValue(totalExpense) || "...loading"}
+          percentage='+38%'
+          chart={<MdShowChart  color='green'/>}
+        />
+        <Board 
+          icon={<BsBoxSeam />}
+          title='Balance'
+          amount={formatValue(totalBalance) || "...loading"}
+          percentage='+23%'
+          chart={<MdShowChart  color='green'/>}
+        />
       </Slider>
     </div>
   ))

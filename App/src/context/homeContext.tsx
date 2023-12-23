@@ -10,7 +10,9 @@ SetStateAction
 } from "react";
 import { getIncomeApi } from '../API/APIS/incomeApi';
 import { getUserApi } from '../API/APIS/userApi';
-import { getExpenseApi } from '../API/APIS/expenseApi';
+import { getCategoryApi } from '../API/APIS/categoryApi';
+import { getExpenseApi, getMonthlyExpenseApi } from '../API/APIS/expenseApi';
+import { getLocalStorageItem } from '@/utils/localStorage';
 
 interface MyItem {
   ID:string;
@@ -28,14 +30,20 @@ export interface HomeContextProps {
   setFormSuccess:  Dispatch<SetStateAction<string>>;
   formLoading: boolean;
   setFormLoading:  Dispatch<SetStateAction<boolean>>;
-  presentIncome: string;
-  setPresentIncome: Dispatch<SetStateAction<string>>;
+  presentIncome: number;
+  setPresentIncome: Dispatch<SetStateAction<number>>;
+  totalExpense: number;
+  setTotalExpense: Dispatch<SetStateAction<number>>;
+  totalBalance: number;
+  setTotalBalance: Dispatch<SetStateAction<number>>;
   user: any;
   setUser: Dispatch<SetStateAction<any>>;
   expenseData: any;
   setExpenseData:  Dispatch<SetStateAction<any>>;
-  items: MyItem[];
-  setItems: Dispatch<SetStateAction<MyItem[]>>;
+  // items: MyItem[];
+  // setItems: Dispatch<SetStateAction<MyItem[]>>;
+  categories: any;
+  setCategories: Dispatch<SetStateAction<any>>;
 };
 
 export interface HomeProviderProps {
@@ -45,16 +53,24 @@ export interface HomeProviderProps {
 const HomeContext = createContext<HomeContextProps | undefined>(undefined);
 
 export const HomeProvider = ({ children }: HomeProviderProps) => {
+  const storedValue: string | null = getLocalStorageItem("Expendit-user");
+  const presentUser: string | null = storedValue !== null ? JSON.parse(storedValue) : null;
+  
   const [homeState, setHomeState] = useState<number>(2);
   const [newString, setNewString] = useState<string>("Testing for string");
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
   const [formLoading, setFormLoading] = useState<boolean>(false);
-  const [presentIncome, setPresentIncome] = useState<string>("");
+  const [presentIncome, setPresentIncome] = useState<number>(0);
+  const [totalExpense, setTotalExpense] = useState<number>(0);
+  const [totalBalance, setTotalBalance] = useState<number>(0);
   const [expenseData, setExpenseData] = useState<any>([]);
-  const [ user, setUser ] = useState(null);
-  const [items, setItems] = useState<{ ID: string; name: string; }[]>([])
+  // const [items, setItems] = useState<{ ID: string; name: string; }[]>([])
 
+  const [ user, setUser ] = useState<any>(presentUser || null);
+  const [ categories, setCategories] = useState<any>([]);
+console.log(expenseData)
+  // ---- Handle Form States ----
   useEffect(() => {
     const timerId = setTimeout(() => {
       if (formError !== "") {
@@ -73,12 +89,44 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
     };
   }, [formError, formSuccess, formLoading]);
 
+  // ---- Get Expense onLoad ----
   useEffect(() => {
-    async function getIncome(){
+    async function getExpenseData() {
+      try {
+        const data = await getExpenseApi();
+        setExpenseData(data?.results);
+      } catch (error) {
+        console.error('Error fetching expense data:', error);
+      }
+    }
+    getExpenseData();
+  }, []);
+
+  // ---- Get Monthly Expense onLoad ----
+  useEffect(() => {
+    async function getMonthlyExpense() {
+      try {
+        const res = await getMonthlyExpenseApi();
+        if (res) {
+          setTotalExpense(res?.totalExpense)
+          console.log(res)
+        }
+      } catch (error) {
+        console.error('Error fetching expense data:', error);
+      }
+    }
+
+    getMonthlyExpense();
+  }, []);
+  
+
+  // ---- Get Income OonLoad ----
+  useEffect(() => {
+    async function getIncome() {
       try {
         const res = await getIncomeApi();
-        if(res){
-          // setPresentIncome(res[0].ID)
+        if (res) {
+          setPresentIncome(res?.totalIncome)
           console.log(res)
         }
       } catch (error) {
@@ -87,35 +135,17 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
     }
 
     getIncome();
-  }, [user]);
-
-  useEffect(() => {
-    async function populateUser(){
-      try {
-        const userData = await getUserApi(setFormLoading);
-        if(userData) {
-          setUser(userData);
-        }
-      } catch (error){
-        console.error('Error fetching expense data:', error);
-      }
-      
-    };
-
-    populateUser();
   }, []);
 
+  // --- Get Categories onLoad ----
   useEffect(() => {
-    async function getExpenseData() {
-      try {
-        const data = await getExpenseApi();
-        setExpenseData(data);
-      } catch (error) {
-        console.error('Error fetching expense data:', error);
-      }
-    }
-    getExpenseData();
-  }, [user]);
+    const fetchAndSetCategories = async () => {
+      const fetchedCat = await getCategoryApi();
+      setCategories(fetchedCat);
+    };
+
+    fetchAndSetCategories();
+  }, []);
 
   return (
     <HomeContext.Provider
@@ -136,8 +166,14 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         setUser,
         expenseData, 
         setExpenseData,
-        items,
-        setItems,
+        // items,
+        // setItems,
+        categories, 
+        setCategories,
+        totalExpense, 
+        setTotalExpense,
+        totalBalance, 
+        setTotalBalance,
        }}
     >
       {children}

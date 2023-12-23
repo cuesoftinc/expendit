@@ -4,6 +4,7 @@ package controller
 import (
 	"context"
 	"net/http"
+	"log"
 	"fmt"
 	"time"
     "expendit-server/models"
@@ -38,7 +39,7 @@ func GetCategoryById()gin.HandlerFunc {
 	}   
 } 
 var CATEGORIES = []string{"Food",
-"Transport",
+"Transportation",
 "Groceries",
 "Utility",
 "Data",
@@ -78,26 +79,28 @@ func getCategoryByName(ctx context.Context, categoryName string) (models.Categor
 	return category, nil
 }
 
+func GetCategories() gin.HandlerFunc {
+	return func(c *gin.Context) {
+			// Fetch categories from the database
+			cursor, err := categoryCollection.Find(context.Background(), bson.M{})
+			if err != nil {
+					log.Println("Error querying categories:", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+					return
+			}
+			defer cursor.Close(context.Background())
 
-func GetCategories()gin.HandlerFunc{
-	return func(c *gin.Context){
-	cursor, err  := categoryCollection.Find(context.Background(), bson.M{})
-    if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-         return 
+			// Decode the results into a slice of models.Category
+			var categories []models.Category
+			if err := cursor.All(context.Background(), &categories); err != nil {
+					log.Println("Error decoding categories:", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+					return
+			}
+
+			// Return the categories as JSON response
+			c.JSON(http.StatusOK, categories)
 	}
-	defer cursor.Close(context.Background())
-
-	var categories []models.Category
-
-	if err := cursor.All(context.Background(), &categories); err != nil{
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-
-		return 
-	}
-
-	c.JSON(http.StatusOK,categories)
-}
 }
 
 
@@ -124,11 +127,6 @@ func CreateCategory()gin.HandlerFunc{
 	c.JSON(http.StatusCreated,category)
 }
 }
-
-
-
-
-	
 	
 func UpdateCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {

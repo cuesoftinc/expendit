@@ -1,19 +1,19 @@
 import { API } from '../axiosSetup';
 import { SignUpProps, SignInProps, LogoutProps, PasswordChangeProps } from '../types';
 
-export const signUpApi = async ({ 
-  completeForm, 
-  setFormError, 
-  setFormSuccess, 
+export const signUpApi = async ({
+  completeForm,
+  setFormError,
+  setFormSuccess,
   setFormLoading,
-  router 
+  router
 }: SignUpProps) => {
 
   try {
     const payload = JSON.stringify(completeForm)
-    const {data, status } = await API.post('/users/signup', payload);
+    const { data, status } = await API.post('/users/signup', payload);
 
-    if(data && status === 200){
+    if (data && status === 200) {
       setFormSuccess("Successful!");
       setFormLoading(false);
 
@@ -25,29 +25,30 @@ export const signUpApi = async ({
     setFormLoading(false);
     console.log(error)
   }
-  
+
 }
 
-export const signInApi = async ({ 
-  completeForm, 
-  setFormError, 
-  setFormSuccess, 
+export const signInApi = async ({
+  completeForm,
+  setFormError,
+  setFormSuccess,
   setFormLoading,
-  router 
+  router
 }: SignInProps) => {
 
   try {
     const payload = JSON.stringify(completeForm)
-    const {data, status } = await API.post('/users/signin', payload);
+    const { data, status } = await API.post('/users/signin', payload);
 
-    if(data && status === 200){
+    if (data && status === 200) {
       setFormSuccess("Successful!");
       setFormLoading(false);
 
       const jwt = data.token;
       const user_id = data.user_id;
       localStorage.setItem('Expendit-token', JSON.stringify(jwt));
-      localStorage.setItem('Expendit-user', JSON.stringify(user_id));
+      localStorage.setItem('Expendit-userID', JSON.stringify(user_id));
+      localStorage.setItem('Expendit-user', JSON.stringify(data));
       localStorage.setItem('ExpenditLoggedIn', JSON.stringify(true));
 
       router.push('/');
@@ -57,17 +58,18 @@ export const signInApi = async ({
     setFormError("an error occurred, try again");
     setFormLoading(false);
   }
-  
+
 }
 
-export const logoutApi = async ({router, setIsLoading }: LogoutProps) => {
+export const logoutApi = async ({ router, setIsLoading }: LogoutProps) => {
   try {
     setIsLoading(true);
+    router.push("/signin");
+
     localStorage.removeItem("Expendit-token");
     localStorage.removeItem("Expendit-user");
+    localStorage.removeItem("Expendit-userID");
     localStorage.removeItem("ExpenditLoggedIn");
-
-    router.push("/signin");
     setIsLoading(false);
   } catch (error) {
     console.log(error);
@@ -75,18 +77,18 @@ export const logoutApi = async ({router, setIsLoading }: LogoutProps) => {
   }
 }
 
-export const passwordChangeApi = async ({ 
-  completeForm, 
-  setFormError, 
-  setFormSuccess, 
+export const passwordChangeApi = async ({
+  completeForm,
+  setFormError,
+  setFormSuccess,
   setFormLoading,
 }: PasswordChangeProps) => {
 
   try {
     const payload = JSON.stringify(completeForm)
-    const {data, status } = await API.post('/users/change-password', payload);
+    const { data, status } = await API.post('/users/change-password', payload);
 
-    if(data && status === 200){
+    if (data && status === 200) {
       setFormSuccess("Successful!");
       setFormLoading(false);
     }
@@ -94,5 +96,5 @@ export const passwordChangeApi = async ({
     setFormError("an error occurred, try again");
     setFormLoading(false);
   }
-  
+
 }
