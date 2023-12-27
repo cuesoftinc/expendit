@@ -1,16 +1,25 @@
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import styles from './styles';
-import Plan from '../../assets/images/plan.png'
-import { useState } from 'react';
+import savings from '../../assets/images/savings.jpg';
+import finance from '../../assets/images/finance.jpg';
+import budget from '../../assets/images/budget2.jpg';
+import revenue from '../../assets/images/revenue.jpg';
 
 const Services =  () =>{
   const tabs = [
     "Plan Your Finance",
     "Create Monthly Budget",
-    " Use For Business Revenue Allocation",
+    "Revenue Allocation",
     "Plan Savings"
   ];
+
+  const tabImages = [
+    finance,
+    budget,
+    revenue,
+    savings
+  ]
 
   const [activeTab, setActiveTab] = useState(0);
 
@@ -18,36 +27,45 @@ const Services =  () =>{
     setActiveTab(index)
   }
   
+  useEffect(() => {
+    let currentTab = 0; 
+
+    let intervalId = setInterval(() => {
+      currentTab = (currentTab + 1) % tabs.length;
+      setActiveTab(currentTab);
+    }, 6000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+
   return(
     <main className={styles.sectionContainer}>
-      <Tabs>
-        <TabList className={styles.tabList}>
-          {tabs.map((tab, index) => (
-            <Tab
-              key={index}
-              className={`${activeTab === index 
-                ? `${styles.bgBlack}` 
-                : `${styles.bgGray}`} 
-                cursor-pointer rounded-sm`
-              }
-              onClick={() => handleTabChange(index)}
-            ><p className={styles.fluid_text}>{tab}</p></Tab>
-          ))}
-        </TabList>
+      <div className=''>
+        <div className='w-full overflow-x-hidden'>
+          <div className={styles.tabList(activeTab)}>
+            {tabs.map((tab, index) => (
+              <div
+                key={index}
+                className={`${activeTab === index 
+                  ? `${styles.bgBlack}` 
+                  : `${styles.bgGray}`} 
+                  ${styles.tab}`
+                }
+                onClick={() => handleTabChange(index)}
+                ><p className={styles.fluid_text}>{tab}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <TabPanel>
-          <Image src={Plan} alt="" className='mx-auto'/>
-        </TabPanel>
-        <TabPanel>
-          <Image src={Plan} alt="" className='mx-auto'/>
-        </TabPanel>
-        <TabPanel>
-          <Image src={Plan} alt="" className='mx-auto'/>
-        </TabPanel>
-        <TabPanel>
-          <Image src={Plan} alt="" className='mx-auto'/>
-        </TabPanel>
-      </Tabs>
+        {tabImages.map((image, index) => (
+         activeTab === index 
+         && <div key={index} className='tab-img'>
+            <Image src={image} alt="image" className={styles.img} />
+          </div>
+        ))}
+      </div>
     </main>
   )
 };
