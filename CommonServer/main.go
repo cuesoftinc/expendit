@@ -30,9 +30,10 @@ func main() {
 	
 	routes.AuthRoutes(router)
 	routes.UserRoutes(router)
-  routes.ExpenseRoutes(router)
+    routes.ExpenseRoutes(router)
 	routes.IncomeRoutes(router)
-	routes.CategoryRoutes(router)  
+	routes.CategoryRoutes(router)
+	routes.ReportRoutes(router)   
 
 	err = controller.CreateCategories()
 	if err != nil {
