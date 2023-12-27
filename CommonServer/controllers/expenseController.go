@@ -102,10 +102,10 @@ func GetUserExpense() gin.HandlerFunc {
 		}
 		defer cursor.Close(context.Background())
 
-		var results []bson.M 
+		var results []models.Expense
 
 		for cursor.Next(context.Background()) {
-			var expense bson.M
+			var expense models.Expense
 			if err := cursor.Decode(&expense); err != nil {
 				log.Println("Error decoding MongoDB document:", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

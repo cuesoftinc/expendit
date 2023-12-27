@@ -233,3 +233,122 @@ func GetMonthlyIncome() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"totalIncome": totalIncome})
 	}
 }
+
+
+// func GetMonthIncome() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		userID := c.Param("userID")
+
+// 		// MongoDB aggregation pipeline for total income per month
+// 		pipeline := []bson.M{
+// 			{
+// 				"$match": bson.M{
+// 					"userid": userID,
+// 					"createdat": bson.M{
+// 						"$gte": time.Now().AddDate(0, 0, -30), // Assuming a month is approximately 30 days
+// 					},
+// 				},
+// 			},
+// 			{
+// 				"$group": bson.M{
+// 					"_id": bson.M{
+// 						"month": bson.M{"$month": "$createdat"},
+// 					},
+// 					"totalIncome": bson.M{"$sum": "$amount"},
+// 				},
+// 			},
+// 			{
+// 				"$project": bson.M{
+// 					"_id":         0,
+// 					"month":       "$_id.month",
+// 					"totalIncome": 1,
+// 				},
+// 			},
+// 		}
+
+// 		cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
+// 		if err != nil {
+// 			log.Println("Error in MongoDB aggregation:", err)
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+// 			return
+// 		}
+// 		defer cursor.Close(context.Background())
+
+// 		var result []bson.M
+// 		if err := cursor.All(context.Background(), &result); err != nil {
+// 			log.Println("Error decoding MongoDB documents:", err)
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+// 			return
+// 		}
+
+// 		c.JSON(http.StatusOK, result)
+// 	}
+// }
+
+func GetMonthIncome() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.Param("userID")
+
+		// MongoDB aggregation pipeline for total income per month
+		pipeline := []bson.M{
+			{
+				"$match": bson.M{
+					"userid": userID,
+					"createdat": bson.M{
+						"$gte": time.Now().AddDate(0, 0, -30), // Assuming a month is approximately 30 days
+					},
+				},
+			},
+			{
+				"$group": bson.M{
+					"_id": bson.M{
+						"month": bson.M{"$month": "$createdat"},
+					},
+					"totalIncome": bson.M{"$sum": "$amount"},
+				},
+			},
+			{
+				"$project": bson.M{
+					"_id":         0,
+					"month": bson.M{
+						"$switch": bson.M{
+							"branches": []bson.M{
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "January"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "February"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "March"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "April"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 5}}, "then": "May"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "June"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "July"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "August"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "September"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "October"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "November"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "December"},
+							},
+							"default": "Unknown",
+						},
+					},
+					"totalIncome": 1,
+				},
+			},
+		}
+
+		cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
+		if err != nil {
+			log.Println("Error in MongoDB aggregation:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+			return
+		}
+		defer cursor.Close(context.Background())
+
+		var result []bson.M
+		if err := cursor.All(context.Background(), &result); err != nil {
+			log.Println("Error decoding MongoDB documents:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, result)
+	}
+}
