@@ -14,10 +14,6 @@ import { getCategoryApi } from '../API/APIS/categoryApi';
 import { getExpenseApi, getMonthlyExpenseApi } from '../API/APIS/expenseApi';
 import { getLocalStorageItem } from '@/utils/localStorage';
 
-interface MyItem {
-  ID:string;
-  name: string;
-}
 
 export interface HomeContextProps {
   homeState: number;
@@ -40,8 +36,6 @@ export interface HomeContextProps {
   setUser: Dispatch<SetStateAction<any>>;
   expenseData: any;
   setExpenseData:  Dispatch<SetStateAction<any>>;
-  // items: MyItem[];
-  // setItems: Dispatch<SetStateAction<MyItem[]>>;
   categories: any;
   setCategories: Dispatch<SetStateAction<any>>;
 };
@@ -65,7 +59,6 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [totalExpense, setTotalExpense] = useState<number>(0);
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [expenseData, setExpenseData] = useState<any>([]);
-  // const [items, setItems] = useState<{ ID: string; name: string; }[]>([])
 
   const [ user, setUser ] = useState<any>(presentUser || null);
   const [ categories, setCategories] = useState<any>([]);
@@ -166,8 +159,6 @@ console.log(expenseData)
         setUser,
         expenseData, 
         setExpenseData,
-        // items,
-        // setItems,
         categories, 
         setCategories,
         totalExpense, 
