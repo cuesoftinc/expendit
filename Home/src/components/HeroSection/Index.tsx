@@ -61,7 +61,7 @@ const HeroSection = () => {
         }
       </nav>
       <div className={styles.heroSection}>
-        <div className='lg:w-[55%] w-full'>
+        <div className='lg:w-[55%] w-full mt-[3%]'>
           <h1 className={styles.header}>
             Empower Your Finances 
             <br /> with <span className='text-purpleTheme'>Expendit</span>: 
@@ -74,7 +74,7 @@ const HeroSection = () => {
             Expendit is here to empower you.
           </p>
           <div className='flex gap-3 items-center'>
-            <button type='button' className={styles.btnTwo}>sign up</button>
+            <button type='button' className={styles.btnTwo}>Try cloud</button>
             <button type='button' className={styles.btnThree}>self-host</button>
           </div>
         </div>
