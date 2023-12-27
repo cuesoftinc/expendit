@@ -16,5 +16,6 @@ func IncomeRoutes(incomingRoutes *gin.Engine){
 	incomingRoutes.PUT("/income/:id",controller.UpdateIncome())
 	incomingRoutes.DELETE("/income/:id",controller.DeleteIncome())
 	incomingRoutes.GET("/income/search", controller.SearchIncome())
-	incomingRoutes.GET("/income/incomes/month/:userID", controller.GetMonthlyIncome())
+	incomingRoutes.GET("/income/incomes/monthly/:userID", controller.GetMonthlyIncome())
+	incomingRoutes.GET("/income/incomes/month/:userID", controller.GetMonthIncome())
 }
