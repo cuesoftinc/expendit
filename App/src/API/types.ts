@@ -84,6 +84,19 @@ export interface ExpensePayload {
   Note: string;
 };
 
+export interface UserDetailsProps {
+  completeForm: UserDetailsPayload;
+  setFormError: Dispatch<SetStateAction<string>>;
+  setFormSuccess: Dispatch<SetStateAction<string>>;
+  setFormLoading: Dispatch<SetStateAction<boolean>>;
+};
+
+export interface UserDetailsPayload {
+  FirstName: string;
+  LastName: string;
+  Email: string;
+};
+
 
 export interface CategoryProps {
   input?: string;
