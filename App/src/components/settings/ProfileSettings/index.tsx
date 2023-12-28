@@ -1,9 +1,21 @@
 import React from 'react'
 import Avatar from '@/assets/images/avatar.jpg';
 import Image from 'next/image';
-import styles from './styles'
+import styles from './styles';
+import Input from '@/components/signup/Input';
+import { userDetailsCustomState } from './states';
+import LoaderSpinner from '@/components/helpers/LoaderSpinner';
 
 const index = () => {
+  const {
+    form,
+    formError,
+    formSuccess,
+    formLoading,
+    handleChange,
+    handleSubmit,
+    handleCancel,
+  } = userDetailsCustomState()
   return (
     <div className={styles.pagePad}>
       <section>
@@ -13,8 +25,18 @@ const index = () => {
             <p className={styles.introParagraph}>Update your photo and personal details here</p>
           </div>
           <div className={styles.controlContainer}>
-            <button className={styles.button}>Cancel</button>
-            <button className={styles.changeButton}>Save Changes</button>
+            <button className={styles.button} onClick={handleCancel}>Cancel</button>
+            <button 
+            className={styles.changeButton}  
+            onClick={handleSubmit}>
+            { formLoading 
+              ? <LoaderSpinner 
+                style='spin' 
+                variant='spin-small' 
+              /> 
+              :  "Save Changes" 
+            }
+            </button>
           </div>
         </div>
         <div className={styles.section}>
@@ -22,8 +44,26 @@ const index = () => {
             <p className={styles.Name}>Name</p>
           </div>
           <div className={styles.inputContainer}>
-            <input className={styles.input} placeholder='first name'/>
-            <input className={styles.input} placeholder='last name'/>
+            <Input
+              name= 'first_name'
+              type= 'text'
+              label= 'First Name'
+              value= {form.firstName}
+              placeholder='Enter First Name'
+              handleChange={handleChange}
+              custom
+            />
+            <Input
+              name= 'last_name'
+              type= 'text'
+              label= 'First Name'
+              value= {form.lastName}
+              placeholder='Enter Last Name'
+              handleChange={handleChange}
+              custom
+            />
+            {/* <input className={styles.input} placeholder='first name'/>
+            <input className={styles.input} placeholder='last name'/> */}
           </div>
         </div>
         <div className={styles.emailContainer}>
@@ -31,7 +71,16 @@ const index = () => {
             <p className={styles.email}>Email</p>
           </div>
           <div className={styles.emailInputContainer}>
-            <input className={styles.emailInput} placeholder='abdulsamad.raji@cuesoft.io'/>
+            <Input
+              name= 'email'
+              type= 'email'
+              label= 'Email'
+              value= {form.email}
+              placeholder='Enter Email'
+              handleChange={handleChange}
+              custom
+            />
+            {/* <input className={styles.emailInput} placeholder='abdulsamad.raji@cuesoft.io'/> */}
           </div>
         </div>
         <div className={styles.section}>
