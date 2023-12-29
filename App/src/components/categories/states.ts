@@ -61,7 +61,7 @@ export const useCategoryCustomState = () => {
   const handleEdit = async () => {
     if (selectedItemIndex !== null) {
       try {
-        const categoryId = categories[selectedItemIndex]?.ID;
+        const categoryId = categories[selectedItemIndex]?.id;
 
         if (categoryId) {
           await editCategoryApi({
@@ -86,7 +86,7 @@ export const useCategoryCustomState = () => {
   const handleDelete = async () => {
     if (selectedItemIndex !== null) {
       try {
-        const categoryId = categories[selectedItemIndex]?.ID;
+        const categoryId = categories[selectedItemIndex]?.id;
 
         if (categoryId) {
           await deleteCategoryApi({
