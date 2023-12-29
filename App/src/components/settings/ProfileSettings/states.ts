@@ -13,8 +13,8 @@ export const userDetailsCustomState = () => {
   const [formLoading, setFormLoading] = useState(false);
 
   const initialForm: userDetailsProps = {
-    firstName: "",
-    lastName: "",
+    first_name: "",
+    last_name: "",
     email: ""
   };
 
