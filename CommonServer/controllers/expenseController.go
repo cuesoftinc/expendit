@@ -57,6 +57,7 @@ func GetExpenses() gin.HandlerFunc {
 
 		cursor, err := expenseCollection.Find(context.Background(), bson.M{}, options.Find().SetSkip(int64(skip)).SetLimit(int64(perPage)))
 		if err != nil {
+			log.Println("Error querying expenses:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			return
 		}
@@ -65,9 +66,10 @@ func GetExpenses() gin.HandlerFunc {
 		var expenses []models.Expense
 
 		if err := cursor.All(context.Background(), &expenses); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-			return
-		}
+        log.Println("Error querying expenses:", err)
+       c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+       return
+}
 
 		c.JSON(http.StatusOK, expenses)
 	}
