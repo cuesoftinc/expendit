@@ -11,7 +11,7 @@ export const createCategoryApi = async ({
     const payload = JSON.stringify({ name: input });
     const { data, status } = await API.post('/category/create', payload);
 
-    if (data && status === 200) {
+    if (data && status === 201) {
       setFormSuccess("Category Successfully added!");
       setFormLoading(false);
     }
@@ -40,7 +40,7 @@ export const deleteCategoryApi = async ({
   try {
     const { data, status } = await API.delete(`/category/${id}`);
 
-    if (data && status === 204) {
+    if ( status === 204) {
       setFormSuccess('Category has been deleted!');
       setFormLoading(false);
     } else {
