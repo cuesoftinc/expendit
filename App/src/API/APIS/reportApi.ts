@@ -10,7 +10,6 @@ export const getReportApi = async () => {
 
     if (data) {
       console.log(data);
-
       return data;
     }
   } catch (error) {
