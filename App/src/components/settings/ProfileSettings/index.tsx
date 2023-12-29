@@ -47,8 +47,8 @@ const index = () => {
             <Input
               name= 'first_name'
               type= 'text'
-              label= 'First Name'
-              value= {form.firstName}
+              label= ''
+              value= {form.first_name}
               placeholder='Enter First Name'
               handleChange={handleChange}
               custom
@@ -56,8 +56,8 @@ const index = () => {
             <Input
               name= 'last_name'
               type= 'text'
-              label= 'First Name'
-              value= {form.lastName}
+              label= ''
+              value= {form.last_name}
               placeholder='Enter Last Name'
               handleChange={handleChange}
               custom
@@ -68,13 +68,13 @@ const index = () => {
         </div>
         <div className={styles.emailContainer}>
           <div>
-            <p className={styles.email}>Email</p>
+            <p className={styles.semibold}>Email</p>
           </div>
           <div className={styles.emailInputContainer}>
             <Input
               name= 'email'
               type= 'email'
-              label= 'Email'
+              label= ''
               value= {form.email}
               placeholder='Enter Email'
               handleChange={handleChange}
