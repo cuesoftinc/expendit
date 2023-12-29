@@ -47,7 +47,7 @@ export const incomeCreateApi = async ({
 
 export const getIncomeApi = async () => {
   try {
-    const { data, status } = await API.get(`/income/incomes/month/${user_id}`);
+    const { data, status } = await API.get(`/income/incomes/monthly/${user_id}`);
 
     if (data) {
       console.log(data);

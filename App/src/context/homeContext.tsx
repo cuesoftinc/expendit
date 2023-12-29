@@ -86,6 +86,7 @@ console.log(expenseData)
       try {
         const data = await getExpenseApi();
         setExpenseData(data?.results);
+        console.log(data.results)
       } catch (error) {
         console.error('Error fetching expense data:', error);
       }
