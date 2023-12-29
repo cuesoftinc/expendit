@@ -12,5 +12,5 @@ type Expense struct {
 	Note          string               `json:"note" validate:"required,min=2,max=500"`
 	CreatedAt     time.Time            `json:"created_at"`
 	UpdatedAt     time.Time            `json:"updated_at"`  
-	UserID        string							  `json:"user_id"`
+	UserID        string			   `json:"userid"`
 } 
