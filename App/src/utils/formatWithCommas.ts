@@ -1,7 +1,10 @@
 export const formatNumberWithCommas = (number: any) => {
-  const numStr = number.toString();
+  if (number !== undefined) {
+    const numStr = number.toString();
+    const formattedNumber = numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-  const formattedNumber = numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return formattedNumber;
+  }
 
-  return formattedNumber;
+  return "";
 }
