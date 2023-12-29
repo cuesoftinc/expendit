@@ -16,14 +16,16 @@ export interface expense {
   amount: number;
   note: string;
   createdat?: string;
+  created_at?: string;
   history?: boolean;
 };
 
-export const Expense = ({ category, amount, note, createdat, history }: expense) => {
+export const Expense = ({ category, amount, note, createdat, created_at, history }: expense) => {
   const pathname = usePathname();
   const [ mobile ] = useCustomState();
   const isHistory = pathname === "/history";
   const formattedCreatedAt = dayjs(createdat).format('MMM D, YYYY h:mm A');
+  const formattedCreated_At = dayjs(created_at).format('MMM D, YYYY h:mm A');
 
   return (
     <div className={styles.transactionContainer}>
@@ -41,8 +43,8 @@ export const Expense = ({ category, amount, note, createdat, history }: expense)
         : note
         }
       </p>
-      {createdat && isHistory
-        && <p className="flex-1 md:text-center text-left">{formattedCreatedAt}</p>
+      {(createdat || created_at) && isHistory
+        && <p className="flex-1 md:text-center text-left">{formattedCreatedAt || formattedCreated_At}</p>
       }
     </div>
   )
@@ -64,8 +66,7 @@ const LatestExpenses = () => {
             <p className="flex-1">Amount</p>
             <p className="flex-1">Note</p>
           </div>
-          {expenseData 
-            && expenseData.slice().reverse().slice(0, 4).map((data:any, index: any) => (
+          {expenseData.slice().reverse().slice(0, 4).map((data:any, index: any) => (
             <Expense key={index} {...data} />
           ))}
         </div>

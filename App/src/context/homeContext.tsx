@@ -14,6 +14,7 @@ import { getCategoryApi } from '../API/APIS/categoryApi';
 import { getExpenseApi, getMonthlyExpenseApi } from '../API/APIS/expenseApi';
 import { getLocalStorageItem } from '@/utils/localStorage';
 
+
 export interface HomeContextProps {
   homeState: number;
   setHomeState: Dispatch<SetStateAction<number>>;
@@ -58,6 +59,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [totalExpense, setTotalExpense] = useState<number>(0);
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [expenseData, setExpenseData] = useState<any>([]);
+
   const [ user, setUser ] = useState<any>(presentUser || null);
   const [ categories, setCategories] = useState<any>([]);
 console.log(expenseData)
@@ -86,6 +88,7 @@ console.log(expenseData)
       try {
         const data = await getExpenseApi();
         setExpenseData(data?.results);
+        console.log(data.results)
       } catch (error) {
         console.error('Error fetching expense data:', error);
       }

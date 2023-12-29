@@ -89,21 +89,21 @@ const TopBoard = () => {
         <Board 
           icon={<HiOutlineRefresh />}
           title='Total Income'
-          amount={formatValue(presentIncome) || "...loading"}
+          amount={formatValue(presentIncome) || 0}
           percentage='-12%'
           chart={<MdShowChart  color='red'/>}
         />
         <Board 
           icon={<FiBarChart />}
           title='Total Expenses'
-          amount={formatValue(totalExpense) || "...loading"}
+          amount={formatValue(totalExpense) || 0}
           percentage='+38%'
           chart={<MdShowChart  color='green'/>}
         />
         <Board 
           icon={<BsBoxSeam />}
           title='Balance'
-          amount={formatValue(totalBalance) || "...loading"}
+          amount={formatValue(totalBalance) || 0}
           percentage='+23%'
           chart={<MdShowChart  color='green'/>}
         />
