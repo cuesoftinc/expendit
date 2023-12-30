@@ -1,5 +1,10 @@
 import { API } from '../axiosSetup';
-import { SignUpProps, SignInProps, LogoutProps, PasswordChangeProps } from '../types';
+import {
+  SignUpProps,
+  SignInProps,
+  LogoutProps,
+  PasswordChangeProps
+} from '../types';
 
 export const signUpApi = async ({
   completeForm,
@@ -25,14 +30,14 @@ export const signUpApi = async ({
     setFormLoading(false);
     console.log(error)
   }
-
-}
+};
 
 export const signInApi = async ({
   completeForm,
   setFormError,
   setFormSuccess,
   setFormLoading,
+  setUser,
   router
 }: SignInProps) => {
 
@@ -43,6 +48,7 @@ export const signInApi = async ({
     if (data && status === 200) {
       setFormSuccess("Successful!");
       setFormLoading(false);
+      setUser(data);
 
       const jwt = data.token;
       const user_id = data.user_id;
@@ -58,8 +64,7 @@ export const signInApi = async ({
     setFormError("an error occurred, try again");
     setFormLoading(false);
   }
-
-}
+};
 
 export const logoutApi = async ({ router, setIsLoading }: LogoutProps) => {
   try {
@@ -75,7 +80,7 @@ export const logoutApi = async ({ router, setIsLoading }: LogoutProps) => {
     console.log(error);
     setIsLoading(false);
   }
-}
+};
 
 export const passwordChangeApi = async ({
   completeForm,
@@ -97,4 +102,4 @@ export const passwordChangeApi = async ({
     setFormLoading(false);
   }
 
-}
+};
