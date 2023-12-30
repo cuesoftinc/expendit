@@ -29,14 +29,14 @@ export const expenseCreateApi = async ({
 
           if (res) {
             console.log(res);
-            setExpenseData(res.data?.results)
+            setExpenseData(res.results)
             setFormLoading(false);
           }
         } catch (error) {
           setFormError("an error occurred, try again");
           setFormLoading(false);
         }
-      }, 5000);
+      }, 3000);
     }
   } catch (error) {
     console.log(error)
