@@ -1,6 +1,8 @@
-# Reports Page
+# Overview
 
 Welcome to the Reports Page of our Expense Tracker web app! The Reports Page is designed to provide users with insightful visualizations of their financial data, helping them understand their spending and income patterns over time.
+
+![Reports Page](./assets/dashboard.png)
 
 ## Functionality and Chart Types
 
