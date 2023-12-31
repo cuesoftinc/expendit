@@ -139,7 +139,7 @@ func BarChartReport() gin.HandlerFunc {
 			incomeMap[month] = incomeEntry
 		}
 
-		// Iterate over expense results and merge with income results
+		
 		for expenseCursor.Next(context.Background()) {
 			var expenseEntry bson.M
 			if err := expenseCursor.Decode(&expenseEntry); err != nil {
@@ -149,12 +149,12 @@ func BarChartReport() gin.HandlerFunc {
 			}
 			month := expenseEntry["month"].(string)
 
-			// Merge with income entry if month exists
+			
 			if incomeEntry, exists := incomeMap[month]; exists {
 				incomeEntry["totalExpense"] = expenseEntry["totalExpense"]
 				result = append(result, incomeEntry)
 			} else {
-				// If month does not exist in income results, add the expense entry
+				
 				result = append(result, expenseEntry)
 			}
 		}
