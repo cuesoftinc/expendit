@@ -7,7 +7,6 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { useState } from 'react';
 import ProfileSettings from '../../components/settings/ProfileSettings';
 import PasswordSettings from '../../components/settings/PasswordSettings';
-import FormatSettings from '../../components/settings/FormatSettings';
 import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 
 const Settings = () => {
@@ -32,12 +31,6 @@ const Settings = () => {
                   Profile
                 </Tab>
                 <Tab 
-                  className={`${activeTab === 1 ? 'underline underline-offset-8': ' '} cursor-pointer`}
-                  onClick={() => handleTabChange(1)}
-                >
-                  Format
-                </Tab>
-                <Tab 
                   className={`${activeTab === 2 ? 'underline underline-offset-8': ' '}  cursor-pointer`}
                   onClick={() => handleTabChange(2)}
                 >
@@ -47,9 +40,6 @@ const Settings = () => {
 
               <TabPanel>
                 <ProfileSettings />
-              </TabPanel>
-              <TabPanel>
-                <FormatSettings />
               </TabPanel>
               <TabPanel>
                 <PasswordSettings />
