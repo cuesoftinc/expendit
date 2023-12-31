@@ -236,10 +236,6 @@ func GetMonthlyIncome() gin.HandlerFunc {
 
 
 
-
-
-
-
 func GetMonthIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
