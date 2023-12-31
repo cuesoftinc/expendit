@@ -14,3 +14,5 @@ type Expense struct {
 	UpdatedAt     time.Time            `json:"updated_at"`  
 	UserID        string			   `json:"userid"`
 } 
+
+
