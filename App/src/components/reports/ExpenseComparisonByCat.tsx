@@ -13,6 +13,7 @@ import { BarExpenseChart } from '@/dummy';
 import { useCustomState } from '@/hooks/responsive';
 import DownloadBtn from './DownloadBtn';
 import styles from './styles';
+import { getReportApi } from '@/API/APIS/reportApi';
 
 
 const ExpenseComparisonByCat = () => {
