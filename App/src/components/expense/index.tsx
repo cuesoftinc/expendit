@@ -45,8 +45,6 @@ const Index = () => {
             {categories?.map((cat: any, index: number) => (
               <option value={cat.name} key={index}>{cat.name}</option>
             ))}
-            {/* <option value="utility">utility</option>
-            <option value="transportation">transportation</option> */}
           </select>
         </div>
         <div className='w-full'>
