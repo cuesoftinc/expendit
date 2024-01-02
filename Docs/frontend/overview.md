@@ -1,6 +1,7 @@
-# Expense Tracker Overview
+# Overview
 
 Welcome to the Overview page of our Expense Tracker web app! This page provides a comprehensive snapshot of your financial activities, making it easy for you to manage and monitor your expenses effortlessly.
+![Overview Page Snapshot](../assets/dashboard.png)
 
 ## Navbar
 

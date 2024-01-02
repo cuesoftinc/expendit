@@ -10,37 +10,46 @@ export const expenseCreateApi = async ({
   setFormError,
   setFormSuccess,
   setFormLoading,
-  setExpenseData
+  setExpenseData,
+  setTotalExpense
 }: ExpenseProps) => {
   try {
-    const payload = JSON.stringify(completeForm)
-    console.log(completeForm)
+    const payload = JSON.stringify(completeForm);
+    console.log(completeForm);
+
     const { data, status } = await API.post('/expense/create', payload);
 
     if (data && status === 201) {
-      console.log(data)
+      console.log(data);
       setFormSuccess("Successful!");
       setFormLoading(false);
 
-      setTimeout(async () => {
-        try {
-          setFormLoading(true);
-          const res = await getExpenseApi();
+      try {
+        setFormLoading(true);
 
-          if (res) {
-            console.log(res);
-            setExpenseData(res.results)
-            setFormLoading(false);
-          }
-        } catch (error) {
-          setFormError("an error occurred, try again");
+        const [expenseRes, monthlyExpenseRes] = await Promise.all([
+          getExpenseApi(),
+          getMonthlyExpenseApi()
+        ]);
+
+        if (monthlyExpenseRes) {
+          console.log(monthlyExpenseRes);
+          setTotalExpense(monthlyExpenseRes.totalExpense);
+        }
+
+        if (expenseRes) {
+          console.log(expenseRes);
+          setExpenseData(expenseRes.results);
           setFormLoading(false);
         }
-      }, 3000);
+      } catch (error) {
+        setFormError("An error occurred, try again");
+        setFormLoading(false);
+      }
     }
   } catch (error) {
-    console.log(error)
-    setFormError("an error occurred, try again");
+    console.log(error);
+    setFormError("An error occurred, try again");
     setFormLoading(false);
   }
 }
