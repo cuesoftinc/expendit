@@ -235,61 +235,12 @@ func GetMonthlyIncome() gin.HandlerFunc {
 }
 
 
-// func GetMonthIncome() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		userID := c.Param("userID")
-
-// 		// MongoDB aggregation pipeline for total income per month
-// 		pipeline := []bson.M{
-// 			{
-// 				"$match": bson.M{
-// 					"userid": userID,
-// 					"createdat": bson.M{
-// 						"$gte": time.Now().AddDate(0, 0, -30), // Assuming a month is approximately 30 days
-// 					},
-// 				},
-// 			},
-// 			{
-// 				"$group": bson.M{
-// 					"_id": bson.M{
-// 						"month": bson.M{"$month": "$createdat"},
-// 					},
-// 					"totalIncome": bson.M{"$sum": "$amount"},
-// 				},
-// 			},
-// 			{
-// 				"$project": bson.M{
-// 					"_id":         0,
-// 					"month":       "$_id.month",
-// 					"totalIncome": 1,
-// 				},
-// 			},
-// 		}
-
-// 		cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
-// 		if err != nil {
-// 			log.Println("Error in MongoDB aggregation:", err)
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-// 			return
-// 		}
-// 		defer cursor.Close(context.Background())
-
-// 		var result []bson.M
-// 		if err := cursor.All(context.Background(), &result); err != nil {
-// 			log.Println("Error decoding MongoDB documents:", err)
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-// 			return
-// 		}
-
-// 		c.JSON(http.StatusOK, result)
-// 	}
-// }
 
 func GetMonthIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
 
-		// MongoDB aggregation pipeline for total income per month
+		
 		pipeline := []bson.M{
 			{
 				"$match": bson.M{

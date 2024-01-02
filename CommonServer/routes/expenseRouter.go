@@ -17,4 +17,5 @@ func ExpenseRoutes(incomingRoutes *gin.Engine){
 	incomingRoutes.DELETE("/expense/:id",controller.DeleteExpense())
 	incomingRoutes.GET("/expense/search", controller.SearchExpense())
 	incomingRoutes.GET("/expense/expenses/month/:userID", controller.GetMonthlyExpense())
+	incomingRoutes.GET("/expense/month-expense/:userID", controller.GetMonthExpense())
 }
