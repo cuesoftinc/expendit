@@ -42,11 +42,10 @@ const Index = () => {
         <div className=''>
           <label className={inputStyles.label}>Category</label>
           <select className={styles.select} onChange={handleCategory} value={category}>
+            <option value="">Choose a category</option>
             {categories?.map((cat: any, index: number) => (
               <option value={cat.name} key={index}>{cat.name}</option>
             ))}
-            {/* <option value="utility">utility</option>
-            <option value="transportation">transportation</option> */}
           </select>
         </div>
         <div className='w-full'>
@@ -81,7 +80,13 @@ const Index = () => {
           className={inputStyles.btn} 
           onClick={handleSubmit}
         >
-          Add expense
+          { formLoading 
+            ? <LoaderSpinner 
+              style='spin' 
+              variant='spin-small'
+            /> 
+            :  "Add expense"
+          }
         </button>
         </div>
       </div>
