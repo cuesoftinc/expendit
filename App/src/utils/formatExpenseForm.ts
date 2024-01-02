@@ -1,16 +1,15 @@
 import { expenseFormProps } from "@/components/expense/states";
 import { ExpensePayload } from "@/API/types";
 
-export function formatExpense(obj: expenseFormProps): ExpensePayload {
+export function formatExpense(obj: expenseFormProps, category: string): ExpensePayload {
   return {
     Amount: parseInt(obj.amount),
-    Category: obj.category,
+    Category: category,
     Note: obj.note,
   };
 }
 
 export const expenseRequiredFields = [
-  "Amount",
-  "Category",
-  "Note",
+  "amount",
+  "note",
 ];

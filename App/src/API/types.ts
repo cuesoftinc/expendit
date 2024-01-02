@@ -30,6 +30,7 @@ export interface SignInProps {
   setFormError: Dispatch<SetStateAction<string>>;
   setFormSuccess: Dispatch<SetStateAction<string>>;
   setFormLoading: Dispatch<SetStateAction<boolean>>;
+  setUser: Dispatch<SetStateAction<any>>;
   router: AppRouterInstance;
 };
 
@@ -76,6 +77,7 @@ export interface ExpenseProps {
   setFormSuccess: Dispatch<SetStateAction<string>>;
   setFormLoading: Dispatch<SetStateAction<boolean>>;
   setExpenseData: Dispatch<SetStateAction<any>>;
+  setTotalExpense: Dispatch<SetStateAction<number>>;
 };
 
 export interface ExpensePayload {
