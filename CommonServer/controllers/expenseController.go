@@ -2,13 +2,13 @@ package controller
 
 import (
 	"context"
-	"log"
 	"expendit-server/database"
 	"expendit-server/models"
+	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -57,6 +57,7 @@ func GetExpenses() gin.HandlerFunc {
 
 		cursor, err := expenseCollection.Find(context.Background(), bson.M{}, options.Find().SetSkip(int64(skip)).SetLimit(int64(perPage)))
 		if err != nil {
+			log.Println("Error querying expenses:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 			return
 		}
@@ -65,13 +66,15 @@ func GetExpenses() gin.HandlerFunc {
 		var expenses []models.Expense
 
 		if err := cursor.All(context.Background(), &expenses); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-			return
-		}
+        log.Println("Error querying expenses:", err)
+       c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+       return
+}
 
 		c.JSON(http.StatusOK, expenses)
 	}
 };
+
 
 func GetUserExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -112,7 +115,6 @@ func GetUserExpense() gin.HandlerFunc {
 				return
 			}
 			results = append(results, expense)
-
 		}
 
 		if err := cursor.Err(); err != nil {
@@ -125,10 +127,25 @@ func GetUserExpense() gin.HandlerFunc {
 			log.Println("No expense records found.")
 		}
 
-		c.JSON(http.StatusOK, gin.H{"results": results})
+		// Calculate total number of pages
+		totalExpenses, err := expenseCollection.CountDocuments(context.Background(), filter)
+		if err != nil {
+			log.Println("Error getting total number of expenses:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		totalPages := int(math.Ceil(float64(totalExpenses) / float64(perPage)))
+
+		// Create response without "total_expenses"
+		response := gin.H{
+			"results":     results,
+			"page":        page,
+			"total_pages": totalPages,
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
-
 func GetMonthlyExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
@@ -315,3 +332,78 @@ func SearchExpense() gin.HandlerFunc {
 		c.JSON(http.StatusOK, expenseSearch)
 	}
 }
+
+
+
+
+func GetMonthExpense() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.Param("userID")
+
+		
+		pipeline := []bson.M{
+			{
+				"$match": bson.M{
+					"userid": userID,
+					"createdat": bson.M{
+						"$gte": time.Now().AddDate(0, 0, -30), // Assuming a month is approximately 30 days
+					},
+				},
+			},
+			{
+				"$group": bson.M{
+					"_id": bson.M{
+						"month": bson.M{"$month": "$createdat"},
+					},
+					"expense": bson.M{"$sum": "$amount"},
+				},
+			},
+			{
+				"$project": bson.M{
+					"_id":         0,
+					"month": bson.M{
+						"$switch": bson.M{
+							"branches": []bson.M{
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "January"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "February"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "March"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "April"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 5}}, "then": "May"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "June"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "July"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "August"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "September"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "October"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "November"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "December"},
+							},
+							"default": "Unknown",
+						},   
+					},
+					"expense": 1,
+				},
+			},
+		}
+
+		cursor, err := expenseCollection.Aggregate(context.Background(), pipeline)
+		if err != nil {
+			log.Println("Error in MongoDB aggregation:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+			return
+		}
+		defer cursor.Close(context.Background())
+
+		var result []bson.M
+		if err := cursor.All(context.Background(), &result); err != nil {
+			log.Println("Error decoding MongoDB documents:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, result)
+	}
+}
+
+
+
+

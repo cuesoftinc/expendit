@@ -15,4 +15,5 @@ func CategoryRoutes(incomingRoutes *gin.Engine){
 	incomingRoutes.PUT("/category/:id",controller.UpdateCategory())
 	incomingRoutes.DELETE("/category/:id",controller.DeleteCategory())
 	incomingRoutes.GET("/category/search", controller.SearchCategory())
+    // incomingRoutes.POST("/categories/create-categories", controller.CreateCategories())
 }

@@ -38,6 +38,8 @@ func GetCategoryById()gin.HandlerFunc {
 	  c.JSON(http.StatusOK, category)
 	}   
 } 
+
+
 var CATEGORIES = []string{"Food",
 "Transportation",
 "Groceries",

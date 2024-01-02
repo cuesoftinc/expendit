@@ -1,4 +1,5 @@
-# Income Page
+# Overview
+
 The Income Page facilitates the management of income records, allowing users to create income entries. These operation is executed through an API endpoint that interact with the backend database. This documentation outlines the key features and API endpoints associated with the Income Page, including payload details and validation procedures.
 
 ## Form Structure
