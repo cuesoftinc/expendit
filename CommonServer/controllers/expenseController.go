@@ -2,13 +2,13 @@ package controller
 
 import (
 	"context"
-	"log"
 	"expendit-server/database"
 	"expendit-server/models"
+	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -75,6 +75,7 @@ func GetExpenses() gin.HandlerFunc {
 	}
 };
 
+
 func GetUserExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
@@ -114,7 +115,6 @@ func GetUserExpense() gin.HandlerFunc {
 				return
 			}
 			results = append(results, expense)
-
 		}
 
 		if err := cursor.Err(); err != nil {
@@ -127,10 +127,25 @@ func GetUserExpense() gin.HandlerFunc {
 			log.Println("No expense records found.")
 		}
 
-		c.JSON(http.StatusOK, gin.H{"results": results})
+		// Calculate total number of pages
+		totalExpenses, err := expenseCollection.CountDocuments(context.Background(), filter)
+		if err != nil {
+			log.Println("Error getting total number of expenses:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		totalPages := int(math.Ceil(float64(totalExpenses) / float64(perPage)))
+
+		// Create response without "total_expenses"
+		response := gin.H{
+			"results":     results,
+			"page":        page,
+			"total_pages": totalPages,
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
-
 func GetMonthlyExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
@@ -363,7 +378,7 @@ func GetMonthExpense() gin.HandlerFunc {
 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "December"},
 							},
 							"default": "Unknown",
-						},
+						},   
 					},
 					"expense": 1,
 				},
@@ -388,3 +403,7 @@ func GetMonthExpense() gin.HandlerFunc {
 		c.JSON(http.StatusOK, result)
 	}
 }
+
+
+
+
