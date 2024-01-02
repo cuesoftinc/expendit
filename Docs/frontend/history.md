@@ -1,4 +1,4 @@
-# History Page
+# Overview
 
 Welcome to the History Page of our Expense Tracker web app! This page is designed to provide a detailed overview of your transaction history, making it easy for you to track and analyze your past expenses.
 
@@ -29,16 +29,16 @@ The History Page includes a convenient filtering option that allows you to narro
 
    - The Transaction History Table is prominently displayed, showcasing your expenses with relevant details.
 
-   ![Transaction History Table](image_url)
+   ![Transaction History Table](../assets//history_page.png)
 
 3. **Pagination:**
 
    - Use the pagination controls at the bottom of the table to navigate through different pages of your transaction history.
 
-   ![Pagination](image_url)
+   ![Pagination](../assets//history_pagination.png)
 
 4. **Filtering by Category:**
 
    - Utilize the category filter dropdown to view expenses based on specific categories. This feature is handy for isolating expenses related to particular aspects of your life, such as groceries, utilities, or entertainment.
 
-   ![Category Filtering](image_url)
+   ![Category Filtering](../assets//history_page.png)

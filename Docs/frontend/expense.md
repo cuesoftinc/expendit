@@ -1,4 +1,4 @@
-# Expense Page
+# Overview
 
 Welcome to the Expense Page documentation for our Expense Tracker web app. This page serves as a guide for users on how to add expenses efficiently through the Expense Form.
 
@@ -22,7 +22,7 @@ To add a new expense, follow these steps:
 
    - On the Expense Page, you will find an Expense Form that allows you to input details about your expense.
 
-   ![Expense Form](image_url)
+   ![Expense Form](../assets//expense_form_empty.png)
 
 3. **Input Expense Details:**
 
@@ -31,7 +31,7 @@ To add a new expense, follow these steps:
      - **Category:** Choose a category from the provided options.
      - **Description:** Provide a brief description of the expense.
 
-   ![Expense Form Filled](image_url)
+   ![Expense Form Filled](../assets/expense_form_filled.png)
 
 4. **Validation Processes:**
 
@@ -43,7 +43,7 @@ To add a new expense, follow these steps:
 
    - If there are validation errors, the form will provide clear feedback indicating the nature of the error(s). Users will be prompted to correct the entries before proceeding.
 
-   ![Validation Feedback](image_url)
+   ![Validation Feedback](../assets//expense_user_validation.png)
 
 5. **Submit the Expense:**
 
@@ -69,7 +69,7 @@ To add a new expense, follow these steps:
 
    - If the addition is successful, the new expense details are displayed, and users receive a confirmation message.
 
-   ![Expense Added](img_url)
+   ![Expense Added](../assets/expense_feedback_successful.png)
 
 8. **Expense Response Format:**
 
@@ -96,4 +96,4 @@ To add a new expense, follow these steps:
 
     - Users can review the updated list of expenses on the page, including the newly added expense.
 
-    ![Expense List Updated](insert_image_url)
+    ![Expense List Updated](../assets//expense_latest.png)
