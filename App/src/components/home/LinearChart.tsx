@@ -11,9 +11,10 @@ CartesianGrid,
 Tooltip, 
 Area } from 'recharts';
 import styles from './styles';
-import { AreaHomeChart, categories } from '@/dummy';
+import { useHomeContext } from '@/context';
 
 const LinearChart = () => {
+  const { areaChart, categories } = useHomeContext();
   return (
     <div className={styles.lineChartCont}>
       <p className={styles.header}>Expense Categories</p>
@@ -22,7 +23,7 @@ const LinearChart = () => {
         height={380} 
       >
         <AreaChart 
-          data={AreaHomeChart} 
+          data={areaChart} 
           margin={{ top: 10, right: 10, left: 1, bottom: 10 }}
         > 
           <defs>
@@ -36,11 +37,11 @@ const LinearChart = () => {
           <CartesianGrid stroke='3 3'  />
           <Legend />
           <Tooltip />
-          {categories.map((propName, index) => (
+          {categories.map((propName: any, index: number) => (
             <Area 
             key={index}
             type="monotone" 
-            dataKey={propName} 
+            dataKey={propName.name} 
             stroke={`#${Math.floor(Math.random() * 16777215).toString(16)}`} 
             strokeWidth={1}
             stackId="1"
