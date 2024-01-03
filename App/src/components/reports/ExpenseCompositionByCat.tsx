@@ -2,12 +2,14 @@
 import React from 'react';
 import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts';
 import { useCustomState } from '@/hooks/responsive';
+import { useHomeContext } from '@/context';
 import { AreaExpenseChart } from '@/dummy';
 import DownloadBtn from './DownloadBtn';
 import styles from './styles';
 
 const ExpenseCompositionByCat = () => {
   const [ mobile ] = useCustomState();
+  const { pieChart } = useHomeContext();
 
   return (
     <div className={styles.pieCont}>
@@ -24,7 +26,7 @@ const ExpenseCompositionByCat = () => {
             </linearGradient>
           </defs>
           <Pie 
-            data={AreaExpenseChart} 
+            data={pieChart} 
             nameKey="category" 
             dataKey="expense" 
             fill="url(#colorMonth)"  

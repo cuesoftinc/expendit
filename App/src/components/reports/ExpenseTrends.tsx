@@ -10,11 +10,13 @@ YAxis,
 Legend, 
 ResponsiveContainer } from 'recharts';
 import { LineExpenseChart } from '@/dummy';
+import { useHomeContext } from '@/context';
 import DownloadBtn from './DownloadBtn';
 import styles from './styles';
 
 
 const ExpenseTrends = () => {
+  const { lineChart } = useHomeContext();
 
   return (
     <div className={`${styles.pieCont} mt-5`}>
@@ -24,7 +26,7 @@ const ExpenseTrends = () => {
       </p>
       <div className={styles.barChart}>
         <ResponsiveContainer width={'100%'} height='100%'>
-          <LineChart  data={LineExpenseChart }
+          <LineChart  data={lineChart }
             margin={{top:0, right: 0, left:0, bottom: 0}}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
