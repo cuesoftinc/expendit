@@ -10,7 +10,7 @@ SetStateAction
 } from "react";
 
 import { getIncomeApi } from '../API/APIS/incomeApi';
-import { getBarChartApi } from '../API/APIS/reportApi';
+import { getBarChartApi, getAreaHomeChartApi, getPieChartApi, getLineChartApi } from '../API/APIS/reportApi';
 import { getCategoryApi } from '../API/APIS/categoryApi';
 import { getExpenseApi, getMonthlyExpenseApi } from '../API/APIS/expenseApi';
 import { getLocalStorageItem } from '@/utils/localStorage';
@@ -41,6 +41,16 @@ export interface HomeContextProps {
   setCategories: Dispatch<SetStateAction<any>>;
   barChart: any;
   setBarChart: Dispatch<SetStateAction<any>>;
+  areaChart: any; 
+  setAreaChart: Dispatch<SetStateAction<any>>;
+  pieChart: any;
+  setPieChart: Dispatch<SetStateAction<any>>;
+  lineChart: any;
+  setLineChart: Dispatch<SetStateAction<any>>;
+  totalPage: number;
+  setTotalPage: Dispatch<SetStateAction<number>>;
+  currentPage: number;
+  setCurrentPage: Dispatch<SetStateAction<number>>;
 };
 
 export interface HomeProviderProps {
@@ -56,6 +66,9 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [ user, setUser ] = useState<any>(presentUser || null);
   const [homeState, setHomeState] = useState<number>(2);
   const [newString, setNewString] = useState<string>("Testing for string");
+  const [categories, setCategories] = useState<any>([]);
+  const [totalPage, setTotalPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   // ---- Form states ----
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
@@ -65,9 +78,11 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [totalExpense, setTotalExpense] = useState<number>(0);
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [expenseData, setExpenseData] = useState<any>([]);
-  // ---- other states ----
-  const [categories, setCategories] = useState<any>([]);
+  // ---- Report states ----
+  const [areaChart, setAreaChart] = useState<any>([]);
   const [barChart, setBarChart] = useState<any>([]);
+  const [pieChart, setPieChart] = useState<any>([]);
+  const [lineChart, setLineChart] = useState<any>([]);
 
   // ---- Handle Form States ----
   useEffect(() => {
@@ -92,48 +107,94 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   useEffect(() => {
     async function getInitialData() {
       try {
-        const [
-          userExpenseRes, 
-          totalMonthExpenseRes,
-          totalMonthIncomeRes, 
-          categoryRes, 
-          barChartRes 
-        ] = await Promise.all([
-          getExpenseApi(),
-          getMonthlyExpenseApi(),
-          getIncomeApi(),
-          getCategoryApi(),
-          getBarChartApi()
-        ]);
-
+        if(user !== null){
+          const [
+            userExpenseRes, 
+            totalMonthExpenseRes,
+            totalMonthIncomeRes, 
+            categoryRes
+          ] = await Promise.all([
+            getExpenseApi(),
+            getMonthlyExpenseApi(),
+            getIncomeApi(),
+            getCategoryApi()
+          ]);
+  
           if(userExpenseRes){
             setExpenseData(userExpenseRes.results);
+            setTotalPage(userExpenseRes.total_pages);
+            setCurrentPage(userExpenseRes.page);
             console.log(userExpenseRes)
           };
-
+  
           if(totalMonthExpenseRes){
             setTotalExpense(totalMonthExpenseRes.totalExpense);
             console.log(totalMonthExpenseRes)
           };
-
+  
           if(totalMonthIncomeRes){
             setPresentIncome(totalMonthIncomeRes.totalIncome);
             console.log(totalMonthIncomeRes)
           };
-
+  
           if(categoryRes){
             setCategories(categoryRes);
           };
-
-          if(barChartRes){
-            console.log(barChartRes)
-          }
+  
+        }
+        
       } catch (error) {
-        console.error('Error fetching expense data:', error);
+        console.error('Error fetching data:', error);
       }
     }
 
     getInitialData();
+  }, []);
+
+   // ---- Populate All Report states onLoad ----
+   useEffect(() => {
+    async function getInitialReportsData() {
+      try {
+        if(user !== null || user){
+          const [
+            areaChartRes,
+            barChartRes,
+            pieChartRes,
+            lineChartRes 
+          ] = await Promise.all([
+            getAreaHomeChartApi(),
+            getBarChartApi(),
+            getPieChartApi(),
+            getLineChartApi()
+          ]);
+  
+          if(areaChartRes){
+            setAreaChart(areaChartRes);
+            console.log(areaChartRes)
+          };
+  
+          if(barChartRes){
+            setBarChart(barChartRes)
+            console.log(barChartRes)
+          }
+  
+          if(pieChartRes){
+            setPieChart(pieChartRes);
+            console.log(pieChartRes)
+          };
+  
+          if(lineChartRes){
+            setLineChart(lineChartRes);
+            console.log(lineChartRes)
+          };
+        }
+
+      } catch (error) {
+        console.error('Error fetching report data:', error);
+      }
+    }
+
+    getInitialReportsData();
   }, []);
 
   return (
@@ -163,6 +224,16 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         setTotalBalance,
         barChart, 
         setBarChart,
+        areaChart,
+        setAreaChart,
+        pieChart,
+        setPieChart,
+        lineChart,
+        setLineChart,
+        totalPage,
+        setTotalPage,
+        currentPage,
+        setCurrentPage
        }}
     >
       {children}

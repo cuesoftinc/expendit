@@ -11,13 +11,14 @@ Tooltip,
 Bar } from 'recharts';
 import { BarExpenseChart } from '@/dummy';
 import { useCustomState } from '@/hooks/responsive';
+import { useHomeContext } from '@/context';
 import DownloadBtn from './DownloadBtn';
 import styles from './styles';
-import { getReportApi } from '@/API/APIS/reportApi';
 
 
 const ExpenseComparisonByCat = () => {
   const [ mobile ] = useCustomState();
+  const { barChart } = useHomeContext();
 
   return (
     <div className={styles.barCont}>
@@ -28,7 +29,7 @@ const ExpenseComparisonByCat = () => {
       <div className={styles.barChart}>
         <ResponsiveContainer width='100%' height='100%'>
           <BarChart
-            data={BarExpenseChart}
+            data={barChart}
             margin={{top:0, right: 0, left:0, bottom: 0}}
             >
             <CartesianGrid strokeDasharray="3 3" />
@@ -36,8 +37,8 @@ const ExpenseComparisonByCat = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="income" fill="#82ca9d" stackId={mobile ? "a" : "a"} type='string' />
-            <Bar dataKey="expense" fill="#8884d8" stackId={mobile ? "a" : "b"} type='string' />
+            <Bar dataKey="totalIncome" fill="#82ca9d" stackId={mobile ? "a" : "a"} type='string' />
+            <Bar dataKey="totalExpense" fill="#8884d8" stackId={mobile ? "a" : "b"} type='string' />
           </BarChart>
         </ResponsiveContainer>
       </div>
