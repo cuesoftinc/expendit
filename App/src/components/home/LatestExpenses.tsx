@@ -43,8 +43,8 @@ export const Expense = ({ category, amount, note, createdat, created_at, history
         : note
         }
       </p>
-      {(createdat || created_at) && isHistory
-        && <p className="flex-1 md:text-center text-left">{formattedCreatedAt || formattedCreated_At}</p>
+      {(created_at || createdat) && isHistory
+        && <p className="flex-1 md:text-center text-left">{formattedCreated_At || formattedCreatedAt}</p>
       }
     </div>
   )
