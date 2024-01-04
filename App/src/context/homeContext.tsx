@@ -8,8 +8,9 @@ Dispatch,
 ReactNode, 
 SetStateAction 
 } from "react";
+
 import { getIncomeApi } from '../API/APIS/incomeApi';
-import { getUserApi } from '../API/APIS/userApi';
+import { getBarChartApi } from '../API/APIS/reportApi';
 import { getCategoryApi } from '../API/APIS/categoryApi';
 import { getExpenseApi, getMonthlyExpenseApi } from '../API/APIS/expenseApi';
 import { getLocalStorageItem } from '@/utils/localStorage';
@@ -38,6 +39,8 @@ export interface HomeContextProps {
   setExpenseData:  Dispatch<SetStateAction<any>>;
   categories: any;
   setCategories: Dispatch<SetStateAction<any>>;
+  barChart: any;
+  setBarChart: Dispatch<SetStateAction<any>>;
 };
 
 export interface HomeProviderProps {
@@ -50,19 +53,22 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const storedValue: string | null = getLocalStorageItem("Expendit-user");
   const presentUser: string | null = storedValue !== null ? JSON.parse(storedValue) : null;
   
+  const [ user, setUser ] = useState<any>(presentUser || null);
   const [homeState, setHomeState] = useState<number>(2);
   const [newString, setNewString] = useState<string>("Testing for string");
+  // ---- Form states ----
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
   const [formLoading, setFormLoading] = useState<boolean>(false);
+  // ---- Financial states ----
   const [presentIncome, setPresentIncome] = useState<number>(0);
   const [totalExpense, setTotalExpense] = useState<number>(0);
   const [totalBalance, setTotalBalance] = useState<number>(0);
   const [expenseData, setExpenseData] = useState<any>([]);
+  // ---- other states ----
+  const [categories, setCategories] = useState<any>([]);
+  const [barChart, setBarChart] = useState<any>([]);
 
-  const [ user, setUser ] = useState<any>(presentUser || null);
-  const [ categories, setCategories] = useState<any>([]);
-console.log(expenseData)
   // ---- Handle Form States ----
   useEffect(() => {
     const timerId = setTimeout(() => {
@@ -82,63 +88,52 @@ console.log(expenseData)
     };
   }, [formError, formSuccess, formLoading]);
 
-  // ---- Get Expense onLoad ----
+  // ---- Populate All User states onLoad ----
   useEffect(() => {
-    async function getExpenseData() {
+    async function getInitialData() {
       try {
-        const data = await getExpenseApi();
-        setExpenseData(data?.results);
-        console.log(data.results)
+        const [
+          userExpenseRes, 
+          totalMonthExpenseRes,
+          totalMonthIncomeRes, 
+          categoryRes, 
+          barChartRes 
+        ] = await Promise.all([
+          getExpenseApi(),
+          getMonthlyExpenseApi(),
+          getIncomeApi(),
+          getCategoryApi(),
+          getBarChartApi()
+        ]);
+
+          if(userExpenseRes){
+            setExpenseData(userExpenseRes.results);
+            console.log(userExpenseRes)
+          };
+
+          if(totalMonthExpenseRes){
+            setTotalExpense(totalMonthExpenseRes.totalExpense);
+            console.log(totalMonthExpenseRes)
+          };
+
+          if(totalMonthIncomeRes){
+            setPresentIncome(totalMonthIncomeRes.totalIncome);
+            console.log(totalMonthIncomeRes)
+          };
+
+          if(categoryRes){
+            setCategories(categoryRes);
+          };
+
+          if(barChartRes){
+            console.log(barChartRes)
+          }
       } catch (error) {
         console.error('Error fetching expense data:', error);
       }
     }
-    getExpenseData();
-  }, []);
 
-  // ---- Get Monthly Expense onLoad ----
-  useEffect(() => {
-    async function getMonthlyExpense() {
-      try {
-        const res = await getMonthlyExpenseApi();
-        if (res) {
-          setTotalExpense(res?.totalExpense)
-          console.log(res)
-        }
-      } catch (error) {
-        console.error('Error fetching expense data:', error);
-      }
-    }
-
-    getMonthlyExpense();
-  }, []);
-  
-
-  // ---- Get Income OonLoad ----
-  useEffect(() => {
-    async function getIncome() {
-      try {
-        const res = await getIncomeApi();
-        if (res) {
-          setPresentIncome(res?.totalIncome)
-          console.log(res)
-        }
-      } catch (error) {
-        console.error('Error fetching expense data:', error);
-      }
-    }
-
-    getIncome();
-  }, []);
-
-  // --- Get Categories onLoad ----
-  useEffect(() => {
-    const fetchAndSetCategories = async () => {
-      const fetchedCat = await getCategoryApi();
-      setCategories(fetchedCat);
-    };
-
-    fetchAndSetCategories();
+    getInitialData();
   }, []);
 
   return (
@@ -166,6 +161,8 @@ console.log(expenseData)
         setTotalExpense,
         totalBalance, 
         setTotalBalance,
+        barChart, 
+        setBarChart,
        }}
     >
       {children}
