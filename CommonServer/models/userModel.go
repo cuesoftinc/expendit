@@ -26,3 +26,15 @@ type ChangePasswordRequest struct {
 	NewPassword     *string `json:"new_password" validate:"required,min=8"`
 	ConfirmPassword *string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
 }
+
+
+
+type ForgotPasswordRequest struct{
+	Email string  `json:"email" binding:"required"` 
+}
+
+type ResetPassword struct {
+	Password         string `json:"password"binding:" required"`
+	PasswordConfirm string  `json:"passwordConfirm" binding:"required"`
+
+}
