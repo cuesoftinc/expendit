@@ -171,11 +171,6 @@ func BarChartReport() gin.HandlerFunc {
 }
 
 
-
-
-
-
-
 func ReportByCategory() gin.HandlerFunc {
     return func(c *gin.Context) {
         userID := c.Param("userID")
@@ -264,8 +259,6 @@ func ReportByCategory() gin.HandlerFunc {
         c.JSON(http.StatusOK, result)
     }
 }
-
-
 
 
 func ReportByCategoryExpenses() gin.HandlerFunc {

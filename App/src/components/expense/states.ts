@@ -1,6 +1,6 @@
 import { ChangeEvent, useState, FormEvent, useEffect, useRef } from "react";
 import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas";
-import { formatExpense } from "@/utils/formatExpenseForm";
+import { formatExpense, expenseRequiredFields } from "@/utils/formatExpenseForm";
 import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { useHomeContext } from "@/context";
 import { getExpenseApi } from "@/API/APIS/expenseApi";
@@ -8,7 +8,6 @@ import { getExpenseApi } from "@/API/APIS/expenseApi";
 
 export interface expenseFormProps {
   amount: string;
-  category: string;
   note: string;
 };
 
@@ -20,16 +19,16 @@ export const useExpenseCustomState = () => {
     formLoading,
     setFormLoading,
     setExpenseData,
+    setTotalExpense,
     categories
   } = useHomeContext();
 
   const fileInput = useRef<any>(null);
   const [selectedFiles, setSelectedFiles] = useState(null);
-  const [category, setCategory] = useState('');
+  const [category, setCategory] = useState('Food');
 
   const initialForm: expenseFormProps = {
     amount: "",
-    category: "",
     note: ""
   };
   const [form, setForm] = useState<expenseFormProps>(initialForm);
@@ -39,7 +38,6 @@ export const useExpenseCustomState = () => {
 
     if (name === "amount") {
       const numericValue = value.replace(/[^0-9]/g, '');
-      // const formatedNumber = formatNumberWithCommas(numericValue);
       setForm((prev) => ({ ...prev, [name]: numericValue }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }))
@@ -58,14 +56,24 @@ export const useExpenseCustomState = () => {
   const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
-    const completeForm = formatExpense(form);
+    const isAnyRequiredFieldEmpty = expenseRequiredFields.some(
+      (field) => !form[field as keyof expenseFormProps],
+    );
+    if (isAnyRequiredFieldEmpty) {
+      setFormError("Please fill out all fields");
+      setFormLoading(false);
+      return;
+    }
+
+    const completeForm = formatExpense(form, category);
 
     await expenseCreateApi({
       completeForm,
       setFormError,
       setFormSuccess,
       setFormLoading,
-      setExpenseData
+      setExpenseData,
+      setTotalExpense
     });
 
     setForm(initialForm);

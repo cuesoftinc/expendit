@@ -37,7 +37,7 @@ export const incomeCreateApi = async ({
           setFormError("an error occurred, try again");
           setFormLoading(false);
         }
-      }, 5000);
+      }, 3000);
     }
   } catch (error) {
     setFormError("an error occurred, try again");
