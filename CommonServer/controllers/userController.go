@@ -1,21 +1,23 @@
 package controller
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"strconv"
-	"time"
 	"context"
 	"expendit-server/database"
 	helper "expendit-server/helpers"
 	"expendit-server/models"
+	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
-	"golang.org/x/crypto/bcrypt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 
@@ -336,3 +338,7 @@ func UpdateUser() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"message": "User updated successfully", "updated_user": existingUser})
 	}
 } 
+
+
+// FORGOT PASSWORD 
+
