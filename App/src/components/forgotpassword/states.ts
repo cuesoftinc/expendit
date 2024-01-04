@@ -2,10 +2,10 @@
 
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useHomeContext } from '@/context';
+import { postEmailApi, postNewPasswordApi, postTokenApi } from '@/API/APIS/forgotPasswordApi';
+import { forgotPasswordProps, tokenProps } from './types';
 
-export interface forgotPasswordProps {
-  email: string;
-} 
+
 export const useForgotPasswordCustomState = () => {
 
   const {
@@ -15,42 +15,76 @@ export const useForgotPasswordCustomState = () => {
     setFormSuccess,
     formLoading,
     setFormLoading,
+    currentStep,
+    setCurrentStep,
   } = useHomeContext();
 
 
-  const handleNext = () => {
-    
-  }
-
-  const initialForm: forgotPasswordProps = {
+  const initialEmailForm: forgotPasswordProps = {
     email: "",
   };
 
-  const [form, setForm] = useState<forgotPasswordProps>(initialForm);
+  const initialTokenForm: tokenProps = {
+    token: "",
+  };
+
+  const [form, setForm] = useState<forgotPasswordProps>(initialEmailForm);
+  const [tokenForm, setTokenForm] = useState<tokenProps>(initialTokenForm)
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     setForm((prev) => ({ ...prev, [name]: value }))
   };
-  
-  const handleSubmit = async (e: FormEvent<HTMLButtonElement>) => {
-    e.preventDefault();
 
-    if (formLoading) return;
-    setFormLoading(true);
+  const handleNext = async (setCurrentStep: React.Dispatch<React.SetStateAction<number>>) => {
+    switch (currentStep) {
+      case 1:
 
-    let reg = /^[a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,15})$/;
-    const isValidEmail = reg.test(form.email);
 
-    if (!isValidEmail) {
-      setFormError("Invalid Email!");
-      setFormLoading(false);
-      return;
-    };
+        if (formLoading) return;
+        setFormLoading(true);
 
-    setForm(initialForm);
-  };
+        let reg = /^[a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,15})$/;
+        const isValidEmail = reg.test(form.email);
+
+        if (!isValidEmail) {
+          setFormError("Invalid Email!");
+          setFormLoading(false);
+          return;
+        };
+
+        setForm(initialEmailForm);
+
+        try {
+          await postEmailApi();
+          setCurrentStep((prevStep) => prevStep + 1);
+        } catch (error) {
+          console.error('Error in step 1 API request', error);
+        }
+        break;
+      case 2:
+        try{
+          postTokenApi();
+          setCurrentStep((prevStep) => prevStep + 1);
+        } catch(error) {
+          console.error('Error in step 2 API request', error);
+        }
+        
+        break;
+      case 3:
+        try {
+          postNewPasswordApi();
+        } catch(error) {
+          console.error('Error in step 3 API request', error);
+        }
+        
+        break;
+    
+      default:
+        break;
+    }
+  }
 
   return {
     form,
@@ -58,7 +92,9 @@ export const useForgotPasswordCustomState = () => {
     formSuccess,
     formLoading,
     handleChange,
-    handleSubmit,
     handleNext,
+    currentStep,
+    setCurrentStep,
+    tokenForm
   }
 }
