@@ -53,7 +53,7 @@ const Index = () => {
             <p className="flex-1">Note</p>
             <p className="flex-1 md:text-center text-left">Date</p>
           </div>
-          {filteredHistory 
+          {expenseData 
             && filteredHistory.slice().reverse().map((data: any, index: number) => (
               <Expense key={index} {...data} history={true} />
             ))}
