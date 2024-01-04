@@ -19,13 +19,17 @@ func BarChartReport() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
 
+         now := time.Now()
+		currentMonth := now.Month()
+		currentYear := now.Year()
 		// MongoDB aggregation pipeline for total income per month
 		incomePipeline := []bson.M{
 			{
 				"$match": bson.M{
 					"userid": userID,
 					"createdat": bson.M{
-						"$gte": time.Now().AddDate(0, 0, -30),
+						"$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
+						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
 					},
 				},
 			},
@@ -41,18 +45,18 @@ func BarChartReport() gin.HandlerFunc {
 					"_id":           0,
 					"month":         bson.M{"$switch": bson.M{
 											"branches": []bson.M{
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "January"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "February"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "March"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "April"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "Jan"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "Feb"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "Mar"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "Apr"},
 												{"case": bson.M{"$eq": []interface{}{"$_id.month", 5}}, "then": "May"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "June"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "July"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "August"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "September"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "October"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "November"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "December"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "Jun"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "Jul"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "Aug"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "Sep"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "Oct"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "Nov"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "Dec"},
 											},
 											"default": "Unknown",
 										},},
@@ -61,14 +65,15 @@ func BarChartReport() gin.HandlerFunc {
 				},
 			},
 		}
-
+		
 		// MongoDB aggregation pipeline for total expenses per month
 		expensePipeline := []bson.M{
 			{
 				"$match": bson.M{
 					"userid": userID,
 					"createdat": bson.M{
-						"$gte": time.Now().AddDate(0, 0, -30),
+						"$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
+						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
 					},
 				},
 			},
@@ -84,18 +89,18 @@ func BarChartReport() gin.HandlerFunc {
 					"_id":           0,
 					"month":         bson.M{"$switch": bson.M{
 											"branches": []bson.M{
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "January"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "February"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "March"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "April"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "Jan"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "Feb"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "Mar"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "Apr"},
 												{"case": bson.M{"$eq": []interface{}{"$_id.month", 5}}, "then": "May"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "June"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "July"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "August"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "September"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "October"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "November"},
-												{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "December"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "Jun"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "Jul"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "Aug"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "Sep"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "Oct"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "Nov"},
+												{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "Dec"},
 											},
 											"default": "Unknown",
 										},},
@@ -158,7 +163,9 @@ func BarChartReport() gin.HandlerFunc {
 				result = append(result, expenseEntry)
 			}
 		}
-
+		if len(result) == 0 {
+			result = append(result, bson.M{"totalexpense":0,"totalIncome":0, "month":currentMonth.String()[:3]})
+		}
 		c.JSON(http.StatusOK, result)
 	}
 }
@@ -167,13 +174,17 @@ func BarChartReport() gin.HandlerFunc {
 func ReportByCategory() gin.HandlerFunc {
     return func(c *gin.Context) {
         userID := c.Param("userID")
-
+             
+		now := time.Now()
+		currentMonth := now.Month()
+		currentYear := now.Year()
         pipeline := []bson.M{
             {
                 "$match": bson.M{
                     "userid": userID,
                     "createdat": bson.M{
-                        "$gte": time.Now().AddDate(0, 0, -30),
+                        "$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
+						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
                     },
                 },
             },
@@ -192,18 +203,18 @@ func ReportByCategory() gin.HandlerFunc {
                     "month": bson.M{
                         "$switch": bson.M{
                             "branches": []bson.M{
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "January"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "February"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "March"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "April"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "Jan"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "Feb"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "Mar"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "Apr"},
                                 {"case": bson.M{"$eq": []interface{}{"$_id.month", 5}}, "then": "May"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "June"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "July"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "August"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "September"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "October"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "November"},
-                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "December"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "Jun"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "Jul"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "Aug"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "Sep"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "Oct"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "Nov"},
+                                {"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "Dec"},
                             },
                             "default": "Unknown",
                         },
@@ -240,7 +251,11 @@ func ReportByCategory() gin.HandlerFunc {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
             return
         }
+           
 
+		if len(result) == 0 {
+			result = append(result, bson.M{"Category":0,"totalIncome":0, "month":currentMonth.String()[:3]})
+		}
         c.JSON(http.StatusOK, result)
     }
 }
@@ -249,13 +264,16 @@ func ReportByCategory() gin.HandlerFunc {
 func ReportByCategoryExpenses() gin.HandlerFunc {
     return func(c *gin.Context) {
         userID := c.Param("userID")
-
+		now := time.Now()
+		currentMonth := now.Month()
+		currentYear := now.Year()
         pipeline := []bson.M{
             {
                 "$match": bson.M{
                     "userid": userID,
                     "createdat": bson.M{
-                        "$gte": time.Now().AddDate(0, 0, -30),
+                        "$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
+						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
                     },
                 },
             },
@@ -291,10 +309,10 @@ func ReportByCategoryExpenses() gin.HandlerFunc {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
             return
         }
-
+		if len(result) == 0 {
+			result = append(result, bson.M{"category":0,"expense":0})
+		}
         c.JSON(http.StatusOK, result)
     }
 }
-
-
 
