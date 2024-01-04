@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useHomeContext } from '@/context';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { generatePagination } from '@/utils/generatePagination';
 import styles from './styles';
 
 const Pagination = () => {
-  const [ currentPage, setCurrentPage ] = useState<number>(1);
-  const total_pages = Array(10).fill(null);
+  const { setCurrentPage, currentPage, totalPage } = useHomeContext();
+  const [ totalPages, setTotalPages ] = useState(totalPage)
+  const total_pages = Array(totalPages).fill(null);
   const totalLength = total_pages.length;
+
+  useEffect(() => {
+    setTotalPages(totalPage);
+  }, [totalPage])
 
   const handleForward = (e: any) => {
     console.log(currentPage)
@@ -19,7 +25,6 @@ const Pagination = () => {
     setCurrentPage(currentPage - 1)
   };
 
-  const totalPages = 10;
   const pagination = generatePagination(currentPage, totalPages);
 
   console.log(pagination.join(', '));
