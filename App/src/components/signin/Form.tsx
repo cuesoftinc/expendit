@@ -44,7 +44,7 @@ const Form = () => {
         />
         <div className={styles.checkboxWrapper}>
           <p className={styles.checkbox}><input className='mr-2' type='checkbox'/>Remember me</p>
-          <p className={styles.link}>Forgot password?</p>
+          <Link href='/forgotpassword' className={styles.link}>Forgot password?</Link>
         </div>
 
         <div className='w-full mt-6'>
