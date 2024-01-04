@@ -2,55 +2,93 @@
 
 The Income Page facilitates the management of income records, allowing users to create income entries. These operation is executed through an API endpoint that interact with the backend database. This documentation outlines the key features and API endpoints associated with the Income Page, including payload details and validation procedures.
 
-## Features
+## Form Structure
 
-### **Create Income**
+The Income Form is designed to capture key details of your income:
 
-**Endpoint**: POST /api/income/create\
-**Request Payload**:
+- **Source:** Enter the source of your income
+- **Amount:** Enter the income amount.
+- **Description:** Provide a brief description of the income.
 
-```
-{ "source": "Side Job", "amount": 800, "description": "Extra income" }
+## Adding a New Income
 
-```
+To add a new income, follow these steps:
 
-**Description**: Create a new income entry with specified source, amount, and description, and store it in the database.\
-**Response Format**:
+1. **Navigate to the Income Page:**
 
-```
-{ "id": 3, "source": "Side Job", "amount": 800, "description": "Extra income" }
-```
+   - From the main dashboard or navigation menu, click on the "Income" page to access the income-related features.
 
-### **View Total Income**
+2. **Income Form:**
 
-**Endpoint**: GET /api/income/incomes/month/:id\
-**Description**: Retrieve a list of existing income entries from the database.\
-**Response Format**:
+   - On the Income Page, you will find an Income Form that allows you to input details about your income.
 
-```
-{TotalIncome: 140000}
-```
+   ![Income Form](image_url)
 
-## Validation Procedures
+3. **Input income Details:**
 
-**Create Income Entry**
+   - Fill in the required details for the new income:
+     - **Source:** Enter the source of income.
+     - **Amount:** Enter the income amount.
+     - **Description:** Provide a brief description of the income.
 
-- Source : Required field.
-- Amount: Required field.
-  Must be a positive numeric value.
-- Description:
-  Required field.
-  Limited to a certain length (e.g. 150 characters).
+   ![Income Form Filled](image_url)
 
-## Usage
+4. **Validation Processes:**
 
-1. **View TotalIncome**
+   - The Income Form incorporates validation processes to ensure accurate and valid data entry. Common validations include:
 
-- Fetch and display the totalIncome on the overview Page.
+     - **Source:** Include checks for length or specific character types.
+     - **Amount Validation:** Ensures that the entered amount is a valid numerical value.
+     - **Description Validation:** May include checks for length or specific character types.
 
-2. **Create Income**
+   - If there are validation errors, the form will provide clear feedback indicating the nature of the error(s). Users will be prompted to correct the entries before proceeding.
 
-- Access the "Create Income" section on the Income Page.
-- Enter the source, amount and description of the new income.
-- Click the "Add Income" button to add the income to the database.
-- The new income will be added to the totalIncome.
+   ![Validation Feedback](image_url)
+
+5. **Submit the income:**
+
+   - Once all required fields are filled correctly, click the "Add income" button to submit the income.
+
+6. **Income Request Payload:**
+
+   - The request payload for adding an income should be in JSON format and include the following fields:
+
+     ```json
+     {
+       "source": "Salary"
+       "amount": 5000.0,
+       "description": "Monthly Salary"
+     }
+     ```
+
+7. **Processing and User Feedback:**
+
+   - The system processes the income addition request, simulating interactions with a database or data store.
+
+   - During this process, users may see loading indicators or other feedback to indicate that the request is being processed.
+
+   - If the addition is successful, the new income is added to total income and is displayed, and users receive a confirmation message.
+
+   ![Income Added](img_url)
+
+8. **Income Response Format:**
+
+   - The response from the income addition request will be in JSON format and include the newly created income details:
+
+     ```json
+     {
+       "id": 123,
+       "source": "Salary",
+       "amount": 50.0,
+       "description": "Monthly Salary",
+       "created_at": "2023-01-01T12:34:56Z",
+       "updated_at": "2023-01-01T14:34:22Z"
+     }
+     ```
+
+9. **Error Handling:**
+
+   - In case of errors during the income addition process, users will receive appropriate error messages with guidance on how to resolve the issue.
+
+   ![Error Handling](insert_image_url_here)
+
