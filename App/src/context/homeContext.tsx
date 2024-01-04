@@ -51,6 +51,8 @@ export interface HomeContextProps {
   setTotalPage: Dispatch<SetStateAction<number>>;
   currentPage: number;
   setCurrentPage: Dispatch<SetStateAction<number>>;
+  currentStep: number;
+  setCurrentStep: Dispatch<SetStateAction<number>>;
 };
 
 export interface HomeProviderProps {
@@ -69,6 +71,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   const [categories, setCategories] = useState<any>([]);
   const [totalPage, setTotalPage] = useState<number>(1);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentStep, setCurrentStep] = useState<number>(1);
   // ---- Form states ----
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
@@ -233,7 +236,9 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         totalPage,
         setTotalPage,
         currentPage,
-        setCurrentPage
+        setCurrentPage,
+        currentStep,
+        setCurrentStep
        }}
     >
       {children}
