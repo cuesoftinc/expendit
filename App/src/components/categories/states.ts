@@ -14,7 +14,9 @@ export const useCategoryCustomState = () => {
     formLoading,
     setFormLoading,
     categories,
-    setCategories
+    setCategories,
+    setAreaChart,
+    setPieChart
   } = useHomeContext();
 
   const [input, setInput] = useState('');
@@ -48,6 +50,8 @@ export const useCategoryCustomState = () => {
           setFormError,
           setFormLoading,
           setFormSuccess,
+          setAreaChart,
+          setPieChart
         });
         fetchAndSetCategories();
 
@@ -70,6 +74,8 @@ export const useCategoryCustomState = () => {
             setFormError,
             setFormLoading,
             setFormSuccess,
+            setAreaChart,
+            setPieChart
           });
 
           fetchAndSetCategories();
@@ -94,6 +100,8 @@ export const useCategoryCustomState = () => {
             setFormError,
             setFormLoading,
             setFormSuccess,
+            setAreaChart,
+            setPieChart
           });
 
           fetchAndSetCategories();
