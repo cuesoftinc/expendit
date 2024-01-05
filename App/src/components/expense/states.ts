@@ -20,6 +20,9 @@ export const useExpenseCustomState = () => {
     setFormLoading,
     setExpenseData,
     setTotalExpense,
+    setBarChart,
+    setPieChart,
+    setLineChart,
     categories
   } = useHomeContext();
 
@@ -73,7 +76,10 @@ export const useExpenseCustomState = () => {
       setFormSuccess,
       setFormLoading,
       setExpenseData,
-      setTotalExpense
+      setTotalExpense,
+      setBarChart,
+      setPieChart,
+      setLineChart,
     });
 
     setForm(initialForm);
