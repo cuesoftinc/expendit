@@ -1,6 +1,7 @@
 import { API } from '../axiosSetup';
 import { IncomeProps } from '../types';
 import { getLocalStorageItem } from '@/utils/localStorage';
+import { getBarChartApi } from './reportApi';
 
 const userID = getLocalStorageItem('Expendit-userID') || null;
 const user_id = userID ? JSON.parse(userID) : null;
@@ -10,7 +11,8 @@ export const incomeCreateApi = async ({
   setFormError,
   setFormSuccess,
   setFormLoading,
-  setPresentIncome
+  setPresentIncome,
+  setBarChart
 }: IncomeProps) => {
   setFormLoading(true);
 
@@ -26,13 +28,16 @@ export const incomeCreateApi = async ({
       setTimeout(async () => {
         try {
           setFormLoading(true);
-          const res = await getIncomeApi();
 
-          if (res) {
-            console.log(res);
-            setPresentIncome(res?.totalIncome)
-            setFormLoading(false);
-          }
+          const [IncomeRes, barChartRes] = await Promise.all([
+            getIncomeApi(),
+            getBarChartApi(),
+          ]);
+
+          if (IncomeRes) setPresentIncome(IncomeRes?.totalIncome);
+          if (barChartRes) setBarChart(barChartRes);
+
+          setFormLoading(false);
         } catch (error) {
           setFormError("an error occurred, try again");
           setFormLoading(false);
