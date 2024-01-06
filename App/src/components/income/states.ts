@@ -20,7 +20,8 @@ export const useIncomeCustomState = () => {
     setFormSuccess,
     formLoading,
     setFormLoading,
-    setPresentIncome
+    setPresentIncome,
+    setBarChart,
   } = useHomeContext();
 
   const initialForm: incomeFormProps = {
@@ -60,7 +61,8 @@ export const useIncomeCustomState = () => {
       setFormError,
       setFormSuccess,
       setFormLoading,
-      setPresentIncome
+      setPresentIncome,
+      setBarChart
     });
 
     setForm(initialForm);

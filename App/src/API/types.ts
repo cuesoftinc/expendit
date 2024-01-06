@@ -47,6 +47,7 @@ export interface IncomeProps {
   setFormSuccess: Dispatch<SetStateAction<string>>;
   setFormLoading: Dispatch<SetStateAction<boolean>>;
   setPresentIncome: Dispatch<SetStateAction<any>>;
+  setBarChart: Dispatch<SetStateAction<any>>;
 };
 
 export interface IncomePayload {
@@ -80,6 +81,9 @@ export interface ExpenseProps {
   setFormLoading: Dispatch<SetStateAction<boolean>>;
   setExpenseData: Dispatch<SetStateAction<any>>;
   setTotalExpense: Dispatch<SetStateAction<number>>;
+  setBarChart: Dispatch<SetStateAction<any>>;
+  setPieChart: Dispatch<SetStateAction<any>>;
+  setLineChart: Dispatch<SetStateAction<any>>;
 };
 
 export interface ExpensePayload {
@@ -105,7 +109,9 @@ export interface UserDetailsPayload {
 export interface CategoryProps {
   input?: string;
   id?: string;
-  setFormError: React.Dispatch<React.SetStateAction<string>>;
-  setFormSuccess: React.Dispatch<React.SetStateAction<string>>;
-  setFormLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setFormError: Dispatch<React.SetStateAction<string>>;
+  setFormSuccess: Dispatch<React.SetStateAction<string>>;
+  setFormLoading: Dispatch<React.SetStateAction<boolean>>;
+  setAreaChart: Dispatch<SetStateAction<any>>;
+  setPieChart: Dispatch<SetStateAction<any>>;
 }

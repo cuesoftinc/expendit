@@ -180,6 +180,8 @@ func SearchIncome() gin.HandlerFunc {
 	}
 }
 
+
+
 func GetMonthlyIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
@@ -235,18 +237,92 @@ func GetMonthlyIncome() gin.HandlerFunc {
 }
 
 
+// func GetMonthIncome() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		userID := c.Param("userID")
+
+		
+// 		now := time.Now()
+// 		currentMonth := now.Month()
+// 		currentYear := now.Year()
+// 		pipeline := []bson.M{
+// 			{
+// 				"$match": bson.M{
+// 					"userid": userID,
+// 					"createdat": bson.M{
+// 					     "$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
+// 						 "$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
+// 					},
+// 				},
+// 			},
+// 			{
+// 				"$group": bson.M{
+// 					"_id": bson.M{
+// 						"month": bson.M{"$month": "$createdat"},
+// 					},
+// 					"totalIncome": bson.M{"$sum": "$amount"},
+// 				},
+// 			},
+// 			{
+// 				"$project": bson.M{
+// 					"_id":         0,
+// 					"month": bson.M{
+// 						"$switch": bson.M{
+// 							"branches": []bson.M{
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "Jan"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "Feb"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "Mar"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "Apr"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 5}}, "then": "May"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "Jun"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "Jul"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "Aug"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "Sep"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "Oct"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "Nov"},
+// 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "Dec"},
+// 							},
+// 							"default": "Unknown",
+// 						},
+// 					},
+// 					"totalIncome": 1,
+// 				},
+// 			},
+// 		}
+
+// 		cursor, err := incomeCollection.Aggregate(context.Background(), pipeline)
+// 		if err != nil {
+// 			log.Println("Error in MongoDB aggregation:", err)
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+// 			return
+// 		}
+// 		defer cursor.Close(context.Background())
+
+// 		var result []bson.M
+// 		if err := cursor.All(context.Background(), &result); err != nil {
+// 			log.Println("Error decoding MongoDB documents:", err)
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+// 			return
+// 		}
+
+// 		c.JSON(http.StatusOK, result)
+// 	}
+// }
 
 func GetMonthIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
 
-		
+		now := time.Now()
+		currentMonth := now.Month()
+		currentYear := now.Year()
 		pipeline := []bson.M{
 			{
 				"$match": bson.M{
 					"userid": userID,
 					"createdat": bson.M{
-						"$gte": time.Now().AddDate(0, 0, -30), // Assuming a month is approximately 30 days
+						"$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
+						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
 					},
 				},
 			},
@@ -264,18 +340,18 @@ func GetMonthIncome() gin.HandlerFunc {
 					"month": bson.M{
 						"$switch": bson.M{
 							"branches": []bson.M{
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "January"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "February"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "March"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "April"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 1}}, "then": "Jan"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 2}}, "then": "Feb"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 3}}, "then": "Mar"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 4}}, "then": "Apr"},
 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 5}}, "then": "May"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "June"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "July"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "August"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "September"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "October"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "November"},
-								{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "December"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 6}}, "then": "Jun"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 7}}, "then": "Jul"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 8}}, "then": "Aug"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 9}}, "then": "Sep"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 10}}, "then": "Oct"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 11}}, "then": "Nov"},
+								{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "Dec"},
 							},
 							"default": "Unknown",
 						},
@@ -298,6 +374,11 @@ func GetMonthIncome() gin.HandlerFunc {
 			log.Println("Error decoding MongoDB documents:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
 			return
+		}
+
+		// If no income for the month, add a custom map with totalIncome set to 0
+		if len(result) == 0 {
+			result = append(result, bson.M{"totalIncome": 0, "month": currentMonth.String()[:3]})
 		}
 
 		c.JSON(http.StatusOK, result)

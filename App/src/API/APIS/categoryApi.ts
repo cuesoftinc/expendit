@@ -1,11 +1,14 @@
 import { API } from '../axiosSetup';
 import { CategoryProps } from '../types';
+import { getAreaHomeChartApi, getPieChartApi } from './reportApi';
 
 export const createCategoryApi = async ({
   input,
   setFormError,
   setFormLoading,
   setFormSuccess,
+  setAreaChart,
+  setPieChart
 }: CategoryProps) => {
   try {
     const payload = JSON.stringify({ name: input });
@@ -14,6 +17,20 @@ export const createCategoryApi = async ({
     if (data && status === 201) {
       setFormSuccess("Category Successfully added!");
       setFormLoading(false);
+
+      try {
+        setFormLoading(true);
+        const [areaChartRes, pieChartRes] = await Promise.all([
+          getAreaHomeChartApi(),
+          getPieChartApi(),
+        ])
+
+        if (areaChartRes) setAreaChart(areaChartRes);
+        if (pieChartRes) setPieChart(pieChartRes);
+      } catch (err) {
+        setFormError("an error occurred, try again");
+        setFormLoading(false);
+      }
     }
   } catch (error) {
     setFormError("An error occurred, try again");
@@ -36,11 +53,13 @@ export const deleteCategoryApi = async ({
   setFormError,
   setFormLoading,
   setFormSuccess,
+  setAreaChart,
+  setPieChart
 }: CategoryProps) => {
   try {
     const { data, status } = await API.delete(`/category/${id}`);
 
-    if ( status === 204) {
+    if (status === 204) {
       setFormSuccess('Category has been deleted!');
       setFormLoading(false);
     } else {
@@ -60,6 +79,8 @@ export const editCategoryApi = async ({
   setFormError,
   setFormLoading,
   setFormSuccess,
+  setAreaChart,
+  setPieChart
 }: CategoryProps) => {
   try {
     const payload = JSON.stringify({ name: input });

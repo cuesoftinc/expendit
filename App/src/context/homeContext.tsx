@@ -4,6 +4,7 @@ import { createContext,
 useContext, 
 useEffect,
 useState, 
+useRef,
 Dispatch, 
 ReactNode, 
 SetStateAction 
@@ -108,13 +109,17 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
 
   // ---- Populate All User states onLoad ----
   useEffect(() => {
+    let isMounted = true; 
+    let retry = 0;
+    let timeoutId: string | number | NodeJS.Timeout | undefined;
+  
     async function getInitialData() {
       try {
-        if(user !== null){
+        if (user !== null && isMounted) {
           const [
-            userExpenseRes, 
+            userExpenseRes,
             totalMonthExpenseRes,
-            totalMonthIncomeRes, 
+            totalMonthIncomeRes,
             categoryRes
           ] = await Promise.all([
             getExpenseApi(),
@@ -123,42 +128,60 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
             getCategoryApi()
           ]);
   
-          if(userExpenseRes){
-            setExpenseData(userExpenseRes.results);
-            setTotalPage(userExpenseRes.total_pages);
-            setCurrentPage(userExpenseRes.page);
-            console.log(userExpenseRes)
-          };
+          if (isMounted) {
+            if (userExpenseRes) {
+              setExpenseData(userExpenseRes.results);
+              setTotalPage(userExpenseRes.total_pages);
+              setCurrentPage(userExpenseRes.page);
+              console.log(userExpenseRes);
+            }
   
-          if(totalMonthExpenseRes){
-            setTotalExpense(totalMonthExpenseRes.totalExpense);
-            console.log(totalMonthExpenseRes)
-          };
+            if (totalMonthExpenseRes) {
+              setTotalExpense(totalMonthExpenseRes.totalExpense);
+              console.log(totalMonthExpenseRes);
+            }
   
-          if(totalMonthIncomeRes){
-            setPresentIncome(totalMonthIncomeRes.totalIncome);
-            console.log(totalMonthIncomeRes)
-          };
+            if (totalMonthIncomeRes) {
+              setPresentIncome(totalMonthIncomeRes.totalIncome);
+              console.log(totalMonthIncomeRes);
+            }
   
-          if(categoryRes){
-            setCategories(categoryRes);
-          };
-  
+            if (categoryRes) {
+              setCategories(categoryRes);
+            }
+          }
         }
-        
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     }
-
+  
     getInitialData();
-  }, []);
+
+    if(retry < 2){
+      retry ++;
+
+      timeoutId = setTimeout(() => {
+        getInitialData();
+      }, 5000)
+    }
+  
+    return () => { 
+      isMounted = false;
+      clearTimeout(timeoutId)
+    };
+  }, [user]);
+  
 
    // ---- Populate All Report states onLoad ----
    useEffect(() => {
+     let timeoutId: string | number | NodeJS.Timeout | undefined;
+     let isMounted = true;
+     let retry = 0;
+
     async function getInitialReportsData() {
       try {
-        if(user !== null || user){
+        if(user !== null || isMounted){
           const [
             areaChartRes,
             barChartRes,
@@ -171,25 +194,27 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
             getLineChartApi()
           ]);
   
-          if(areaChartRes){
-            setAreaChart(areaChartRes);
-            console.log(areaChartRes)
-          };
-  
-          if(barChartRes){
-            setBarChart(barChartRes)
-            console.log(barChartRes)
+          if(isMounted){
+            if(areaChartRes){
+              setAreaChart(areaChartRes);
+              console.log(areaChartRes)
+            };
+    
+            if(barChartRes){
+              setBarChart(barChartRes)
+              console.log(barChartRes)
+            }
+    
+            if(pieChartRes){
+              setPieChart(pieChartRes);
+              console.log(pieChartRes)
+            };
+    
+            if(lineChartRes){
+              setLineChart(lineChartRes);
+              console.log(lineChartRes)
+            };
           }
-  
-          if(pieChartRes){
-            setPieChart(pieChartRes);
-            console.log(pieChartRes)
-          };
-  
-          if(lineChartRes){
-            setLineChart(lineChartRes);
-            console.log(lineChartRes)
-          };
         }
 
       } catch (error) {
@@ -198,7 +223,20 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
     }
 
     getInitialReportsData();
-  }, []);
+
+    if(retry < 2){
+      retry ++;
+
+      timeoutId = setTimeout(() => {
+        getInitialReportsData();
+      }, 5000)
+    }
+  
+    return () => { 
+      isMounted = false;
+      clearTimeout(timeoutId)
+    };
+  }, [user]);
 
   return (
     <HomeContext.Provider
