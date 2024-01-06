@@ -91,7 +91,7 @@ export const passwordChangeApi = async ({
 
   try {
     const payload = JSON.stringify(completeForm)
-    const { data, status } = await API.post('/users/change-password', payload);
+    const { data, status } = await API.put('/users/change-password', payload);
 
     if (data && status === 200) {
       setFormSuccess("Successful!");

@@ -3,8 +3,8 @@ import { UserDetailsPayload } from "@/API/types";
 
 export function formatUserDetails( obj: userDetailsProps ): UserDetailsPayload {
   return {
-    FirstName: obj.firstName,
-    LastName: obj.lastName,
+    FirstName: obj.first_name,
+    LastName: obj.last_name,
     Email: obj.email,
   };
 }
