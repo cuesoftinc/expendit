@@ -5,10 +5,12 @@ export function formatPasswordChange( obj: passwordChangeProps ): PasswordPayloa
   return {
     OldPassword: obj.old_password,
     NewPassword: obj.new_password,
+    ConfirmPassword: obj.confirm_password
   };
 }
 
 export const passwordRequiredFields = [
   "OldPassword",
   "NewPassword",
+  "ConfirmPassword"
 ];
