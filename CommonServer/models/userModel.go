@@ -30,11 +30,15 @@ type ChangePasswordRequest struct {
 
 
 type ForgotPasswordRequest struct{
-	Email string  `json:"email" binding:"required"` 
+	Email *string  `json:"email" binding:"required"` 
 }
 
 type ResetPassword struct {
-	Password         string `json:"password"binding:" required"`
-	PasswordConfirm string  `json:"passwordConfirm" binding:"required"`
-
+	NewPassword *string `json:"new_password" validate:"required,min=6"`
+	ConPassword *string `json:"con_password" validate:"required,min=6,eqfield=NewPassword"`
+	First_name  string `json:"first_name" validate:"-"`
+	Last_name   string `json:"last_name" validate:"-"`
+	Email       string `json:"email" validate:"-"`
+	Phone       string `json:"phone" validate:"-"`
+	User_type   string `json:"user_type" validate:"-"`
 }
