@@ -1,11 +1,12 @@
 import React, { Fragment }  from 'react';
 import styles from './styles';
+import profileStyles from '../ProfileSettings/styles';
 import Input from '@/components/signup/Input';
 import LoaderSpinner from '@/components/helpers/LoaderSpinner';
 import Notification from '@/components/helpers/Notification';
 import { usePasswordCustomState } from './states';
 
-const index = () => {
+const Index = () => {
   const {
     form,
     formError,
@@ -19,14 +20,14 @@ const index = () => {
     <div className={styles.pagePad}>
       <section>
         <div className={styles.section}>
-          <div>
+          <div className="flex flex-col gap-3">
             <h1 className={styles.semibold}>Change Password</h1>
             <p className={styles.paragraph}>Update your password here</p>
           </div>
           <div className={styles.buttonContainer}>
-            <button className={styles.button} onClick={handleCancel}>Cancel</button>
+            <button className={profileStyles.button} onClick={handleCancel}>Cancel</button>
             <button 
-            className={styles.changeButton}  
+            className={profileStyles.changeButton}  
             onClick={handleSubmit}>
             { formLoading 
               ? <LoaderSpinner 
@@ -84,4 +85,4 @@ const index = () => {
   )
 }
 
-export default index
+export default Index

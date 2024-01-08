@@ -69,6 +69,7 @@ export interface PasswordChangeProps {
 export interface PasswordPayload {
   OldPassword: string;
   NewPassword: string;
+  ConfirmPassword: string;
 }
 
 // ---- Expense Types ----

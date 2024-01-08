@@ -20,7 +20,7 @@ const index = () => {
     <div className={styles.pagePad}>
       <section>
         <div className={styles.introContainer}>
-          <div>
+          <div className={styles.selfcenter}>
             <h1 className={styles.semibold}>Personal Info</h1>
             <p className={styles.introParagraph}>Update your photo and personal details here</p>
           </div>
@@ -62,11 +62,9 @@ const index = () => {
               handleChange={handleChange}
               custom
             />
-            {/* <input className={styles.input} placeholder='first name'/>
-            <input className={styles.input} placeholder='last name'/> */}
           </div>
         </div>
-        <div className={styles.emailContainer}>
+        {/* <div className={styles.emailContainer}>
           <div>
             <p className={styles.semibold}>Email</p>
           </div>
@@ -80,9 +78,8 @@ const index = () => {
               handleChange={handleChange}
               custom
             />
-            {/* <input className={styles.emailInput} placeholder='abdulsamad.raji@cuesoft.io'/> */}
-          </div>
-        </div>
+          </div> */}
+        {/* </div> */}
         <div className={styles.section}>
           <div className={styles.selfcenter}>
             <h1 className={styles.semibold}>Your Avatar</h1>
