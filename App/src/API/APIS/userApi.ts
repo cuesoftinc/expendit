@@ -32,6 +32,7 @@ export const userDetailsApi = async ({
   setFormLoading
 }: UserDetailsProps) => {
   try {
+    const user_id = userID ? JSON.parse(userID) : null;
     const payload = JSON.stringify(completeForm)
     const { data, status } = await API.put(`/users/${user_id}`, payload);
 
