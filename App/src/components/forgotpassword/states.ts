@@ -4,7 +4,7 @@ import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useHomeContext } from '@/context';
 import { postEmailApi, postNewPasswordApi } from '@/API/APIS/forgotPasswordApi';
 import { PasswordResetProps, forgotPasswordProps } from './types';
-import { useRouter } from 'next/router';
+
 
 
 export const useForgotPasswordCustomState = () => {
@@ -18,7 +18,6 @@ export const useForgotPasswordCustomState = () => {
     setFormLoading,
   } = useHomeContext();
 
-  const router = useRouter();
 
 
   const initialEmailForm: forgotPasswordProps = {
@@ -56,18 +55,7 @@ export const useForgotPasswordCustomState = () => {
     }
   }
 
-  const handlePasswordSubmit = async () => {
-    try {
-      const resetToken = router.query.token as string;
-      const payload = JSON.stringify({passwordForm});
-
-      await postNewPasswordApi(resetToken, payload);
-      
-      // router.push('/forgotpassword/success');
-    } catch (error) {
-      console.log(error)
-    }
-  };
+  
 
 
   return {
@@ -79,6 +67,5 @@ export const useForgotPasswordCustomState = () => {
     handleChange,
     handlePasswordChange,
     handleEmailSubmit,
-    handlePasswordSubmit,
   }
 }
