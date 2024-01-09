@@ -18,7 +18,7 @@ func SendResetPasswordEmail(toEmail, resetToken string) error {
 	m.SetHeader("From", EMAIL_FROM)
 	m.SetHeader("To", toEmail)
 	m.SetHeader("Subject", "Reset Password")
-	m.SetBody("text/html", "Click the following link to reset your password: <a href=\"http://localhost:9000/users/reset-password/"+resetToken+"\">Reset Password</a>")
+	m.SetBody("text/html", "Click the following link to reset your password: <a href=\"http://localhost:3000/forgotpassword/resetpassword/"+resetToken+"\">Reset Password</a>")
 
 	d := gomail.NewDialer(SMTP_Host, 587, SMTP_User, SMTP_Password)
 
