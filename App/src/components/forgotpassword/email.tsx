@@ -4,13 +4,13 @@ import LoaderSpinner from "../helpers/LoaderSpinner";
 import Input from "../signup/Input"
 import { useForgotPasswordCustomState } from "./states"
 import styles from './styles';
-import { EmailInputProps } from "./types";
 
-const EmailInput: React.FC<EmailInputProps> = ({ handleNext }) => {
+const EmailInput = () => {
   const {
     form,
     formLoading,
     handleChange,
+    handleEmailSubmit
   } = useForgotPasswordCustomState();
   return (
     <section className={styles.container}>
@@ -29,7 +29,7 @@ const EmailInput: React.FC<EmailInputProps> = ({ handleNext }) => {
           type='submit' 
           className={styles.btn} 
           disabled={formLoading}
-          onClick={handleNext}
+          onClick={handleEmailSubmit}
         >
           { formLoading 
             ? <LoaderSpinner 
