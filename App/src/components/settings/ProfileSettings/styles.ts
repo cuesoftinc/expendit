@@ -5,7 +5,7 @@ const styles = {
   controlContainer: 'flex gap-4 self-center md:mt-0 mt-6',
   button: 'text-purple-400 rounded-md border-2 px-8 py-3 font-semibold  hover:opacity-80',
   input: 'p-2 md:pr-8 rounded-md bg-gray-200 border border-gray-400',
-  inputContainer: 'flex gap-2 md:gap-10 ',
+  inputContainer: 'flex flex-col gap-5',
   emailContainer: 'flex justify-between border-b-2 py-8',
   emailInputContainer: 'w-[50%]',
   imageContainer: 'flex gap-5 items-center mt-6 border-color border-b-1 pb-6',

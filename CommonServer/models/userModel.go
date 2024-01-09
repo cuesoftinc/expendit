@@ -33,7 +33,7 @@ type ForgotPasswordRequest struct{
 	Email *string  `json:"email" binding:"required"` 
 }
 
-type ResetPassword struct {
+type ResetPasswordRequest struct {
 	NewPassword *string `json:"new_password" validate:"required,min=6"`
 	ConPassword *string `json:"con_password" validate:"required,min=6,eqfield=NewPassword"`
 	First_name  string `json:"first_name" validate:"-"`

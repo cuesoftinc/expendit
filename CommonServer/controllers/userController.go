@@ -411,7 +411,7 @@ func ResetPassword() gin.HandlerFunc {
 			return
 		}
     
-		var resetPasswordRequest models.ResetPassword
+		var resetPasswordRequest models.ResetPasswordRequest
 		if err := c.BindJSON(&resetPasswordRequest); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			defer cancel()
