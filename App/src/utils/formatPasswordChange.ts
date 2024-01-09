@@ -3,14 +3,14 @@ import { PasswordPayload } from "@/API/types";
 
 export function formatPasswordChange(obj: passwordChangeProps): PasswordPayload {
   return {
-    OldPassword: obj.old_password,
-    NewPassword: obj.new_password,
-    ConfirmPassword: obj.confirm_password
+    old_password: obj.old_password,
+    new_password: obj.new_password,
+    confirm_password: obj.confirm_password
   };
 }
 
 export const passwordRequiredFields = [
-  "OldPassword",
-  "NewPassword",
-  "ConfirmPassword"
+  "old_password",
+  "new_password",
+  "confirm_password"
 ];

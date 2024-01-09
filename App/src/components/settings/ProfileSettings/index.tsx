@@ -3,19 +3,17 @@ import Avatar from '@/assets/images/avatar.jpg';
 import Image from 'next/image';
 import styles from './styles';
 import Input from '@/components/signup/Input';
-import { userDetailsCustomState } from './states';
+import { useDetailsCustomState } from './states';
 import LoaderSpinner from '@/components/helpers/LoaderSpinner';
 
-const index = () => {
+const Index = () => {
   const {
     form,
-    formError,
-    formSuccess,
     formLoading,
     handleChange,
     handleSubmit,
     handleCancel,
-  } = userDetailsCustomState()
+  } = useDetailsCustomState()
   return (
     <div className={styles.pagePad}>
       <section>
@@ -64,22 +62,6 @@ const index = () => {
             />
           </div>
         </div>
-        {/* <div className={styles.emailContainer}>
-          <div>
-            <p className={styles.semibold}>Email</p>
-          </div>
-          <div className={styles.emailInputContainer}>
-            <Input
-              name= 'email'
-              type= 'email'
-              label= ''
-              value= {form.email}
-              placeholder='Enter Email'
-              handleChange={handleChange}
-              custom
-            />
-          </div> */}
-        {/* </div> */}
         <div className={styles.section}>
           <div className={styles.selfcenter}>
             <h1 className={styles.semibold}>Your Avatar</h1>
@@ -102,4 +84,4 @@ const index = () => {
   )
 }
 
-export default index
+export default Index

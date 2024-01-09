@@ -10,8 +10,6 @@ import { useHomeContext } from '@/context';
 
 export const usePasswordCustomState = () => {
   const {
-    formError,
-    formSuccess,
     formLoading,
     setFormLoading,
     setFormError,
@@ -79,8 +77,6 @@ export const usePasswordCustomState = () => {
 
   return {
     form,
-    formError,
-    formSuccess,
     formLoading,
     handleChange,
     handleSubmit,

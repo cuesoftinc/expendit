@@ -9,8 +9,6 @@ import { usePasswordCustomState } from './states';
 const Index = () => {
   const {
     form,
-    formError,
-    formSuccess,
     formLoading,
     handleChange,
     handleSubmit,
@@ -41,8 +39,6 @@ const Index = () => {
         </div>
         <div>
         <Fragment>
-          {formError !== "" && <Notification msg={formError} type="error" />}
-          {formSuccess !== "" && <Notification msg={formSuccess} type="success" />}
           <form>
             <div className={styles.inputWrapper}>
               <Input
