@@ -35,3 +35,14 @@ networks:
   next-envoy:
   envoy-go:
   go-db:
+
+Backend:
+
+version: "3"
+backend-service:
+  app:
+    build: .
+    ports:
+      - "9000:9000"
+    env_file:
+      - .env 
