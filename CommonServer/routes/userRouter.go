@@ -14,6 +14,5 @@ func UserRoutes(incomingRoutes *gin.Engine){
 	incomingRoutes.GET("/users/:user_id",controller.GetUser())
 	incomingRoutes.PUT("/users/change-password", controller.ChangePassword())
   incomingRoutes.PUT("/users/:id", controller.UpdateUser())
-	incomingRoutes.POST("/users/forgot-password", controller.ForgotPassword())
   incomingRoutes.PUT("/users/reset-password/:resetToken", controller.ResetPassword())
 }
