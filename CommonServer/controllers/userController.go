@@ -396,11 +396,6 @@ func ForgotPassword() gin.HandlerFunc {
 
 
 
-
-
-
-
-
 func ResetPassword() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
