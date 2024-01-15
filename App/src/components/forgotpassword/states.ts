@@ -1,14 +1,12 @@
 "use client"
 
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useHomeContext } from '@/context';
 import { postEmailApi, postNewPasswordApi } from '@/API/APIS/forgotPasswordApi';
 import { PasswordResetProps, forgotPasswordProps } from './types';
 
-
-
 export const useForgotPasswordCustomState = () => {
-
   const {
     formError,
     setFormError,
@@ -16,9 +14,12 @@ export const useForgotPasswordCustomState = () => {
     setFormSuccess,
     formLoading,
     setFormLoading,
-  } = useHomeContext();
+  } = useHomeContext()
 
+  // const searchParams = useSearchParams();
+  // const gottenToken = searchParams.get("resetToken");
 
+  // console.log(gottenToken)
 
   const initialEmailForm: forgotPasswordProps = {
     email: "",

@@ -9,24 +9,21 @@ import Image from 'next/image';
 import Logo from '@/assets/images/logo.png';
 import Link from 'next/link';
 import { FaArrowLeft } from "react-icons/fa";
-import { useRouter } from 'next/router';
 import { postNewPasswordApi } from '@/API/APIS/forgotPasswordApi';
 
-const NewPassword: React.FC<PasswordResetProps> = ()=> {
+const NewPassword = ()=> {
   const {
     passwordForm,
     formLoading,
     handlePasswordChange,
   } = useForgotPasswordCustomState();
 
-  const router = useRouter();
-
   const handlePasswordSubmit = async () => {
     try {
-      const resetToken = router.query.token as string;
-      const payload = JSON.stringify({passwordForm});
+      // const resetToken = router.query.token as string;
+      // const payload = JSON.stringify({passwordForm});
 
-      await postNewPasswordApi(resetToken, payload);
+      // await postNewPasswordApi(resetToken, payload);
       
       // router.push('/forgotpassword/success');
     } catch (error) {

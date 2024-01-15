@@ -147,7 +147,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
 
     async function getInitialReportsData() {
       try {
-        if(user !== null || isMounted){
+        if(user !== null && isMounted){
           const [
             areaChartRes,
             barChartRes,

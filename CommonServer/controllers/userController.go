@@ -407,61 +407,127 @@ func ForgotPassword() gin.HandlerFunc {
 	}
 }
 
+// func ResetPassword() gin.HandlerFunc {
+//     return func(c *gin.Context) {
+//         var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+//         defer cancel()
+
+//         var resetPasswordRequest models.ResetPasswordRequest
+//         if err := c.BindJSON(&resetPasswordRequest); err != nil {
+//             log.Printf("Error binding JSON: %v", err)
+//             c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+//             return
+//         }
+
+//         validationErr := validate.Struct(resetPasswordRequest)
+//         if validationErr != nil {
+//             log.Printf("Validation error: %v", validationErr)
+//             c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+//             return
+//         }
+
+//         claims, err := utils.ParseToken(*resetPasswordRequest.Reset_Token)
+//         if err != nil {
+//             log.Printf("Error parsing reset token: %v", err)
+//             c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})
+//             return
+//         }
+
+//         log.Printf("Reset password request received for user ID: %s", claims.Subject)
+
+//         newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
+//         filter := bson.M{"email": claims.Subject}
+//         update := bson.M{"$set": bson.M{"password": newHashedPassword}}
+//         result, err := userCollection.UpdateOne(ctx, filter, update)
+//         if err != nil {
+//             log.Printf("Error updating password: %v", err)
+//             c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
+//             return
+//         }
+
+//         log.Printf("Password update result: %+v", result)
+
+//         // Check if the password update was successful
+//         if result.ModifiedCount == 0 {
+//             c.JSON(http.StatusBadRequest, gin.H{"error": "password not updated"})
+//             return
+//         }
+
+//         // Fetch and return the updated user details
+//         updatedUser := models.User{} // Replace with your actual user model
+//         err = userCollection.FindOne(ctx, bson.M{"email": claims.Subject}).Decode(&updatedUser)
+//         if err != nil {
+//             log.Printf("Error fetching updated user details: %v", err)
+//             c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching updated user details"})
+//             return
+//         }
+
+//         c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
+//     }
+// }
+
 func ResetPassword() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-        defer cancel()
+	return func(c *gin.Context) {
+			var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+			defer cancel()
 
-        var resetPasswordRequest models.ResetPasswordRequest
-        if err := c.BindJSON(&resetPasswordRequest); err != nil {
-            log.Printf("Error binding JSON: %v", err)
-            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-            return
-        }
+			resetToken := c.Query("resetToken")
+			log.Printf("Received reset token: %s", resetToken)
 
-        validationErr := validate.Struct(resetPasswordRequest)
-        if validationErr != nil {
-            log.Printf("Validation error: %v", validationErr)
-            c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-            return
-        }
+			var resetPasswordRequest models.ResetPasswordRequest
+			if err := c.BindJSON(&resetPasswordRequest); err != nil {
+					log.Printf("Error binding JSON: %v", err)
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+			}
 
-        claims, err := utils.ParseToken(*resetPasswordRequest.Reset_Token)
-        if err != nil {
-            log.Printf("Error parsing reset token: %v", err)
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})
-            return
-        }
+			// Include reset token from query in the model
+			resetPasswordRequest.Reset_Token = &resetToken
 
-        log.Printf("Reset password request received for user ID: %s", claims.Subject)
+			validationErr := validate.Struct(resetPasswordRequest)
+			if validationErr != nil {
+					log.Printf("Validation error: %v", validationErr)
+					c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+					return
+			}
 
-        newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
-        filter := bson.M{"email": claims.Subject}
-        update := bson.M{"$set": bson.M{"password": newHashedPassword}}
-        result, err := userCollection.UpdateOne(ctx, filter, update)
-        if err != nil {
-            log.Printf("Error updating password: %v", err)
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
-            return
-        }
+			claims, err := utils.ParseToken(*resetPasswordRequest.Reset_Token)
+			if err != nil {
+					log.Printf("Error parsing reset token: %v", err)
+					c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})
+					return
+			}
 
-        log.Printf("Password update result: %+v", result)
+			log.Printf("Reset password request received for user ID: %s", claims.Subject)
 
-        // Check if the password update was successful
-        if result.ModifiedCount == 0 {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "password not updated"})
-            return
-        }
+			newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
+			filter := bson.M{"email": claims.Subject}
+			update := bson.M{"$set": bson.M{"password": newHashedPassword}}
 
-        // Fetch and return the updated user details
-        updatedUser := models.User{} // Replace with your actual user model
-        err = userCollection.FindOne(ctx, bson.M{"email": claims.Subject}).Decode(&updatedUser)
-        if err != nil {
-            log.Printf("Error fetching updated user details: %v", err)
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching updated user details"})
-            return
-        }
+			log.Printf("Executing MongoDB update query: filter=%v, update=%v", filter, update)
+			result, err := userCollection.UpdateOne(ctx, filter, update)
+			if err != nil {
+					log.Printf("Error updating password: %v", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
+					return
+			}
 
-        c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
-    }
+			if result.ModifiedCount == 0 {
+					log.Printf("Password not updated for user ID: %s", claims.Subject)
+					c.JSON(http.StatusBadRequest, gin.H{"error": "password not updated"})
+					return
+			}
+			log.Printf("Password updated successfully for user ID: %s", claims.Subject)
+
+			// Fetch and return the updated user details
+			updatedUser := models.User{} // Replace with your actual user model
+			err = userCollection.FindOne(ctx, bson.M{"email": claims.Subject}).Decode(&updatedUser)
+			if err != nil {
+					log.Printf("Error fetching updated user details: %v", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching updated user details"})
+					return
+			}
+
+			c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
+	}
 }
