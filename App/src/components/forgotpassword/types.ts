@@ -1,16 +1,8 @@
-export interface EmailInputProps {
-  handleNext: () => void;
-}
-
 export interface PasswordResetProps {
-  handleNext: () => void;
+  newpassword: string;
+  confirmpassword: string;
 }
 
 export interface forgotPasswordProps {
   email: string;
 }
-
-export interface tokenProps {
-  token: string;
-}
-
