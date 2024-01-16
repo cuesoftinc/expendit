@@ -66,19 +66,19 @@ export const signInApi = async ({
   }
 };
 
-export const logoutApi = async ({ router, setFormLoading }: LogoutProps) => {
+export const logoutApi = async ({ router, setIsLoading }: LogoutProps) => {
   try {
-    setFormLoading(true);
+    setIsLoading(true);
     router.push("/signin");
 
     localStorage.removeItem("Expendit-token");
     localStorage.removeItem("Expendit-user");
     localStorage.removeItem("Expendit-userID");
     localStorage.removeItem("ExpenditLoggedIn");
-    setFormLoading(false);
+    setIsLoading(false);
   } catch (error) {
     console.log(error);
-    setFormLoading(false);
+    setIsLoading(false);
   }
 };
 

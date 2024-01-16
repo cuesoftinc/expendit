@@ -9,6 +9,8 @@ export interface HomeContextProps {
   setFormError: Dispatch<SetStateAction<string>>;
   formSuccess: string;
   setFormSuccess: Dispatch<SetStateAction<string>>;
+  emailSuccess: boolean;
+  setEmailSuccess: Dispatch<SetStateAction<boolean>>;
   formLoading: boolean;
   setFormLoading: Dispatch<SetStateAction<boolean>>;
   presentIncome: number;

@@ -36,9 +36,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
         if(decodedToken.exp * 1000 < new Date().getTime()) 
         (async () => await logoutApi({router, setIsLoading}))();
       }
-    } else {
-      router.push('/signin');
-    }
+    } 
   }, [router]);
 
   // useEffect(() => {

@@ -4,7 +4,7 @@ const styles = {
   imgContainer: 'w-[45%] bg-[#F3E8FF] md:flex hidden items-center justify-center ',
 
   // Form Styles ----------
-  formCont : `${genStyles.flexCenter} flex-col  py-[3%] md:px-[15%] px-[5%]`,
+  formCont: `${genStyles.flexCenter} flex-col  py-[3%] md:px-[15%] px-[5%]`,
   subHead: 'font-bold md:text-2xl text-xl text-center my-4',
   hr: 'w-[46%] h-[2px]',
   check: 'w-full flex items-start',
@@ -16,7 +16,7 @@ const styles = {
   buttonWrapper: "text-center rounded-md text-black my-5 py-3 shadow-lg font-semibold w-full",
   button: "cursor-pointer w-full mx-auto border-gray-500 hover:shadow-slate-600",
   googleButton: "flex justify-center items-center gap-3",
-  signUp: "pb-5 text-center",
+  signUp: "mt-5 text-center",
 
   // Input Styles --------------
   label: 'my-3 block font-bold tracking-widest md:text-base text-sm',
