@@ -62,11 +62,6 @@ type ForgotPasswordRequest struct{
 	Email         *string           `json:"email,omitempty" bson:"email,omitempty"`
 }
 
-// type ResetPasswordRequest struct {
-// 	NewPassword *string `json:"new_password" validate:"required,min=6"`
-// 	ConPassword *string `json:"con_password" validate:"required,eqfield=NewPassword"`
-// 	Reset_Token *string `json:"reset_token"`
-//  }
 type ResetPasswordRequest struct {
 	NewPassword *string `json:"new_password" validate:"required,min=6"`
 	ConPassword *string `json:"con_password" validate:"required,eqfield=NewPassword"`
