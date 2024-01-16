@@ -5,12 +5,13 @@ import (
 	"expendit-server/database"
 	helper "expendit-server/helpers"
 	"expendit-server/models"
+	"expendit-server/utils"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-	"expendit-server/utils"
 	"time"
+  
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
@@ -30,20 +31,13 @@ func HashPassword(password string) string{
 	return string(bytes)
 }
 
-func VerifyPassword(userPassword string, providedPassword string)(bool, string){
-	err := bcrypt.CompareHashAndPassword([]byte(providedPassword), []byte(userPassword))
-    check := true 
-	msg := ""
-   
-   if err != nil{
-	msg = fmt.Sprintf("email or password is not correct")
-    check = false   
+func VerifyPassword(userHashedPassword string, providedPassword string) (bool, string) {
+    err := bcrypt.CompareHashAndPassword([]byte(userHashedPassword), []byte(providedPassword))
+    if err != nil {
+        return false, "email or password is not correct"
+    }
+    return true, ""
 }
-return check, msg
-
-}
-
-
 
 func Signup()gin.HandlerFunc{
 	
@@ -114,57 +108,54 @@ func Signup()gin.HandlerFunc{
 }
 
 
+
 func Login() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		var user models.User
-		var foundUser models.User
+    return func(c *gin.Context) {
+        var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+        defer cancel()
 
-		if err := c.BindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			defer cancel()
-			return
-		}
+        var user models.User
+        var foundUser models.User
 
-		err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
-		defer cancel()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "email or password is incorrect"})
-			return
-		}
+        if err := c.BindJSON(&user); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
 
-		// Check if the user is found based on the email
-		if foundUser.Email == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
-			return
-		}
+        log.Printf("User details: %+v\n", user)
 
-		// Verify the password
-		passwordIsValid, _ := VerifyPassword(*user.Password, *foundUser.Password)
-		if !passwordIsValid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "email or password is incorrect"})
-			return
-		}
+        err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "email or password is incorrect"})
+            return
+        }
 
-		// Generate and update tokens
-		token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
-		helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
+        // Check if the user is found based on the email
+        if *foundUser.Email == "" {
+            c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+            return
+        }
 
-		
-		err = userCollection.FindOne(ctx, bson.M{"user_id": foundUser.User_id}).Decode(&foundUser)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+        // Log foundUser details for debugging
+        log.Printf("Provided Password: %s", *user.Password)
+        log.Printf("Stored Password: %s", *foundUser.Password)
+        log.Printf("Found User details: %+v\n", foundUser)
 
-		c.JSON(http.StatusOK, foundUser)
-	}
+        
+
+		err = bcrypt.CompareHashAndPassword([]byte(*foundUser.Password), []byte(*user.Password))
+         if err != nil {
+         log.Printf("Password verification failed: %v", err)
+         c.JSON(http.StatusUnauthorized, gin.H{"error": "email or password is incorrect"})
+          return
+        }
+
+        token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
+        helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
+
+        c.JSON(http.StatusOK, foundUser)
+    }
 }
-
-
-
-
-		
 
 func  GetUsers()  gin.HandlerFunc{
 	return func (c *gin.Context){
@@ -349,11 +340,13 @@ func UpdateUser() gin.HandlerFunc {
 } 
 
 
-// // FORGOT PASSWORD 
+
+
+
 func ForgotPassword() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-
+		defer cancel() 
 		var resetPasswordEmailRequest models.ForgotPasswordRequest
 		if err := c.BindJSON(&resetPasswordEmailRequest); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -371,15 +364,24 @@ func ForgotPassword() gin.HandlerFunc {
 		var user models.User
 		err := userCollection.FindOne(ctx, bson.M{"email": resetPasswordEmailRequest.Email}).Decode(&user)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			// Instead of returning 404, just respond with success message
+			c.JSON(http.StatusOK, gin.H{"message": "Reset password email sent successfully"})
 			defer cancel()
 			return
 		}
 
-		// Generate a unique token for the reset password link (you may use a library for this)
-		resetToken := utils.GenerateUniqueToken()
-
+		
+		resetToken, err := utils.GenerateToken(*user.Email)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"message": "Reset password email sent successfully"})
+			defer cancel()
+			return
+		}
+		
+		// Log the reset token for debugging
+		log.Printf("Reset Token: %+v\n", resetToken)
 		// Update the user with the reset token in the database
+		 
 		update := bson.M{"$set": bson.M{"reset_token": resetToken}}
 		filter := bson.M{"email": resetPasswordEmailRequest.Email}
 
@@ -390,123 +392,74 @@ func ForgotPassword() gin.HandlerFunc {
 			return
 		}
 
-
-		err =  utils.SendResetPasswordEmail(*user.Email, resetToken)
+		// Send reset password email with the reset token
+		err = utils.SendResetPasswordEmail(*user.Email, resetToken)
 		if err != nil {
-	
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while sending reset password email", "details": err.Error()})
 			defer cancel()
 			return
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{"message": "Reset password email sent successfully"})
 		defer cancel()
 	}
 }
 
-
-
 func ResetPassword() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+    return func(c *gin.Context) {
+        var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+        defer cancel()
 
-		userId, exists := c.Get("user_id")
-		if !exists {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id not found in context"})
-			return
-		}
-    
-		var resetPasswordRequest models.ResetPasswordRequest
-		if err := c.BindJSON(&resetPasswordRequest); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			defer cancel()
-			return
-		}
+        var resetPasswordRequest models.ResetPasswordRequest
+        if err := c.BindJSON(&resetPasswordRequest); err != nil {
+            log.Printf("Error binding JSON: %v", err)
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
 
+        validationErr := validate.Struct(resetPasswordRequest)
+        if validationErr != nil {
+            log.Printf("Validation error: %v", validationErr)
+            c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+            return
+        }
 
-		token, err := utils.EncodeToken(userId.(string))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while encoding token"})
-			defer cancel()
-			return
-		}
+        claims, err := utils.ParseToken(*resetPasswordRequest.Reset_Token)
+        if err != nil {
+            log.Printf("Error parsing reset token: %v", err)
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})
+            return
+        }
 
-		validationErr := validate.Struct(resetPasswordRequest)
-		if validationErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-			defer cancel()
-			return
-		}
-		
+        log.Printf("Reset password request received for user ID: %s", claims.Subject)
 
-		defer cancel()
+        newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
+        filter := bson.M{"email": claims.Subject}
+        update := bson.M{"$set": bson.M{"password": newHashedPassword}}
+        result, err := userCollection.UpdateOne(ctx, filter, update)
+        if err != nil {
+            log.Printf("Error updating password: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
+            return
+        }
 
-	
-		newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
-		update := bson.M{"$set": bson.M{"password": newHashedPassword}}
-		
-		filter := bson.M{"user_id": userId}
-		// filter := bson.M{"email":email}
+        log.Printf("Password update result: %+v", result)
 
-		_, err = userCollection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
-			defer cancel()
-			return
-		}
-		
-		c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully","token": token})
-		defer cancel()
-	}
+        // Check if the password update was successful
+        if result.ModifiedCount == 0 {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "password not updated"})
+            return
+        }
+
+        // Fetch and return the updated user details
+        updatedUser := models.User{} // Replace with your actual user model
+        err = userCollection.FindOne(ctx, bson.M{"email": claims.Subject}).Decode(&updatedUser)
+        if err != nil {
+            log.Printf("Error fetching updated user details: %v", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching updated user details"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
+    }
 }
-
-
-
-
-// func ResetPassword() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-
-// 		var resetPasswordRequest models.ResetPasswordRequest
-// 		if err := c.BindJSON(&resetPasswordRequest); err != nil {
-// 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 			defer cancel()
-// 			return
-// 		}
-
-// 		validationErr := validate.Struct(resetPasswordRequest)
-// 		if validationErr != nil {
-// 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-// 			defer cancel()
-// 			return
-// 		}
-
-// 		// 		token, err := utils.EncodeToken(userId.(string))
-// 		// if err != nil {
-// 		// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while encoding token"})
-// 		// 	defer cancel()
-// 		// 	return
-// 		// }
-// 		// Additional security checks (implement your security checks here)
-
-// 		// Update user password in the database
-// 		newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
-// 		update := bson.M{"$set": bson.M{"password": newHashedPassword}}
-// 		filter := bson.M{"email": resetPasswordRequest.Email}
-
-// 		_, err := userCollection.UpdateOne(ctx, filter, update)
-// 		if err != nil {
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
-// 			defer cancel()
-// 			return
-// 		}
-
-// 		c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
-// 		defer cancel()
-// 	}
-// }
-
-
-
-
-
