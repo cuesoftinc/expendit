@@ -141,15 +141,13 @@ func Login() gin.HandlerFunc {
         log.Printf("Stored Password: %s", *foundUser.Password)
         log.Printf("Found User details: %+v\n", foundUser)
 
-        // Hash the provided password for comparison
-        providedPasswordHash := HashPassword(*user.Password)
+        
 
-        // Verify the hashed password
-        passwordIsValid, msg := VerifyPassword(providedPasswordHash, *foundUser.Password)
-        if !passwordIsValid {
-            log.Printf("Password verification failed: %s", msg)
-            c.JSON(http.StatusUnauthorized, gin.H{"error": msg})
-            return
+		err = bcrypt.CompareHashAndPassword([]byte(*foundUser.Password), []byte(*user.Password))
+         if err != nil {
+         log.Printf("Password verification failed: %v", err)
+         c.JSON(http.StatusUnauthorized, gin.H{"error": "email or password is incorrect"})
+          return
         }
 
         token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
@@ -465,70 +463,3 @@ func ResetPassword() gin.HandlerFunc {
         c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
     }
 }
-
-// func ResetPassword() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 			var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-// 			defer cancel()
-
-// 			// resetToken := c.Query("resetToken")
-// 			resetToken := c.Param("resetToken")
-// 			log.Printf("Received reset token: %s", resetToken)
-
-// 			var resetPasswordRequest models.ResetPasswordRequest
-// 			if err := c.BindJSON(&resetPasswordRequest); err != nil {
-// 					log.Printf("Error binding JSON: %v", err)
-// 					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 					return
-// 			}
-
-// 			// Include reset token from query in the model
-// 			resetPasswordRequest.Reset_Token = &resetToken
-
-// 			validationErr := validate.Struct(resetPasswordRequest)
-// 			if validationErr != nil {
-// 					log.Printf("Validation error: %v", validationErr)
-// 					c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-// 					return
-// 			}
-
-// 			claims, err := utils.ParseToken(*resetPasswordRequest.Reset_Token)
-// 			if err != nil {
-// 					log.Printf("Error parsing reset token: %v", err)
-// 					c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})
-// 					return
-// 			}
-
-// 			log.Printf("Reset password request received for user ID: %s", claims.Subject)
-
-// 			newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
-// 			filter := bson.M{"email": claims.Subject}
-// 			update := bson.M{"$set": bson.M{"password": newHashedPassword}}
-
-// 			log.Printf("Executing MongoDB update query: filter=%v, update=%v", filter, update)
-// 			result, err := userCollection.UpdateOne(ctx, filter, update)
-// 			if err != nil {
-// 					log.Printf("Error updating password: %v", err)
-// 					c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating password"})
-// 					return
-// 			}
-
-// 			if result.ModifiedCount == 0 {
-// 					log.Printf("Password not updated for user ID: %s", claims.Subject)
-// 					c.JSON(http.StatusBadRequest, gin.H{"error": "password not updated"})
-// 					return
-// 			}
-// 			log.Printf("Password updated successfully for user ID: %s", claims.Subject)
-
-// 			// Fetch and return the updated user details
-// 			updatedUser := models.User{} // Replace with your actual user model
-// 			err = userCollection.FindOne(ctx, bson.M{"email": claims.Subject}).Decode(&updatedUser)
-// 			if err != nil {
-// 					log.Printf("Error fetching updated user details: %v", err)
-// 					c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching updated user details"})
-// 					return
-// 			}
-
-// 			c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
-// 	}
-// }

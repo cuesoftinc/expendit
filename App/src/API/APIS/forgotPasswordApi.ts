@@ -24,7 +24,7 @@ export const postNewPasswordApi = async (
 
   try {
     console.log(resetToken)
-    const { data, status } = await API.put(`/users/reset-password/${resetToken}`, payload);
+    const { data, status } = await API.patch(`/users/reset-password/${resetToken}`, payload);
 
     if (data && status === 200) {
       console.log(data)
