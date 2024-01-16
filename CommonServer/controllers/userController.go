@@ -141,15 +141,13 @@ func Login() gin.HandlerFunc {
         log.Printf("Stored Password: %s", *foundUser.Password)
         log.Printf("Found User details: %+v\n", foundUser)
 
-        // Hash the provided password for comparison
-        providedPasswordHash := HashPassword(*user.Password)
+        
 
-        // Verify the hashed password
-        passwordIsValid, msg := VerifyPassword(providedPasswordHash, *foundUser.Password)
-        if !passwordIsValid {
-            log.Printf("Password verification failed: %s", msg)
-            c.JSON(http.StatusUnauthorized, gin.H{"error": msg})
-            return
+		err = bcrypt.CompareHashAndPassword([]byte(*foundUser.Password), []byte(*user.Password))
+         if err != nil {
+         log.Printf("Password verification failed: %v", err)
+         c.JSON(http.StatusUnauthorized, gin.H{"error": "email or password is incorrect"})
+          return
         }
 
         token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
@@ -465,3 +463,4 @@ func ResetPassword() gin.HandlerFunc {
         c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
     }
 }
+
