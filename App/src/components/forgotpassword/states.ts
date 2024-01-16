@@ -2,8 +2,9 @@
 
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useHomeContext } from '@/context';
-import { postEmailApi, postNewPasswordApi, postTokenApi } from '@/API/APIS/forgotPasswordApi';
-import { forgotPasswordProps, tokenProps } from './types';
+import { postEmailApi, postNewPasswordApi } from '@/API/APIS/forgotPasswordApi';
+import { PasswordResetProps, forgotPasswordProps } from './types';
+
 
 
 export const useForgotPasswordCustomState = () => {
@@ -15,21 +16,21 @@ export const useForgotPasswordCustomState = () => {
     setFormSuccess,
     formLoading,
     setFormLoading,
-    currentStep,
-    setCurrentStep,
   } = useHomeContext();
+
 
 
   const initialEmailForm: forgotPasswordProps = {
     email: "",
   };
 
-  const initialTokenForm: tokenProps = {
-    token: "",
+  const initialPasswordForm: PasswordResetProps = {
+    newpassword: "",
+    confirmpassword: ""
   };
 
   const [form, setForm] = useState<forgotPasswordProps>(initialEmailForm);
-  const [tokenForm, setTokenForm] = useState<tokenProps>(initialTokenForm)
+  const [passwordForm, setPasswordForm] = useState<PasswordResetProps>(initialPasswordForm);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,64 +38,34 @@ export const useForgotPasswordCustomState = () => {
     setForm((prev) => ({ ...prev, [name]: value }))
   };
 
-  const handleNext = async (setCurrentStep: React.Dispatch<React.SetStateAction<number>>) => {
-    switch (currentStep) {
-      case 1:
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
 
+    setPasswordForm((prev) => ({ ...prev, [name]: value }))
+  };
 
-        if (formLoading) return;
-        setFormLoading(true);
-
-        let reg = /^[a-z0-9]+(\.[_a-z0-9]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,15})$/;
-        const isValidEmail = reg.test(form.email);
-
-        if (!isValidEmail) {
-          setFormError("Invalid Email!");
-          setFormLoading(false);
-          return;
-        };
-
-        setForm(initialEmailForm);
-
-        try {
-          await postEmailApi();
-          setCurrentStep((prevStep) => prevStep + 1);
-        } catch (error) {
-          console.error('Error in step 1 API request', error);
-        }
-        break;
-      case 2:
-        try{
-          postTokenApi();
-          setCurrentStep((prevStep) => prevStep + 1);
-        } catch(error) {
-          console.error('Error in step 2 API request', error);
-        }
-        
-        break;
-      case 3:
-        try {
-          postNewPasswordApi();
-        } catch(error) {
-          console.error('Error in step 3 API request', error);
-        }
-        
-        break;
-    
-      default:
-        break;
+  const handleEmailSubmit = async () => {
+    try {
+      const payload = JSON.stringify({ email: form.email });
+      await postEmailApi(payload);
+      setFormSuccess("Successful")
+    } catch (error) {
+      console.log(error)
+      setFormError("An error occured, try again")
     }
   }
 
+  
+
+
   return {
     form,
+    passwordForm,
     formError,
     formSuccess,
     formLoading,
     handleChange,
-    handleNext,
-    currentStep,
-    setCurrentStep,
-    tokenForm
+    handlePasswordChange,
+    handleEmailSubmit,
   }
 }
