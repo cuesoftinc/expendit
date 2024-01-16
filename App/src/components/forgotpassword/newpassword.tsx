@@ -9,27 +9,16 @@ import Image from 'next/image';
 import Logo from '@/assets/images/logo.png';
 import Link from 'next/link';
 import { FaArrowLeft } from "react-icons/fa";
-import { postNewPasswordApi } from '@/API/APIS/forgotPasswordApi';
 
 const NewPassword = ()=> {
   const {
     passwordForm,
     formLoading,
     handlePasswordChange,
+    handlePasswordSubmit
   } = useForgotPasswordCustomState();
 
-  const handlePasswordSubmit = async () => {
-    try {
-      // const resetToken = router.query.token as string;
-      // const payload = JSON.stringify({passwordForm});
-
-      // await postNewPasswordApi(resetToken, payload);
-      
-      // router.push('/forgotpassword/success');
-    } catch (error) {
-      console.log(error)
-    }
-  };
+ 
   return (
     <main className="h-screen">
       <Link href="/dashboard" className=''>
@@ -37,12 +26,12 @@ const NewPassword = ()=> {
           src={Logo} 
           alt='Expendit Logo' 
           width={85}
-          className='mt-6'
+          className='mt-6 ml-4'
         />
       </Link>
       <div className={styles.minWidth}>
         <section className={styles.container}>
-          <div>
+          <div className="sm:w-[500px] w-full flex flex-col items-center mx-4">
             <h1 className={styles.heading}>Set new Password</h1>
             <p>Must have at least 8 characters</p>
             <Input
@@ -50,15 +39,15 @@ const NewPassword = ()=> {
               name="new_password"
               type="password"
               placeholder="Enter your new password"
-              value={passwordForm.newpassword}
+              value={passwordForm.new_password}
               handleChange={handlePasswordChange}
             />
             <Input
               label="Confirm Password"
-              name="confirm_password"
+              name="con_mpassword"
               type="password"
               placeholder="Confirm password"
-              value={passwordForm.confirmpassword}
+              value={passwordForm.con_password}
               handleChange={handlePasswordChange}
             />
             <button 

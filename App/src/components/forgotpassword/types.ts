@@ -1,6 +1,6 @@
 export interface PasswordResetProps {
-  newpassword: string;
-  confirmpassword: string;
+  new_password: string;
+  con_password: string;
 }
 
 export interface forgotPasswordProps {
