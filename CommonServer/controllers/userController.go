@@ -423,8 +423,13 @@ func ResetPassword() gin.HandlerFunc {
             c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
             return
         }
+		resetToken := c.Query("reset_token")
+        if resetToken == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "reset_token parameter is required"})
+            return
+        }
 
-        claims, err := utils.ParseToken(*resetPasswordRequest.Reset_Token)
+        claims, err := utils.ParseToken(resetToken)
         if err != nil {
             log.Printf("Error parsing reset token: %v", err)
             c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})

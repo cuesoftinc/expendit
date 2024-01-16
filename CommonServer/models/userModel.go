@@ -65,5 +65,4 @@ type ForgotPasswordRequest struct{
 type ResetPasswordRequest struct {
 	NewPassword *string `json:"new_password" validate:"required,min=6"`
 	ConPassword *string `json:"con_password" validate:"required,eqfield=NewPassword"`
-	Reset_Token *string `json:"reset_token"`
  }
