@@ -1,13 +1,11 @@
 "use client";
 
-import { createContext, 
-useContext, 
-useEffect,
-useState, 
-useRef,
-Dispatch, 
-ReactNode, 
-SetStateAction 
+import { 
+  createContext, 
+  useContext, 
+  useEffect,
+  useState, 
+  ReactNode, 
 } from "react";
 import { HomeContextProps } from "./types";
 
@@ -16,10 +14,10 @@ import { getCategoryApi } from '../API/APIS/categoryApi';
 import { getExpenseApi, getMonthlyExpenseApi } from '../API/APIS/expenseApi';
 import { getLocalStorageItem } from '@/utils/localStorage';
 import { 
-getBarChartApi, 
-getAreaHomeChartApi, 
-getPieChartApi, 
-getLineChartApi 
+  getBarChartApi, 
+  getAreaHomeChartApi, 
+  getPieChartApi, 
+  getLineChartApi 
 } from '../API/APIS/reportApi';
 
 export interface HomeProviderProps {
@@ -42,6 +40,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   // ---- Form states ----
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
+  const [emailSuccess, setEmailSuccess] = useState<boolean>(false);
   const [formLoading, setFormLoading] = useState<boolean>(false);
   // ---- Financial states ----
   const [presentIncome, setPresentIncome] = useState<number>(0);
@@ -217,6 +216,8 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         setFormSuccess,
         formLoading, 
         setFormLoading,
+        emailSuccess, 
+        setEmailSuccess,
         presentIncome, 
         setPresentIncome,
         user, 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useHomeContext } from '@/context';
 import { postEmailApi, postNewPasswordApi } from '@/API/APIS/forgotPasswordApi';
@@ -12,15 +12,15 @@ export const useForgotPasswordCustomState = () => {
     setFormError,
     formSuccess,
     setFormSuccess,
+    emailSuccess,
+    setEmailSuccess,
     formLoading,
     setFormLoading,
   } = useHomeContext()
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const gottenToken = searchParams.get("resetToken");
-
-  console.log(gottenToken)
+  const resetToken = searchParams.get("resetToken");
 
   const initialEmailForm: forgotPasswordProps = {
     email: "",
@@ -47,35 +47,42 @@ export const useForgotPasswordCustomState = () => {
   };
 
   const handleEmailSubmit = async () => {
-    try {
-      await postEmailApi(form.email);
-      setFormSuccess("Successful")
-    } catch (error) {
-      console.log(error)
-      setFormError("An error occurred, try again")
-    }
+    if (formLoading) return;
+    setFormLoading(true);
+
+    await postEmailApi({
+      email: form.email,
+      setFormSuccess,
+      setFormError,
+      setEmailSuccess,
+      setFormLoading
+    });
+
+    setForm(initialEmailForm);
   };
 
   const handlePasswordSubmit = async () => {
     if (formLoading) return;
     setFormLoading(true);
-    try {
-      if (gottenToken) {
-        if (passwordForm.new_password !== passwordForm.con_password) {
-          setFormError("passwords does not match");
-          return;
-        }
 
-        const payload = JSON.stringify({ passwordForm });
-
-        await postNewPasswordApi(gottenToken, payload, setFormLoading);
-        setFormLoading(false);
-        setPasswordForm(initialPasswordForm);
-        router.push('/signin');
+    if (resetToken) {
+      if (passwordForm.new_password !== passwordForm.con_password) {
+        setFormError("passwords does not match");
+        return;
       }
-    } catch (error) {
-      console.log(error)
-      setFormLoading(false)
+
+      await postNewPasswordApi({
+        resetToken,
+        passwordForm,
+        setFormLoading,
+        setFormSuccess,
+        setFormError,
+      });
+
+      setPasswordForm(initialPasswordForm);
+      router.push('/signin');
+    } else {
+      setFormError('no token provided');
     }
   };
 
@@ -85,6 +92,8 @@ export const useForgotPasswordCustomState = () => {
     formError,
     formSuccess,
     formLoading,
+    emailSuccess,
+    setEmailSuccess,
     handleChange,
     handlePasswordChange,
     handleEmailSubmit,

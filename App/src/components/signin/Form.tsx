@@ -62,12 +62,12 @@ const Form = () => {
             }
           </button>
         </div>
-        <div className={styles.buttonWrapper}>
-            <button className={styles.button}>
-              <span className={styles.googleButton}> <FcGoogle/> Login with Google</span>
-            </button>
-          </div>
-          <p className={styles.signUp}>New to Expendit? <Link href="/signup" className={styles.link}>Create an account</Link></p>
+        {/* <div className={styles.buttonWrapper}>
+          <button className={styles.button}>
+            <span className={styles.googleButton}> <FcGoogle/> Login with Google</span>
+          </button>
+        </div> */}
+        <p className={styles.signUp}>New to Expendit? <Link href="/signup" className={styles.link}>Create an account</Link></p>
       </form>
     </Fragment>
   )

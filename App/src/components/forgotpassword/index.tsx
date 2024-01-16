@@ -1,7 +1,5 @@
 "use client"
 
-import LoaderSpinner from "../helpers/LoaderSpinner";
-import { useForgotPasswordCustomState } from "./states"
 import styles from './styles';
 import Image from 'next/image';
 import Logo from '@/assets/images/logo.png';
@@ -29,6 +27,7 @@ const Index = () => {
           <p>Back to Login</p>
         </div>
       </Link>
+      {}
     </main>
   )
 }

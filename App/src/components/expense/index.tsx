@@ -4,7 +4,6 @@ import { CiImport } from 'react-icons/ci';
 import Input from '@/components/signup/Input';
 import inputStyles from '@/components/signup/styles';
 import { useExpenseCustomState } from './states';
-import Notification from '../helpers/Notification';
 import LoaderSpinner from '../helpers/LoaderSpinner';
 import styles from './styles';
 
@@ -59,7 +58,7 @@ const Index = () => {
             onChange={handleChange} 
           />
         </div>
-        <div className={styles.divider}> 
+        {/* <div className={styles.divider}> 
           <hr className='w-full' />
           <span>OR</span>
           <hr className='w-full' />
@@ -74,7 +73,7 @@ const Index = () => {
             <CiImport fontSize={18} className='mr-2' />
             <p className=''>Import</p>
           </div>
-        </div>
+        </div> */}
         <button type='submit' 
           disabled={formLoading} 
           className={inputStyles.btn} 

@@ -1,6 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { PasswordResetProps } from "@/components/forgotpassword/types";
 
+// ---- SignUp Types -----
 export interface SignUpPayload {
   First_name: string;
   Last_name: string;
@@ -91,6 +93,7 @@ export interface ExpensePayload {
   Note: string;
 };
 
+// ----- User Types -------
 export interface UserDetailsProps {
   completeForm: UserDetailsPayload;
   setFormError: Dispatch<SetStateAction<string>>;
@@ -109,7 +112,7 @@ export interface UserDetailsPayload {
   updated_at?: string;
 };
 
-
+// ---- Categories Types ------
 export interface CategoryProps {
   input?: string;
   id?: string;
@@ -118,4 +121,21 @@ export interface CategoryProps {
   setFormLoading: Dispatch<React.SetStateAction<boolean>>;
   setAreaChart: Dispatch<SetStateAction<any>>;
   setPieChart: Dispatch<SetStateAction<any>>;
+}
+
+// ----- Forget Password ------
+export interface ForgotPasswordProps {
+  email: string;
+  setEmailSuccess: Dispatch<React.SetStateAction<boolean>>;
+  setFormError: Dispatch<React.SetStateAction<string>>;
+  setFormSuccess: Dispatch<React.SetStateAction<string>>;
+  setFormLoading: Dispatch<React.SetStateAction<boolean>>;
+}
+
+export interface ResetPasswordProps {
+  resetToken: string;
+  passwordForm: PasswordResetProps;
+  setFormError: Dispatch<React.SetStateAction<string>>;
+  setFormSuccess: Dispatch<React.SetStateAction<string>>;
+  setFormLoading: Dispatch<React.SetStateAction<boolean>>;
 }
