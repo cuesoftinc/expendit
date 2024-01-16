@@ -7,11 +7,11 @@ import { PublicRoute } from '@/components/helpers/RouteProtection';
 
 const ForgotPassword: React.FC = () => {
   return (
-    <main className={styles.pagePad}>
-      <PublicRoute>
+    <PublicRoute>
+      <main className={styles.pagePad}>
         <Page />
-      </PublicRoute>
-    </main>
+      </main>
+    </PublicRoute>
   );
 }
 

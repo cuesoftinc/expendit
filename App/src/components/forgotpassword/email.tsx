@@ -16,7 +16,9 @@ const EmailInput = () => {
     <section className={styles.container}>
       <div>
         <h1 className={styles.heading}>Forgot your password?</h1>
-        <p>Enter the email associated with your account and we&apos;ll send an email with instructions to reset your password</p>
+        <p className="md:text-base text-sm">Enter the email associated with your 
+        account <br /> and we&apos;ll send an email with 
+        instructions to reset your password</p>
         <Input
           label="Email address"
           name="email"

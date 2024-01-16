@@ -1,13 +1,17 @@
 import { API } from '../axiosSetup';
-export const postEmailApi = async (payload: string) => {
+
+export const postEmailApi = async (email: string) => {
+  const payload = JSON.stringify({ email });
+  console.log(payload)
   try {
+    console.log
     const { data, status } = await API.post('/users/forgot-password', payload);
 
     if (data && status === 200) {
       return data;
     }
   } catch (error) {
-    throw error;
+    console.log(error)
   }
 }
 

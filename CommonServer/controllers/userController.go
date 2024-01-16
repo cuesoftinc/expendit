@@ -463,4 +463,3 @@ func ResetPassword() gin.HandlerFunc {
         c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
     }
 }
-
