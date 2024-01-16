@@ -9,6 +9,7 @@ Dispatch,
 ReactNode, 
 SetStateAction 
 } from "react";
+import { HomeContextProps } from "./types";
 
 import { getIncomeApi } from '../API/APIS/incomeApi';
 import { getCategoryApi } from '../API/APIS/categoryApi';
@@ -20,46 +21,6 @@ getAreaHomeChartApi,
 getPieChartApi, 
 getLineChartApi 
 } from '../API/APIS/reportApi';
-
-
-export interface HomeContextProps {
-  homeState: number;
-  setHomeState: Dispatch<SetStateAction<number>>;
-  newString: string;
-  setNewString: Dispatch<SetStateAction<string>>;
-  formError: string;
-  setFormError:  Dispatch<SetStateAction<string>>;
-  formSuccess: string;
-  setFormSuccess:  Dispatch<SetStateAction<string>>;
-  formLoading: boolean;
-  setFormLoading:  Dispatch<SetStateAction<boolean>>;
-  presentIncome: number;
-  setPresentIncome: Dispatch<SetStateAction<number>>;
-  totalExpense: number;
-  setTotalExpense: Dispatch<SetStateAction<number>>;
-  totalBalance: number;
-  setTotalBalance: Dispatch<SetStateAction<number>>;
-  user: any;
-  setUser: Dispatch<SetStateAction<any>>;
-  expenseData: any;
-  setExpenseData:  Dispatch<SetStateAction<any>>;
-  categories: any;
-  setCategories: Dispatch<SetStateAction<any>>;
-  barChart: any;
-  setBarChart: Dispatch<SetStateAction<any>>;
-  areaChart: any; 
-  setAreaChart: Dispatch<SetStateAction<any>>;
-  pieChart: any;
-  setPieChart: Dispatch<SetStateAction<any>>;
-  lineChart: any;
-  setLineChart: Dispatch<SetStateAction<any>>;
-  totalPage: number;
-  setTotalPage: Dispatch<SetStateAction<number>>;
-  currentPage: number;
-  setCurrentPage: Dispatch<SetStateAction<number>>;
-  currentStep: number;
-  setCurrentStep: Dispatch<SetStateAction<number>>;
-};
 
 export interface HomeProviderProps {
   children: ReactNode;

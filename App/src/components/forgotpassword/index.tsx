@@ -10,19 +10,14 @@ import { FaArrowLeft } from "react-icons/fa";
 import EmailInput from "./email";
 
 const Index = () => {
-
-  const {
-    
-  } = useForgotPasswordCustomState();
-
   return (
-    <main className="h-screen">
+    <main className="h-[90vh]">
       <Link href="/dashboard" className=''>
         <Image 
           src={Logo} 
           alt='Expendit Logo' 
           width={85}
-          className='mt-6'
+          className='mt-1'
         />
       </Link>
       <div className={styles.minWidth}>

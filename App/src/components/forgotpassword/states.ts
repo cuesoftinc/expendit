@@ -46,17 +46,13 @@ export const useForgotPasswordCustomState = () => {
 
   const handleEmailSubmit = async () => {
     try {
-      const payload = JSON.stringify({ email: form.email });
-      await postEmailApi(payload);
+      await postEmailApi(form.email);
       setFormSuccess("Successful")
     } catch (error) {
       console.log(error)
-      setFormError("An error occured, try again")
+      setFormError("An error occurred, try again")
     }
   }
-
-  
-
 
   return {
     form,
