@@ -28,7 +28,7 @@ const CTASection = () => {
         <button type='button' className={styles.btn}>Get started</button>
       </div>
       <div className={styles.featuresContainer}>
-        <div className='md:w-1/2 w-full'>
+        <div className='lg:w-1/2 w-full'>
           <Image src={handshake} alt='A Phone' className={styles.img} />
         </div>
         <div className={styles.rightSide}>

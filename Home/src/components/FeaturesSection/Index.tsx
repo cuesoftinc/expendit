@@ -9,6 +9,7 @@ type props = {
   subText: string;
   icon: any;
 };
+
 const FeatureCard = ({ heading, subText, icon  }: props) => {
   return(
     <div className={styles.cardContainer}>
@@ -56,6 +57,3 @@ const FeaturesSection = () => {
 }
 
 export default FeaturesSection
-// Expense tracking TbTrack, AiOutlineLineChart
-// Budget planning GiMoneyStack, TbMoneybag
-// Finance report TbReportMoney, TbReportAnalytics

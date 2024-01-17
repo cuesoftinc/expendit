@@ -39,7 +39,8 @@ function HowItWorks() {
       sub_title: "View real-time reports about your expenses based on the data you provided",
       imgSrc: RealTime,
     }
-  ]
+  ];
+  
   return (
     <section className={styles.sectionContainer}>
       <div>
