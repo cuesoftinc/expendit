@@ -5,7 +5,7 @@ import styles from './styles';
 import OpenSourceBanner from '../../assets/images/open_source_banner.png';
 import ArrowRight from '../../assets/icons/arrow_right.svg';
 import Github from '../../assets/icons/github.svg';
-import Discord from '../../assets/icons/discord.svg';
+import Discord from '../../assets/images/discord.png';
 
 const Index = () => {
   return (

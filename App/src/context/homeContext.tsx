@@ -1,65 +1,24 @@
 "use client";
 
-import { createContext, 
-useContext, 
-useEffect,
-useState, 
-useRef,
-Dispatch, 
-ReactNode, 
-SetStateAction 
+import { 
+  createContext, 
+  useContext, 
+  useEffect,
+  useState, 
+  ReactNode, 
 } from "react";
+import { HomeContextProps } from "./types";
 
 import { getIncomeApi } from '../API/APIS/incomeApi';
 import { getCategoryApi } from '../API/APIS/categoryApi';
 import { getExpenseApi, getMonthlyExpenseApi } from '../API/APIS/expenseApi';
 import { getLocalStorageItem } from '@/utils/localStorage';
 import { 
-getBarChartApi, 
-getAreaHomeChartApi, 
-getPieChartApi, 
-getLineChartApi 
+  getBarChartApi, 
+  getAreaHomeChartApi, 
+  getPieChartApi, 
+  getLineChartApi 
 } from '../API/APIS/reportApi';
-
-
-export interface HomeContextProps {
-  homeState: number;
-  setHomeState: Dispatch<SetStateAction<number>>;
-  newString: string;
-  setNewString: Dispatch<SetStateAction<string>>;
-  formError: string;
-  setFormError:  Dispatch<SetStateAction<string>>;
-  formSuccess: string;
-  setFormSuccess:  Dispatch<SetStateAction<string>>;
-  formLoading: boolean;
-  setFormLoading:  Dispatch<SetStateAction<boolean>>;
-  presentIncome: number;
-  setPresentIncome: Dispatch<SetStateAction<number>>;
-  totalExpense: number;
-  setTotalExpense: Dispatch<SetStateAction<number>>;
-  totalBalance: number;
-  setTotalBalance: Dispatch<SetStateAction<number>>;
-  user: any;
-  setUser: Dispatch<SetStateAction<any>>;
-  expenseData: any;
-  setExpenseData:  Dispatch<SetStateAction<any>>;
-  categories: any;
-  setCategories: Dispatch<SetStateAction<any>>;
-  barChart: any;
-  setBarChart: Dispatch<SetStateAction<any>>;
-  areaChart: any; 
-  setAreaChart: Dispatch<SetStateAction<any>>;
-  pieChart: any;
-  setPieChart: Dispatch<SetStateAction<any>>;
-  lineChart: any;
-  setLineChart: Dispatch<SetStateAction<any>>;
-  totalPage: number;
-  setTotalPage: Dispatch<SetStateAction<number>>;
-  currentPage: number;
-  setCurrentPage: Dispatch<SetStateAction<number>>;
-  currentStep: number;
-  setCurrentStep: Dispatch<SetStateAction<number>>;
-};
 
 export interface HomeProviderProps {
   children: ReactNode;
@@ -81,6 +40,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
   // ---- Form states ----
   const [formError, setFormError] = useState<string>("");
   const [formSuccess, setFormSuccess] = useState<string>("");
+  const [emailSuccess, setEmailSuccess] = useState<boolean>(false);
   const [formLoading, setFormLoading] = useState<boolean>(false);
   // ---- Financial states ----
   const [presentIncome, setPresentIncome] = useState<number>(0);
@@ -186,7 +146,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
 
     async function getInitialReportsData() {
       try {
-        if(user !== null || isMounted){
+        if(user !== null && isMounted){
           const [
             areaChartRes,
             barChartRes,
@@ -256,6 +216,8 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
         setFormSuccess,
         formLoading, 
         setFormLoading,
+        emailSuccess, 
+        setEmailSuccess,
         presentIncome, 
         setPresentIncome,
         user, 
