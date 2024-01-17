@@ -14,6 +14,8 @@ The API is in charge of all expendit activities and functions
 - [Get All Users](#get-all-users)
 - [Update  User](#update-user)
 - [Change User Password](#change-user-password)
+- [Forget User Password](#forgot-user-password)
+- [Reset User Password](#reset-user-password)
 
 ## User Signup 
 
@@ -336,7 +338,7 @@ The API is in charge of all expendit activities and functions
 #### Sample Response
 
 > Status : 200 Created
-> Location : http://localhost:9000/user/:id
+> Location : http://localhost:9000/users/:id
 
 ```json
 
@@ -372,3 +374,79 @@ The API is in charge of all expendit activities and functions
 ```
  [Back to top](#content)
 
+## Forgot User Password
+
+> **POST** /user/forgot-password
+
+| Body             |              | Description                                        |
+| ---------------  | ------------ | -------------------------------------------------  |
+|   email   | **required** | email   of the account to be provided       |
+
+
+### sample Response
+
+> status :200 Created
+> Location : http://localhost:9000/users/forgot-password
+
+```json
+{
+    "message":"Reset password email sent successfully"
+}
+
+```
+
+### Possible error messages
+
+```json 
+{
+    "message":"Internal server error",
+    "error":[
+        {"email":"incorrect user email"}
+    ]
+}
+
+```
+
+[Back to top](#content)
+
+
+## Reset User Password
+
+**PATCH** /users/reset-password
+| Body            |              | Description                                       |
+| --------------- | ------------ | ------------------------------------------------- |
+| new_password      | **required** | new password   of the account to be created          |
+| con_password       | **required** | Confirm new password  of  the account to be created      |
+
+
+| Param         |              | Description          |
+| ----------    | ------------ | -------------------- |
+| reset_token       | **required** |  reset token             |
+
+#### Sample Response
+
+> Status: 200 Created
+> Location : http://localhost:9000/users/reset-password
+
+```json
+
+ {
+    "message":"password resaet successfully"
+ }
+```
+
+
+#### Possible error messages
+
+```json 
+  {
+    "message":"Internal Server error",
+    "error":[
+       { "token":"invalid or expired reset token"},
+       {"new_password":"new password required"},
+       {"con_password":"invalid confirm password"}
+    ]
+  }
+
+```
+ [Back to top](#content)
