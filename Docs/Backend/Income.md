@@ -80,6 +80,8 @@
 
 ```
 
+ [Back to top](#content)
+
 ## Get All Income
 
 > **GET** /income
@@ -128,7 +130,7 @@
     ],
 }
 ```
-
+ [Back to top](#content)
 
 ## Get Single Income
 
@@ -185,7 +187,7 @@
     ]
 }
 ```
----
+ [Back to top](#content)
 
 ## Update Expense
 
@@ -303,9 +305,13 @@
 }
 ```
 
+
+ [Back to top](#content)
+
+
 ## Search Income 
 
-> **GET** /income/searcg?query=action
+> **GET** /income/search?query=action
 
 
 | Parameters         |              | Description      |
@@ -360,6 +366,8 @@
     ]
 }
 ```
+ [Back to top](#content)
+
 
 ## Get Monthly Income
 > **GET** /income/incomes/month/:userID 
@@ -385,6 +393,5 @@ Location: http://localhost:9000/income/incomes/monthly/month/:userID
   "totalIncome":4300
 }
 ```
-
-======================
+ [Back to top](#content)
 

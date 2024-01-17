@@ -434,7 +434,7 @@ func ResetPassword() gin.HandlerFunc {
             log.Printf("Error parsing reset token: %v", err)
             c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})
             return
-        }
+        } 
 
         log.Printf("Reset password request received for user ID: %s", claims.Subject)
 

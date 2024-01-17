@@ -77,6 +77,9 @@
 }
 
 ```
+ [Back to top](#content)
+
+
 
 ## Get All Expense
 
@@ -118,6 +121,8 @@
     ],
 }
 ```
+
+ [Back to top](#content)
 
 
 ## Get Single Expense
@@ -179,7 +184,7 @@
     ]
 }
 ```
----
+ [Back to top](#content)
 
 ## Update Expense
 
@@ -306,6 +311,9 @@
 }
 ```
 
+
+ [Back to top](#content)
+
 ## Search Expense
 
 > **GET** /expense/searcg?query=action
@@ -363,6 +371,9 @@
     ]
 }
 ```
+ [Back to top](#content)
+
+
 
 ## Get User Expense 
 > **GET** /expense/user/:userID
@@ -474,7 +485,7 @@ Location: http://localhost:9000/expense/user/expense/:userID
 ```
 
 
-
+ [Back to top](#content)
 
 
 ## Get Monthly Expense
@@ -501,5 +512,15 @@ Location: http://localhost:9000/expense/expenses/month/:userID
   "totalExpense": 3370
 }
 ```
-====================================================================================================
 
+## Possible error message
+
+```json
+   {
+    "error":"Internal Server error",
+    { "user_id":"invalid user id"}
+   }
+
+```
+
+ [Back to top](#content)
