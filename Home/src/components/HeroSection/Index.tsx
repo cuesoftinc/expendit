@@ -75,7 +75,9 @@ const HeroSection = () => {
           </p>
           <div className='flex gap-3 items-center'>
             <button type='button' className={styles.btnTwo}>Try cloud</button>
-            <button type='button' className={styles.btnThree}>self-host</button>
+            <button type='button' className={styles.btnThree}>
+              <Link target='_blank' href="https://expendit.gitbook.io/docs/get-started">self-host</Link>
+            </button>
           </div>
         </div>
         <div className={styles.imgContainer}>

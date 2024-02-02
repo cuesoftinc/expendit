@@ -40,7 +40,7 @@ const Services =  () =>{
 
 
   return(
-    <main className={styles.sectionContainer}>
+    <main className={styles.sectionContainer} id="services">
       <div className=''>
         <div className='w-full overflow-x-hidden'>
           <div className={styles.tabList(activeTab)}>
