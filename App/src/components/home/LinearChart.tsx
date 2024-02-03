@@ -37,7 +37,7 @@ const LinearChart = () => {
           <CartesianGrid stroke='3 3'  />
           <Legend />
           <Tooltip />
-          {categories.map((propName: any, index: number) => (
+          {categories?.map((propName: any, index: number) => (
             <Area 
             key={index}
             type="monotone" 

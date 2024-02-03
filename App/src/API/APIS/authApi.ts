@@ -58,6 +58,7 @@ export const signInApi = async ({
       localStorage.setItem('ExpenditLoggedIn', JSON.stringify(true));
 
       router.push('/');
+      router.refresh();
 
     }
   } catch (error: any) {
@@ -66,19 +67,19 @@ export const signInApi = async ({
   }
 };
 
-export const logoutApi = async ({ router, setIsLoading }: LogoutProps) => {
+export const logoutApi = async ({ router, setFormLoading }: LogoutProps) => {
   try {
-    setIsLoading(true);
+    setFormLoading(true);
     router.push("/signin");
 
     localStorage.removeItem("Expendit-token");
     localStorage.removeItem("Expendit-user");
     localStorage.removeItem("Expendit-userID");
     localStorage.removeItem("ExpenditLoggedIn");
-    setIsLoading(false);
+    setFormLoading(false);
   } catch (error) {
     console.log(error);
-    setIsLoading(false);
+    setFormLoading(false);
   }
 };
 
