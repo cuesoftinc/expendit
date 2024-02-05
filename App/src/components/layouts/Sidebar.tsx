@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation'
 import { AiOutlinePoweroff, AiOutlineClose } from 'react-icons/ai';
 import { links } from '@/dummy';
-import { useNavContext, useHomeContext } from '@/context';
+import { useNavContext, useHomeContext, useSession } from '@/context';
 import styles from './styles';
 import Image from 'next/image';
 import Logo from '@/assets/images/logo.png';
@@ -14,12 +14,13 @@ import { logoutApi } from '@/API/APIS/authApi';
 const Sidebar = ({ mobile }: { mobile?: boolean}) => {
   const { isNavOpen, setIsNavOpen } = useNavContext();
   const { setFormLoading } = useHomeContext();
+  const { setIsLoading } = useSession();
   const pathname = usePathname();
   const router = useRouter();
 
   const handleLogout = async () => {
     setIsNavOpen(false);
-    await logoutApi({router, setFormLoading });
+    await logoutApi({router, setIsLoading });
   };
 
   return (

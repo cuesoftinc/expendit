@@ -38,7 +38,7 @@ export interface SignInProps {
 
 export interface LogoutProps {
   router: AppRouterInstance;
-  setFormLoading: Dispatch<SetStateAction<boolean>>;
+  setIsLoading: Dispatch<SetStateAction<boolean>>;
 };
 
 // ---- Income Types ----

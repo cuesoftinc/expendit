@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useNavContext, useHomeContext } from '@/context';
+import { useNavContext, useHomeContext, useSession } from '@/context';
 import { AiOutlineClose } from 'react-icons/ai';
 import { logoutApi } from '@/API/APIS/authApi';
 
@@ -14,6 +14,7 @@ const UserProfile = () => {
   const router = useRouter();
   const { setIsProfileOpen, setIsNavOpen } = useNavContext();
   const { user, setFormLoading } = useHomeContext();
+  const { setIsLoading } = useSession();
   const picture = null;
 
   const handleClick = (e: any, url:string) => {
@@ -24,7 +25,7 @@ const UserProfile = () => {
 
   const handleLogout = async () => {
     setIsNavOpen(false);
-    await logoutApi({router, setFormLoading });
+    await logoutApi({router, setIsLoading });
   };
 
   return (
