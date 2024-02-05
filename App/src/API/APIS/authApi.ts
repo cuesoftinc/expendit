@@ -57,8 +57,8 @@ export const signInApi = async ({
       localStorage.setItem('Expendit-user', JSON.stringify(data));
       localStorage.setItem('ExpenditLoggedIn', JSON.stringify(true));
 
+      window.location.reload();
       router.push('/');
-
     }
   } catch (error: any) {
     setFormError(error.response.data.error);

@@ -24,18 +24,20 @@ const ExpenseTrends = () => {
         Expenses Monthly Trends
         <DownloadBtn />
       </p>
-      <div className={styles.barChart}>
-        <ResponsiveContainer width={'100%'} height='100%'>
-          <LineChart  data={lineChart }
-            margin={{top:0, right: 0, left:0, bottom: 0}}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="expense" stroke="#8884d8" />
-          </LineChart>    
-        </ResponsiveContainer>
+      <div className='overflow-x-auto w-full'>
+        <div className={styles.barChart}>
+          <ResponsiveContainer width={'100%'} height='100%'>
+            <LineChart  data={lineChart }
+              margin={{top:0, right: 0, left:0, bottom: 0}}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="expense" stroke="#8884d8" />
+            </LineChart>    
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   )

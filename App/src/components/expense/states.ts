@@ -3,6 +3,7 @@ import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas"
 import { formatExpense, expenseRequiredFields } from "@/utils/formatExpenseForm";
 import { expenseCreateApi } from "@/API/APIS/expenseApi";
 import { useHomeContext } from "@/context";
+import { useRouter } from 'next/navigation';
 import { getExpenseApi } from "@/API/APIS/expenseApi";
 
 
@@ -12,6 +13,7 @@ export interface expenseFormProps {
 };
 
 export const useExpenseCustomState = () => {
+  const router = useRouter();
 
   const {
     setFormError,
@@ -83,6 +85,7 @@ export const useExpenseCustomState = () => {
     });
 
     setForm(initialForm);
+    router.refresh();
   }
 
   return {

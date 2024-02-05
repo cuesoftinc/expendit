@@ -38,11 +38,12 @@ export const incomeCreateApi = async ({
           if (barChartRes) setBarChart(barChartRes);
 
           setFormLoading(false);
+          window.location.reload();
         } catch (error) {
           setFormError("an error occurred, try again");
           setFormLoading(false);
         }
-      }, 3000);
+      }, 500);
     }
   } catch (error) {
     setFormError("an error occurred, try again");

@@ -1,5 +1,6 @@
 "use client"
 import React, { Fragment } from 'react';
+import Link  from 'next/link';
 import styles from './styles';
 import Input  from './Input';
 import LoaderSpinner from '../helpers/LoaderSpinner';
@@ -94,10 +95,10 @@ const Form = () => {
         <div className='mt-3 text-sm'>
           Already have an Account?
           &nbsp;
-          <span className={styles.links}
+          <Link href="/signin" className={styles.links}
             onClick={() => {}}>
             Log in
-          </span>
+          </Link>
         </div>
       </form>
     </Fragment>

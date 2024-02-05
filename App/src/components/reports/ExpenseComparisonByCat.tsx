@@ -26,21 +26,23 @@ const ExpenseComparisonByCat = () => {
         Monthly Income vs Expenses
         <DownloadBtn />
       </div>
-      <div className={styles.barChart}>
-        <ResponsiveContainer width='100%' height='100%'>
-          <BarChart
-            data={barChart}
-            margin={{top:0, right: 0, left:0, bottom: 0}}
-            >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="totalIncome" fill="#82ca9d" stackId={mobile ? "a" : "a"} type='string' />
-            <Bar dataKey="totalExpense" fill="#8884d8" stackId={mobile ? "a" : "b"} type='string' />
-          </BarChart>
-        </ResponsiveContainer>
+      <div className='overflow-x-auto w-full'>
+        <div className={styles.barChart}>
+          <ResponsiveContainer width='100%' height='100%'>
+            <BarChart
+              data={barChart}
+              margin={{top:0, right: 0, left:0, bottom: 0}}
+              >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="totalIncome" fill="#82ca9d" stackId="a" type='string' />
+              <Bar dataKey="totalExpense" fill="#8884d8" stackId="b" type='string' />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   )

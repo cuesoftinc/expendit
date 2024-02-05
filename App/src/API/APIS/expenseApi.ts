@@ -57,6 +57,7 @@ export const expenseCreateApi = async ({
         if (lineChartRes) setLineChart(lineChartRes);
 
         setFormLoading(false);
+        window.location.reload();
       } catch (error) {
         setFormError("An error occurred, try again");
         setFormLoading(false);

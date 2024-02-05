@@ -1,8 +1,9 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useNavContext, useHomeContext } from '@/context';
+import { useNavContext, useHomeContext, useSession } from '@/context';
 import { AiOutlineClose } from 'react-icons/ai';
+import { logoutApi } from '@/API/APIS/authApi';
 
 import styles from './styles';
 import { useRouter } from 'next/navigation';
@@ -11,15 +12,21 @@ import Avatar from '@/assets/images/avatar.jpg';
 
 const UserProfile = () => {
   const router = useRouter();
-  const { setIsProfileOpen } = useNavContext();
-  const { user } = useHomeContext();
+  const { setIsProfileOpen, setIsNavOpen } = useNavContext();
+  const { user, setFormLoading } = useHomeContext();
+  const { setIsLoading } = useSession();
   const picture = null;
 
   const handleClick = (e: any, url:string) => {
     setIsProfileOpen(false);
 
     router.push(url);
-  }
+  };
+
+  const handleLogout = async () => {
+    setIsNavOpen(false);
+    await logoutApi({router, setIsLoading });
+  };
 
   return (
     <div className={styles.userProfileCont}>
@@ -65,7 +72,7 @@ const UserProfile = () => {
       </div>
       <div className="mt-5 w-full">
         <button className={styles.profileLogout}
-          onClick={() => {}}>
+          onClick={handleLogout}>
          Logout
         </button>
       </div>

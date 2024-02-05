@@ -1,8 +1,8 @@
 const styles = {
   pagePad: "md:px-4 py-6",
-  section: 'flex justify-between border-b-2 pb-6 py-2',
+  section: 'flex lg:flex-row flex-col justify-between border-b-2 pb-6 py-2',
   semibold: 'font-semibold',
-  buttonContainer: 'flex gap-4 self-center',
+  buttonContainer: 'flex gap-4',
   paragraph: 'text-gray-400',
   button: 'text-purple-400 rounded-md border-2 px-2 md:py-2 font-semibold',
   changeButton: 'bg-purple-400 text-white rounded-md px-2 md:py-2',
