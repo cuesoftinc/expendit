@@ -7,9 +7,9 @@ import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 
 export default function Home() {
   return (
-    <ProtectedRoute data-testid="homepage">
+    <ProtectedRoute>
       <PageLayout>
-        <main className={styles.pagePad}>
+        <main className={styles.pagePad} data-testid="homepage">
           <TopBoard />
           <LinearChart />
           <LatestExpenses />
