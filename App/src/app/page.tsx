@@ -9,8 +9,8 @@ export default function Home() {
   return (
     <ProtectedRoute>
       <PageLayout>
-        <main className={styles.pagePad} data-testid="homepage">
-          <TopBoard />
+        <main className={styles.pagePad}>
+          <TopBoard data-testid="top-board" />
           <LinearChart />
           <LatestExpenses />
         </main>
