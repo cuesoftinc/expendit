@@ -17,6 +17,10 @@
     "pre-push:App": "cd App && npm run pre-push",
     "pre-push:Home": "cd Home && npm run pre-push"
   },
+  "lint-staged": {
+    "App/src/**/*.{js,jsx,ts,tsx}": "eslint --cache --fix",
+    "src/**/*.{js,jsx,ts,tsx,css,scss,html,md}": "prettier --write"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"
