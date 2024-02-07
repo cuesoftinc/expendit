@@ -246,13 +246,6 @@ export const expenseGrid: GridColDef[] = [
 
 export const expenseRow: expense[] = [
   // {
-  //   id: 1,
-  //   category: 'Food',
-  //   amount: 2000,
-  //   note: 'I used it to buy Food',
-  //   date: presentDate
-  // },
-  // {
   //   id: 2,
   //   category: 'Transport',
   //   amount: 1500,
