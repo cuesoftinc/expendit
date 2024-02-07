@@ -11,8 +11,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install || true",
     "lint": "npm-run-all lint:App lint:Home",
-    "lint:App": "cd App && npm run lint:staged",
-    "lint:Home": "cd Home && npm run lint:staged",
+    "lint:App": "cd App && npx lint:staged",
+    "lint:Home": "cd Home && npx lint:staged",
     "pre-push": "npm-run-all pre-push:App pre-push:Home",
     "pre-push:App": "cd App && npm run pre-push",
     "pre-push:Home": "cd Home && npm run pre-push"
