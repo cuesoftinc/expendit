@@ -7,9 +7,12 @@
     "build": "next build",
     "start": "next start",
     "postbuild:static": "zip -FSr build.zip build/* -x \"*.DS_Store\"",
+    "pre-push": "npm run pre-push:test",
+    "pre-push:test": "prepush-if-changed",
     "test:ci": "jest --ci",
     "test": "jest",
     "eject": "next eject",
+    "lint:staged": "lint-staged",
     "lint": "npm run prettier:check && npm run eslint",
     "lint:fix": "npm run eslint:fix && npm run prettier:fix",
     "prettier:cli": "prettier \"**/*.ts\" \"**/*.js\" \"**/*.tsx\"",
@@ -21,6 +24,9 @@
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx}": "eslint --cache --fix",
     "src/**/*.{js,jsx,ts,tsx,css,scss,html,md}": "prettier --write"
+  },
+  "prepush-if-changed": {
+    "src/**/*.{js,jsx,ts,tsx}": "echo 'Files changed on Home. Launching tests.' && npm run test"
   },
   "repository": {
     "type": "git",
@@ -49,6 +55,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^15.1.0",
     "postcss": "^8.4.33",
+    "prepush-if-changed": "^1.0.8",
     "prettier": "^3.1.0",
     "tailwindcss": "^3.4.1"
   }
