@@ -1,90 +1,103 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { AiOutlineMenu } from 'react-icons/ai';
-import Link from 'next/link';
-import Logo from '@/assets/images/logo2.png';
-import Chart from '@/assets/images/expendit_hero.png';
-import MobileNavbar from './MobileNavbar';
-import { useCustomState } from '@/hooks/responsive';
-import styles from './styles';
+import React, { useState } from "react";
+import Image from "next/image";
+import { AiOutlineMenu } from "react-icons/ai";
+import Link from "next/link";
+import Logo from "@/assets/images/logo2.png";
+import Chart from "@/assets/images/expendit_hero.png";
+import MobileNavbar from "./MobileNavbar";
+import { useCustomState } from "@/hooks/responsive";
+import styles from "./styles";
 
-export const navLinks = [ 
+export const navLinks = [
   {
-    title: 'Home',
-    url: "#home"
+    title: "Home",
+    url: "#home",
   },
   {
-    title: 'About us',
-    url: "#about"
+    title: "About us",
+    url: "#about",
   },
   {
-    title: 'Services',
-    url: "#services"
+    title: "Services",
+    url: "#services",
   },
   {
-    title: 'Contact',
-    url: "#contact"
+    title: "Contact",
+    url: "#contact",
   },
 ];
 
 const HeroSection = () => {
-  const [ openNav, setOpenNav ] = useState<boolean>(false);
-  const [ mobile ] = useCustomState(setOpenNav);
+  const [openNav, setOpenNav] = useState<boolean>(false);
+  const [mobile] = useCustomState(setOpenNav);
 
   return (
-    <section className={styles.heroContainer} id='home'>
+    <section
+      className={styles.heroContainer}
+      id="home"
+      data-testid="hero-section"
+    >
       <nav className={styles.navContainer}>
         <Image src={Logo} alt="Expendit Logo" width={mobile ? 80 : 100} />
-        {!mobile && 
+        {!mobile && (
           <ul className={styles.navLinksContainer}>
             {navLinks.map((link, index) => (
-              <li 
-                className='hover:text-purple-600' 
-                key={index}>
-                <Link href={link.url} >{link.title}</Link>
+              <li className="hover:text-purple-600" key={index}>
+                <Link href={link.url}>{link.title}</Link>
               </li>
             ))}
           </ul>
-        }
-        {!mobile 
-        && <button 
-        type='button' 
-        className={styles.btnOne}>Login</button>}
-        {mobile 
-        && <AiOutlineMenu 
-          onClick={() => setOpenNav(true)} 
-          fontSize={30} 
-          className='cursor-pointer' 
+        )}
+        {!mobile && (
+          <button type="button" className={styles.btnOne}>
+            Login
+          </button>
+        )}
+        {mobile && (
+          <AiOutlineMenu
+            onClick={() => setOpenNav(true)}
+            fontSize={30}
+            className="cursor-pointer"
           />
-        }
+        )}
       </nav>
       <div className={styles.heroSection}>
-        <div className='lg:w-[55%] w-full mt-[3%]'>
+        <div className="lg:w-[55%] w-full mt-[3%]">
           <h1 className={styles.header}>
-            Empower Your Finances 
-            <br /> with <span className='text-purpleTheme'>Expendit</span>: 
-            <br />Expense Management 
+            Empower Your Finances
+            <br /> with <span className="text-purpleTheme">Expendit</span>:
+            <br />
+            Expense Management
             <br /> Made Simple.
           </h1>
           <p className={styles.subtext}>
-            Discover a smarter way to manage your money, effortlessly. 
-            Whether you&apos;re a budgeting pro or just getting started, 
-            Expendit is here to empower you.
+            Discover a smarter way to manage your money, effortlessly. Whether
+            you&apos;re a budgeting pro or just getting started, Expendit is
+            here to empower you.
           </p>
-          <div className='flex gap-3 items-center'>
-            <button type='button' className={styles.btnTwo}>Try cloud</button>
-            <button type='button' className={styles.btnThree}>self-host</button>
+          <div className="flex gap-3 items-center">
+            <button type="button" className={styles.btnTwo}>
+              Try cloud
+            </button>
+            <button type="button" className={styles.btnThree}>
+              <Link
+                target="_blank"
+                href="https://expendit.gitbook.io/docs/get-started"
+              >
+                self-host
+              </Link>
+            </button>
           </div>
         </div>
         <div className={styles.imgContainer}>
-          <Image src={Chart} alt='Line Chart' className={styles.img} />
+          <Image src={Chart} alt="Line Chart" className={styles.img} />
         </div>
       </div>
       {openNav && <MobileNavbar setOpenNav={setOpenNav} />}
     </section>
-  )
-}
+  );
+};
 
-export default HeroSection
+export default HeroSection;

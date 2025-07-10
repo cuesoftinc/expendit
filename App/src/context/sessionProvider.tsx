@@ -39,11 +39,6 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     } 
   }, [router]);
 
-  // useEffect(() => {
-  //   const storedToken = localStorage.getItem('token');
-  //   setSessionToken(storedToken);
-  // }, []);
-
   return (
     <SessionContext.Provider value={{sessionToken, setSessionToken, setIsLoading, isLoading}}>
       {children}

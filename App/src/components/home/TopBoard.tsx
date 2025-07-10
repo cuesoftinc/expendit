@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { BsBoxSeam } from 'react-icons/bs';
 import { FiBarChart, } from 'react-icons/fi';
 import { HiOutlineRefresh } from 'react-icons/hi';
@@ -43,6 +44,7 @@ const Board = ({icon, title, amount, percentage, chart}: boardProps) => {
 
 
 const TopBoard = () => {
+  const router = useRouter();
   const { 
     presentIncome, 
     totalExpense, 
