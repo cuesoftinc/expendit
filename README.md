@@ -30,7 +30,7 @@ expendit/
     └── workflows/        # GitHub Actions CI/CD pipelines
 ```
 
-## tech stack
+## Tech Stack
 
 | Layer | Technology |
 | --- | --- |
