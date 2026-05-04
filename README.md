@@ -78,7 +78,7 @@ expendit/
   - Deployment guide
  
   ## License
-  Expendit is open-source software lincensed under the [MIT License](./LICENSE)
+  Expendit is open-source software licensed under the [MIT License](./LICENSE)
 
   ## Community
   [GitHub Discussions](https://github.com/cuesoftinc/expendit/discussions)
