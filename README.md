@@ -61,7 +61,7 @@ expendit/
   # 3. Copy environment variables
   cp .env.example .env      #fill in your values in .env
 
-  # 4. start all servives locally
+  # 4. start all services locally
   make dev
   ```
 
