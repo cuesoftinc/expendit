@@ -34,7 +34,7 @@ expendit/
 
 | Layer | Technology |
 | --- | --- |
-| Mobile | Flutter, Andriod (Kotlin), iOS (Swift) |
+| Mobile | Flutter, Android (Kotlin), iOS (Swift) |
 | Web | Next.js, Supabase |
 | API | Go, Python, Node.js |
 | Datbase | PostgreSQL (via Supabase) |
