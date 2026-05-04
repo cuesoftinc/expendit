@@ -82,5 +82,5 @@ expendit/
 
   ## Community
   [GitHub Discussions](https://github.com/cuesoftinc/expendit/discussions)
-  [Report a bug ](https://github.com/cuesoftinc/expendit/issues/new?template=bug_report.md)
+  [Report a bug](https://github.com/cuesoftinc/expendit/issues/new?template=bug_report.md)
   [Request a feature](https://github.com/cuesoftinc/expendit/issues/new?template=feature_request.md)
