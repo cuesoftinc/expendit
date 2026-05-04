@@ -46,7 +46,7 @@ expendit/
 - [Git](https://git-scm.com)
 - [Docker](https://www.docker.com/) & Docker Compose
 - [Flutter SDK](https://flutter.dev/docs/get-started/install) (for mobile)
-- [Node.js](https://nodejs.org/) v18+ (for web amd Node.js API)
+- [Node.js](https://nodejs.org/) v18+ (for web and Node.js API)
 - [Go](https://go.dev/) 1.21+ (for Go API)
 
   ## Setup
