@@ -66,7 +66,7 @@ expendit/
   ```
 
   ## Contributing
-  We welcome contributions of all kinds - bug fixes, new features, documentation, tranlations, and more.
+  We welcome contributions of all kinds - bug fixes, new features, documentation, translations, and more.
   Please read our Contribution Guide (./CONTRIBUTING.md) before opening a PR.
   For first time contributors, look for issues labelled [`good first issue`] (https://github.com/cuesoftinc/expendit/labels/good%20first%20issue).
 
