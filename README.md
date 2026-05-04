@@ -38,7 +38,7 @@ expendit/
 | Web | Next.js, Supabase |
 | API | Go, Python, Node.js |
 | Datbase | PostgreSQL (via Supabase) |
-| Infrastructure | Docker, Helm. Terraform |
+| Infrastructure | Docker, Helm, Terraform |
 | CI/CD | Github Actions |
 
 ## To Get Started
