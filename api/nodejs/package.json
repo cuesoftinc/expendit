@@ -1,0 +1,19 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "- go mod tidy  - go run main.go",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "build": "echo 'No compile step — plain Node.js' && exit 0",
+    "start": "node index.js",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint '**/*.{js,ts}' --cache --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

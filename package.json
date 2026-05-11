@@ -1,25 +1,43 @@
 {
-  "devDependencies": {
-    "husky": "^9.0.10",
-    "npm-run-all": "^4.1.5"
-  },
   "name": "expendit",
   "description": "## About",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install || true",
-    "lint": "npm-run-all lint:App lint:Home",
-    "lint:App": "cd App && npm run lint:staged",
-    "lint:Home": "cd Home && npm run lint:staged",
-    "pre-push": "npm-run-all pre-push:App pre-push:Home",
-    "pre-push:App": "cd App && npm run pre-push",
-    "pre-push:Home": "cd Home && npm run pre-push"
+
+    "dev": "npm-run-all --parallel dev:api dev:web dev:dashboard",
+    "dev:api": "cd api/nodejs && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "dev:dashboard": "cd web/dashboard && npm run dev",
+
+    "build": "npm-run-all build:api build:web build:dashboard",
+    "build:api": "cd api/nodejs && npm run build",
+    "build:web": "cd web && npm run build",
+    "build:dashboard": "cd web/dashboard && npm run build",
+
+    "test": "npm-run-all test:api test:web test:dashboard",
+    "test:api": "cd api/nodejs && npm test",
+    "test:web": "cd web && npm test",
+    "test:dashboard": "cd web/dashboard && npm test",
+
+    "lint": "npm-run-all lint:api lint:web lint:dashboard",
+    "lint:api": "cd api/nodejs && npm run lint",
+    "lint:web": "cd web && npm run lint:staged",
+    "lint:dashboard": "cd web/dashboard && npm run lint:staged",
+
+    "pre-push": "npm-run-all pre-push:web pre-push:dashboard",
+    "pre-push:web": "cd web && npm run pre-push",
+    "pre-push:dashboard": "cd web/dashboard && npm run pre-push"
   },
   "lint-staged": {
-    "App/src/**/*.{js,jsx,ts,tsx}": "eslint --cache --fix",
-    "src/**/*.{js,jsx,ts,tsx,css,scss,html,md}": "prettier --write"
+    "api/nodejs/src/**/*.{js,ts}": "eslint --cache --fix",
+    "web/src/**/*.{js,jsx,ts,tsx,css,scss,html,md}": "prettier --write",
+    "web/dashboard/src/**/*.{js,jsx,ts,tsx}": "eslint --cache --fix"
+  },
+  "devDependencies": {
+    "husky": "^9.0.10",
+    "npm-run-all": "^4.1.5"
   },
   "keywords": [],
   "author": "",

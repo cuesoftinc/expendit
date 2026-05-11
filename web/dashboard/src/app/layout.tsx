@@ -1,7 +1,7 @@
 import React from 'react';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { HomeProvider, NavProvider, SessionProvider } from '@/context';
+import { HomeProvider, NavProvider, SessionProvider } from '../shared/context';
 import './globals.css';
 
 export const metadata = {
