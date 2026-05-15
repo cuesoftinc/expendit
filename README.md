@@ -16,7 +16,7 @@ expendit/
 │   ├── ios/              # Native iOS app
 │   └── flutter/          # Flutter cross-platform app
 ├── web/
-│   ├── /                 # Marketing / landing page
+│   ├── landing/          # Marketing / landing page
 │   ├── dashboard/        # Web dashboard (Next.js)
 │   └── supabase/         # Supabase schema & migrations
 ├── deploy/
