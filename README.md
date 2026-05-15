@@ -37,9 +37,9 @@ expendit/
 | Mobile | Flutter, Android (Kotlin), iOS (Swift) |
 | Web | Next.js, Supabase |
 | API | Go, Python, Node.js |
-| Datbase | PostgreSQL (via Supabase) |
+| Database | PostgreSQL (via Supabase) |
 | Infrastructure | Docker, Helm, Terraform |
-| CI/CD | Github Actions |
+| CI/CD | GitHub Actions |
 
 ## To Get Started
 
