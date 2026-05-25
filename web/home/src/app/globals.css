@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+.glassmorphism {
+  background: rgba(0, 0, 0, 0.94);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(3.5px);
+  -webkit-backdrop-filter: blur(3.5px);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.btn-gradient {
+  background: linear-gradient(
+    337deg,
+    #b778e9 -18.31%,
+    rgba(168, 68, 247, 0.5) 110.14%
+  );
+}
+
+.card {
+  border-radius: 0.75rem;
+  border: 0.7px solid #dedddd;
+  background: #fcfcfc;
+}
+
+.open-source-card {
+  border-radius: 0.625rem;
+  border: 0.7px solid #dedddd;
+  background: #f6ebff;
+  padding: 2.6185rem 2rem 1.3815rem 1.25rem;
+}
+
+.hero-bg {
+  background-image: url("/Group1.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.services-bg {
+  background-image: url("/Group2.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.features-bg {
+  background-image: url("/Group3.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.CTA-bg {
+  background-image: url("/Group4.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.open-source-bg {
+  background-image: url("/Group5.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.partner-bg {
+  background-image: url("/phone.png");
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  background-size: 30%;
+}
+
+.tab {
+  animation: colorFade 2s ease-in-out;
+  transition: all 0.5s ease-in-out;
+}
+
+.tab-img {
+  animation: imgFade 2s ease-in-out;
+  transition: all 0.5s ease-in-out;
+}
+
+@keyframes colorFade {
+  0% {
+    color: black;
+    opacity: 0;
+  }
+  20%,
+  80%,
+  100% {
+    color: white;
+    opacity: 1;
+  }
+}
+
+@keyframes imgFade {
+  0% {
+    opacity: 0;
+  }
+  20%,
+  80%,
+  100% {
+    opacity: 1;
+  }
+}
