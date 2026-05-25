@@ -5,11 +5,11 @@
 #   Run `make help` to list all available targets.
 #
 # Structure:
-#   CommonServer/       — Go backend (CommonServer)
-#   Home/              — Next.js root app (Home)
-#   Home/dashboard/    — Next.js dashboard app (App)
-#   Deploy/Docker/    — Docker Infrastructure / compose files currently in root directory for simplicity
-#   App/k8s/       — Kubernetes manifests
+#   api/common/             — Go backend (common)
+#   web/home/              — Next.js root app (home)
+#   web/app/                — Next.js dashboard app (app)
+#   deploy/docker/         — Docker Infrastructure / compose files currently in root directory for simplicity
+#   web/app/k8s/           — Kubernetes manifests
 # =============================================================================
 
 .DEFAULT_GOAL := help
@@ -36,11 +36,11 @@ GRAY  := \033[90m
 # -----------------------------------------------------------------------------
 # Paths
 # -----------------------------------------------------------------------------
-API_DIR      := CommonServer/
-WEB_DIR      := Home/
-DASH_DIR     := Home/dashboard/
+API_DIR      := api/common/
+WEB_DIR      := web/home/
+DASH_DIR     := web/app/
 DOCKER_COMPOSE_DIR   := $(shell pwd)/.
-K8S_DIR      := App/k8s/
+K8S_DIR      := web/app/k8s/
 COMPOSE_FILE := $(DOCKER_COMPOSE_DIR)/compose.yaml
 CURRENT_USER := $(shell whoami)
 
