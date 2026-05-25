@@ -21,3 +21,7 @@
 .idea/
 *.tmproj
 .vscode/
+.env
+*.log
+node_modules/
+
