@@ -1,12 +1,11 @@
 services:
   expendit-frontend:
     build:
-      context: ./App
-      target: development
+      context: ./web
     ports:
       - 3000:3000
     volumes:
-      - ./App:/app
+      - ./web:/app
     restart: always
     depends_on:
       - expendit-backend
@@ -24,11 +23,11 @@ services:
     restart: always
 
   expendit-backend:
-    build: ./CommonServer
+    build: ./api/common
     ports:
       - "9000:9000"
     env_file:
-      - ./CommonServer/.env 
+      - ./api/common/.env 
 
 networks:
   next-envoy:
