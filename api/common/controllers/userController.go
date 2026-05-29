@@ -9,9 +9,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
   
+	"google.golang.org/api/idtoken"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
@@ -87,6 +90,8 @@ func Signup()gin.HandlerFunc{
 			return
 		
 		}
+		provider := "local"
+        user.Provider = &provider
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
@@ -155,6 +160,141 @@ func Login() gin.HandlerFunc {
 
         c.JSON(http.StatusOK, foundUser)
     }
+}
+
+func GoogleAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var body struct {
+			Token string `json:"token"`
+		}
+
+		if err := c.BindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "invalid request body",
+			})
+			return
+		}
+
+		// VERIFY GOOGLE TOKEN
+		payload, err := idtoken.Validate(
+			context.Background(),
+			body.Token,
+			os.Getenv("GOOGLE_CLIENT_ID"),
+		)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid google token",
+			})
+			return
+		}
+
+		// EXTRACT GOOGLE USER INFO
+		email := payload.Claims["email"].(string)
+
+		firstName := ""
+		lastName := ""
+
+		if payload.Claims["given_name"] != nil {
+			firstName = payload.Claims["given_name"].(string)
+		}
+
+		if payload.Claims["family_name"] != nil {
+			lastName = payload.Claims["family_name"].(string)
+		}
+
+		var foundUser models.User
+
+		err = userCollection.FindOne(
+			ctx,
+			bson.M{"email": email},
+		).Decode(&foundUser)
+
+		// USER DOESN'T EXIST -> CREATE ACCOUNT
+		if err == mongo.ErrNoDocuments {
+
+			id := primitive.NewObjectID()
+
+			userType := "USER"
+			provider := "google"
+
+			newUser := models.User{
+				ID:         id,
+				User_id:    id.Hex(),
+				Email:      &email,
+				First_name: &firstName,
+				Last_name:  &lastName,
+				User_type:  &userType,
+				Provider: &provider,
+			}
+
+			newUser.Created_at = time.Now()
+			newUser.Updated_at = time.Now()
+
+			token, refreshToken, _ := helper.GenerateAllTokens(
+				email,
+				firstName,
+				lastName,
+				userType,
+				newUser.User_id,
+			)
+
+			newUser.Token = &token
+			newUser.Refresh_token = &refreshToken
+
+			_, insertErr := userCollection.InsertOne(ctx, newUser)
+
+			if insertErr != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "failed to create google user",
+				})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"message": "google signup successful",
+				"user":    newUser,
+			})
+
+			return
+		}
+
+		// OTHER DATABASE ERROR
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "database error",
+			})
+			return
+		}
+
+		// USER EXISTS -> LOGIN
+
+		token, refreshToken, _ := helper.GenerateAllTokens(
+			*foundUser.Email,
+			*foundUser.First_name,
+			*foundUser.Last_name,
+			*foundUser.User_type,
+			foundUser.User_id,
+		)
+
+		helper.UpdateAllTokens(
+			token,
+			refreshToken,
+			foundUser.User_id,
+		)
+
+		foundUser.Token = &token
+		foundUser.Refresh_token = &refreshToken
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "google login successful",
+			"user":    foundUser,
+		})
+	}
 }
 
 func  GetUsers()  gin.HandlerFunc{

@@ -48,6 +48,7 @@ type User struct {
     Created_at    time.Time         `json:"created_at,omitempty" bson:"created_at,omitempty"`
     Updated_at    time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
     User_id       string            `json:"user_id,omitempty" bson:"user_id,omitempty"`
+    Provider      *string           `json:"provider"`
 }
 
 type ChangePasswordRequest struct {
