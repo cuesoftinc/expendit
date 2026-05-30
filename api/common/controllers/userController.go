@@ -28,9 +28,9 @@ var  userCollection *mongo.Collection = database.OpenCollection(database.Client,
 var validate = validator.New()
 func HashPassword(password string) string{
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	if err != nil{
-		log.Panic(err)
-	}
+	   if err != nil {
+       log.Fatal(err)
+   }
 	return string(bytes)
 }
 
@@ -62,10 +62,10 @@ func Signup()gin.HandlerFunc{
 		}
 		count, err := userCollection.CountDocuments(ctx, bson.M{"email":user.Email})
 		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for the user"})
-			defer cancel()
-			return
+			  log.Println("error checking email:", err)
+           c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the user"})
+           cancel()
+           return
 		}
 
 		if count > 0 {
@@ -79,10 +79,10 @@ func Signup()gin.HandlerFunc{
 
 		count, err = userCollection.CountDocuments(ctx , bson.M{"phone":user.Phone})
 		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for phone  number"})
-		    defer cancel()
-			return
+			  log.Println("error checking phone:", err)
+           c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for phone number"})
+           cancel()
+           return
 		}
 		if count > 0{
 			c.JSON(http.StatusInternalServerError, gin.H{"message":"unsuccessful", "error":"this email or phone number "})

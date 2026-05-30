@@ -1,33 +1,54 @@
 services:
-  expendit-frontend:
-    build:
-      context: ./web
+  mongo:
+    image: mongo:7
     ports:
-      - 3000:3000
-    volumes:
-      - ./web:/app
-    restart: always
-    depends_on:
-      - expendit-backend
+      - "27017:27017"
     networks:
-      - next-envoy
-  
-  expendit-home:
-    build:
-      context: ./Home
-      target: development
-    ports:
-      - 5000:5000
-    volumes:
-      - ./Home:/app
-    restart: always
+      - go-db
 
   expendit-backend:
     build: ./api/common
     ports:
-      - "9000:9000"
+      - "9000:8080"
     env_file:
-      - ./api/common/.env 
+      - ./api/common/.env
+    depends_on:
+      - mongo
+    networks:
+      - go-db
+      - envoy-go
+      - next-envoy
+
+  expendit-home:
+   build:
+    context: ./web/.deprecated/home
+   ports:
+    - "5000:3000"
+   volumes:
+    - ./web/.deprecated/home:/app
+    - /app/node_modules
+   depends_on:
+    - expendit-backend
+   restart: always
+   networks:
+    - next-envoy
+    - envoy-go
+
+  expendit-frontend:
+    build:
+      context: ./web/.deprecated/app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web/.deprecated/app:/app
+      - /app/node_modules
+    depends_on:
+      - expendit-backend
+    restart: always
+    networks:
+      - next-envoy
+      - envoy-go
 
 networks:
   next-envoy:

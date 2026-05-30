@@ -1,6 +1,7 @@
 "use client";
 import React, { Fragment, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";  // ADD THIS
 import styles from "./styles";
 import Input from "./Input";
 import LoaderSpinner from "../helpers/LoaderSpinner";
@@ -8,6 +9,18 @@ import Notification from "../helpers/Notification";
 import { useSignUpCustomState } from "./states";
 
 const Form = () => {
+  const router = useRouter();  // ADD THIS
+
+  const {
+    form,
+    formError,
+    formSuccess,
+    formLoading,
+    handleChange,
+    handleSubmit,
+    setFormError,   // ADD THIS
+  } = useSignUpCustomState();
+
   const handleGoogle = (response: any) => {
     const token = response.credential;
 
@@ -20,12 +33,22 @@ const Form = () => {
     })
       .then(res => res.json())
       .then(data => {
-        console.log("Google login success:", data);
+        if (data.user) {
+          const jwt = data.user.token;
+          const user_id = data.user.user_id;
+          localStorage.setItem("Expendit-token", JSON.stringify(jwt));
+          localStorage.setItem("Expendit-userID", JSON.stringify(user_id));
+          localStorage.setItem("Expendit-user", JSON.stringify(data.user));
+          localStorage.setItem("ExpenditLoggedIn", JSON.stringify(true));
+          router.push("/");
+        }
       })
       .catch(err => {
         console.error("Google login error:", err);
+        setFormError("Google sign in failed, try again");
       });
   };
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
@@ -49,14 +72,6 @@ const Form = () => {
       );
     };
   }, []);
-  const {
-    form,
-    formError,
-    formSuccess,
-    formLoading,
-    handleChange,
-    handleSubmit,
-  } = useSignUpCustomState();
 
   return (
     <Fragment>
@@ -110,7 +125,7 @@ const Form = () => {
           <div className={`${styles.check} mt-8`}>
             <input type="checkbox" className={styles.checkbox} />
             <p>
-              By signing up, I agree to Expendit’s &nbsp;
+              By signing up, I agree to Expendit's &nbsp;
               <span className={styles.links}>terms & conditions</span>
             </p>
           </div>
@@ -122,7 +137,6 @@ const Form = () => {
           <div className="flex-1 h-px bg-gray-300"></div>
         </div>
 
-        {/* GOOGLE LOGIN BUTTON */}
         <div className="w-full mt-6">
           <div id="googleBtn"></div>
         </div>
@@ -138,7 +152,7 @@ const Form = () => {
         </div>
         <div className="mt-3 text-sm">
           Already have an Account? &nbsp;
-          <Link href="/signin" className={styles.links} onClick={() => { }}>
+          <Link href="/signin" className={styles.links} onClick={() => {}}>
             Log in
           </Link>
         </div>
