@@ -95,5 +95,6 @@ export const useSignInCustomState = () => {
     formLoading,
     handleChange,
     handleSubmit,
+    setFormError,
   };
 };
