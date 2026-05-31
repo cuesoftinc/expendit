@@ -37,3 +37,8 @@ next-env.d.ts
 
 .eslintcache
 Deploy/secrets.tfvars
+
+api/common/tmp/
+*.exe
+
+.air.toml
