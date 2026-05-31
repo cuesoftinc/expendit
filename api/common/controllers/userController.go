@@ -6,6 +6,7 @@ import (
 	helper "expendit-server/helpers"
 	"expendit-server/models"
 	"expendit-server/utils"
+	"expendit-server/validators"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,7 +28,7 @@ import (
 var  userCollection *mongo.Collection = database.OpenCollection(database.Client, "user")
 var validate = validator.New()
 func HashPassword(password string) string{
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	   if err != nil {
        log.Fatal(err)
    }
@@ -67,12 +68,20 @@ func Signup()gin.HandlerFunc{
            cancel()
            return
 		}
+		
+    		if count > 0 {
+    c.JSON(http.StatusBadRequest, gin.H{
+        "error": "email already exist, try using another email",
+    })
+    return
+}
 
-		if count > 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error":"email already exist, try using another email"})
-			defer cancel()
-			return 
-		}
+if !validators.IsStrongPassword(*user.Password) {
+	c.JSON(http.StatusBadRequest, gin.H{
+		"error": "password must be at least 8 characters long and contain uppercase, lowercase, number and special character",
+	})
+	return
+}
 
 		password := HashPassword(*user.Password)
 		user.Password = &password
@@ -84,14 +93,16 @@ func Signup()gin.HandlerFunc{
            cancel()
            return
 		}
-		if count > 0{
-			c.JSON(http.StatusInternalServerError, gin.H{"message":"unsuccessful", "error":"this email or phone number "})
-		    defer cancel()
-			return
-		
-		}
+		if count > 0 {
+	c.JSON(http.StatusBadRequest, gin.H{
+		"error": "phone number already exists",
+	})
+	return
+}
 		provider := "local"
         user.Provider = &provider
+		userType := "USER"
+        user.User_type = &userType
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
