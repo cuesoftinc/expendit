@@ -1,0 +1,87 @@
+name: Frontend (web) Pipeline for build and deploy to GitHub pages
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Phase 1 : (Front End) Build, Lint, Test, and Stage for Pages
+  frontend-pipeline:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web # frontend directory
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ./web/package-lock.json # Absolute path from repo root for the cacher
+
+      - name: Install dependencies
+        run: npm ci
+
+      #   - name: Run Linter
+      #     run: npx eslint .
+
+      - name: Run Tests
+        run: npm test --if-present
+
+      - name: Build with Next.js
+        run: npx next build
+
+      # Prepares the static build for deployment when merged into main
+      - name: Upload artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./web/out
+
+  # Phase 2 : (Backend) Verify Docker Build
+  backend-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Verify Go Docker Build
+        uses: docker/build-push-action@v6
+        with:
+          # Pointing cleanly to your exact folder structure visible in the image
+          context: ./api/common
+          file: ./api/common/Dockerfile
+          push: false # Builds container locally to verify compilation—No Push
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Phase 3: (Deployment) Deploys Frontend on Main Branch Merge
+  deploy-frontend:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: frontend-pipeline
+    if: github.ref == 'refs/heads/main' # Deploy only on main branch once PR is merged
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
