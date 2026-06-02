@@ -6,12 +6,16 @@ import (
 	helper "expendit-server/helpers"
 	"expendit-server/models"
 	"expendit-server/utils"
+	"expendit-server/validators"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
   
+	"google.golang.org/api/idtoken"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,10 +28,10 @@ import (
 var  userCollection *mongo.Collection = database.OpenCollection(database.Client, "user")
 var validate = validator.New()
 func HashPassword(password string) string{
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	if err != nil{
-		log.Panic(err)
-	}
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	   if err != nil {
+       log.Fatal(err)
+   }
 	return string(bytes)
 }
 
@@ -59,34 +63,46 @@ func Signup()gin.HandlerFunc{
 		}
 		count, err := userCollection.CountDocuments(ctx, bson.M{"email":user.Email})
 		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for the user"})
-			defer cancel()
-			return
+			  log.Println("error checking email:", err)
+           c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the user"})
+           cancel()
+           return
 		}
+		
+    		if count > 0 {
+    c.JSON(http.StatusBadRequest, gin.H{
+        "error": "email already exist, try using another email",
+    })
+    return
+}
 
-		if count > 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error":"email already exist, try using another email"})
-			defer cancel()
-			return 
-		}
+if !validators.IsStrongPassword(*user.Password) {
+	c.JSON(http.StatusBadRequest, gin.H{
+		"error": "password must be at least 8 characters long and contain uppercase, lowercase, number and special character",
+	})
+	return
+}
 
 		password := HashPassword(*user.Password)
 		user.Password = &password
 
 		count, err = userCollection.CountDocuments(ctx , bson.M{"phone":user.Phone})
 		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"error occurred while checking for phone  number"})
-		    defer cancel()
-			return
+			  log.Println("error checking phone:", err)
+           c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for phone number"})
+           cancel()
+           return
 		}
-		if count > 0{
-			c.JSON(http.StatusInternalServerError, gin.H{"message":"unsuccessful", "error":"this email or phone number "})
-		    defer cancel()
-			return
-		
-		}
+		if count > 0 {
+	c.JSON(http.StatusBadRequest, gin.H{
+		"error": "phone number already exists",
+	})
+	return
+}
+		provider := "local"
+        user.Provider = &provider
+		userType := "USER"
+        user.User_type = &userType
 		user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
@@ -155,6 +171,141 @@ func Login() gin.HandlerFunc {
 
         c.JSON(http.StatusOK, foundUser)
     }
+}
+
+func GoogleAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var body struct {
+			Token string `json:"token"`
+		}
+
+		if err := c.BindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "invalid request body",
+			})
+			return
+		}
+
+		// VERIFY GOOGLE TOKEN
+		payload, err := idtoken.Validate(
+			context.Background(),
+			body.Token,
+			os.Getenv("GOOGLE_CLIENT_ID"),
+		)
+
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid google token",
+			})
+			return
+		}
+
+		// EXTRACT GOOGLE USER INFO
+		email := payload.Claims["email"].(string)
+
+		firstName := ""
+		lastName := ""
+
+		if payload.Claims["given_name"] != nil {
+			firstName = payload.Claims["given_name"].(string)
+		}
+
+		if payload.Claims["family_name"] != nil {
+			lastName = payload.Claims["family_name"].(string)
+		}
+
+		var foundUser models.User
+
+		err = userCollection.FindOne(
+			ctx,
+			bson.M{"email": email},
+		).Decode(&foundUser)
+
+		// USER DOESN'T EXIST -> CREATE ACCOUNT
+		if err == mongo.ErrNoDocuments {
+
+			id := primitive.NewObjectID()
+
+			userType := "USER"
+			provider := "google"
+
+			newUser := models.User{
+				ID:         id,
+				User_id:    id.Hex(),
+				Email:      &email,
+				First_name: &firstName,
+				Last_name:  &lastName,
+				User_type:  &userType,
+				Provider: &provider,
+			}
+
+			newUser.Created_at = time.Now()
+			newUser.Updated_at = time.Now()
+
+			token, refreshToken, _ := helper.GenerateAllTokens(
+				email,
+				firstName,
+				lastName,
+				userType,
+				newUser.User_id,
+			)
+
+			newUser.Token = &token
+			newUser.Refresh_token = &refreshToken
+
+			_, insertErr := userCollection.InsertOne(ctx, newUser)
+
+			if insertErr != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "failed to create google user",
+				})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"message": "google signup successful",
+				"user":    newUser,
+			})
+
+			return
+		}
+
+		// OTHER DATABASE ERROR
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "database error",
+			})
+			return
+		}
+
+		// USER EXISTS -> LOGIN
+
+		token, refreshToken, _ := helper.GenerateAllTokens(
+			*foundUser.Email,
+			*foundUser.First_name,
+			*foundUser.Last_name,
+			*foundUser.User_type,
+			foundUser.User_id,
+		)
+
+		helper.UpdateAllTokens(
+			token,
+			refreshToken,
+			foundUser.User_id,
+		)
+
+		foundUser.Token = &token
+		foundUser.Refresh_token = &refreshToken
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "google login successful",
+			"user":    foundUser,
+		})
+	}
 }
 
 func  GetUsers()  gin.HandlerFunc{

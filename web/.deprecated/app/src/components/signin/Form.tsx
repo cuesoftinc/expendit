@@ -1,14 +1,15 @@
 "use client";
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect } from "react";
 import styles from "./styles";
 import Input from "../signup/Input";
 import LoaderSpinner from "../helpers/LoaderSpinner";
 import Notification from "../helpers/Notification";
 import { useSignInCustomState } from "./states";
 import Link from "next/link";
-import { FcGoogle } from "react-icons/fc";
+import { useRouter } from "next/navigation";
 
 const Form = () => {
+  const router = useRouter();
   const {
     form,
     formError,
@@ -16,7 +17,60 @@ const Form = () => {
     formLoading,
     handleChange,
     handleSubmit,
+    setFormError,
   } = useSignInCustomState();
+
+  const handleGoogle = (response: any) => {
+    const token = response.credential;
+
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/google`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          const jwt = data.user.token;
+          const user_id = data.user.user_id;
+          localStorage.setItem("Expendit-token", JSON.stringify(jwt));
+          localStorage.setItem("Expendit-userID", JSON.stringify(user_id));
+          localStorage.setItem("Expendit-user", JSON.stringify(data.user));
+          localStorage.setItem("ExpenditLoggedIn", JSON.stringify(true));
+          router.push("/");
+        }
+      })
+      .catch(err => {
+        console.error("Google login error:", err);
+        setFormError("Google sign in failed, try again");
+      });
+  };
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        callback: handleGoogle,
+      });
+
+      window.google.accounts.id.renderButton(
+        document.getElementById("googleBtn"),
+        {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+        }
+      );
+    };
+  }, []);
 
   return (
     <Fragment>
@@ -50,6 +104,16 @@ const Form = () => {
           </Link>
         </div>
 
+        <div className="flex items-center my-4">
+          <div className="flex-1 h-px bg-gray-300"></div>
+          <p className="px-2 text-sm text-gray-500">OR</p>
+          <div className="flex-1 h-px bg-gray-300"></div>
+        </div>
+
+        <div className="w-full mb-4">
+          <div id="googleBtn"></div>
+        </div>
+
         <div className="w-full mt-6">
           <button type="submit" className={styles.btn} disabled={formLoading}>
             {formLoading ? (
@@ -59,11 +123,6 @@ const Form = () => {
             )}
           </button>
         </div>
-        {/* <div className={styles.buttonWrapper}>
-          <button className={styles.button}>
-            <span className={styles.googleButton}> <FcGoogle/> Login with Google</span>
-          </button>
-        </div> */}
         <p className={styles.signUp}>
           New to Expendit?{" "}
           <Link href="/signup" className={styles.link}>

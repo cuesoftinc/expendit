@@ -1,17 +1,28 @@
 package routes
 
-
 import (
-	 "expendit-server/controllers"
-   middleware "expendit-server/middleware"
+	controller "expendit-server/controllers"
+	middleware "expendit-server/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoutes(incomingRoutes *gin.Engine){
-	incomingRoutes.Use(middleware.Authenticate())
-	incomingRoutes.Use(middleware.AuthMiddleware())
-	incomingRoutes.GET("/users",controller.GetUsers())
-	incomingRoutes.GET("/users/:user_id",controller.GetUser())
-	incomingRoutes.PUT("/users/change-password", controller.ChangePassword())
-  incomingRoutes.PUT("/users/:id", controller.UpdateUser())
+func UserRoutes(incomingRoutes *gin.Engine) {
+
+	// PUBLIC ROUTES
+	incomingRoutes.POST("/signup", controller.Signup())
+	incomingRoutes.POST("/login", controller.Login())
+	incomingRoutes.POST("/auth/google", controller.GoogleAuth())
+
+	// PROTECTED ROUTES
+	protected := incomingRoutes.Group("/")
+	protected.Use(middleware.Authenticate())
+	protected.Use(middleware.AuthMiddleware())
+
+	{
+		protected.GET("/users", controller.GetUsers())
+		protected.GET("/users/:user_id", controller.GetUser())
+		protected.PUT("/users/change-password", controller.ChangePassword())
+		protected.PUT("/users/:id", controller.UpdateUser())
+	}
 }

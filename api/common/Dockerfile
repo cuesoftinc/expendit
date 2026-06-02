@@ -1,5 +1,5 @@
 # Use an official Golang runtime as a base image 
-FROM golang:1.21.1-alpine As builder
+FROM golang:1.25-alpine AS builder
 
 #Set the working directory inside the container
 WORKDIR /app
@@ -36,5 +36,3 @@ EXPOSE 9000
 
 # Command to run the executable
 CMD ["./myapp"]
-
-
