@@ -17,12 +17,12 @@ concurrency:
 
 jobs:
   # Phase 1 : (Front End) Build, Lint, Test, and Stage for Pages
-
   frontend-pipeline:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./web # Front End Directory
+        # Adjusted to match your nested repo folder layout
+        working-directory: ./expendit/web
 
     steps:
       - name: Checkout Code
@@ -30,13 +30,14 @@ jobs:
 
       - name: Detect package manager
         id: detect-package-manager
+        # Using relative paths here makes it immune to the double-folder path nesting bug
         run: |
-          if [ -f "${{ github.workspace }}/web/yarn.lock" ]; then
+          if [ -f "./yarn.lock" ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
             echo "command=install" >> $GITHUB_OUTPUT
             echo "runner=yarn" >> $GITHUB_OUTPUT
             exit 0
-          elif [ -f "${{ github.workspace }}/web/package.json" ]; then
+          elif [ -f "./package.json" ]; then
             echo "manager=npm" >> $GITHUB_OUTPUT
             echo "command=ci" >> $GITHUB_OUTPUT
             echo "runner=npx --no-install" >> $GITHUB_OUTPUT
@@ -51,7 +52,7 @@ jobs:
         with:
           node-version: "20"
           cache: ${{ steps.detect-package-manager.outputs.manager }}
-          cache-dependency-path: ./web/package-lock.json
+          cache-dependency-path: ./expendit/web/package-lock.json
 
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
@@ -70,10 +71,9 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./web/out
+          path: ./expendit/web/out
 
   # Phase 2 : (Backend) Verify Docker Build
-
   backend-pipeline:
     runs-on: ubuntu-latest
     steps:
@@ -86,14 +86,14 @@ jobs:
       - name: Verify Go Docker Build
         uses: docker/build-push-action@v6
         with:
-          context: ./api/common # Backend Directory
-          file: ./api/common/Dockerfile
-          push: false # builds Backend container Only - No Push
+          # Adjusted to account for the root folder nesting
+          context: ./expendit/api/common
+          file: ./expendit/api/common/Dockerfile
+          push: false # Builds Backend container Only - No Push (Mentor Rule)
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   # Phase 3: (Deployment) Deploys Frontend on Main Branch Merge
-
   deploy-frontend:
     environment:
       name: github-pages

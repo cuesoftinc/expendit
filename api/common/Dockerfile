@@ -28,8 +28,8 @@ WORKDIR /app
 # Copy the built binary from the builder stage
 COPY --from=builder /app/myapp .
 
-# Copy the .evn file
-COPY .env .
+# Copy the .env file -- Skipping in case it is not present in the project directory using the [v] flag to avoid build failure
+COPY .en[v] .
 
 #Expose the port on which the application  will run 
 EXPOSE 9000 
