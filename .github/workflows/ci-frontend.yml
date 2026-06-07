@@ -8,12 +8,12 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  # pages: write
+  # id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+# concurrency:
+#   group: "pages"
+#   cancel-in-progress: false
 
 jobs:
   # Phase 1 : (Front End) Build, Lint, Test, and Stage for Pages
@@ -47,11 +47,11 @@ jobs:
         run: npx next build
 
       # Prepares the static build for deployment when merged into main
-      - name: Upload artifact
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./web/out
+      # - name: Upload artifact
+      #   if: github.ref == 'refs/heads/main'
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: ./web/out
 
   # Phase 2 : (Backend) Verify Docker Build
   backend-pipeline:
@@ -74,14 +74,14 @@ jobs:
           cache-to: type=gha,mode=max
 
   # Phase 3: (Deployment) Deploys Frontend on Main Branch Merge
-  deploy-frontend:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: frontend-pipeline
-    if: github.ref == 'refs/heads/main' # Deploy only on main branch once PR is merged
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+  # deploy-frontend:
+  #   environment:
+  #     name: github-pages
+  #     url: ${{ steps.deployment.outputs.page_url }}
+  #   runs-on: ubuntu-latest
+  #   needs: frontend-pipeline
+  #   if: github.ref == 'refs/heads/main' # Deploy only on main branch once PR is merged
+  #   steps:
+  #     - name: Deploy to GitHub Pages
+  #       id: deployment
+  #       uses: actions/deploy-pages@v5
