@@ -19,18 +19,18 @@ func BarChartReport() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.Param("userID")
 
-         now := time.Now()
+		now := time.Now()
 		currentMonth := now.Month()
 		currentYear := now.Year()
+		threeMonthsAgo := now.AddDate(0, -3, 0)
+		rangeStart := time.Date(threeMonthsAgo.Year(), threeMonthsAgo.Month(), 1, 0, 0, 0, 0, time.UTC)
+		rangeEnd := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC)
 		// MongoDB aggregation pipeline for total income per month
 		incomePipeline := []bson.M{
 			{
 				"$match": bson.M{
-					"userid": userID,
-					"createdat": bson.M{
-						"$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
-						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
-					},
+					"userid":    userID,
+					"createdat": bson.M{"$gte": rangeStart, "$lt": rangeEnd},
 				},
 			},
 			{
@@ -70,11 +70,8 @@ func BarChartReport() gin.HandlerFunc {
 		expensePipeline := []bson.M{
 			{
 				"$match": bson.M{
-					"userid": userID,
-					"createdat": bson.M{
-						"$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
-						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
-					},
+					"userid":    userID,
+					"createdat": bson.M{"$gte": rangeStart, "$lt": rangeEnd},
 				},
 			},
 			{
@@ -178,14 +175,14 @@ func ReportByCategory() gin.HandlerFunc {
 		now := time.Now()
 		currentMonth := now.Month()
 		currentYear := now.Year()
-        pipeline := []bson.M{
+		threeMonthsAgo := now.AddDate(0, -3, 0)
+		rangeStart := time.Date(threeMonthsAgo.Year(), threeMonthsAgo.Month(), 1, 0, 0, 0, 0, time.UTC)
+		rangeEnd := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC)
+		pipeline := []bson.M{
             {
                 "$match": bson.M{
-                    "userid": userID,
-                    "createdat": bson.M{
-                        "$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
-						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
-                    },
+                    "userid":    userID,
+                    "createdat": bson.M{"$gte": rangeStart, "$lt": rangeEnd},
                 },
             },
             {
@@ -267,14 +264,14 @@ func ReportByCategoryExpenses() gin.HandlerFunc {
 		now := time.Now()
 		currentMonth := now.Month()
 		currentYear := now.Year()
-        pipeline := []bson.M{
+		threeMonthsAgo := now.AddDate(0, -3, 0)
+		rangeStart := time.Date(threeMonthsAgo.Year(), threeMonthsAgo.Month(), 1, 0, 0, 0, 0, time.UTC)
+		rangeEnd := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC)
+		pipeline := []bson.M{
             {
                 "$match": bson.M{
-                    "userid": userID,
-                    "createdat": bson.M{
-                        "$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
-						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
-                    },
+                    "userid":    userID,
+                    "createdat": bson.M{"$gte": rangeStart, "$lt": rangeEnd},
                 },
             },
             {
