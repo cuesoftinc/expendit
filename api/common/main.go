@@ -33,7 +33,9 @@ func main() {
     routes.ExpenseRoutes(router)
 	routes.IncomeRoutes(router)
 	routes.CategoryRoutes(router)
-	routes.ReportRoutes(router)   
+	routes.ReportRoutes(router)
+	routes.ImportRoutes(router)
+	router.GET("/ai/summary/:userID", middleware.Authenticate(), controller.AISummary())
 
 	err = controller.CreateCategories()
 	if err != nil {
