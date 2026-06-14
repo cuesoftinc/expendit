@@ -66,3 +66,12 @@ export const getIncomeApi = async () => {
     console.log(error);
   }
 };
+
+export const getIncomeListApi = async () => {
+  try {
+    const { data } = await API.get("/income");
+    if (data) return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
