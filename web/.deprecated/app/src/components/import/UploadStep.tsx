@@ -37,8 +37,8 @@ const UploadStep: React.FC<Props> = ({
         Import Bank Statement
       </h2>
       <p className="text-sm text-gray-500 mb-6">
-        Upload a CSV or PDF bank statement. Transactions are extracted,
-        categorized, and checked for duplicates automatically.
+        Upload a CSV, PDF, or image of your bank statement. Transactions are
+        extracted, categorized, and checked for duplicates automatically.
       </p>
 
       <div
@@ -64,7 +64,7 @@ const UploadStep: React.FC<Props> = ({
             </p>
             <span className={styles.uploadBtn}>Choose file</span>
             <p className={styles.uploadHint}>
-              Supports CSV, TXT, and PDF · Max 10 MB
+              Supports CSV, PDF, JPG, PNG, WEBP · Max 10 MB
             </p>
           </>
         )}
@@ -75,7 +75,7 @@ const UploadStep: React.FC<Props> = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept=".csv,.pdf,.txt,text/csv,text/plain,application/pdf"
+        accept=".csv,.pdf,.txt,.jpg,.jpeg,.png,.webp,.heic,.heif,text/csv,text/plain,application/pdf,image/*"
         className="hidden"
         onChange={onFileInput}
       />

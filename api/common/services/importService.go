@@ -79,8 +79,18 @@ func ProcessImport(ctx context.Context, userID, fileName string, data []byte) (*
 			rawTxns, parseErr = ParsePDF(data)
 			log.Printf("[pdf] regex extracted %d transactions, err: %v", len(rawTxns), parseErr)
 		}
+	case "image":
+		if aiEnhancer == nil {
+			parseErr = fmt.Errorf("image upload requires an AI provider — set GROQ_API_KEY or GEMINI_API_KEY")
+			break
+		}
+		mimeType := detectImageMimeType(fileName, data)
+		imgCtx, imgCancel := context.WithTimeout(context.Background(), 60*time.Second)
+		rawTxns, parseErr = aiEnhancer.ExtractTransactionsFromImage(imgCtx, data, mimeType)
+		imgCancel()
+		log.Printf("[image] AI extracted %d transactions, err: %v", len(rawTxns), parseErr)
 	default:
-		parseErr = fmt.Errorf("unsupported file type; please upload a CSV or PDF")
+		parseErr = fmt.Errorf("unsupported file type; please upload a CSV, PDF, or image (JPG, PNG, WEBP)")
 	}
 	if parseErr != nil {
 		return nil, markJobFailed(ctx, job.ID, parseErr)
@@ -364,12 +374,42 @@ func detectFileType(fileName string, data []byte) string {
 	if strings.HasSuffix(lower, ".pdf") {
 		return "pdf"
 	}
+	for _, ext := range []string{".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"} {
+		if strings.HasSuffix(lower, ext) {
+			return "image"
+		}
+	}
 	// PDF magic bytes
 	if len(data) >= 4 && string(data[:4]) == "%PDF" {
 		return "pdf"
 	}
+	// PNG magic bytes
+	if len(data) >= 4 && data[0] == 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G' {
+		return "image"
+	}
+	// JPEG magic bytes
+	if len(data) >= 3 && data[0] == 0xFF && data[1] == 0xD8 && data[2] == 0xFF {
+		return "image"
+	}
 	// Everything else (csv, xlsx, txt) goes through ParseCSV which handles all tabular formats
 	return "csv"
+}
+
+func detectImageMimeType(fileName string, data []byte) string {
+	lower := strings.ToLower(fileName)
+	switch {
+	case strings.HasSuffix(lower, ".png"):
+		return "image/png"
+	case strings.HasSuffix(lower, ".webp"):
+		return "image/webp"
+	case strings.HasSuffix(lower, ".heic"), strings.HasSuffix(lower, ".heif"):
+		return "image/heic"
+	default:
+		if len(data) >= 4 && data[0] == 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G' {
+			return "image/png"
+		}
+		return "image/jpeg"
+	}
 }
 
 func markJobFailed(ctx context.Context, jobID primitive.ObjectID, err error) error {
