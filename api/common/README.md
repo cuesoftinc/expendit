@@ -12,6 +12,21 @@ get - http://localhost:9000/users
 get - http://localhost:9000/user_id
 
 
+## Rate Limiting
+
+Login and password reset endpoints are rate-limited per IP using a sliding window (5 login attempts / 3 password reset attempts per 15 minutes).
+
+By default the limiter runs **in-memory** — no setup required. To switch to a **Redis-backed** limiter that persists across restarts and works across multiple server instances, add one variable to `.env`:
+
+```env
+REDIS_URL=redis://localhost:6379              # local
+REDIS_URL=redis://default:password@host:6379  # production (Upstash, Railway, Render, etc.)
+```
+
+The server pings Redis on startup. If the URL is missing or Redis is unreachable, it logs a warning and falls back to in-memory automatically — the app keeps running either way.
+
+---
+
 ## Packages to install 
 go get github.com/dgrijalva/jwt-go
  go get github.com/gin-gonic/gin

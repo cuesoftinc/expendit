@@ -3,8 +3,10 @@ import { IncomeProps } from "../types";
 import { getLocalStorageItem } from "@/utils/localStorage";
 import { getBarChartApi } from "./reportApi";
 
-const userID = getLocalStorageItem("Expendit-userID") || null;
-const user_id = userID ? JSON.parse(userID) : null;
+const getUserId = () => {
+  const raw = getLocalStorageItem("Expendit-userID");
+  return raw ? JSON.parse(raw) : null;
+};
 
 export const incomeCreateApi = async ({
   completeForm,
@@ -54,7 +56,7 @@ export const incomeCreateApi = async ({
 export const getIncomeApi = async () => {
   try {
     const { data, status } = await API.get(
-      `/income/incomes/monthly/${user_id}`,
+      `/income/incomes/monthly/${getUserId()}`,
     );
 
     if (data) {

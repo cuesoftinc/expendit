@@ -96,7 +96,7 @@ func ProcessImport(ctx context.Context, userID, fileName string, data []byte) (*
 		return nil, markJobFailed(ctx, job.ID, parseErr)
 	}
 
-	catEngine, err := NewCategorizationEngine(ctx)
+	catEngine, err := GetCategorizationEngine(ctx)
 	if err != nil {
 		return nil, markJobFailed(ctx, job.ID, err)
 	}

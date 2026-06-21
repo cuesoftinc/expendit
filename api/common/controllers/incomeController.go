@@ -38,25 +38,25 @@ func GetIncomeById()gin.HandlerFunc {
 }    
 
 
-func GetIncomes()gin.HandlerFunc{
-	return func(c *gin.Context){
-	cursor, err  := incomeCollection.Find(context.Background(), bson.M{})
-    if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-         return 
+func GetIncomes() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		uid, _ := c.Get("uid")
+
+		cursor, err := incomeCollection.Find(context.Background(), bson.M{"userid": uid})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		defer cursor.Close(context.Background())
+
+		var income []models.Income
+		if err := cursor.All(context.Background(), &income); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		c.JSON(http.StatusOK, income)
 	}
-	defer cursor.Close(context.Background())
-
-	var income []models.Income
-
-	if err := cursor.All(context.Background(), &income); err != nil{
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-
-		return 
-	}
-
-	c.JSON(http.StatusOK, income)
-}
 }
 
 
@@ -184,7 +184,8 @@ func SearchIncome() gin.HandlerFunc {
 
 func GetMonthlyIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("userID")
+		uid, _ := c.Get("uid")
+		userID := uid.(string)
 
 		now := time.Now()
 		currentMonth := now.Month()
@@ -240,8 +241,6 @@ func GetMonthlyIncome() gin.HandlerFunc {
 // func GetMonthIncome() gin.HandlerFunc {
 // 	return func(c *gin.Context) {
 // 		userID := c.Param("userID")
-
-		
 // 		now := time.Now()
 // 		currentMonth := now.Month()
 // 		currentYear := now.Year()
@@ -311,7 +310,8 @@ func GetMonthlyIncome() gin.HandlerFunc {
 
 func GetMonthIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("userID")
+		uid, _ := c.Get("uid")
+		userID := uid.(string)
 
 		now := time.Now()
 		currentMonth := now.Month()

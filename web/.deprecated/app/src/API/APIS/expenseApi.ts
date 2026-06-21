@@ -3,8 +3,10 @@ import { ExpenseProps } from "../types";
 import { getLocalStorageItem } from "@/utils/localStorage";
 import { getBarChartApi, getLineChartApi, getPieChartApi } from "./reportApi";
 
-const userID = getLocalStorageItem("Expendit-userID") || null;
-const user_id = userID ? JSON.parse(userID) : null;
+const getUserId = () => {
+  const raw = getLocalStorageItem("Expendit-userID");
+  return raw ? JSON.parse(raw) : null;
+};
 
 export const expenseCreateApi = async ({
   completeForm,
@@ -69,7 +71,7 @@ export const expenseCreateApi = async ({
 export const getExpenseApi = async () => {
   try {
     const { data } = await API.get(
-      `/expense/user/${user_id}?page=1&per_page=10`,
+      `/expense/user/${getUserId()}?page=1&per_page=10`,
     );
 
     if (data) {
@@ -83,7 +85,7 @@ export const getExpenseApi = async () => {
 
 export const getMonthlyExpenseApi = async () => {
   try {
-    const { data } = await API.get(`/expense/expenses/month/${user_id}`);
+    const { data } = await API.get(`/expense/expenses/month/${getUserId()}`);
 
     if (data) {
       console.log(data);

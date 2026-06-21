@@ -169,6 +169,9 @@ func Login() gin.HandlerFunc {
         token, refreshToken, _ := helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, *foundUser.User_type, foundUser.User_id)
         helper.UpdateAllTokens(token, refreshToken, foundUser.User_id)
 
+        foundUser.Token = &token
+        foundUser.Refresh_token = &refreshToken
+
         c.JSON(http.StatusOK, foundUser)
     }
 }
@@ -585,13 +588,13 @@ func ResetPassword() gin.HandlerFunc {
             log.Printf("Error parsing reset token: %v", err)
             c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired reset token"})
             return
-        } 
+        }
 
         log.Printf("Reset password request received for user ID: %s", claims.Subject)
 
         newHashedPassword := HashPassword(*resetPasswordRequest.NewPassword)
         filter := bson.M{"email": claims.Subject}
-        update := bson.M{"$set": bson.M{"password": newHashedPassword}}
+        update := bson.M{"$set": bson.M{"password": newHashedPassword}, "$unset": bson.M{"reset_token": ""}}
         result, err := userCollection.UpdateOne(ctx, filter, update)
         if err != nil {
             log.Printf("Error updating password: %v", err)
@@ -601,14 +604,12 @@ func ResetPassword() gin.HandlerFunc {
 
         log.Printf("Password update result: %+v", result)
 
-        // Check if the password update was successful
         if result.ModifiedCount == 0 {
             c.JSON(http.StatusBadRequest, gin.H{"error": "password not updated"})
             return
         }
 
-        // Fetch and return the updated user details
-        updatedUser := models.User{} // Replace with your actual user model
+        var updatedUser models.User
         err = userCollection.FindOne(ctx, bson.M{"email": claims.Subject}).Decode(&updatedUser)
         if err != nil {
             log.Printf("Error fetching updated user details: %v", err)
@@ -618,4 +619,21 @@ func ResetPassword() gin.HandlerFunc {
 
         c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully", "userdetails": updatedUser})
     }
+}
+
+func Logout() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		uid, _ := c.Get("uid")
+
+		update := bson.M{"$unset": bson.M{"token": "", "refresh_token": ""}}
+		_, err := userCollection.UpdateOne(ctx, bson.M{"user_id": uid}, update)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to logout"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
+	}
 }

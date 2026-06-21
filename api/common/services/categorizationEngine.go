@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"strings"
+	"sync"
 	"time"
 
 	"expendit-server/database"
@@ -50,6 +51,27 @@ var categorizationRules = []categoryRule{
 type CategorizationEngine struct {
 	// normalized lowercase name → actual DB-stored name
 	cache map[string]string
+}
+
+var (
+	sharedEngine   *CategorizationEngine
+	sharedEngineMu sync.Mutex
+)
+
+// GetCategorizationEngine returns a shared engine, initializing it from MongoDB on first call.
+// Subsequent calls return the same instance without hitting the DB.
+func GetCategorizationEngine(ctx context.Context) (*CategorizationEngine, error) {
+	sharedEngineMu.Lock()
+	defer sharedEngineMu.Unlock()
+	if sharedEngine != nil {
+		return sharedEngine, nil
+	}
+	engine, err := NewCategorizationEngine(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sharedEngine = engine
+	return sharedEngine, nil
 }
 
 func NewCategorizationEngine(ctx context.Context) (*CategorizationEngine, error) {
