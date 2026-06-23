@@ -43,19 +43,20 @@ func GetExpenseById()gin.HandlerFunc {
 
 func GetExpenses() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		uid, _ := c.Get("uid")
 
-    page, err := strconv.Atoi(c.Query("page"))
+		page, err := strconv.Atoi(c.Query("page"))
 		if err != nil || page <= 0 {
-			page  = 1
+			page = 1
 		}
 		perPage, err := strconv.Atoi(c.Query("per_page"))
 		if err != nil || perPage <= 0 {
-			perPage = 10 
+			perPage = 10
 		}
 
 		skip := (page - 1) * perPage
 
-		cursor, err := expenseCollection.Find(context.Background(), bson.M{}, options.Find().SetSkip(int64(skip)).SetLimit(int64(perPage)))
+		cursor, err := expenseCollection.Find(context.Background(), bson.M{"userid": uid}, options.Find().SetSkip(int64(skip)).SetLimit(int64(perPage)))
 		if err != nil {
 			log.Println("Error querying expenses:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -78,7 +79,8 @@ func GetExpenses() gin.HandlerFunc {
 
 func GetUserExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("userID")
+		uid, _ := c.Get("uid")
+		userID := uid.(string)
 
 		page, err := strconv.Atoi(c.Query("page"))
 		if err != nil || page <= 0 {
@@ -148,7 +150,8 @@ func GetUserExpense() gin.HandlerFunc {
 }
 func GetMonthlyExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("userID")
+		uid, _ := c.Get("uid")
+		userID := uid.(string)
 
 		now := time.Now()
 		currentMonth := now.Month()
@@ -338,7 +341,8 @@ func SearchExpense() gin.HandlerFunc {
 
 func GetMonthExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("userID")
+		uid, _ := c.Get("uid")
+		userID := uid.(string)
          now := time.Now()
         currentMonth := now.Month()
         currentYear := now.Year()

@@ -17,7 +17,8 @@ var expensesCollection *mongo.Collection = database.OpenCollection(database.Clie
 
 func BarChartReport() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("userID")
+		uid, _ := c.Get("uid")
+		userID := uid.(string)
 
 		now := time.Now()
 		currentMonth := now.Month()
@@ -125,43 +126,59 @@ func BarChartReport() gin.HandlerFunc {
 		}
 		defer expenseCursor.Close(context.Background())
 
-		// Merge results for each month
-		var result []bson.M
+		// Build income map: month → entry
 		incomeMap := make(map[string]bson.M)
-
-		// Iterate over income results and store in a map
 		for incomeCursor.Next(context.Background()) {
-			var incomeEntry bson.M
-			if err := incomeCursor.Decode(&incomeEntry); err != nil {
-				log.Println("Error decoding MongoDB documents for income:", err)
+			var entry bson.M
+			if err := incomeCursor.Decode(&entry); err != nil {
+				log.Println("Error decoding income documents:", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
 				return
 			}
-			month := incomeEntry["month"].(string)
-			incomeMap[month] = incomeEntry
+			month := entry["month"].(string)
+			incomeMap[month] = entry
 		}
 
-		
+		// Build expense map: month → entry
+		expenseMap := make(map[string]bson.M)
 		for expenseCursor.Next(context.Background()) {
-			var expenseEntry bson.M
-			if err := expenseCursor.Decode(&expenseEntry); err != nil {
-				log.Println("Error decoding MongoDB documents for expenses:", err)
+			var entry bson.M
+			if err := expenseCursor.Decode(&entry); err != nil {
+				log.Println("Error decoding expense documents:", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
 				return
 			}
-			month := expenseEntry["month"].(string)
+			month := entry["month"].(string)
+			expenseMap[month] = entry
+		}
 
-			
-			if incomeEntry, exists := incomeMap[month]; exists {
-				incomeEntry["totalExpense"] = expenseEntry["totalExpense"]
-				result = append(result, incomeEntry)
-			} else {
-				
-				result = append(result, expenseEntry)
+		// Merge: union of all months from both maps
+		merged := make(map[string]bson.M)
+		for month, entry := range incomeMap {
+			merged[month] = bson.M{
+				"month":        month,
+				"totalIncome":  entry["totalIncome"],
+				"totalExpense": float64(0),
 			}
+		}
+		for month, entry := range expenseMap {
+			if m, exists := merged[month]; exists {
+				m["totalExpense"] = entry["totalExpense"]
+			} else {
+				merged[month] = bson.M{
+					"month":        month,
+					"totalIncome":  float64(0),
+					"totalExpense": entry["totalExpense"],
+				}
+			}
+		}
+
+		var result []bson.M
+		for _, v := range merged {
+			result = append(result, v)
 		}
 		if len(result) == 0 {
-			result = append(result, bson.M{"totalexpense":0,"totalIncome":0, "month":currentMonth.String()[:3]})
+			result = append(result, bson.M{"totalExpense": float64(0), "totalIncome": float64(0), "month": currentMonth.String()[:3]})
 		}
 		c.JSON(http.StatusOK, result)
 	}
@@ -170,7 +187,8 @@ func BarChartReport() gin.HandlerFunc {
 
 func ReportByCategory() gin.HandlerFunc {
     return func(c *gin.Context) {
-        userID := c.Param("userID")
+        uid, _ := c.Get("uid")
+        userID := uid.(string)
              
 		now := time.Now()
 		currentMonth := now.Month()
@@ -260,7 +278,8 @@ func ReportByCategory() gin.HandlerFunc {
 
 func ReportByCategoryExpenses() gin.HandlerFunc {
     return func(c *gin.Context) {
-        userID := c.Param("userID")
+        uid, _ := c.Get("uid")
+        userID := uid.(string)
 		now := time.Now()
 		currentMonth := now.Month()
 		currentYear := now.Year()

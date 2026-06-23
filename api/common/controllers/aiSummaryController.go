@@ -20,7 +20,8 @@ var aiIncomeCol *mongo.Collection = database.OpenCollection(database.Client, "in
 
 func AISummary() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID := c.Param("userID")
+		uid, _ := c.Get("uid")
+		userID := uid.(string)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()

@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -278,6 +279,242 @@ func (a *AIEnhancer) generate(ctx context.Context, prompt string) (string, error
 	default:
 		return a.generateGemini(ctx, prompt)
 	}
+}
+
+// ── Groq Vision ──────────────────────────────────────────────────────────────
+
+var groqVisionModels = []string{
+	"meta-llama/llama-4-scout-17b-16e-instruct",
+	"meta-llama/llama-4-maverick-17b-128e-instruct",
+}
+
+type groqVisionRequest struct {
+	Model       string              `json:"model"`
+	Messages    []groqVisionMessage `json:"messages"`
+	Temperature float32             `json:"temperature"`
+	MaxTokens   int                 `json:"max_tokens"`
+}
+
+type groqVisionMessage struct {
+	Role    string           `json:"role"`
+	Content []groqVisionPart `json:"content"`
+}
+
+type groqVisionPart struct {
+	Type     string        `json:"type"`
+	Text     string        `json:"text,omitempty"`
+	ImageURL *groqImageURL `json:"image_url,omitempty"`
+}
+
+type groqImageURL struct {
+	URL string `json:"url"`
+}
+
+func (a *AIEnhancer) generateGroqVision(ctx context.Context, imageData []byte, mimeType, prompt string) (string, error) {
+	dataURL := "data:" + mimeType + ";base64," + base64.StdEncoding.EncodeToString(imageData)
+
+	for _, model := range groqVisionModels {
+		payload := groqVisionRequest{
+			Model: model,
+			Messages: []groqVisionMessage{{
+				Role: "user",
+				Content: []groqVisionPart{
+					{Type: "image_url", ImageURL: &groqImageURL{URL: dataURL}},
+					{Type: "text", Text: prompt},
+				},
+			}},
+			Temperature: 0.1,
+			MaxTokens:   4096,
+		}
+		body, _ := json.Marshal(payload)
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+			"https://api.groq.com/openai/v1/chat/completions", bytes.NewReader(body))
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+a.apiKey)
+
+		resp, err := a.client.Do(req)
+		if err != nil {
+			log.Printf("[AI] Groq vision %s request failed: %v", model, err)
+			continue
+		}
+
+		if resp.StatusCode == http.StatusNotFound ||
+			resp.StatusCode == http.StatusTooManyRequests ||
+			resp.StatusCode == http.StatusRequestEntityTooLarge {
+			resp.Body.Close()
+			log.Printf("[AI] Groq vision model %s unavailable (%d), trying next", model, resp.StatusCode)
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			var errBody map[string]any
+			json.NewDecoder(resp.Body).Decode(&errBody)
+			resp.Body.Close()
+			log.Printf("[AI] Groq vision %s returned %d: %v", model, resp.StatusCode, errBody)
+			return "", fmt.Errorf("Groq vision API returned %d", resp.StatusCode)
+		}
+
+		var groqResp groqResponse
+		if err := json.NewDecoder(resp.Body).Decode(&groqResp); err != nil {
+			resp.Body.Close()
+			return "", err
+		}
+		resp.Body.Close()
+
+		if len(groqResp.Choices) == 0 {
+			return "", fmt.Errorf("empty Groq vision response")
+		}
+		text := groqResp.Choices[0].Message.Content
+		log.Printf("[AI] Groq vision %s responded (%d chars)", model, len(text))
+		return text, nil
+	}
+	return "", fmt.Errorf("no available Groq vision model")
+}
+
+// ── Gemini Vision ─────────────────────────────────────────────────────────────
+
+type geminiInlineData struct {
+	MimeType string `json:"mimeType"`
+	Data     string `json:"data"`
+}
+
+type geminiVisionPart struct {
+	Text       string            `json:"text,omitempty"`
+	InlineData *geminiInlineData `json:"inlineData,omitempty"`
+}
+
+type geminiVisionContent struct {
+	Parts []geminiVisionPart `json:"parts"`
+}
+
+type geminiVisionRequest struct {
+	Contents         []geminiVisionContent `json:"contents"`
+	GenerationConfig geminiGenConfig       `json:"generationConfig"`
+}
+
+var geminiVisionModels = []string{"gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest"}
+
+func (a *AIEnhancer) generateGeminiVision(ctx context.Context, imageData []byte, mimeType, prompt string) (string, error) {
+	b64 := base64.StdEncoding.EncodeToString(imageData)
+	payload := geminiVisionRequest{
+		Contents: []geminiVisionContent{{
+			Parts: []geminiVisionPart{
+				{InlineData: &geminiInlineData{MimeType: mimeType, Data: b64}},
+				{Text: prompt},
+			},
+		}},
+		GenerationConfig: geminiGenConfig{Temperature: 0.1},
+	}
+	body, _ := json.Marshal(payload)
+
+	for _, model := range geminiVisionModels {
+		url := "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent?key=" + a.apiKey
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
+		if err != nil {
+			return "", err
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := a.client.Do(req)
+		if err != nil {
+			log.Printf("[AI] Gemini vision %s request failed: %v", model, err)
+			continue
+		}
+
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusTooManyRequests {
+			resp.Body.Close()
+			log.Printf("[AI] Gemini vision model %s unavailable (%d), trying next", model, resp.StatusCode)
+			continue
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			var errBody map[string]any
+			json.NewDecoder(resp.Body).Decode(&errBody)
+			resp.Body.Close()
+			log.Printf("[AI] Gemini vision %s returned %d: %v", model, resp.StatusCode, errBody)
+			return "", fmt.Errorf("Gemini vision API returned %d", resp.StatusCode)
+		}
+
+		var gemResp geminiResponse
+		if err := json.NewDecoder(resp.Body).Decode(&gemResp); err != nil {
+			resp.Body.Close()
+			return "", err
+		}
+		resp.Body.Close()
+
+		if len(gemResp.Candidates) == 0 || len(gemResp.Candidates[0].Content.Parts) == 0 {
+			return "", fmt.Errorf("empty Gemini vision response")
+		}
+		text := gemResp.Candidates[0].Content.Parts[0].Text
+		log.Printf("[AI] Gemini vision %s responded (%d chars)", model, len(text))
+		return text, nil
+	}
+	return "", fmt.Errorf("no available Gemini vision model")
+}
+
+// ── Shared Vision ─────────────────────────────────────────────────────────────
+
+const imageTransactionPrompt = "Extract all financial transactions from this bank statement image.\n" +
+	"Return a JSON array where each item has:\n" +
+	"- \"date\": YYYY-MM-DD\n" +
+	"- \"description\": transaction description/narration\n" +
+	"- \"amount\": positive number, no currency symbols\n" +
+	"- \"type\": \"income\" or \"expense\"\n\n" +
+	"Skip headers, totals, account summary rows, and opening/closing balances. Only actual transaction rows.\n" +
+	"If you cannot find any transactions return an empty array []."
+
+// ExtractTransactionsFromImage sends a bank statement image to a vision model and returns parsed transactions.
+func (a *AIEnhancer) ExtractTransactionsFromImage(ctx context.Context, imageData []byte, mimeType string) ([]RawTransaction, error) {
+	if a == nil {
+		return nil, fmt.Errorf("AI not available")
+	}
+
+	var text string
+	var err error
+	switch a.provider {
+	case "groq":
+		text, err = a.generateGroqVision(ctx, imageData, mimeType, imageTransactionPrompt)
+	default:
+		text, err = a.generateGeminiVision(ctx, imageData, mimeType, imageTransactionPrompt)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var aiTxns []aiRawTransaction
+	if err := json.Unmarshal([]byte(extractJSON(text)), &aiTxns); err != nil {
+		return nil, fmt.Errorf("failed to parse AI image response: %w", err)
+	}
+
+	seen := make(map[string]bool)
+	var result []RawTransaction
+	for _, t := range aiTxns {
+		date, err := time.Parse("2006-01-02", t.Date)
+		if err != nil {
+			continue
+		}
+		txType := t.Type
+		if txType != "income" && txType != "expense" {
+			txType = "expense"
+		}
+		key := fmt.Sprintf("%s|%.2f|%s", t.Date, t.Amount, t.Description)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		result = append(result, RawTransaction{
+			Date:        date,
+			Amount:      t.Amount,
+			Description: t.Description,
+			Type:        txType,
+		})
+	}
+	log.Printf("[AI] image extraction → %d transactions", len(result))
+	return result, nil
 }
 
 // extractJSON pulls the first complete JSON array or object out of an LLM response,
