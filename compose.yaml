@@ -9,7 +9,7 @@ services:
   expendit-backend:
     build: ./api/common
     ports:
-      - "9000:8080"
+      - "9000:9000"
     env_file:
       - ./api/common/.env
     depends_on:
