@@ -10,7 +10,7 @@ import (
 )
 
 
-var SECRET_KEY string = os.Getenv("SECRET_KEY")
+var SECRET_KEY string = os.Getenv("JWT_SECRET")
 
 
 // Define a secret key for JWT
