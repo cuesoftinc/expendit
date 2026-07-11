@@ -36,9 +36,9 @@ const MobileNavbar = ({ setOpenNav }: Props) => {
             </li>
           ))}
         </ul>
-        <button type="button" className={styles.btnOne} onClick={handleClick}>
-          <Link href="/signin">Login</Link>
-        </button>
+        <Link href="/signin" className={styles.btnOne} onClick={handleClick}>
+          Login
+        </Link>
       </div>
     </div>
   );

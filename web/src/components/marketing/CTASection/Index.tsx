@@ -26,9 +26,9 @@ const CTASection = () => {
         <br /> Budgeting, and Planning for a Bright Financial Future.
       </p>
       <div className="text-center my-8">
-        <button type="button" className={styles.btn}>
-          <Link href="/signup">Get started</Link>
-        </button>
+        <Link href="/signup" className={styles.btn}>
+          Get started
+        </Link>
       </div>
       <div className={styles.featuresContainer}>
         <div className="lg:w-1/2 w-full">

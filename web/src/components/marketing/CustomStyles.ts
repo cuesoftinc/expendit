@@ -7,7 +7,7 @@ const styles = {
     "md:text-4xl sm:text-2xl text-[5.5vw] font-bold md:leading-[3.5rem] sm:leading-[3rem] leading-[2rem] mb-4 text-[#414141]",
   fluid_text: "md:text-base sm:text-sm text-[0.75rem]",
   subtext: "md:text-base sm:text-sm text-[0.95rem]",
-  btn: `text-center rounded-md font-semibold md:px-14 sm:px-10 px-6`,
+  btn: `inline-block text-center rounded-md font-semibold md:px-14 sm:px-10 px-6`,
   pagePad: "px-[4%] py-[2%] mb-[5vh] text-[#414141]",
 };
 

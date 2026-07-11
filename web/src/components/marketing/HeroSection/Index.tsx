@@ -51,9 +51,9 @@ const HeroSection = () => {
           </ul>
         )}
         {!mobile && (
-          <button type="button" className={styles.btnOne}>
-            <Link href="/signin">Login</Link>
-          </button>
+          <Link href="/signin" className={styles.btnOne}>
+            Login
+          </Link>
         )}
         {mobile && (
           <AiOutlineMenu
@@ -78,17 +78,16 @@ const HeroSection = () => {
             here to empower you.
           </p>
           <div className="flex gap-3 items-center">
-            <button type="button" className={styles.btnTwo}>
-              <Link href="/signup">Try cloud</Link>
-            </button>
-            <button type="button" className={styles.btnThree}>
-              <Link
-                target="_blank"
-                href="https://expendit.gitbook.io/docs/get-started"
-              >
-                self-host
-              </Link>
-            </button>
+            <Link href="/signup" className={styles.btnTwo}>
+              Try cloud
+            </Link>
+            <Link
+              target="_blank"
+              href="https://expendit.gitbook.io/docs/get-started"
+              className={styles.btnThree}
+            >
+              self-host
+            </Link>
           </div>
         </div>
         <div className={styles.imgContainer}>
