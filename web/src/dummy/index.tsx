@@ -15,7 +15,7 @@ const presentDate = dayjs().format("MMM D, YYYY h:mm A");
 export const links = [
   {
     name: "Overview",
-    url: "/",
+    url: "/dashboard",
     icon: <RxDashboard />,
   },
   {
