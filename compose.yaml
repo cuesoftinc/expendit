@@ -21,11 +21,11 @@ services:
 
   expendit-home:
    build:
-    context: ./web/.deprecated/home
+    context: ./web/home
    ports:
     - "5000:3000"
    volumes:
-    - ./web/.deprecated/home:/app
+    - ./web/home:/app
     - /app/node_modules
    depends_on:
     - expendit-backend
@@ -36,12 +36,12 @@ services:
 
   expendit-frontend:
     build:
-      context: ./web/.deprecated/app
+      context: ./web/app
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
-      - ./web/.deprecated/app:/app
+      - ./web/app:/app
       - /app/node_modules
     depends_on:
       - expendit-backend

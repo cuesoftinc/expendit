@@ -125,7 +125,7 @@ const Form = () => {
           <div className={`${styles.check} mt-8`}>
             <input type="checkbox" className={styles.checkbox} />
             <p>
-              By signing up, I agree to Expendit's &nbsp;
+              By signing up, I agree to Expendit&apos;s &nbsp;
               <span className={styles.links}>terms & conditions</span>
             </p>
           </div>

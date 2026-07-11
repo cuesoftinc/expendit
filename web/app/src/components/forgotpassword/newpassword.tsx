@@ -26,7 +26,7 @@ const NewPassword = () => {
       {formError !== "" && <Notification msg={formError} type="error" />}
       {formSuccess !== "" && <Notification msg={formSuccess} type="success" />}
       <main className="h-screen">
-        <Link href="/dashboard" className="">
+        <Link href="/" className="">
           <Image
             src={Logo}
             alt="Expendit Logo"

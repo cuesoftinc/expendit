@@ -10,7 +10,7 @@ import EmailInput from "./email";
 const Index = () => {
   return (
     <main className="h-[90vh]">
-      <Link href="/dashboard" className="">
+      <Link href="/" className="">
         <Image src={Logo} alt="Expendit Logo" width={85} className="mt-1" />
       </Link>
       <div className={styles.minWidth}>

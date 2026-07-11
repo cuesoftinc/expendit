@@ -26,7 +26,7 @@ const Sidebar = ({ mobile }: { mobile?: boolean }) => {
   return (
     <div className={styles.container(mobile)}>
       <div className="flex justify-between items-end">
-        <Link href="/dashboard" className="">
+        <Link href="/" className="">
           <Image
             src={Logo}
             alt="Expendit Logo"
