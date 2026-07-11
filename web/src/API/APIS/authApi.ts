@@ -56,7 +56,7 @@ export const signInApi = async ({
       localStorage.setItem("ExpenditLoggedIn", JSON.stringify(true));
 
       window.location.reload();
-      router.push("/");
+      router.push("/dashboard");
     }
   } catch (error: any) {
     setFormError(error?.response?.data?.error || "an error occurred, try again");

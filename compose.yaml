@@ -23,11 +23,18 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+      # NEXT_PUBLIC_BASE_URL & NEXT_PUBLIC_GOOGLE_CLIENT_ID come from a
+      # repo-root .env (not tracked — copy .env.example to .env for
+      # local dev, see that file's comment). For staging/production, do
+      # NOT create that file; instead export these as real environment
+      # variables in whatever runs `docker compose up` (CI/CD config,
+      # systemd unit, platform env settings, etc.) pointing at the real
+      # backend URL and production OAuth client ID.
+      args:
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
     ports:
       - "3000:3000"
-    volumes:
-      - ./web:/app
-      - /app/node_modules
     depends_on:
       - expendit-backend
     restart: always

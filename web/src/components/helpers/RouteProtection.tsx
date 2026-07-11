@@ -39,7 +39,7 @@ export const PublicRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   useEffect(() => {
     if (isUserLoggedIn) {
-      router.push("/");
+      router.push("/dashboard");
     }
   }, [router, isUserLoggedIn]);
 

@@ -1,22 +1,26 @@
-import PageLayout from "@/components/layouts/PageLayout";
-import TopBoard from "@/components/home/TopBoard";
-import LinearChart from "@/components/home/LinearChart";
-import LatestExpenses from "@/components/home/LatestExpenses";
-import ImportCard from "@/components/home/ImportCard";
-import styles from "@/components/CustomStyles";
-import { ProtectedRoute } from "@/components/helpers/RouteProtection";
+"use client";
+
+import { Fragment } from "react";
+import HowItWorks from "@/components/marketing/HowItWorksSection";
+import HeroSection from "@/components/marketing/HeroSection/Index";
+import FeaturesSection from "@/components/marketing/FeaturesSection/Index";
+import CTASection from "@/components/marketing/CTASection/Index";
+import Contact from "@/components/marketing/ContactSection";
+import Services from "@/components/marketing/ServiceSection";
+import OpenSourceSection from "@/components/marketing/OpenSourceSection";
+import Footer from "@/components/marketing/Footer";
 
 export default function Home() {
   return (
-    <ProtectedRoute>
-      <PageLayout>
-        <main className={styles.pagePad}>
-          <TopBoard data-testid="top-board" />
-          <ImportCard />
-          <LinearChart />
-          <LatestExpenses />
-        </main>
-      </PageLayout>
-    </ProtectedRoute>
+    <Fragment>
+      <HeroSection />
+      <Services />
+      <FeaturesSection />
+      <CTASection />
+      <HowItWorks />
+      <OpenSourceSection />
+      <Contact />
+      <Footer />
+    </Fragment>
   );
 }

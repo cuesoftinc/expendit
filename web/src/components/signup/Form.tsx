@@ -40,7 +40,7 @@ const Form = () => {
           localStorage.setItem("Expendit-userID", JSON.stringify(user_id));
           localStorage.setItem("Expendit-user", JSON.stringify(data.user));
           localStorage.setItem("ExpenditLoggedIn", JSON.stringify(true));
-          router.push("/");
+          router.push("/dashboard");
         }
       })
       .catch(err => {
