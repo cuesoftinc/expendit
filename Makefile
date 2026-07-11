@@ -6,22 +6,21 @@
 #
 # Structure:
 #   api/common/             — Go backend (common)
-#   web/home/              — Next.js root app (home)
-#   web/app/                — Next.js dashboard app (app)
+#   web/                    — Next.js app (marketing + dashboard, combined)
 #   deploy/docker/         — Docker Infrastructure / compose files currently in root directory for simplicity
-#   web/app/k8s/           — Kubernetes manifests
+#   web/k8s/                — Kubernetes manifests
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help install install-api install-web install-dashboard \
-        dev dev-api dev-web dev-dashboard \
-        build build-api build-web build-dashboard \
-        lint lint-api lint-web lint-dashboard \
-        test test-api test-web test-dashboard \
+.PHONY: help install install-api install-web \
+        dev dev-api dev-web \
+        build build-api build-web \
+        lint lint-api lint-web \
+        test test-api test-web \
 		setup-node docker-install \
         docker-up docker-up-d docker-down docker-build docker-logs \
         k8s-apply k8s-delete k8s-status \
-        pre-push pre-push-web pre-push-dashboard \
+        pre-push pre-push-web \
         clean clean-builds
 
 # -----------------------------------------------------------------------------
@@ -37,10 +36,9 @@ GRAY  := \033[90m
 # Paths
 # -----------------------------------------------------------------------------
 API_DIR      := api/common/
-WEB_DIR      := web/home/
-DASH_DIR     := web/app/
+WEB_DIR      := web/
 DOCKER_COMPOSE_DIR   := $(shell pwd)/.
-K8S_DIR      := web/app/k8s/
+K8S_DIR      := web/k8s/
 COMPOSE_FILE := $(DOCKER_COMPOSE_DIR)/compose.yaml
 CURRENT_USER := $(shell whoami)
 
@@ -93,7 +91,7 @@ docker-install: ## Docker Installation
 # -----------------------------------------------------------------------------
 # Install — listed as dependencies, no recursive make calls
 # -----------------------------------------------------------------------------
-install: install-api install-web install-dashboard ## Install all workspace dependencies
+install: install-api install-web ## Install all workspace dependencies
 	@printf "$(GREEN)✓ All dependencies installed$(RESET)\n"
 
 install-api: ## Install CommonServer dependencies
@@ -104,16 +102,12 @@ install-web: ## Install web dependencies
 	@printf "$(BOLD)Installing $(WEB_DIR)...$(RESET)\n"
 	cd $(WEB_DIR) && npm install
 
-install-dashboard: ## Install web/dashboard dependencies
-	@printf "$(BOLD)Installing $(DASH_DIR)...$(RESET)\n"
-	cd $(DASH_DIR) && npm install
-
 # -----------------------------------------------------------------------------
 # Development
 # -----------------------------------------------------------------------------
 dev: ## Start all services in development mode (parallel)
 	@printf "$(BOLD)Starting all services...$(RESET)\n"
-	$(MAKE) -j3 dev-api dev-web dev-dashboard
+	$(MAKE) -j2 dev-api dev-web
 
 dev-api: ## Start api/nodejs dev server
 	cd $(API_DIR) && npm run dev
@@ -121,13 +115,10 @@ dev-api: ## Start api/nodejs dev server
 dev-web: ## Start web dev server
 	cd $(WEB_DIR) && npm run dev
 
-dev-dashboard: ## Start web/dashboard dev server
-	cd $(DASH_DIR) && npm run dev
-
 # -----------------------------------------------------------------------------
 # Build — compound target uses dependencies, no recursive make
 # -----------------------------------------------------------------------------
-build: build-api build-web build-dashboard ## Build all workspaces for production
+build: build-api build-web ## Build all workspaces for production
 	@printf "$(GREEN)✓ All builds complete$(RESET)\n"
 
 build-api: ## Build api/nodejs
@@ -138,14 +129,10 @@ build-web: ## Build web
 	@printf "$(BOLD)Building $(WEB_DIR)...$(RESET)\n"
 	cd $(WEB_DIR) && npm run build
 
-build-dashboard: ## Build web/dashboard
-	@printf "$(BOLD)Building $(DASH_DIR)...$(RESET)\n"
-	cd $(DASH_DIR) && npm run build
-
 # -----------------------------------------------------------------------------
 # Lint — dependencies, not recursive make
 # -----------------------------------------------------------------------------
-lint: lint-api lint-web lint-dashboard ## Lint all workspaces
+lint: lint-api lint-web ## Lint all workspaces
 	@printf "$(GREEN)✓ Lint complete$(RESET)\n"
 
 lint-api: ## Lint CommonServer
@@ -154,13 +141,10 @@ lint-api: ## Lint CommonServer
 lint-web: ## Lint web
 	cd $(WEB_DIR) && npm run lint:staged
 
-lint-dashboard: ## Lint web/dashboard
-	cd $(DASH_DIR) && npm run lint:staged
-
 # -----------------------------------------------------------------------------
 # Test — dependencies, not recursive make
 # -----------------------------------------------------------------------------
-test: test-api test-web test-dashboard ## Run all tests
+test: test-api test-web ## Run all tests
 	@printf "$(GREEN)✓ All tests passed$(RESET)\n"
 
 test-api: ## Run api/nodejs tests
@@ -168,9 +152,6 @@ test-api: ## Run api/nodejs tests
 
 test-web: ## Run web tests
 	cd $(WEB_DIR) && npm test
-
-test-dashboard: ## Run web/dashboard tests
-	cd $(DASH_DIR) && npm test
 
 # -----------------------------------------------------------------------------
 # Docker
@@ -208,11 +189,8 @@ k8s-status: ## Show status of all Kubernetes deployments
 pre-push: lint test ## Run lint + test before push (used by Husky)
 	@printf "$(GREEN)✓ Pre-push checks passed$(RESET)\n"
 
-pre-push-web: ## Run pre-push checks for web only
+pre-push-web: ## Run pre-push checks for web
 	cd $(WEB_DIR) && npm run pre-push
-
-pre-push-dashboard: ## Run pre-push checks for web/dashboard only
-	cd $(DASH_DIR) && npm run pre-push
 
 # -----------------------------------------------------------------------------
 # Housekeeping
@@ -221,12 +199,10 @@ clean: ## Remove all build artifacts and node_modules
 	@printf "$(BOLD)Cleaning all artifacts and node_modules...$(RESET)\n"
 	rm -rf $(API_DIR)/dist $(API_DIR)/node_modules
 	rm -rf $(WEB_DIR)/.next $(WEB_DIR)/node_modules
-	rm -rf $(DASH_DIR)/.next $(DASH_DIR)/node_modules
 	@printf "$(GREEN)✓ Clean complete$(RESET)\n"
 
 clean-builds: ## Remove build artifacts only (keep node_modules)
 	@printf "$(BOLD)Cleaning build artifacts...$(RESET)\n"
 	rm -rf $(API_DIR)/dist
 	rm -rf $(WEB_DIR)/.next
-	rm -rf $(DASH_DIR)/.next
 	@printf "$(GREEN)✓ Build artifacts removed$(RESET)\n"

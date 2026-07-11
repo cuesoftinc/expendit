@@ -19,29 +19,14 @@ services:
       - envoy-go
       - next-envoy
 
-  expendit-home:
-   build:
-    context: ./web/home
-   ports:
-    - "5000:3000"
-   volumes:
-    - ./web/home:/app
-    - /app/node_modules
-   depends_on:
-    - expendit-backend
-   restart: always
-   networks:
-    - next-envoy
-    - envoy-go
-
   expendit-frontend:
     build:
-      context: ./web/app
+      context: ./web
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
-      - ./web/app:/app
+      - ./web:/app
       - /app/node_modules
     depends_on:
       - expendit-backend
