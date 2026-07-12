@@ -1,86 +1,142 @@
-## Expendit
+# Expendit
 
-## About
+Expendit is an open-source application for estimating and tracking personal and
+business expenses. Record expenses on the go, categorize them, import statements,
+and generate real-time reports for better financial management.
 
-Expendit is a web application designed to simplify the task of estimating and tracking personal or business expenses. With an easy-to-use interface, the app allows users to input expenses on the go, categorize them, and generate real-time reports for better financial management. Whether you're looking to keep tabs on daily expenditures, plan a budget, or analyze spending trends, Expendit offers a range of features to help you achieve your financial goals. Its cloud-based architecture ensures that your data is accessible from any device, making it a convenient and reliable tool for expense management.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-## Repository Structure
+## Overview
+
+Expendit is a monorepo made up of three application surfaces backed by a single
+API:
+
+- A **Go REST API** that handles authentication, expenses, income, categories,
+  statement imports, AI-assisted summaries, and reporting.
+- A **Next.js web application** with a marketing site and an authenticated
+  dashboard.
+- A **Flutter mobile application** (planned) that shares the same API.
+
+## Architecture
+
+```
+                 +---------------------+
+                 |   Next.js web app   |
+                 |      (web/)         |
+                 +----------+----------+
+                            |
+                            | HTTPS / gRPC-web
+                            v
++----------------+   +------+------------------+   +----------------+
+| Flutter mobile |-->|   Go REST API (Gin)     |-->|    MongoDB     |
+| (mobile/, WIP) |   |     (api/common/)       |   |                |
++----------------+   +------+------------------+   +----------------+
+                            |
+              +-------------+--------------+
+              |             |              |
+              v             v              v
+          Redis        SMTP email    Google / Gemini
+        (rate limit)                  (OAuth + AI)
+```
+
+### Tech stack
+
+| Layer          | Technology                                             |
+| -------------- | ------------------------------------------------------ |
+| Backend API    | Go 1.25, Gin, MongoDB, JWT, Redis                      |
+| Web            | Next.js, React, TypeScript                             |
+| Mobile         | Flutter (planned)                                      |
+| AI             | Google Gemini, Groq (summaries & categorization)       |
+| Infrastructure | Docker, Helm, Terraform                                |
+
+## Repository structure
+
 ```
 expendit/
 ├── api/
-│   ├── go/               # Go REST API service
-│   ├── python/           # Python service (analytics / ML)
-│   └── nodejs/           # Node.js service (auth / webhooks)
-├── app/
-│   ├── android/          # Native Android app
-│   ├── ios/              # Native iOS app
-│   └── flutter/          # Flutter cross-platform app
-├── web/
-│   ├── landing/          # Marketing / landing page
-│   ├── dashboard/        # Web dashboard (Next.js)
-│   └── supabase/         # Supabase schema & migrations
+│   └── common/          # Go backend API (Gin, MongoDB) — module: expendit-server
+├── web/                 # Next.js web application (marketing + dashboard)
+├── mobile/
+│   ├── flutter/         # Flutter cross-platform app (planned)
+│   ├── android/         # Native Android (planned)
+│   └── ios/             # Native iOS (planned)
 ├── deploy/
-│   ├── docker/           # Docker Compose configs
-│   ├── helm/             # Kubernetes Helm charts
-│   └── terraform/        # Infrastructure as Code (AWS / GCP)
-├── docs/                 # Architecture, API refs, guides
-├── scripts/              # Dev, CI, and release scripts
-└── .github/
-    ├── ISSUE_TEMPLATE/   # Bug report & feature request templates
-    └── workflows/        # GitHub Actions CI/CD pipelines
+│   ├── docker/          # Container / Docker Compose configuration
+│   ├── helm/            # Kubernetes Helm charts
+│   └── terraform/       # Infrastructure as Code
+├── docs/                # Architecture, setup, and reference documentation
+├── scripts/             # Developer and CI scripts
+└── (root config)        # README, LICENSE, Makefile, .editorconfig, etc.
 ```
 
-## Tech Stack
+> Backend services live under `api/`. The current backend is `api/common`;
+> additional services would be added as `api/<function>` (named by role, never by
+> language).
 
-| Layer | Technology |
-| --- | --- |
-| Mobile | Flutter, Android (Kotlin), iOS (Swift) |
-| Web | Next.js, Supabase |
-| API | Go, Python, Node.js |
-| Database | PostgreSQL (via Supabase) |
-| Infrastructure | Docker, Helm, Terraform |
-| CI/CD | GitHub Actions |
+## Getting started
 
-## To Get Started
+### Prerequisites
 
 - [Git](https://git-scm.com)
-- [Docker](https://www.docker.com/) & Docker Compose
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) (for mobile)
-- [Node.js](https://nodejs.org/) v18+ (for web and Node.js API)
-- [Go](https://go.dev/) 1.21+ (for Go API)
+- [Go](https://go.dev/) 1.25+ (for the API)
+- [Node.js](https://nodejs.org/) 20+ (for the web app)
+- [MongoDB](https://www.mongodb.com/) and [Redis](https://redis.io/) (locally or via Docker)
+- [Docker](https://www.docker.com/) & Docker Compose (optional, for containers)
 
-  ## Setup
-  ```bash
-  # 1. clone the repo
-  git clone https://github.com/cuesoftinc/expendit.git
-  cd expendit
+### Quick start
 
-  # 2. Install all dependencies
-  make setup
+```bash
+# 1. Clone the repository
+git clone https://github.com/cuesoftinc/expendit.git
+cd expendit
 
-  # 3. Copy environment variables
-  cp .env.example .env      #fill in your values in .env
+# 2. Install workspace dependencies
+make install
 
-  # 4. start all services locally
-  make dev
-  ```
+# 3. Configure environment variables
+cp api/common/.env.example api/common/.env   # fill in your values
+cp web/.env.example web/.env.local           # fill in your values
 
-  ## Contributing
-  We welcome contributions of all kinds - bug fixes, new features, documentation, translations, and more.
-  Please read our Contribution Guide (./CONTRIBUTING.md) before opening a PR.
-  For first time contributors, look for issues labelled [`good first issue`](https://github.com/cuesoftinc/expendit/labels/good%20first%20issue).
+# 4. Start the API and web app in development
+make dev
+```
 
-  ## Documentation
-  Full documentation lives in the [`/docs`](./docs/) folder and covers:
-  - Architecture overview
-  - API reference
-  - Local development setup
-  - Deployment guide
- 
-  ## License
-  Expendit is open-source software licensed under the [MIT License](./LICENSE)
+The API listens on `http://localhost:9000` and the web app on
+`http://localhost:3000` by default.
 
-  ## Community
-  [GitHub Discussions](https://github.com/cuesoftinc/expendit/discussions)
-  [Report a bug](https://github.com/cuesoftinc/expendit/issues/new?template=bug_report.md)
-  [Request a feature](https://github.com/cuesoftinc/expendit/issues/new?template=feature_request.md)
+Run `make help` to see all available targets. For a detailed walkthrough, see
+[docs/setup.md](./docs/setup.md).
+
+## Documentation
+
+Full documentation lives in the [`docs/`](./docs) folder:
+
+- [Project overview](./docs/overview.md) — architecture and components
+- [Local setup guide](./docs/setup.md) — step-by-step development environment
+
+Service-specific notes live in each workspace: [`api/common/README.md`](./api/common/README.md)
+and [`web/README.md`](./web/README.md).
+
+## Contributing
+
+We welcome contributions of all kinds — bug fixes, features, documentation, and
+more. Please read the [Contribution Guide](./CONTRIBUTING.md) before opening a PR,
+and note our [Code of Conduct](./CODE_OF_CONDUCT.md).
+
+For first-time contributors, look for issues labelled
+[`good first issue`](https://github.com/cuesoftinc/expendit/labels/good%20first%20issue).
+
+## Security
+
+Please report security vulnerabilities responsibly. See our
+[Security Policy](./SECURITY.md) for how to report an issue privately.
+
+## License
+
+Expendit is open-source software licensed under the [MIT License](./LICENSE).
+
+## Community
+
+- [GitHub Discussions](https://github.com/cuesoftinc/expendit/discussions)
+- [Report a bug](https://github.com/cuesoftinc/expendit/issues/new?template=bug_report.md)
+- [Request a feature](https://github.com/cuesoftinc/expendit/issues/new?template=feature_request.md)

@@ -41,6 +41,7 @@ next-env.d.ts
 Deploy/secrets.tfvars
 
 api/common/tmp/
+api/common/bin/
 *.exe
 
 .air.toml

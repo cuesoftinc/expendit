@@ -5,10 +5,10 @@
 #   Run `make help` to list all available targets.
 #
 # Structure:
-#   api/common/             — Go backend (common)
-#   web/                    — Next.js app (marketing + dashboard, combined)
-#   deploy/docker/         — Docker Infrastructure / compose files currently in root directory for simplicity
-#   web/k8s/                — Kubernetes manifests
+#   api/common/    — Go backend API (Gin, MongoDB); Go module: expendit-server
+#   web/           — Next.js app (marketing + dashboard, combined)
+#   deploy/        — Docker, Helm, and Terraform configuration
+#   web/k8s/       — Kubernetes manifests
 # =============================================================================
 
 .DEFAULT_GOAL := help
@@ -94,9 +94,9 @@ docker-install: ## Docker Installation
 install: install-api install-web ## Install all workspace dependencies
 	@printf "$(GREEN)✓ All dependencies installed$(RESET)\n"
 
-install-api: ## Install CommonServer dependencies
+install-api: ## Install Go backend dependencies
 	@printf "$(BOLD)Installing $(API_DIR)...$(RESET)\n"
-	cd $(API_DIR) && npm install
+	cd $(API_DIR) && go mod download
 
 install-web: ## Install web dependencies
 	@printf "$(BOLD)Installing $(WEB_DIR)...$(RESET)\n"
@@ -109,8 +109,8 @@ dev: ## Start all services in development mode (parallel)
 	@printf "$(BOLD)Starting all services...$(RESET)\n"
 	$(MAKE) -j2 dev-api dev-web
 
-dev-api: ## Start api/nodejs dev server
-	cd $(API_DIR) && npm run dev
+dev-api: ## Start Go API dev server
+	cd $(API_DIR) && go run main.go
 
 dev-web: ## Start web dev server
 	cd $(WEB_DIR) && npm run dev
@@ -121,9 +121,9 @@ dev-web: ## Start web dev server
 build: build-api build-web ## Build all workspaces for production
 	@printf "$(GREEN)✓ All builds complete$(RESET)\n"
 
-build-api: ## Build api/nodejs
+build-api: ## Build Go API binary
 	@printf "$(BOLD)Building $(API_DIR)...$(RESET)\n"
-	cd $(API_DIR) && npm run build
+	cd $(API_DIR) && go build -o bin/server .
 
 build-web: ## Build web
 	@printf "$(BOLD)Building $(WEB_DIR)...$(RESET)\n"
@@ -135,8 +135,8 @@ build-web: ## Build web
 lint: lint-api lint-web ## Lint all workspaces
 	@printf "$(GREEN)✓ Lint complete$(RESET)\n"
 
-lint-api: ## Lint CommonServer
-	cd $(API_DIR) && npm run lint
+lint-api: ## Lint Go API (gofmt + go vet)
+	cd $(API_DIR) && gofmt -l . && go vet ./...
 
 lint-web: ## Lint web
 	cd $(WEB_DIR) && npm run lint:staged
@@ -147,8 +147,8 @@ lint-web: ## Lint web
 test: test-api test-web ## Run all tests
 	@printf "$(GREEN)✓ All tests passed$(RESET)\n"
 
-test-api: ## Run api/nodejs tests
-	cd $(API_DIR) && npm test
+test-api: ## Run Go API tests
+	cd $(API_DIR) && go test ./...
 
 test-web: ## Run web tests
 	cd $(WEB_DIR) && npm test
@@ -197,12 +197,12 @@ pre-push-web: ## Run pre-push checks for web
 # -----------------------------------------------------------------------------
 clean: ## Remove all build artifacts and node_modules
 	@printf "$(BOLD)Cleaning all artifacts and node_modules...$(RESET)\n"
-	rm -rf $(API_DIR)/dist $(API_DIR)/node_modules
+	rm -rf $(API_DIR)/bin
 	rm -rf $(WEB_DIR)/.next $(WEB_DIR)/node_modules
 	@printf "$(GREEN)✓ Clean complete$(RESET)\n"
 
 clean-builds: ## Remove build artifacts only (keep node_modules)
 	@printf "$(BOLD)Cleaning build artifacts...$(RESET)\n"
-	rm -rf $(API_DIR)/dist
+	rm -rf $(API_DIR)/bin
 	rm -rf $(WEB_DIR)/.next
 	@printf "$(GREEN)✓ Build artifacts removed$(RESET)\n"
