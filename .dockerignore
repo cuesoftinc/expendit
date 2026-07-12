@@ -1,35 +1,36 @@
-# Root .dockerignore — safety net for any build context rooted at the repo.
-# Each build context (api/common, web) also has its own .dockerignore.
-
-# Version control & CI
+# Root .dockerignore — baseline excludes for any build context.
+# Each service build context (api/common, web, …) may add its own.
 .git
-.gitignore
 .github
+.gitignore
+.dockerignore
 
-# OS / editor cruft
-.DS_Store
+# OS / editor
+**/.DS_Store
 *.swp
 *.swo
 
 # Dependencies & build output
-node_modules
-.next
-out
-dist
-build
-bin
-tmp
-*.exe
+**/node_modules
+**/.next
+**/out
+**/dist
+**/build
+**/bin
+**/tmp
+**/.dart_tool
+**/__pycache__
+**/*.pyc
 
-# Environment & secrets (never ship these into an image)
-.env
-.env.*
-!.env.example
-*.pem
-*.tfvars
-*secrets*
+# Environment & secrets (never ship into an image)
+**/.env
+**/.env.*
+!**/.env.example
+**/*service-account*.json
+**/firebase-secrets.json
+**/*.pem
+**/*.tfvars
 
-# Logs & caches
-*.log
-coverage
-*.tsbuildinfo
+# Logs & docs
+**/*.log
+*.md
