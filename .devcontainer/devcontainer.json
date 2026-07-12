@@ -1,0 +1,9 @@
+{
+  "name": "Expendit",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [3000, 9000, 27017],
+  "postCreateCommand": "cp -n .env.example .env && echo 'Root .env created from .env.example for docker compose up. api/common/.env still needs real secrets — copy api/common/.env.example and fill it in before running docker compose up.'"
+}

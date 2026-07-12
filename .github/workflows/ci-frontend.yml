@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./web # frontend directory
+        working-directory: ./web # combined frontend (marketing + dashboard)
 
     steps:
       - name: Checkout Code
