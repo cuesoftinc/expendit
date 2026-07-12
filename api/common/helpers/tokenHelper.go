@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -64,6 +64,9 @@ func ValidateToken(signedToken string)(claims *SignedDetails, msg string){
 		signedToken,
 		&SignedDetails{},
 		func(token *jwt.Token)(interface{},error){
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
 			return []byte(SECRET_KEY), nil
 		},
 	)

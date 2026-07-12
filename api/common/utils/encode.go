@@ -6,7 +6,7 @@ import (
 	"os"
 
 	// "github.com/gin-gonic/gin"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 

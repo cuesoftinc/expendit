@@ -140,6 +140,12 @@ func Login() gin.HandlerFunc {
 
         log.Printf("User details: %+v\n", user)
 
+        // Ensure the lookup filter is a concrete string value (defence in depth).
+        if user.Email == nil || *user.Email == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "email or password is incorrect"})
+            return
+        }
+
         err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "email or password is incorrect"})
@@ -153,8 +159,6 @@ func Login() gin.HandlerFunc {
         }
 
         // Log foundUser details for debugging
-        log.Printf("Provided Password: %s", *user.Password)
-        log.Printf("Stored Password: %s", *foundUser.Password)
         log.Printf("Found User details: %+v\n", foundUser)
 
         
