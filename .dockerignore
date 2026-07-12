@@ -1,0 +1,35 @@
+# Root .dockerignore — safety net for any build context rooted at the repo.
+# Each build context (api/common, web) also has its own .dockerignore.
+
+# Version control & CI
+.git
+.gitignore
+.github
+
+# OS / editor cruft
+.DS_Store
+*.swp
+*.swo
+
+# Dependencies & build output
+node_modules
+.next
+out
+dist
+build
+bin
+tmp
+*.exe
+
+# Environment & secrets (never ship these into an image)
+.env
+.env.*
+!.env.example
+*.pem
+*.tfvars
+*secrets*
+
+# Logs & caches
+*.log
+coverage
+*.tsbuildinfo

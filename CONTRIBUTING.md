@@ -51,18 +51,17 @@ Each top-level folder is a self-contained workspace:
 
 | Folder | Description |
 |---|---|
-| `api/go` | Go REST API |
-| `api/python` | Python analytics service |
-| `api/nodejs` | Node.js auth & webhook service |
-| `app/flutter` | Flutter cross-platform app |
-| `app/android` | Native Android app |
-| `app/ios` | Native iOS app |
-| `web/` | Next.js landing page |
-| `web/dashboard` | Next.js web dashboard |
-| `web/supabase` | Supabase migrations & config |
+| `api/common` | Go REST API (Gin, MongoDB) — module `expendit-server` |
+| `web/` | Next.js web app (marketing + dashboard) |
+| `mobile/flutter` | Flutter cross-platform app (planned) |
+| `mobile/android` | Native Android app (planned) |
+| `mobile/ios` | Native iOS app (planned) |
 | `deploy/` | Docker, Helm, Terraform |
 | `docs/` | Documentation |
 | `scripts/` | Dev & CI scripts |
+
+> Backend services are named by function, not language. The current service is
+> `api/common`; future services would be `api/<function>`.
 
 ---
 
@@ -70,7 +69,7 @@ Each top-level folder is a self-contained workspace:
 
 ```bash
 # Install dependencies for all workspaces
-make setup
+make install
 
 # Start all services (requires Docker)
 make dev
@@ -126,7 +125,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 **Examples:**
 ```
 feat(flutter): add expense category screen
-fix(api/go): handle nil pointer in expense handler
+fix(api/common): handle nil pointer in expense handler
 docs: update local development setup guide
 chore: upgrade Node.js to v20
 ```
@@ -158,11 +157,9 @@ chore: upgrade Node.js to v20
 
 | Service | Standard |
 |---|---|
-| Go | `gofmt`, `golint`, `go vet` |
-| Python | PEP 8, `flake8`, `black` |
-| Node.js / TypeScript | ESLint + Prettier (config in repo) |
+| Go (`api/common`) | `gofmt`, `go vet` |
+| Web / TypeScript | ESLint + Prettier (config in repo) |
 | Flutter / Dart | `dart format`, `flutter analyze` |
-| SQL | Lowercase keywords, snake_case identifiers |
 
 ---
 
