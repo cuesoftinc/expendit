@@ -1,8 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Questions & Discussions
-    url: https://github.com/cuesoftinc/expendit/discussions
-    about: Ask questions and discuss ideas with the community.
-  - name: Security Vulnerability
-    url: https://github.com/cuesoftinc/expendit/security/policy
-    about: Please report security issues privately — see our Security Policy.
+  - name: Security vulnerability
+    url: https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability
+    about: Please report security issues privately via the Security tab, not as public issues.

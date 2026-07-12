@@ -1,48 +1,28 @@
 ---
 name: Bug report
-about: Report a problem to help us improve Expendit
+about: Report a problem so we can fix it
 title: "[Bug]: "
-labels: ["bug", "needs-triage"]
-assignees: []
+labels: [bug]
 ---
 
-## Describe the bug
-
-A clear and concise description of what the bug is.
+## Description
+A clear and concise description of the bug.
 
 ## Affected area
-
-- [ ] `api/common` (Go backend)
-- [ ] `web` (Next.js)
-- [ ] `mobile` (Flutter)
-- [ ] `deploy` / infrastructure
-- [ ] Other
+`api/common` / `api/<service>` / `web` / `mobile` / `deploy` / other
 
 ## Steps to reproduce
-
-1. Go to '...'
-2. Click on '...'
-3. See error
+1.
+2.
+3.
 
 ## Expected behavior
 
-A clear and concise description of what you expected to happen.
-
 ## Actual behavior
 
-What actually happened. Include error messages and logs if available.
-
-## Screenshots
-
-If applicable, add screenshots to help explain your problem.
-
 ## Environment
-
-- OS: [e.g. macOS 14, Ubuntu 22.04]
-- Component version / commit: [e.g. `main` @ abc1234]
-- Browser (web): [e.g. Chrome 120]
-- Runtime: [e.g. Go 1.25, Node.js 20]
+- OS / device:
+- Version / commit:
 
 ## Additional context
-
-Add any other context about the problem here.
+Logs, screenshots, or anything else useful. **Do not paste secrets.**

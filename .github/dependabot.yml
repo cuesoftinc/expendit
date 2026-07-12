@@ -1,47 +1,17 @@
-# Dependabot configuration for Expendit.
-# Scopes match the repository's package manifests:
-#   - gomod          -> api/common (Go backend)
-#   - npm            -> web (Next.js app)
-#   - github-actions -> repository root
-# When a Flutter app is added under mobile/flutter (with a pubspec.yaml),
-# add a `pub` ecosystem entry scoped to /mobile/flutter.
 version: 2
 updates:
-  # Go backend
-  - package-ecosystem: "gomod"
-    directory: "/api/common"
+  - package-ecosystem: gomod
+    directory: /api/common
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: "chore(deps)"
+      interval: weekly
     groups:
       go-dependencies:
-        patterns:
-          - "*"
+        patterns: ["*"]
 
-  # Next.js web app
-  - package-ecosystem: "npm"
-    directory: "/web"
+  - package-ecosystem: npm
+    directory: /web
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: "chore(deps)"
+      interval: weekly
     groups:
       npm-dependencies:
-        patterns:
-          - "*"
-
-  # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: "chore(deps)"
-    groups:
-      actions-dependencies:
-        patterns:
-          - "*"
+        patterns: ["*"]
