@@ -1,0 +1,9 @@
+{{ .Chart.Name }} deployed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Services:
+{{- range $name, $svc := .Values.services }}
+  - {{ $name }} (ClusterIP :{{ $svc.port }})
+{{- end }}
+
+Port-forward the web UI:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/web 3000:3000

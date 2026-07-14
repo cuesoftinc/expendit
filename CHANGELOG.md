@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- Change-password verified against the wrong argument order (always failed);
+  reset-password email linked a 404 path; request-path `log.Fatal`/`log.Panic`
+  could kill the server; JWT/SMTP env read at call time (empty-key signing).
+
+### Security
+- Removed the `X-UserID` header-trust middleware (IDOR) — identity comes only
+  from the JWT `uid` claim; `UpdateUser` no longer accepts `user_type` from the
+  request body (self privilege-escalation); expense reads now require auth.
+
+### Changed
+- Canonical Go module path `github.com/cuesoftinc/expendit/api/common`; SMTP_*
+  env vars upper-cased; web components renamed to PascalCase files with
+  kebab-case routes (`/forgot-password`); eslint flat config; jest wired with
+  passing tests; standard-form Helm chart + cluster-agnostic terraform;
+  per-service internals standardized.
+
+### Removed
+- Dead gRPC surface (unwired Go proto/interceptor and the web grpc-methods/
+  proto chain whose deps were never installed), dead util/model files, stale
+  api Makefile, orphan template/marketing assets, debug console/print logging.
+
 ### Added
 - Production service bootstrap: `/health` + `/ready`, structured `slog` logging,
   `RequestID`/`Logger`/`Recovery`/CORS middleware, and graceful shutdown.

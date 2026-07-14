@@ -1,2 +1,8 @@
 .env
-.env.local
+.env.*
+!.env.example
+
+# local build output
+/app
+tmp/
+*.log
