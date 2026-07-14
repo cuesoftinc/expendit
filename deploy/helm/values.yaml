@@ -5,7 +5,7 @@ replicaCount: 1
 
 services:
   api-common:
-    image: cuesoftinc/expendit-api-common:latest
+    image: cuesoft/expendit-api-common:latest
     port: 8080
     healthPath: /health
     readyPath: /ready
@@ -16,8 +16,9 @@ services:
       FRONTEND_URL: http://web:3000
 
   web:
-    image: cuesoftinc/expendit-web:latest
+    image: cuesoft/expendit-web:latest
     port: 3000
+    runAsUser: 1000 # node user in the web image
     healthPath: /
     env:
       PORT: "3000"

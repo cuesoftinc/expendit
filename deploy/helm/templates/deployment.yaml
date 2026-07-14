@@ -20,6 +20,8 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        # Numeric UID so kubelet can verify non-root (named users fail validation).
+        runAsUser: {{ $svc.runAsUser | default 10001 }}
       containers:
         - name: {{ $name }}
           image: {{ $svc.image }}

@@ -15,3 +15,9 @@ variable "namespace" {
   description = "Namespace to install into."
   default     = "expendit"
 }
+
+variable "chart_values" {
+  type        = list(string)
+  description = "Extra values YAML documents applied to the release (highest precedence last)."
+  default     = []
+}
