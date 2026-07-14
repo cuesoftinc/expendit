@@ -7,7 +7,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o app ./cmd/server
 
 # ---- runtime stage ----
-FROM alpine:latest
+FROM alpine:3.20
 RUN adduser -D -u 10001 appuser
 WORKDIR /app
 COPY --from=builder /app/app .
