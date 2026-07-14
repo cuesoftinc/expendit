@@ -1,6 +1,11 @@
 # One chart deploys all services. Images are built from this repo — push to a
 # registry and override per environment. Secrets (JWT_SECRET, SMTP, API keys)
 # should come from Kubernetes Secrets in real deployments, not plain values.
+#
+# The chart does NOT deploy MongoDB or Redis. Point MONGODB_URL/REDIS_URL at
+# reachable instances (managed services, or e.g. the bitnami/mongodb and
+# bitnami/redis charts installed as `mongo`/`redis` in the same namespace —
+# the default URLs below assume those service names).
 replicaCount: 1
 
 services:
@@ -14,6 +19,9 @@ services:
       MONGODB_URL: mongodb://mongo:27017/expendit
       REDIS_URL: redis://redis:6379
       FRONTEND_URL: http://web:3000
+    # Inject secrets (e.g. JWT_SECRET, SMTP creds) from a Kubernetes Secret:
+    # envFrom:
+    #   - secretRef: api-common-secrets
 
   web:
     image: cuesoft/expendit-web:latest

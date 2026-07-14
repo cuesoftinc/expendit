@@ -6,6 +6,6 @@ import (
 
 type IncomeCategory struct {
 	ID          primitive.ObjectID `bson:"_id"`
-	Name        string             `json:"name" validate:required,min=2,max=500`
-	Description string             `json:"description validate:required,min=2,max=500`
+	Name        string             `json:"name" validate:"required,min=2,max=500"`
+	Description string             `json:"description" validate:"required,min=2,max=500"`
 }

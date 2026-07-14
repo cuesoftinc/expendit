@@ -31,7 +31,7 @@ responsibilities. To run the stack locally, see [setup.md](setup.md).
   TypeScript). Talks to the API over HTTP (REST).
 - **`mobile`** — Flutter app + native shells (`mobile/{flutter,android,ios}`),
   placeholders today, consuming the same API.
-- **`api/common`** — Go service (module `expendit-server`, Gin): the source of
+- **`api/common`** — Go service (module `github.com/cuesoftinc/expendit/api/common`, Gin): the source of
   truth for auth/users, expenses/income/categories, statement imports (CSV/PDF
   parsing, dedup, categorization), AI-assisted summaries (Gemini/Groq), and
   reporting.

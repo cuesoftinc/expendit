@@ -47,6 +47,7 @@ func Signup() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 		var user model.User
 
 		if err := c.BindJSON(&user); err != nil {
@@ -64,7 +65,6 @@ func Signup() gin.HandlerFunc {
 		if err != nil {
 			log.Println("error checking email:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for the user"})
-			cancel()
 			return
 		}
 
@@ -93,7 +93,6 @@ func Signup() gin.HandlerFunc {
 		if err != nil {
 			log.Println("error checking phone:", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while checking for phone number"})
-			cancel()
 			return
 		}
 		if count > 0 {
@@ -118,10 +117,8 @@ func Signup() gin.HandlerFunc {
 		if insertErr != nil {
 			msg := fmt.Sprintf("User item was not created")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
-			defer cancel()
 			return
 		}
-		defer cancel()
 		c.JSON(http.StatusOK, gin.H{"message": "successful", "inserted_id": resultInsertionNumber})
 	}
 }
@@ -316,6 +313,7 @@ func GetUsers() gin.HandlerFunc {
 			return
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 
 		recordPerPage, err := strconv.Atoi(c.Query("recodePerPage"))
 		if err != nil || recordPerPage < 1 {
@@ -341,7 +339,6 @@ func GetUsers() gin.HandlerFunc {
 				{Key: "user_items", Value: bson.D{{Key: "$slice", Value: []interface{}{"$data", startIndex, recordPerPage}}}}}}}
 		result, err := userCollection.Aggregate(ctx, mongo.Pipeline{
 			matchStage, groupStage, projectStage})
-		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching user items"})
 			return
@@ -368,10 +365,10 @@ func GetUser() gin.HandlerFunc {
 			return
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
 
 		var user model.User
 		err := userCollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&user)
-		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -384,7 +381,6 @@ func GetUser() gin.HandlerFunc {
 func ChangePassword() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		defer cancel()
 		defer cancel()
 
 		// Get user ID from context
@@ -411,7 +407,6 @@ func ChangePassword() gin.HandlerFunc {
 		// Get the user from the database
 		var user model.User
 		err := userCollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&user)
-		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching user data"})
 			return
@@ -449,7 +444,6 @@ func UpdateUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-		defer cancel()
 
 		userId, exists := c.Get("uid")
 		if !exists {
@@ -474,7 +468,6 @@ func UpdateUser() gin.HandlerFunc {
 		// Get the user from the database
 		var existingUser model.User
 		err := userCollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&existingUser)
-		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while fetching user data"})
 			return
@@ -508,14 +501,12 @@ func ForgotPassword() gin.HandlerFunc {
 		var resetPasswordEmailRequest model.ForgotPasswordRequest
 		if err := c.BindJSON(&resetPasswordEmailRequest); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			defer cancel()
 			return
 		}
 
 		validationErr := validate.Struct(resetPasswordEmailRequest)
 		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-			defer cancel()
 			return
 		}
 
@@ -524,19 +515,15 @@ func ForgotPassword() gin.HandlerFunc {
 		if err != nil {
 			// Instead of returning 404, just respond with success message
 			c.JSON(http.StatusOK, gin.H{"message": "Reset password email sent successfully"})
-			defer cancel()
 			return
 		}
 
 		resetToken, err := util.GenerateToken(*user.Email)
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{"message": "Reset password email sent successfully"})
-			defer cancel()
 			return
 		}
 
-		// Log the reset token for debugging
-		log.Printf("Reset Token: %+v\n", resetToken)
 		// Update the user with the reset token in the database
 
 		update := bson.M{"$set": bson.M{"reset_token": resetToken}}
@@ -545,7 +532,6 @@ func ForgotPassword() gin.HandlerFunc {
 		_, err = userCollection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while updating reset token"})
-			defer cancel()
 			return
 		}
 
@@ -553,12 +539,10 @@ func ForgotPassword() gin.HandlerFunc {
 		err = util.SendResetPasswordEmail(*user.Email, resetToken)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occurred while sending reset password email", "details": err.Error()})
-			defer cancel()
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Reset password email sent successfully"})
-		defer cancel()
 	}
 }
 
