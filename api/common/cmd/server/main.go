@@ -10,19 +10,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 
-	"expendit-server/internal/handler"
-	"expendit-server/internal/middleware"
-	"expendit-server/internal/router"
+	"github.com/cuesoftinc/expendit/api/common/internal/handler"
+	"github.com/cuesoftinc/expendit/api/common/internal/middleware"
+	"github.com/cuesoftinc/expendit/api/common/internal/router"
 )
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 
-	if err := godotenv.Load(".env"); err != nil {
-		slog.Warn("no .env file found; using environment variables")
-	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

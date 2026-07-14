@@ -17,7 +17,7 @@
 - [ ] `api/<service>`
 - [ ] `web`
 - [ ] `mobile`
-- [ ] `deploy` / CI
+- [ ] `deploy`
 
 ## Checklist
 - [ ] I followed the Contributing guide.

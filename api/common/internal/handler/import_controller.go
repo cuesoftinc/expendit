@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"expendit-server/internal/service"
+	"github.com/cuesoftinc/expendit/api/common/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

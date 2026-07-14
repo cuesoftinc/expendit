@@ -1,0 +1,24 @@
+# One chart deploys all services. Images are built from this repo — push to a
+# registry and override per environment. Secrets (JWT_SECRET, SMTP, API keys)
+# should come from Kubernetes Secrets in real deployments, not plain values.
+replicaCount: 1
+
+services:
+  api-common:
+    image: cuesoft/expendit-api-common:latest
+    port: 8080
+    healthPath: /health
+    readyPath: /ready
+    env:
+      PORT: "8080"
+      MONGODB_URL: mongodb://mongo:27017/expendit
+      REDIS_URL: redis://redis:6379
+      FRONTEND_URL: http://web:3000
+
+  web:
+    image: cuesoft/expendit-web:latest
+    port: 3000
+    runAsUser: 1000 # node user in the web image
+    healthPath: /
+    env:
+      PORT: "3000"

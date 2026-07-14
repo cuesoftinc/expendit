@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"expendit-server/internal/database"
+	"github.com/cuesoftinc/expendit/api/common/internal/database"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -18,8 +18,8 @@ var fingerprintCol *mongo.Collection = database.OpenCollection(database.Client, 
 var nonAlphaNum = regexp.MustCompile(`[^a-z0-9 ]`)
 
 type DuplicateDetector struct {
-	userID      string
-	batchSeen   map[string]bool // fingerprints encountered within the current import
+	userID    string
+	batchSeen map[string]bool // fingerprints encountered within the current import
 }
 
 func NewDuplicateDetector(userID string) *DuplicateDetector {

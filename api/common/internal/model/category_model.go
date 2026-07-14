@@ -1,11 +1,9 @@
 package model
 
-
 import (
-	"time"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
 )
-
 
 type Category struct {
 	ID        primitive.ObjectID `bson:"_id" json:"id"`

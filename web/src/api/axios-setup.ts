@@ -11,12 +11,9 @@ API.interceptors.request.use((req) => {
   const token = getLocalStorageItem("Expendit-token") || null;
 
   if (token) {
+    // Identity comes from the JWT alone — the backend derives the user id
+    // from the token's uid claim, never from a client-supplied header.
     req.headers["Authorization"] = `Bearer ${JSON.parse(token)}`;
-
-    const user_id = getLocalStorageItem("Expendit-userID") || null;
-    if (user_id) {
-      req.headers["X-UserID"] = `${JSON.parse(user_id)}`;
-    }
   }
 
   return req;

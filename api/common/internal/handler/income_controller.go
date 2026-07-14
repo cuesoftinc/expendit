@@ -1,42 +1,40 @@
 package handler
 
 import (
-	"fmt"
-	"log"
 	"context"
-	"net/http"
-	"time"
-    "expendit-server/internal/model"
-	"expendit-server/internal/database"
+	"github.com/cuesoftinc/expendit/api/common/internal/database"
+	"github.com/cuesoftinc/expendit/api/common/internal/model"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"log"
+	"net/http"
+	"time"
 )
 
-var  incomeCollection *mongo.Collection = database.OpenCollection(database.Client, "income")
+var incomeCollection *mongo.Collection = database.OpenCollection(database.Client, "income")
 
-func GetIncomeById()gin.HandlerFunc {
-	return func(c *gin.Context){
-	id := c.Param("id")
+func GetIncomeById() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
 
-    objectID, err := primitive.ObjectIDFromHex(id)
+		objectID, err := primitive.ObjectIDFromHex(id)
 
-	if err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid ID"})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 
-		return
+			return
+		}
+		var income model.Income
+		err = incomeCollection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&income)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Expense not found"})
+			return
+		}
+		c.JSON(http.StatusOK, income)
 	}
-	var income model.Income
-	err = incomeCollection.FindOne(context.Background(), bson.M{"_id":objectID}).Decode(&income)
-      if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found"})
-		 return 
-	  }
-	  c.JSON(http.StatusOK, income)
-	}   
-}    
-
+}
 
 func GetIncomes() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -59,13 +57,11 @@ func GetIncomes() gin.HandlerFunc {
 	}
 }
 
-
 func CreateIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var income model.Income
 
 		if err := c.ShouldBindJSON(&income); err != nil {
-			fmt.Printf("Error during JSON binding: %s\n", err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind JSON data", "details": err.Error()})
 			return
 		}
@@ -91,73 +87,70 @@ func CreateIncome() gin.HandlerFunc {
 	}
 }
 
+func UpdateIncome() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+			return
+		}
 
-func UpdateIncome()gin.HandlerFunc{
-	return  func(c *gin.Context){
-	id := c.Param("id")
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid ID"})
-		return 
-	} 
+		var updatedIncome model.Income
+		if err := c.ShouldBindJSON(&updatedIncome); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	var  updatedIncome model.Income
-	if err := c.ShouldBindJSON(&updatedIncome); err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-		return 
+		updatedIncome.UpdatedAt = time.Now()
+		update := bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "amount", Value: updatedIncome.Amount},
+				{Key: "source", Value: updatedIncome.Source},
+				{Key: "description", Value: updatedIncome.Description},
+			}},
+		}
+		result, err := incomeCollection.UpdateOne(
+			context.Background(),
+			bson.M{"_id": objectID},
+			update,
+		)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		if result.ModifiedCount == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Income not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, updatedIncome)
 	}
-
-	updatedIncome.UpdatedAt = time.Now()
-    update := bson.D{
-		{Key:"$set", Value:bson.D{
-			{Key:"amount", Value:updatedIncome.Amount},
-             {Key:"source", Value:updatedIncome.Source},
-			 {Key:"description", Value:updatedIncome.Description},
-		}},
-
-	}
-	result, err := incomeCollection.UpdateOne(
-		   context.Background(),
-		   bson.M{"_id":objectID},
-		    update,
-	)
-      
-	if err != nil{
-	c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-	    return 
-	}
-	if result.ModifiedCount == 0  {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Income not found"})
-		return 
-	}
-
-	c.JSON(http.StatusOK, updatedIncome)
-}
 }
 
+func DeleteIncome() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid"})
+			return
+		}
 
-func DeleteIncome()gin.HandlerFunc{
-	return func(c *gin.Context){
-	id  := c.Param("id")
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid"})
-		return 
+		result, err := incomeCollection.DeleteOne(context.Background(), bson.M{"_id": objectID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		if result.DeletedCount == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Expense not found "})
+			return
+		}
+
+		c.JSON(http.StatusNoContent, nil)
 	}
-
-	result , err := incomeCollection.DeleteOne(context.Background(), bson.M{"_id":objectID})
-	if err != nil{
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		return 
-	}
-
-	if result.DeletedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found "})
-		return
-	}
-
-	c.JSON(http.StatusNoContent, nil)
-}
 }
 
 func SearchIncome() gin.HandlerFunc {
@@ -179,8 +172,6 @@ func SearchIncome() gin.HandlerFunc {
 		c.JSON(http.StatusOK, income)
 	}
 }
-
-
 
 func GetMonthlyIncome() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -236,7 +227,6 @@ func GetMonthlyIncome() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"totalIncome": totalIncome})
 	}
 }
-
 
 // func GetMonthIncome() gin.HandlerFunc {
 // 	return func(c *gin.Context) {
@@ -336,7 +326,7 @@ func GetMonthIncome() gin.HandlerFunc {
 			},
 			{
 				"$project": bson.M{
-					"_id":         0,
+					"_id": 0,
 					"month": bson.M{
 						"$switch": bson.M{
 							"branches": []bson.M{

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import Home from '../src/components/marketing/HeroSection/Index';
+import Home from "../src/components/marketing/hero-section/HeroSection";
 import '@testing-library/jest-dom';
 
 

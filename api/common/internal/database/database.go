@@ -2,8 +2,8 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -30,7 +30,7 @@ func DBinstance() *mongo.Client {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Connected to MongoDB!")
+	slog.Info("connected to MongoDB")
 
 	return client
 }
@@ -42,5 +42,4 @@ func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collecti
 	return collection
 }
 
-
-	// Use the Client and OpenCollection functions as needed.
+// Use the Client and OpenCollection functions as needed.

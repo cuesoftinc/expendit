@@ -16,12 +16,10 @@ export const getUserApi = async (
     if (data && status === 200) {
       setFormLoading(false);
 
-      console.log(data);
       return data;
     }
   } catch (error) {
     setFormLoading(false);
-    console.log(error);
   }
 };
 
@@ -42,11 +40,9 @@ export const userDetailsApi = async ({
 
       setFormSuccess("Successful!");
       setFormLoading(false);
-      console.log(data);
     }
   } catch (error) {
     setFormError("an error occurred, try again");
     setFormLoading(false);
-    console.log(error);
   }
 };

@@ -2,44 +2,43 @@ package handler
 
 import (
 	"context"
-	"expendit-server/internal/database"
-	"expendit-server/internal/model"
-	"log"
-	"math"
-	"net/http"
-	"strconv"
-	"time"
+	"github.com/cuesoftinc/expendit/api/common/internal/database"
+	"github.com/cuesoftinc/expendit/api/common/internal/model"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
+	"math"
+	"net/http"
+	"strconv"
+	"time"
 )
 
-var  expenseCollection *mongo.Collection = database.OpenCollection(database.Client, "expense")
+var expenseCollection *mongo.Collection = database.OpenCollection(database.Client, "expense")
 var CategoryCollection *mongo.Collection = database.OpenCollection(database.Client, "category")
 
-func GetExpenseById()gin.HandlerFunc {
-	return func(c *gin.Context){
-	id := c.Param("id")
+func GetExpenseById() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
 
-    objectID, err := primitive.ObjectIDFromHex(id)
+		objectID, err := primitive.ObjectIDFromHex(id)
 
-	if err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid ID"})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 
-		return
+			return
+		}
+		var expense model.Expense
+		err = expenseCollection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&expense)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Expense not found"})
+			return
+		}
+		c.JSON(http.StatusOK, expense)
 	}
-	var expense model.Expense
-	err = expenseCollection.FindOne(context.Background(), bson.M{"_id":objectID}).Decode(&expense)
-      if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found"})
-		 return 
-	  }
-	  c.JSON(http.StatusOK, expense)
-	}   
-}    
-
+}
 
 func GetExpenses() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -67,15 +66,14 @@ func GetExpenses() gin.HandlerFunc {
 		var expenses []model.Expense
 
 		if err := cursor.All(context.Background(), &expenses); err != nil {
-        log.Println("Error querying expenses:", err)
-       c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
-       return
-}
+			log.Println("Error querying expenses:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error", "details": err.Error()})
+			return
+		}
 
 		c.JSON(http.StatusOK, expenses)
 	}
-};
-
+}
 
 func GetUserExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -203,7 +201,6 @@ func GetMonthlyExpense() gin.HandlerFunc {
 	}
 }
 
-
 func CreateExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var expense model.Expense
@@ -234,8 +231,6 @@ func CreateExpense() gin.HandlerFunc {
 	}
 }
 
-
-
 func UpdateExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -252,19 +247,18 @@ func UpdateExpense() gin.HandlerFunc {
 		}
 
 		updatedExpense.UpdatedAt = time.Now()
-         update := bson.D{
+		update := bson.D{
 			{
-				Key:"$set", Value: bson.D{
-					{Key:"amount", Value:updatedExpense.Amount},
-					{Key:"category",Value:updatedExpense.Category},
-		            {Key:"note",Value:updatedExpense.Note},		
+				Key: "$set", Value: bson.D{
+					{Key: "amount", Value: updatedExpense.Amount},
+					{Key: "category", Value: updatedExpense.Category},
+					{Key: "note", Value: updatedExpense.Note},
 				}},
-		 }
+		}
 		result, err := expenseCollection.UpdateOne(
 			context.Background(),
 			bson.M{"_id": objectID},
 			update,
-			
 		)
 
 		if err != nil {
@@ -280,29 +274,28 @@ func UpdateExpense() gin.HandlerFunc {
 	}
 }
 
+func DeleteExpense() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid"})
+			return
+		}
 
-func DeleteExpense()gin.HandlerFunc{
-	return func(c *gin.Context){
-	id  := c.Param("id")
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid"})
-		return 
+		result, err := expenseCollection.DeleteOne(context.Background(), bson.M{"_id": objectID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		if result.DeletedCount == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Expense not found "})
+			return
+		}
+
+		c.JSON(http.StatusNoContent, nil)
 	}
-
-	result , err := expenseCollection.DeleteOne(context.Background(), bson.M{"_id":objectID})
-	if err != nil{
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		return 
-	}
-
-	if result.DeletedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found "})
-		return
-	}
-
-	c.JSON(http.StatusNoContent, nil)
-}
 }
 
 func SearchExpense() gin.HandlerFunc {
@@ -336,24 +329,21 @@ func SearchExpense() gin.HandlerFunc {
 	}
 }
 
-
-
-
 func GetMonthExpense() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uid, _ := c.Get("uid")
 		userID := uid.(string)
-         now := time.Now()
-        currentMonth := now.Month()
-        currentYear := now.Year()
-		
+		now := time.Now()
+		currentMonth := now.Month()
+		currentYear := now.Year()
+
 		pipeline := []bson.M{
 			{
 				"$match": bson.M{
 					"userid": userID,
 					"createdat": bson.M{
 						"$gte": time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC),
-						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC), 
+						"$lt":  time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, time.UTC),
 					},
 				},
 			},
@@ -367,7 +357,7 @@ func GetMonthExpense() gin.HandlerFunc {
 			},
 			{
 				"$project": bson.M{
-					"_id":         0,
+					"_id": 0,
 					"month": bson.M{
 						"$switch": bson.M{
 							"branches": []bson.M{
@@ -385,7 +375,7 @@ func GetMonthExpense() gin.HandlerFunc {
 								{"case": bson.M{"$eq": []interface{}{"$_id.month", 12}}, "then": "Dec"},
 							},
 							"default": "Unknown",
-						},   
+						},
 					},
 					"expense": 1,
 				},
@@ -408,13 +398,9 @@ func GetMonthExpense() gin.HandlerFunc {
 		}
 
 		if len(result) == 0 {
-			result = append(result, bson.M{"expense":0, "month":currentMonth.String()[:3]})
+			result = append(result, bson.M{"expense": 0, "month": currentMonth.String()[:3]})
 		}
 
 		c.JSON(http.StatusOK, result)
 	}
 }
-
-
-
-

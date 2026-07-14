@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Page from "@/components/forgotpassword";
+import Page from "@/components/forgot-password/ForgotPassword";
 import styles from "@/components/custom-styles";
 import { PublicRoute } from "@/components/helpers/RouteProtection";
 

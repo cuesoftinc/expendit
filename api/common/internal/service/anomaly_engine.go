@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"expendit-server/internal/model"
+	"github.com/cuesoftinc/expendit/api/common/internal/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )

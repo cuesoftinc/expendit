@@ -1,12 +1,10 @@
-package util 
+package util
 
 import (
 	"github.com/thanhpk/randstr"
-
 )
 
-
 func GenerateUniqueToken() string {
-    token := randstr.String(32)
+	token := randstr.String(32)
 	return token
 }

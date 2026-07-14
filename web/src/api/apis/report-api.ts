@@ -12,7 +12,6 @@ export const getAreaHomeChartApi = async () => {
     const { data } = await API.get(`/report/chart/category/${getUserId()}`);
     if (data) return data;
   } catch (error) {
-    console.log(error);
   }
 };
 
@@ -22,7 +21,6 @@ export const getBarChartApi = async () => {
     const { data } = await API.get(`/report/monthly/${getUserId()}`);
     if (data) return data;
   } catch (error) {
-    console.log(error);
   }
 };
 
@@ -32,7 +30,6 @@ export const getPieChartApi = async () => {
     const { data } = await API.get(`/report/chart/category/expenses/${getUserId()}`);
     if (data) return data;
   } catch (error) {
-    console.log(error);
   }
 };
 
@@ -42,6 +39,5 @@ export const getLineChartApi = async () => {
     const { data } = await API.get(`/expense/month-expense/${getUserId()}`);
     if (data) return data;
   } catch (error) {
-    console.log(error);
   }
 };

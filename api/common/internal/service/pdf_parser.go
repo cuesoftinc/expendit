@@ -10,9 +10,10 @@ import (
 )
 
 // Matches a date at the very start of a line in common bank statement formats:
-//   DD/MM/YYYY  DD-MM-YYYY  YYYY-MM-DD
-//   DD/Mon/YYYY DD-Mon-YYYY DD-Mon-YY   (e.g. 15-Jan-2024, 15/Jan/24)
-//   Mon DD YYYY  Mon DD, YYYY           (e.g. Jan 15 2024)
+//
+//	DD/MM/YYYY  DD-MM-YYYY  YYYY-MM-DD
+//	DD/Mon/YYYY DD-Mon-YYYY DD-Mon-YY   (e.g. 15-Jan-2024, 15/Jan/24)
+//	Mon DD YYYY  Mon DD, YYYY           (e.g. Jan 15 2024)
 var dateAtStart = regexp.MustCompile(
 	`(?i)^(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}` +
 		`|\d{4}[/\-]\d{2}[/\-]\d{2}` +

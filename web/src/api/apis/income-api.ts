@@ -25,7 +25,6 @@ export const incomeCreateApi = async ({
     if (data && status === 201) {
       setFormSuccess("Successful!");
       setFormLoading(false);
-      console.log(data);
 
       setTimeout(async () => {
         try {
@@ -60,12 +59,10 @@ export const getIncomeApi = async () => {
     );
 
     if (data) {
-      console.log(data);
 
       return data;
     }
   } catch (error) {
-    console.log(error);
   }
 };
 
@@ -74,6 +71,5 @@ export const getIncomeListApi = async () => {
     const { data } = await API.get("/income");
     if (data) return data;
   } catch (error) {
-    console.log(error);
   }
 };

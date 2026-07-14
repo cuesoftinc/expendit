@@ -41,10 +41,8 @@ export const createCategoryApi = async ({
 export const getCategoryApi = async () => {
   try {
     const { data } = await API.get("/category");
-    console.log(data);
     return data;
   } catch (error) {
-    console.error("Error fetching categories:", error);
   }
 };
 
@@ -67,7 +65,6 @@ export const deleteCategoryApi = async ({
       setFormLoading(false);
     }
   } catch (error) {
-    console.error("Error deleting category:", error);
     setFormError("Failed to delete category");
     setFormLoading(false);
   }
@@ -94,7 +91,6 @@ export const editCategoryApi = async ({
       setFormLoading(false);
     }
   } catch (error) {
-    console.error("Error editing category:", error);
     setFormError("Failed to edit category");
     setFormLoading(false);
   }

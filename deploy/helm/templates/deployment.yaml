@@ -1,0 +1,74 @@
+{{- range $name, $svc := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "chart.selectorLabels" (dict "name" $name "root" $) | nindent 4 }}
+    {{- include "chart.labels" $ | nindent 4 }}
+spec:
+  replicas: {{ $svc.replicaCount | default $.Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "chart.selectorLabels" (dict "name" $name "root" $) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "chart.selectorLabels" (dict "name" $name "root" $) | nindent 8 }}
+        {{- include "chart.labels" $ | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        # Numeric UID so kubelet can verify non-root (named users fail validation).
+        runAsUser: {{ $svc.runAsUser | default 10001 }}
+      containers:
+        - name: {{ $name }}
+          image: {{ $svc.image }}
+          imagePullPolicy: {{ $svc.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: {{ $svc.port }}
+            {{- range $svc.extraPorts }}
+            - name: {{ .name }}
+              containerPort: {{ .port }}
+            {{- end }}
+          {{- with $svc.env }}
+          env:
+            {{- range $k, $v := . }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if $svc.healthPath }}
+          livenessProbe:
+            httpGet:
+              path: {{ $svc.healthPath }}
+              port: http
+          readinessProbe:
+            httpGet:
+              path: {{ $svc.readyPath | default $svc.healthPath }}
+              port: http
+          {{- else }}
+          livenessProbe:
+            tcpSocket:
+              port: http
+          readinessProbe:
+            tcpSocket:
+              port: http
+          {{- end }}
+          resources:
+            {{- toYaml ($svc.resources | default dict) | nindent 12 }}
+          {{- if $svc.envoyConfig }}
+          volumeMounts:
+            - name: envoy-config
+              mountPath: /etc/envoy
+              readOnly: true
+          {{- end }}
+      {{- if $svc.envoyConfig }}
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: {{ $.Chart.Name }}-envoy-config
+      {{- end }}
+{{- end }}

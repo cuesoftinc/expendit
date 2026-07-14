@@ -1,11 +1,10 @@
 package router
 
 import (
-	"expendit-server/internal/handler"
-	middleware "expendit-server/internal/middleware"
+	"github.com/cuesoftinc/expendit/api/common/internal/handler"
+	middleware "github.com/cuesoftinc/expendit/api/common/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
-
 
 func ReportRoutes(incomingRoutes *gin.Engine) {
 	// Scoped group: auth applies to /report/* only (a bare engine.Use here

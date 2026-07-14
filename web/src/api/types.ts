@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { PasswordResetProps } from "@/components/forgotpassword/types";
+import { PasswordResetProps } from "@/components/forgot-password/types";
 
 // ---- SignUp Types -----
 export interface SignUpPayload {

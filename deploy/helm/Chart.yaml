@@ -1,0 +1,6 @@
+apiVersion: v2
+name: expendit
+description: Deploys the Expendit stack — api-common (Go) and web (Next.js).
+type: application
+version: 0.2.1
+appVersion: "0.1.0"

@@ -1,10 +1,8 @@
 package router
 
-
-
 import (
-	"expendit-server/internal/handler"
-	middleware "expendit-server/internal/middleware"
+	"github.com/cuesoftinc/expendit/api/common/internal/handler"
+	middleware "github.com/cuesoftinc/expendit/api/common/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 

@@ -13,7 +13,7 @@ responsibilities. To run the stack locally, see [setup.md](setup.md).
                  |       (web/)        |
                  +----------+----------+
                             |
-                            | HTTP / gRPC-web
+                            | HTTP (REST)
                             v
 +----------------+   +------+------------------+   +----------------+
 | Flutter mobile |-->|   Go REST API (Gin)     |-->|    MongoDB     |
@@ -28,7 +28,7 @@ responsibilities. To run the stack locally, see [setup.md](setup.md).
 ```
 
 - **`web`** — Next.js marketing site + authenticated dashboard (React,
-  TypeScript). Talks to the API over HTTP and gRPC-Web.
+  TypeScript). Talks to the API over HTTP (REST).
 - **`mobile`** — Flutter app + native shells (`mobile/{flutter,android,ios}`),
   placeholders today, consuming the same API.
 - **`api/common`** — Go service (module `expendit-server`, Gin): the source of

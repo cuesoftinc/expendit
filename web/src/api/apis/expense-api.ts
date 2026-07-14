@@ -21,12 +21,10 @@ export const expenseCreateApi = async ({
 }: ExpenseProps) => {
   try {
     const payload = JSON.stringify(completeForm);
-    console.log(completeForm);
 
     const { data, status } = await API.post("/expense/create", payload);
 
     if (data && status === 201) {
-      console.log(data);
       setFormSuccess("Successful!");
       setFormLoading(false);
 
@@ -62,7 +60,6 @@ export const expenseCreateApi = async ({
       }
     }
   } catch (error) {
-    console.log(error);
     setFormError("An error occurred, try again");
     setFormLoading(false);
   }
@@ -75,11 +72,9 @@ export const getExpenseApi = async () => {
     );
 
     if (data) {
-      console.log(data);
       return data;
     }
   } catch (error) {
-    console.log(error);
   }
 };
 
@@ -88,11 +83,9 @@ export const getMonthlyExpenseApi = async () => {
     const { data } = await API.get(`/expense/expenses/month/${getUserId()}`);
 
     if (data) {
-      console.log(data);
       return data;
     }
   } catch (error) {
-    console.log(error);
   }
 };
 

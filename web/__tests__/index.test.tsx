@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import '../src/setup-tests';
-import '@testing-library/jest-dom';
-import { HomeProvider, NavProvider, SessionProvider } from '../src/context';
-import Home from '../src/app/page';
-// import TopBoard from "../src/components/home/TopBoard";
+import "../src/setup-tests";
+import "@testing-library/jest-dom";
+import Home from "../src/app/page";
 
 jest.mock("next/navigation", () => ({
   useRouter() {
@@ -15,35 +13,14 @@ jest.mock("next/navigation", () => ({
       query: "",
       asPath: "",
     };
-  }
+  },
 }));
 
-
-// jest.mock("next/router", () => ({
-//   useRouter() {
-//       return {
-//           route: "/",
-//           pathname: "",
-//           query: "",
-//           asPath: "",
-//       };
-//   },
-// }));
-
 describe("HomePage", () => {
-  it("renders a Homepage", () => {
-    // render(
-    //   <HomeProvider>
-    //     <NavProvider>
-    //       {/* <SessionProvider> */}
-    //         <Home />
-    //       {/* </SessionProvider> */}
-    //     </NavProvider>
-    //   </HomeProvider>
-    // );
+  it("renders the landing page hero", () => {
+    render(<Home />);
 
-    // console.log(screen.debug())
-    // const Homepage = screen.getByTestId("top-board");
-    // expect(Homepage).toBeInTheDocument();
-  }); 
+    const hero = screen.getByTestId("hero-section");
+    expect(hero).toBeInTheDocument();
+  });
 });

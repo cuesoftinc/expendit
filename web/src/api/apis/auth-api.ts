@@ -22,12 +22,10 @@ export const signUpApi = async ({
       setFormLoading(false);
 
       router.push("/signin");
-      console.log(data);
     }
   } catch (error: any) {
     setFormError(error?.response?.data?.error || "an error occurred, try again");
     setFormLoading(false);
-    console.log(error);
   }
 };
 
@@ -75,7 +73,6 @@ export const logoutApi = async ({ router, setIsLoading }: LogoutProps) => {
     localStorage.removeItem("ExpenditLoggedIn");
     setIsLoading(false);
   } catch (error) {
-    console.log(error);
     setIsLoading(false);
   }
 };

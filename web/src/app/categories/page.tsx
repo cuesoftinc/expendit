@@ -2,7 +2,7 @@
 
 import React from "react";
 import PageLayout from "@/components/layouts/PageLayout";
-import Page from "@/components/categories";
+import Page from "@/components/categories/Categories";
 import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 
 const Categories: React.FC = () => {

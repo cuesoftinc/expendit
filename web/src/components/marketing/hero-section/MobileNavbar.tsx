@@ -3,7 +3,7 @@
 import React, { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
 import { AiOutlineClose } from "react-icons/ai";
-import { navLinks } from "./index";
+import { navLinks } from "./HeroSection";
 import styles from "./styles";
 
 interface Props {
