@@ -1,4 +1,4 @@
-module expendit-server
+module github.com/cuesoftinc/expendit/api/common
 
 go 1.25.8
 

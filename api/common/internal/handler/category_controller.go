@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"expendit-server/internal/database"
-	"expendit-server/internal/model"
+	"github.com/cuesoftinc/expendit/api/common/internal/database"
+	"github.com/cuesoftinc/expendit/api/common/internal/model"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

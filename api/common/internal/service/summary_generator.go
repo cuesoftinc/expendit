@@ -1,7 +1,7 @@
 package service
 
 import (
-	"expendit-server/internal/model"
+	"github.com/cuesoftinc/expendit/api/common/internal/model"
 )
 
 func GenerateSummary(txns []model.ImportedTransaction) model.ImportSummary {

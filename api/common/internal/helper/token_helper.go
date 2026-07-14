@@ -2,7 +2,7 @@ package helper
 
 import (
 	"context"
-	"expendit-server/internal/database"
+	"github.com/cuesoftinc/expendit/api/common/internal/database"
 	"fmt"
 	"log/slog"
 	"os"

@@ -11,9 +11,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"expendit-server/internal/handler"
-	"expendit-server/internal/middleware"
-	"expendit-server/internal/router"
+	"github.com/cuesoftinc/expendit/api/common/internal/handler"
+	"github.com/cuesoftinc/expendit/api/common/internal/middleware"
+	"github.com/cuesoftinc/expendit/api/common/internal/router"
 )
 
 func main() {

@@ -18,7 +18,7 @@ func GenerateToken(email string) (string, error) {
 			Subject:   email,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
-			Issuer:    "CuesoftCloud",
+			Issuer:    "cuesoftinc",
 		},
 	}
 

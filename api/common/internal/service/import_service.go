@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"expendit-server/internal/database"
-	"expendit-server/internal/model"
+	"github.com/cuesoftinc/expendit/api/common/internal/database"
+	"github.com/cuesoftinc/expendit/api/common/internal/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

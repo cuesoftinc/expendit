@@ -2,11 +2,11 @@ package handler
 
 import (
 	"context"
-	"expendit-server/internal/database"
-	helper "expendit-server/internal/helper"
-	"expendit-server/internal/model"
-	"expendit-server/internal/util"
-	"expendit-server/internal/validation"
+	"github.com/cuesoftinc/expendit/api/common/internal/database"
+	helper "github.com/cuesoftinc/expendit/api/common/internal/helper"
+	"github.com/cuesoftinc/expendit/api/common/internal/model"
+	"github.com/cuesoftinc/expendit/api/common/internal/util"
+	"github.com/cuesoftinc/expendit/api/common/internal/validation"
 	"fmt"
 	"log"
 	"net/http"
