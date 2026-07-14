@@ -8,14 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func IncomeRoutes(incomingRoutes *gin.Engine){
-	incomingRoutes.Use(middleware.Authenticate())
-	incomingRoutes.GET("/income", handler.GetIncomes())
-	incomingRoutes.GET("/income/:id", handler.GetIncomeById())
-	incomingRoutes.POST("/income/create",handler.CreateIncome())
-	incomingRoutes.PUT("/income/:id",handler.UpdateIncome())
-	incomingRoutes.DELETE("/income/:id",handler.DeleteIncome())
-	incomingRoutes.GET("/income/search", handler.SearchIncome())
-	incomingRoutes.GET("/income/incomes/monthly/:userID", handler.GetMonthlyIncome())
-	incomingRoutes.GET("/income/incomes/month/:userID", handler.GetMonthIncome())
+func IncomeRoutes(incomingRoutes *gin.Engine) {
+	// Scoped group: auth applies to /income/* only (a bare engine.Use here
+	// would leak auth onto every route registered after this function).
+	income := incomingRoutes.Group("/income", middleware.Authenticate())
+	income.GET("", handler.GetIncomes())
+	income.GET("/:id", handler.GetIncomeById())
+	income.POST("/create", handler.CreateIncome())
+	income.PUT("/:id", handler.UpdateIncome())
+	income.DELETE("/:id", handler.DeleteIncome())
+	income.GET("/search", handler.SearchIncome())
+	income.GET("/incomes/monthly/:userID", handler.GetMonthlyIncome())
+	income.GET("/incomes/month/:userID", handler.GetMonthIncome())
 }

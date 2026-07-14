@@ -8,13 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CategoryRoutes(incomingRoutes *gin.Engine){
-	
-	incomingRoutes.GET("/category", handler.GetCategories())
-	incomingRoutes.GET("/category/:id", handler.GetCategoryById())
-	incomingRoutes.POST("/category/create",middleware.Authenticate(),handler.CreateCategory())
-	incomingRoutes.PUT("/category/:id",middleware.Authenticate(),handler.UpdateCategory())
-	incomingRoutes.DELETE("/category/:id",middleware.Authenticate(),handler.DeleteCategory())
-	incomingRoutes.GET("/category/search", handler.SearchCategory())
-    // incomingRoutes.POST("/categories/create-categories", handler.CreateCategories())
+func CategoryRoutes(incomingRoutes *gin.Engine) {
+	// Scoped group: all category routes require auth. (The reads previously
+	// relied on auth leaked from IncomeRoutes' engine-wide Use; making it
+	// explicit preserves that effective behavior.)
+	category := incomingRoutes.Group("/category", middleware.Authenticate())
+	category.GET("", handler.GetCategories())
+	category.GET("/:id", handler.GetCategoryById())
+	category.POST("/create", handler.CreateCategory())
+	category.PUT("/:id", handler.UpdateCategory())
+	category.DELETE("/:id", handler.DeleteCategory())
+	category.GET("/search", handler.SearchCategory())
 }

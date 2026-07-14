@@ -36,7 +36,7 @@
     ".next/types/**/*.ts",
     "proto/user_pb.js",
     "proto/user_grpc_web_pb.js",
-    "src/setupTests.ts",
+    "src/setup-tests.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

@@ -32,9 +32,7 @@ func main() {
 	engine := gin.New()
 	engine.Use(gin.Recovery(), middleware.RequestID(), middleware.Logger(), middleware.CORSMiddleware())
 
-	// Liveness + readiness — registered before the route groups so they stay
-	// public. (incomeRouter/reportRouter call .Use(Authenticate()) on the shared
-	// engine, which leaks auth onto any route registered after them.)
+	// Liveness + readiness — public endpoints.
 	engine.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})

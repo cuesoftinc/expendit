@@ -7,11 +7,11 @@ import (
 )
 
 
-func ReportRoutes(incomingRoutes *gin.Engine){
-	incomingRoutes.Use(middleware.Authenticate())
-	incomingRoutes.GET("/report/monthly/:userID", handler.BarChartReport())
-	incomingRoutes.GET("/report/chart/category/:userID", handler.ReportByCategory())
-	incomingRoutes.GET("/report/chart/category/expenses/:userID", handler.ReportByCategoryExpenses())
-	
-    
+func ReportRoutes(incomingRoutes *gin.Engine) {
+	// Scoped group: auth applies to /report/* only (a bare engine.Use here
+	// would leak auth onto every route registered after this function).
+	report := incomingRoutes.Group("/report", middleware.Authenticate())
+	report.GET("/monthly/:userID", handler.BarChartReport())
+	report.GET("/chart/category/:userID", handler.ReportByCategory())
+	report.GET("/chart/category/expenses/:userID", handler.ReportByCategoryExpenses())
 }
