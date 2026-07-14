@@ -54,7 +54,7 @@ API:
 ```
 expendit/
 ├── api/
-│   └── common/          # Go backend API (Gin, MongoDB) — module: expendit-server
+│   └── common/          # Go backend API (Gin, MongoDB) — module: github.com/cuesoftinc/expendit/api/common
 ├── web/                 # Next.js web application (marketing + dashboard)
 ├── mobile/
 │   ├── flutter/         # Flutter cross-platform app (planned)

@@ -7,28 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Fixed
-- Change-password verified against the wrong argument order (always failed);
-  reset-password email linked a 404 path; request-path `log.Fatal`/`log.Panic`
-  could kill the server; JWT/SMTP env read at call time (empty-key signing).
-
-### Security
-- Removed the `X-UserID` header-trust middleware (IDOR) — identity comes only
-  from the JWT `uid` claim; `UpdateUser` no longer accepts `user_type` from the
-  request body (self privilege-escalation); expense reads now require auth.
-
-### Changed
-- Canonical Go module path `github.com/cuesoftinc/expendit/api/common`; SMTP_*
-  env vars upper-cased; web components renamed to PascalCase files with
-  kebab-case routes (`/forgot-password`); eslint flat config; jest wired with
-  passing tests; standard-form Helm chart + cluster-agnostic terraform;
-  per-service internals standardized.
-
-### Removed
-- Dead gRPC surface (unwired Go proto/interceptor and the web grpc-methods/
-  proto chain whose deps were never installed), dead util/model files, stale
-  api Makefile, orphan template/marketing assets, debug console/print logging.
-
 ### Added
 - Production service bootstrap: `/health` + `/ready`, structured `slog` logging,
   `RequestID`/`Logger`/`Recovery`/CORS middleware, and graceful shutdown.
@@ -38,8 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (SECURITY, CODE_OF_CONDUCT, CONTRIBUTING, CODEOWNERS, PR/issue templates), a
   scoped Dependabot config, `deploy/{docker,helm,terraform}`, and
   `docs/overview.md` + `docs/setup.md`.
+- Optional `envFrom` secret hook in the Helm deployment template so real
+  deployments can inject `JWT_SECRET`/SMTP credentials from Kubernetes Secrets.
 
 ### Changed
+- Canonical Go module path `github.com/cuesoftinc/expendit/api/common`; SMTP_*
+  env vars upper-cased; web components renamed to PascalCase files with
+  kebab-case routes (`/forgot-password`); eslint flat config; jest wired with
+  passing tests; standard-form Helm chart + cluster-agnostic terraform;
+  per-service internals standardized.
 - Migrated `api/common` to `cmd/server` + `internal/` with singular
   purpose-based packages and `snake_case.go` files.
 - Standardized web naming (kebab-case folders + modules, PascalCase components);
@@ -51,14 +36,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   shared standard.
 - Fixed the Makefile to use Go tooling (it previously invoked npm against the Go
   service) and corrected CODEOWNERS.
+- Helm values now document the external MongoDB/Redis requirement (the chart
+  does not deploy databases); `web/.gitignore` + `web/.env.example` aligned to
+  the shared standard; `income.go` renamed to `income_model.go`.
 
 ### Removed
+- Dead gRPC surface (unwired Go proto/interceptor and the web grpc-methods/
+  proto chain whose deps were never installed), dead util/model files, stale
+  api Makefile, orphan template/marketing assets, debug console/print logging.
 - Dead `configs` package, a broken gRPC `main_test.go`, and stray
   `k8s/deployment.yaml` manifests.
 - GitHub Actions CI workflow and a committed `api/common/main.exe` build artifact.
+- Dead `GenerateUniqueToken` util (and its `randstr` dependency), the leftover
+  `X-UserID` CORS allow-header, and commented-out gRPC remnants in the web
+  sign-in/sign-up hooks.
+
+### Fixed
+- Change-password verified against the wrong argument order (always failed);
+  reset-password email linked a 404 path; request-path `log.Fatal`/`log.Panic`
+  could kill the server; JWT/SMTP env read at call time (empty-key signing).
+- Malformed `validate` struct tags on the expense/income category models meant
+  those validations were silently skipped; the forgot-password form stayed stuck
+  in a loading state after early validation errors; per-request contexts leaked
+  in several user handlers (`defer cancel()` is now immediate); stale
+  `expendit-server` module references in README/docs.
 
 ### Security
+- Removed the `X-UserID` header-trust middleware (IDOR) — identity comes only
+  from the JWT `uid` claim; `UpdateUser` no longer accepts `user_type` from the
+  request body (self privilege-escalation); expense reads now require auth.
 - Migrated auth from the abandoned `dgrijalva/jwt-go` to `golang-jwt/jwt/v4` and
   added JWT signing-method validation.
 - Bumped `golang.org/x/crypto` (critical advisories) and `excelize`; applied
   non-breaking npm fixes and pinned `postcss`.
+- Password reset tokens are no longer written to server logs; `password` and
+  `refresh_token` are excluded from all JSON API responses; `util.ParseToken`
+  rejects non-HMAC signing methods.

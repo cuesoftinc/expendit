@@ -40,6 +40,13 @@ spec:
               value: {{ $v | quote }}
             {{- end }}
           {{- end }}
+          {{- with $svc.envFrom }}
+          envFrom:
+            {{- range . }}
+            - secretRef:
+                name: {{ .secretRef }}
+            {{- end }}
+          {{- end }}
           {{- if $svc.healthPath }}
           livenessProbe:
             httpGet:

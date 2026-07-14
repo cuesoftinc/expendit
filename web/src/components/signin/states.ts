@@ -11,7 +11,6 @@ import { SignInPayload } from "@/api/types";
 
 export const useSignInCustomState = () => {
   const router = useRouter();
-  // const { client } = useGrpcClientMethods();
   const {
     formError,
     setFormError,

@@ -68,7 +68,8 @@ export const useForgotPasswordCustomState = () => {
 
     if (resetToken) {
       if (passwordForm.new_password !== passwordForm.con_password) {
-        setFormError("passwords does not match");
+        setFormError("passwords do not match");
+        setFormLoading(false);
         return;
       }
 
@@ -84,6 +85,7 @@ export const useForgotPasswordCustomState = () => {
       router.push("/signin");
     } else {
       setFormError("no token provided");
+      setFormLoading(false);
     }
   };
 

@@ -10,12 +10,12 @@ type User struct {
 	First_name *string            `json:"first_name,omitempty" bson:"first_name,omitempty" validate:"required,min=2,max=50"`
 	Last_name  *string            `json:"last_name,omitempty" bson:"last_name,omitempty" validate:"required,min=2,max=50"`
 	Email      *string            `json:"email,omitempty" bson:"email,omitempty" validate:"required,email"`
-	Password   *string            `json:"password,omitempty" bson:"password,omitempty" validate:"required,min=8,max=128"`
+	Password   *string            `json:"-" bson:"password,omitempty" validate:"required,min=8,max=128"`
 	Phone      *string            `json:"phone,omitempty" bson:"phone,omitempty" validate:"required"`
 	Token      *string            `json:"token,omitempty" bson:"token,omitempty"`
 	// User_type     *string            `json:"user_type,omitempty" bson:"user_type,omitempty" validate:"required,oneof=ADMIN USER"`
 	User_type     *string   `json:"user_type,omitempty" bson:"user_type,omitempty"`
-	Refresh_token *string   `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
+	Refresh_token *string   `json:"-" bson:"refresh_token,omitempty"`
 	Created_at    time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	Updated_at    time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 	User_id       string    `json:"user_id,omitempty" bson:"user_id,omitempty"`
