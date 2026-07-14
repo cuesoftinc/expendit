@@ -19,6 +19,9 @@ services:
       MONGODB_URL: mongodb://mongo:27017/expendit
       REDIS_URL: redis://redis:6379
       FRONTEND_URL: http://web:3000
+    # Inject secrets (e.g. JWT_SECRET, SMTP creds) from a Kubernetes Secret:
+    # envFrom:
+    #   - secretRef: api-common-secrets
 
   web:
     image: cuesoft/expendit-web:latest
