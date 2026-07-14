@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { LineExpenseChart } from "@/dummy";
+import { LineExpenseChart } from "@/dummy/dummy-data";
 import { useHomeContext } from "@/context";
 import DownloadBtn from "./DownloadBtn";
 import styles from "./styles";

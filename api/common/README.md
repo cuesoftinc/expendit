@@ -1,90 +1,49 @@
-## To run the  CommonServer
+# Expendit API (`api/common`)
 
-- go mod tidy 
-- go run main.go
+Go + Gin REST API backing the Expendit expense tracker: auth (JWT + Google
+sign-in), expenses, income, categories, reports, statement imports, and AI
+summaries. Data lives in MongoDB; rate limiting uses Redis with an in-memory
+fallback.
 
+## Layout
 
-
-## url endpoints
-post - http://localhost:9000/users/signup
-post - http://localhost:9000/users/signin
-get - http://localhost:9000/users
-get - http://localhost:9000/user_id
-
-
-## Rate Limiting
-
-Login and password reset endpoints are rate-limited per IP using a sliding window (5 login attempts / 3 password reset attempts per 15 minutes).
-
-By default the limiter runs **in-memory** — no setup required. To switch to a **Redis-backed** limiter that persists across restarts and works across multiple server instances, add one variable to `.env`:
-
-```env
-REDIS_URL=redis://localhost:6379              # local
-REDIS_URL=redis://default:password@host:6379  # production (Upstash, Railway, Render, etc.)
+```
+cmd/server/main.go   entrypoint — slog JSON logging, /health + /ready, graceful shutdown
+internal/handler     HTTP handlers        internal/service   import/AI engines
+internal/router      route groups (auth scoped per group)
+internal/middleware  auth, CORS, rate limiting, request-id, logging
+internal/model       Mongo models         internal/database  Mongo client
+internal/helper      JWT session tokens   internal/util      JWT reset tokens, mail
+internal/validation  password policy
 ```
 
-The server pings Redis on startup. If the URL is missing or Redis is unreachable, it logs a warning and falls back to in-memory automatically — the app keeps running either way.
+## Run
 
----
+From the repo root (recommended — starts MongoDB, Redis, API, and web):
 
-## Packages to install 
-go get github.com/dgrijalva/jwt-go
- go get github.com/gin-gonic/gin
- go get github.com/go-playground/validator/v10
+```bash
+cp .env.example .env
+make up            # api on http://localhost:8080
+```
 
- 
-  ## Adding a New AI Provider
+Natively (requires MongoDB reachable via MONGODB_URL, reads `.env` in this dir):
 
-  The AI layer (`api/common/services/aiEnhancer.go`) supports swappable providers via env vars.
-  Priority order: `GROQ_API_KEY` → `GEMINI_API_KEY`. To add a new provider (e.g. OpenAI, Claude):
+```bash
+go run ./cmd/server
+```
 
-  **1. `api/common/.env` — add the API key**
-  ```
-  OPENAI_API_KEY=sk-...
-  # or
-  ANTHROPIC_API_KEY=sk-ant-...
-  ```
+Health: `GET /health` · readiness: `GET /ready` — both public; all domain
+routes require a Bearer JWT.
 
-  **2. `aiEnhancer.go` — `NewAIEnhancer()` (line ~24)** — add an env var check:
-  ```go
-  if key := os.Getenv("OPENAI_API_KEY"); key != "" {
-      log.Printf("[AI] using OpenAI")
-      return &AIEnhancer{provider: "openai", apiKey: key, client: &http.Client{Timeout: 30 * time.Second}}
-  }
-  ```
+## Configuration
 
-  **3. `aiEnhancer.go` — `generate()` (line ~275)** — add a case for text generation:
-  ```go
-  case "openai":
-      return a.generateOpenAI(ctx, prompt)
-  ```
+Set via environment (see the root `.env.example`): `PORT` (default 8080),
+`MONGODB_URL`, `REDIS_URL`, `JWT_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`,
+`GEMINI_API_KEY`/`GROQ_API_KEY` (AI summaries), `EMAIL_FROM`, `SMTP_HOST`,
+`SMTP_USER`, `SMTP_PASSWORD`, `SMTP_PORT` (password reset email).
 
-  **4. `aiEnhancer.go` — `GenerateText()` (line ~212)** — add a case for short summaries:
-  ```go
-  case "openai":
-      return a.generateOpenAIWithTokens(ctx, prompt, 512)
-  ```
+## Test
 
-  **5. `aiEnhancer.go` — `ExtractTransactionsFromImage()` (line ~478)** — add a case for image/vision:
-  ```go
-  case "openai":
-      text, err = a.generateOpenAIVision(ctx, imageData, mimeType, imageTransactionPrompt)
-  ```
-
-  **6.** Add the actual `generateOpenAI()`, `generateOpenAIWithTokens()`, and `generateOpenAIVision()` functions
-  alongside the existing Groq and Gemini implementations in the same file.
-
-  > No other files need touching. The `.env` key controls which provider is active at runtime.
-
-  ### Default provider
-  The provider whose key appears **first** in `NewAIEnhancer()` and is set in `.env` wins. Current order: `GROQ_API_KEY` → `GEMINI_API_KEY`. Insert your new key check before or after existing ones to control priority. If multiple keys are set, only the first match is used.
-
-  ### Provider comparison
-
-  | Provider | Free tier | Vision | Data used for training |
-  | --- | --- | --- | --- |
-  | Groq | Yes | Yes (Llama 4) | No |
-  | Gemini (AI Studio) | Yes | Yes | Yes (opt-out available) |
-  | Gemini (Vertex AI) | No | Yes | No |
-  | OpenAI | No | Yes (GPT-4o) | No |
-  | Anthropic (Claude) | No | Yes | No |
+```bash
+go test ./...
+```

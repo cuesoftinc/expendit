@@ -14,10 +14,9 @@ func UserRoutes(incomingRoutes *gin.Engine) {
 	incomingRoutes.POST("/login", middleware.LoginRateLimit(), handler.Login())
 	incomingRoutes.POST("/auth/google", handler.GoogleAuth())
 
-	// PROTECTED ROUTES
+	// PROTECTED ROUTES — identity comes from the JWT (uid claim) only.
 	protected := incomingRoutes.Group("/")
 	protected.Use(middleware.Authenticate())
-	protected.Use(middleware.AuthMiddleware())
 
 	{
 		protected.POST("/logout", handler.Logout())

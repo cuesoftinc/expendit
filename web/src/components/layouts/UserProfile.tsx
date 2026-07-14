@@ -7,7 +7,7 @@ import { logoutApi } from "@/api/apis/auth-api";
 
 import styles from "./styles";
 import { useRouter } from "next/navigation";
-import { userProfileData } from "@/dummy";
+import { userProfileData } from "@/dummy/dummy-data";
 import Avatar from "@/assets/images/avatar.jpg";
 
 const UserProfile = () => {

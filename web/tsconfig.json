@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2017",
     "lib": [
       "dom",
       "dom.iterable",
@@ -34,8 +34,6 @@
     "**/*.tsx",
     "src/**/*.ts",
     ".next/types/**/*.ts",
-    "proto/user_pb.js",
-    "proto/user_grpc_web_pb.js",
     "src/setup-tests.ts",
     ".next/dev/types/**/*.ts"
   ],

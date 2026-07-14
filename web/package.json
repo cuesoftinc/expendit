@@ -6,10 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postbuild:static": "zip -FSr build.zip build/* -x \"*.DS_Store\"",
     "test:ci": "jest --ci",
     "test": "jest",
-    "eject": "next eject",
     "lint:staged": "lint-staged",
     "lint": "npm run prettier:check && npm run eslint",
     "lint:fix": "npm run eslint:fix && npm run prettier:fix",
@@ -25,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CuesoftCloud/expendit"
+    "url": "git+https://github.com/cuesoftinc/expendit"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

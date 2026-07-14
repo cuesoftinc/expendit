@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AiOutlinePoweroff, AiOutlineClose } from "react-icons/ai";
-import { links } from "@/dummy";
+import { links } from "@/dummy/dummy-data";
 import { useNavContext, useHomeContext, useSession } from "@/context";
 import styles from "./styles";
 import Image from "next/image";

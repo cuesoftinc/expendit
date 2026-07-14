@@ -1,6 +1,6 @@
 import React from "react";
 import PageLayout from "@/components/layouts/PageLayout";
-import Page from "@/components/expense";
+import Page from "@/components/expense/Expense";
 import styles from "@/components/custom-styles";
 import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 

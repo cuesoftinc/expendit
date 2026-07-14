@@ -25,7 +25,7 @@ API:
                  |      (web/)         |
                  +----------+----------+
                             |
-                            | HTTPS / gRPC-web
+                            | HTTPS (REST)
                             v
 +----------------+   +------+------------------+   +----------------+
 | Flutter mobile |-->|   Go REST API (Gin)     |-->|    MongoDB     |

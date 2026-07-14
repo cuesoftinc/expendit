@@ -99,17 +99,14 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
               setExpenseData(userExpenseRes.results);
               setTotalPage(userExpenseRes.total_pages);
               setCurrentPage(userExpenseRes.page);
-              console.log(userExpenseRes);
             }
 
             if (totalMonthExpenseRes) {
               setTotalExpense(totalMonthExpenseRes.totalExpense);
-              console.log(totalMonthExpenseRes);
             }
 
             if (totalMonthIncomeRes) {
               setPresentIncome(totalMonthIncomeRes.totalIncome);
-              console.log(totalMonthIncomeRes);
             }
 
             if (categoryRes) {
@@ -118,7 +115,6 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
           }
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
       }
     }
 
@@ -158,27 +154,22 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
           if (isMounted) {
             if (areaChartRes) {
               setAreaChart(areaChartRes);
-              console.log(areaChartRes);
             }
 
             if (barChartRes) {
               setBarChart(barChartRes);
-              console.log(barChartRes);
             }
 
             if (pieChartRes) {
               setPieChart(pieChartRes);
-              console.log(pieChartRes);
             }
 
             if (lineChartRes) {
               setLineChart(lineChartRes);
-              console.log(lineChartRes);
             }
           }
         }
       } catch (error) {
-        console.error("Error fetching report data:", error);
       }
     }
 

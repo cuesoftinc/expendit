@@ -1,53 +1,49 @@
-package handler 
-
+package handler
 
 import (
 	"context"
-	"net/http"
-	"log"
-	"fmt"
-	"time"
-    "expendit-server/internal/model"
 	"expendit-server/internal/database"
+	"expendit-server/internal/model"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"log"
+	"net/http"
+	"time"
 )
 
+var categoryCollection *mongo.Collection = database.OpenCollection(database.Client, "category")
 
-var  categoryCollection *mongo.Collection = database.OpenCollection(database.Client, "category")
+func GetCategoryById() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
 
-func GetCategoryById()gin.HandlerFunc {
-	return func(c *gin.Context){
-	id := c.Param("id")
+		objectID, err := primitive.ObjectIDFromHex(id)
 
-    objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 
-	if err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid ID"})
-
-		return
+			return
+		}
+		var category model.Category
+		err = categoryCollection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&category)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+			return
+		}
+		c.JSON(http.StatusOK, category)
 	}
-	var category  model.Category
-	err = categoryCollection.FindOne(context.Background(), bson.M{"_id":objectID}).Decode(&category)
-      if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found"})
-		 return 
-	  }
-	  c.JSON(http.StatusOK, category)
-	}   
-} 
-
+}
 
 var CATEGORIES = []string{"Food",
-"Transportation",
-"Groceries",
-"Utility",
-"Data",
-"School",
-"Netflix",
-"Gaming",}
+	"Transportation",
+	"Groceries",
+	"Utility",
+	"Data",
+	"School",
+	"Netflix",
+	"Gaming"}
 
 func CreateCategories() error {
 	count, err := categoryCollection.CountDocuments(context.Background(), bson.M{})
@@ -56,7 +52,6 @@ func CreateCategories() error {
 	}
 
 	if count > 0 {
-		fmt.Println("Categories already exist.")
 		return nil
 	}
 
@@ -68,7 +63,6 @@ func CreateCategories() error {
 	_, err = categoryCollection.InsertMany(context.Background(), defaultCategories)
 	return err
 }
-
 
 func getCategoryByName(ctx context.Context, categoryName string) (model.Category, error) {
 	var category model.Category
@@ -83,53 +77,50 @@ func getCategoryByName(ctx context.Context, categoryName string) (model.Category
 
 func GetCategories() gin.HandlerFunc {
 	return func(c *gin.Context) {
-			// Fetch categories from the database
-			cursor, err := categoryCollection.Find(context.Background(), bson.M{})
-			if err != nil {
-					log.Println("Error querying categories:", err)
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-					return
-			}
-			defer cursor.Close(context.Background())
+		// Fetch categories from the database
+		cursor, err := categoryCollection.Find(context.Background(), bson.M{})
+		if err != nil {
+			log.Println("Error querying categories:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		defer cursor.Close(context.Background())
 
-			// Decode the results into a slice of model.Category
-			var categories []model.Category
-			if err := cursor.All(context.Background(), &categories); err != nil {
-					log.Println("Error decoding categories:", err)
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-					return
-			}
+		// Decode the results into a slice of model.Category
+		var categories []model.Category
+		if err := cursor.All(context.Background(), &categories); err != nil {
+			log.Println("Error decoding categories:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
 
-			// Return the categories as JSON response
-			c.JSON(http.StatusOK, categories)
+		// Return the categories as JSON response
+		c.JSON(http.StatusOK, categories)
 	}
 }
 
+func CreateCategory() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var category model.Category
 
-func CreateCategory()gin.HandlerFunc{
-	return func(c *gin.Context){
-	var category model.Category
+		if err := c.ShouldBindJSON(&category); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	if err := c.ShouldBindJSON(&category); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
-		return 
+		category.ID = primitive.NewObjectID()
+		category.CreatedAt = time.Now()
+		category.UpdatedAt = time.Now()
+
+		_, err := categoryCollection.InsertOne(context.Background(), category)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		c.JSON(http.StatusCreated, category)
 	}
-
-   
-    category.ID = primitive.NewObjectID()
-	category.CreatedAt = time.Now()
-	category.UpdatedAt = time.Now()
-
-
-	_, err := categoryCollection.InsertOne(context.Background(), category)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		  return 
-	}
-	c.JSON(http.StatusCreated,category)
 }
-}
-	
+
 func UpdateCategory() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -166,7 +157,7 @@ func UpdateCategory() gin.HandlerFunc {
 		}
 
 		if result.ModifiedCount == 0 {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Expense not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
 			return
 		}
 
@@ -174,57 +165,52 @@ func UpdateCategory() gin.HandlerFunc {
 	}
 }
 
+func DeleteCategory() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid"})
+			return
+		}
 
+		result, err := categoryCollection.DeleteOne(context.Background(), bson.M{"_id": objectID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
 
+		if result.DeletedCount == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found "})
+			return
+		}
 
-func DeleteCategory()gin.HandlerFunc{
-	return func(c *gin.Context){
-	id  := c.Param("id")
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Invalid"})
-		return 
+		c.JSON(http.StatusNoContent, nil)
 	}
-
-	result , err := categoryCollection.DeleteOne(context.Background(), bson.M{"_id":objectID})
-	if err != nil{
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		return 
-	}
-
-	if result.DeletedCount == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error":"Expense not found "})
-		return
-	}
-
-	c.JSON(http.StatusNoContent, nil)
 }
-}
-
 
 func SearchCategory() gin.HandlerFunc {
-	return func(c *gin.Context){
-	query := c.Query("query")
-	if query == ""{
-		c.JSON(http.StatusBadRequest, gin.H{"error":"Search query is required"})
-		return 
+	return func(c *gin.Context) {
+		query := c.Query("query")
+		if query == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Search query is required"})
+			return
+		}
+
+		filter := bson.M{"items": bson.M{"$regex": primitive.Regex{Pattern: query, Options: "i"}}}
+		cursor, err := categoryCollection.Find(context.Background(), filter)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+
+		defer cursor.Close(context.Background())
+
+		var category []model.Category
+		if err := cursor.All(context.Background(), &category); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+			return
+		}
+		c.JSON(http.StatusOK, category)
 	}
-
-	filter := bson.M{"items":bson.M{"$regex":primitive.Regex{Pattern:query,Options:"i"}}}
-    cursor, err := categoryCollection.Find(context.Background(), filter)
-     if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-	    return 
-	}
-
-	defer cursor.Close(context.Background())
-
-        var category []model.Category
-		if err := cursor.All(context.Background(), &category); err != nil{
-			   c.JSON(http.StatusInternalServerError, gin.H{"error":"Internal Server Error"})
-		       return 
-			}
-			c.JSON(http.StatusOK, category)
 }
-}
-

@@ -3,7 +3,6 @@
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useHomeContext } from "@/context";
-import { useGrpcClientMethods } from "@/grpc-methods";
 import { signUpFormProps } from "./types";
 import { signUpApi } from "@/api/apis/auth-api";
 import { formatSignUp } from "@/utils/format-sign-up-form";

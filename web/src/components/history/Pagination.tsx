@@ -15,19 +15,16 @@ const Pagination = () => {
   }, [totalPage]);
 
   const handleForward = (e: any) => {
-    console.log(currentPage);
     if (currentPage === totalLength) return;
     setCurrentPage(currentPage + 1);
   };
   const handleBackward = (e: any) => {
-    console.log(currentPage);
     if (currentPage === 1) return;
     setCurrentPage(currentPage - 1);
   };
 
   const pagination = generatePagination(currentPage, totalPages);
 
-  console.log(pagination.join(", "));
 
   return (
     <div className={styles.pagination}>

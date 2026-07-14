@@ -10,7 +10,7 @@ import {
   Tooltip,
   Bar,
 } from "recharts";
-import { BarExpenseChart } from "@/dummy";
+import { BarExpenseChart } from "@/dummy/dummy-data";
 import { useCustomState } from "@/hooks/responsive";
 import { useHomeContext } from "@/context";
 import DownloadBtn from "./DownloadBtn";

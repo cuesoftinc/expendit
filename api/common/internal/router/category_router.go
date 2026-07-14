@@ -1,7 +1,5 @@
 package router
 
-
-
 import (
 	"expendit-server/internal/handler"
 	"expendit-server/internal/middleware"

@@ -99,7 +99,7 @@ const Form = () => {
             <input className="mr-2" type="checkbox" />
             Remember me
           </p>
-          <Link href="/forgotpassword" className={styles.link}>
+          <Link href="/forgot-password" className={styles.link}>
             Forgot password?
           </Link>
         </div>

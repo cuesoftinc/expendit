@@ -20,7 +20,7 @@ commit real `.env` files — `make up` reads the root `.env`.
 | `MONGODB_URL` | MongoDB connection string |
 | `JWT_SECRET` | Secret used to sign JWTs |
 | `EMAIL_FROM` | From address for outbound email |
-| `SMTP_Host` / `SMTP_User` / `SMTP_Password` / `SMTP_Port` | SMTP credentials |
+| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_PORT` | SMTP credentials |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `GEMINI_API_KEY` | Google Gemini API key (AI summaries) |
 | `GROQ_API_KEY` | Groq API key (AI categorization) |

@@ -1,22 +1,17 @@
-
 package util
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
 
 	"gopkg.in/gomail.v2"
 )
 
-var EMAIL_FROM string = os.Getenv("EMAIL_FROM")
-var SMTP_Host string = os.Getenv("SMTP_Host")
-var SMTP_User string = os.Getenv("SMTP_User")
-var SMTP_Password string = os.Getenv("SMTP_Password")
-var FRONTEND_URL string = os.Getenv("FRONTEND_URL")
-
+// Env is read at call time (not package init) so values loaded from .env by
+// main are honored.
 func getSMTPPort() int {
-	if p, err := strconv.Atoi(os.Getenv("SMTP_Port")); err == nil {
+	if p, err := strconv.Atoi(os.Getenv("SMTP_PORT")); err == nil {
 		return p
 	}
 	return 587
@@ -24,15 +19,15 @@ func getSMTPPort() int {
 
 func SendResetPasswordEmail(toEmail, resetToken string) error {
 	m := gomail.NewMessage()
-	m.SetHeader("From", EMAIL_FROM)
+	m.SetHeader("From", os.Getenv("EMAIL_FROM"))
 	m.SetHeader("To", toEmail)
 	m.SetHeader("Subject", "Reset Password")
-	m.SetBody("text/html", "Click the following link to reset your password: <a href=\""+FRONTEND_URL+"/forgotpassword/new_password/?resetToken="+resetToken+"\">Reset Password</a>")
+	m.SetBody("text/html", "Click the following link to reset your password: <a href=\""+os.Getenv("FRONTEND_URL")+"/forgot-password/new-password/?resetToken="+resetToken+"\">Reset Password</a>")
 
-	d := gomail.NewDialer(SMTP_Host, getSMTPPort(), SMTP_User, SMTP_Password)
+	d := gomail.NewDialer(os.Getenv("SMTP_HOST"), getSMTPPort(), os.Getenv("SMTP_USER"), os.Getenv("SMTP_PASSWORD"))
 
 	if err := d.DialAndSend(m); err != nil {
-		fmt.Println("Error sending email:", err)
+		slog.Error("failed to send reset-password email", "error", err)
 		return err
 	}
 

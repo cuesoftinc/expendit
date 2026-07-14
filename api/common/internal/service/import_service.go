@@ -23,8 +23,8 @@ var (
 )
 
 type ImportResult struct {
-	Job          model.ImportJob              `json:"job"`
-	Transactions []model.ImportedTransaction  `json:"transactions"`
+	Job          model.ImportJob             `json:"job"`
+	Transactions []model.ImportedTransaction `json:"transactions"`
 }
 
 // ProcessImport parses the uploaded file and stages transactions for user review.

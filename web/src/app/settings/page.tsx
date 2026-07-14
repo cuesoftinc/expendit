@@ -5,8 +5,8 @@ import PageLayout from "@/components/layouts/PageLayout";
 import styles from "@/components/custom-styles";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import { useState } from "react";
-import ProfileSettings from "../../components/settings/profile-settings";
-import PasswordSettings from "../../components/settings/password-settings";
+import ProfileSettings from "../../components/settings/profile-settings/ProfileSettings";
+import PasswordSettings from "../../components/settings/password-settings/PasswordSettings";
 import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 
 const Settings = () => {

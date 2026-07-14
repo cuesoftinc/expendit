@@ -18,8 +18,8 @@ var fingerprintCol *mongo.Collection = database.OpenCollection(database.Client, 
 var nonAlphaNum = regexp.MustCompile(`[^a-z0-9 ]`)
 
 type DuplicateDetector struct {
-	userID      string
-	batchSeen   map[string]bool // fingerprints encountered within the current import
+	userID    string
+	batchSeen map[string]bool // fingerprints encountered within the current import
 }
 
 func NewDuplicateDetector(userID string) *DuplicateDetector {

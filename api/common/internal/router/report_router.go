@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func ReportRoutes(incomingRoutes *gin.Engine) {
 	// Scoped group: auth applies to /report/* only (a bare engine.Use here
 	// would leak auth onto every route registered after this function).
