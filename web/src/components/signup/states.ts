@@ -3,12 +3,12 @@
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useHomeContext } from "@/context";
-import { useGrpcClientMethods } from "@/grpc_methods";
+import { useGrpcClientMethods } from "@/grpc-methods";
 import { signUpFormProps } from "./types";
-import { signUpApi } from "@/API/APIS/authApi";
-import { formatSignUp } from "@/utils/formatSignUpForm";
-import { signUpRequiredFields } from "@/utils/formatSignUpForm";
-import { SignUpPayload } from "@/API/types";
+import { signUpApi } from "@/api/apis/auth-api";
+import { formatSignUp } from "@/utils/format-sign-up-form";
+import { signUpRequiredFields } from "@/utils/format-sign-up-form";
+import { SignUpPayload } from "@/api/types";
 
 export const useSignUpCustomState = () => {
   const router = useRouter();

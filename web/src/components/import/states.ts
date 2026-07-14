@@ -7,7 +7,7 @@ import {
   discardImportApi,
   updateTransactionCategoryApi,
   getCategoriesApi,
-} from "@/API/APIS/importApi";
+} from "@/api/apis/import-api";
 import type {
   ImportResult,
   ImportedTransaction,

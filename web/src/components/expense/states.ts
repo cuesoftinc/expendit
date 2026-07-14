@@ -1,13 +1,13 @@
 import { ChangeEvent, useState, FormEvent, useEffect, useRef } from "react";
-import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas";
+import { formatNumberWithCommas as formatValue } from "@/utils/format-with-commas";
 import {
   formatExpense,
   expenseRequiredFields,
-} from "@/utils/formatExpenseForm";
-import { expenseCreateApi } from "@/API/APIS/expenseApi";
+} from "@/utils/format-expense-form";
+import { expenseCreateApi } from "@/api/apis/expense-api";
 import { useHomeContext } from "@/context";
 import { useRouter } from "next/navigation";
-import { getExpenseApi } from "@/API/APIS/expenseApi";
+import { getExpenseApi } from "@/api/apis/expense-api";
 
 export interface expenseFormProps {
   amount: string;

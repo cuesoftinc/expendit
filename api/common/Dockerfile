@@ -1,38 +1,18 @@
-# Use an official Golang runtime as a base image 
+# ---- build stage ----
 FROM golang:1.25-alpine AS builder
-
-#Set the working directory inside the container
 WORKDIR /app
-
-# Copy the go.mod and go.sum files to the workspace
 COPY go.mod go.sum ./
-
-# Download and install dependencies
 RUN go mod download
-
-# Copy the entire project into the container
 COPY . .
+RUN CGO_ENABLED=0 go build -o app ./cmd/server
 
-# Build the Go application 
-RUN go build -o myapp
-
-# Start a new stage from scratch
-FROM alpine:latest
-
-# Install mongodb client 
-RUN apk --no-cache add mongodb-tools 
-
-# Set the working directory inside the container
+# ---- runtime stage ----
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates && adduser -D -u 10001 appuser
 WORKDIR /app
-
-# Copy the built binary from the builder stage
-COPY --from=builder /app/myapp .
-
-# Copy the .env file -- Skipping in case it is not present in the project directory using the [v] flag to avoid build failure
-COPY .en[v] .
-
-#Expose the port on which the application  will run 
-EXPOSE 9000 
-
-# Command to run the executable
-CMD ["./myapp"]
+COPY --from=builder /app/app .
+USER appuser
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -qO- "http://127.0.0.1:${PORT:-8080}/health" || exit 1
+CMD ["./app"]

@@ -4,10 +4,10 @@ import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useHomeContext } from "@/context";
 import { signInFormProps } from "./types";
-import { signInApi } from "@/API/APIS/authApi";
-import { formatSignIn } from "@/utils/formatSignInForm";
-import { signInRequiredFields } from "@/utils/formatSignInForm";
-import { SignInPayload } from "@/API/types";
+import { signInApi } from "@/api/apis/auth-api";
+import { formatSignIn } from "@/utils/format-sign-in-form";
+import { signInRequiredFields } from "@/utils/format-sign-in-form";
+import { SignInPayload } from "@/api/types";
 
 export const useSignInCustomState = () => {
   const router = useRouter();

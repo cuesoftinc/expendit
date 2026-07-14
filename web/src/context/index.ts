@@ -1,6 +1,6 @@
-import { HomeProvider, useHomeContext } from "./homeContext";
-import { NavProvider, useNavContext } from "./navContext";
-import { SessionProvider, useSession } from "./sessionProvider";
+import { HomeProvider, useHomeContext } from "./HomeContext";
+import { NavProvider, useNavContext } from "./NavContext";
+import { SessionProvider, useSession } from "./SessionProvider";
 
 export {
   HomeProvider,

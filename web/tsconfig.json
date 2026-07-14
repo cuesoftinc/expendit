@@ -12,10 +12,10 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -36,7 +36,8 @@
     ".next/types/**/*.ts",
     "proto/user_pb.js",
     "proto/user_grpc_web_pb.js",
-    "src/setupTests.ts"
+    "src/setup-tests.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

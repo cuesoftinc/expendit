@@ -6,8 +6,8 @@ import { useExpenseCustomState } from "./states";
 import LoaderSpinner from "../helpers/LoaderSpinner";
 import styles from "./styles";
 import { useHomeContext } from "@/context";
-import { API } from "@/API/axiosSetup";
-import { getLocalStorageItem } from "@/utils/localStorage";
+import { API } from "@/api/axios-setup";
+import { getLocalStorageItem } from "@/utils/local-storage";
 
 const Index = () => {
   const {

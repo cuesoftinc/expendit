@@ -1,4 +1,4 @@
-import genStyles from "../CustomStyles";
+import genStyles from "../custom-styles";
 
 const styles = {
   container: (mb?: boolean) =>

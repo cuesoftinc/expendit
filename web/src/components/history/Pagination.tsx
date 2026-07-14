@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useHomeContext } from "@/context";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { generatePagination } from "@/utils/generatePagination";
+import { generatePagination } from "@/utils/generate-pagination";
 import styles from "./styles";
 
 const Pagination = () => {

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Logo from "@/assets/images/logo.png";
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
-import EmailInput from "./email";
+import EmailInput from "./Email";
 
 const Index = () => {
   return (

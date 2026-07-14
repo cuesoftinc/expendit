@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import '../src/setupTests';
+import '../src/setup-tests';
 import '@testing-library/jest-dom';
 import { HomeProvider, NavProvider, SessionProvider } from '../src/context';
 import Home from '../src/app/page';

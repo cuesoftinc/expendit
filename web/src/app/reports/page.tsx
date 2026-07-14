@@ -1,6 +1,6 @@
 import React from "react";
 import PageLayout from "@/components/layouts/PageLayout";
-import styles from "@/components/CustomStyles";
+import styles from "@/components/custom-styles";
 import ExpenseComparisonByCat from "@/components/reports/ExpenseComparisonByCat";
 import ExpenseCompositionByCat from "@/components/reports/ExpenseCompositionByCat";
 import ExpenseTrends from "@/components/reports/ExpenseTrends";
