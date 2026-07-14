@@ -24,6 +24,7 @@ services:
 
   api-common:
     build: ./api/common
+    image: cuesoft/expendit-api-common:latest
     ports:
       - "8080:8080"
     environment:
@@ -48,6 +49,7 @@ services:
     restart: unless-stopped
 
   web:
+    image: cuesoft/expendit-web:latest
     build:
       context: ./web
       args:
