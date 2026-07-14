@@ -90,18 +90,14 @@ expendit/
 git clone https://github.com/cuesoftinc/expendit.git
 cd expendit
 
-# 2. Install workspace dependencies
-make install
+# 2. Configure environment
+cp .env.example .env   # fill in secrets as needed
 
-# 3. Configure environment variables
-cp api/common/.env.example api/common/.env   # fill in your values
-cp web/.env.example web/.env.local           # fill in your values
-
-# 4. Start the API and web app in development
-make dev
+# 3. Build and start the full stack (mongo, redis, api, web)
+make up
 ```
 
-The API listens on `http://localhost:9000` and the web app on
+The API listens on `http://localhost:8080` and the web app on
 `http://localhost:3000` by default.
 
 Run `make help` to see all available targets. For a detailed walkthrough, see
@@ -134,9 +130,3 @@ Please report security vulnerabilities responsibly. See our
 ## License
 
 Expendit is open-source software licensed under the [MIT License](./LICENSE).
-
-## Community
-
-- [GitHub Discussions](https://github.com/cuesoftinc/expendit/discussions)
-- [Report a bug](https://github.com/cuesoftinc/expendit/issues/new?template=bug_report.md)
-- [Request a feature](https://github.com/cuesoftinc/expendit/issues/new?template=feature_request.md)
