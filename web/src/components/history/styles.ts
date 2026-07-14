@@ -1,4 +1,4 @@
-import genStyles from "../CustomStyles";
+import genStyles from "../custom-styles";
 import expenseStyle from "../home/styles";
 
 const styles = {

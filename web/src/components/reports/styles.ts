@@ -1,4 +1,4 @@
-import genStyles from "@/components/CustomStyles";
+import genStyles from "@/components/custom-styles";
 
 const styles = {
   barCont:

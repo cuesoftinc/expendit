@@ -2,11 +2,11 @@
 
 import React from "react";
 import PageLayout from "@/components/layouts/PageLayout";
-import styles from "@/components/CustomStyles";
+import styles from "@/components/custom-styles";
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import { useState } from "react";
-import ProfileSettings from "../../components/settings/ProfileSettings";
-import PasswordSettings from "../../components/settings/PasswordSettings";
+import ProfileSettings from "../../components/settings/profile-settings";
+import PasswordSettings from "../../components/settings/password-settings";
 import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 
 const Settings = () => {

@@ -9,7 +9,7 @@ import { useNavContext, useHomeContext, useSession } from "@/context";
 import styles from "./styles";
 import Image from "next/image";
 import Logo from "@/assets/images/logo.png";
-import { logoutApi } from "@/API/APIS/authApi";
+import { logoutApi } from "@/api/apis/auth-api";
 
 const Sidebar = ({ mobile }: { mobile?: boolean }) => {
   const { isNavOpen, setIsNavOpen } = useNavContext();

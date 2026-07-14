@@ -12,7 +12,7 @@ interface Props {
   error: string | null;
   currency: Currency;
   setCurrency: (c: Currency) => void;
-  fileInputRef: RefObject<HTMLInputElement>;
+  fileInputRef: RefObject<HTMLInputElement | null>;
   onDragOver: (e: DragEvent<HTMLDivElement>) => void;
   onDragLeave: () => void;
   onDrop: (e: DragEvent<HTMLDivElement>) => void;

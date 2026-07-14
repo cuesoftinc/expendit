@@ -4,7 +4,7 @@ import {
   editCategoryApi,
   deleteCategoryApi,
   getCategoryApi,
-} from "@/API/APIS/categoryApi";
+} from "@/api/apis/category-api";
 import { useHomeContext } from "@/context";
 
 export const useCategoryCustomState = () => {

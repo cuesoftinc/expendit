@@ -1,5 +1,5 @@
 import React from "react";
-import Page from "@/components/signin/Index";
+import Page from "@/components/signin/index";
 import { PublicRoute } from "@/components/helpers/RouteProtection";
 
 export const metadata = {

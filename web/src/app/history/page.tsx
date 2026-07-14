@@ -1,6 +1,6 @@
 import React from "react";
 import PageLayout from "@/components/layouts/PageLayout";
-import styles from "@/components/CustomStyles";
+import styles from "@/components/custom-styles";
 import Page from "@/components/history";
 import { ProtectedRoute } from "@/components/helpers/RouteProtection";
 

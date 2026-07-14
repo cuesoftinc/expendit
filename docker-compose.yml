@@ -1,0 +1,64 @@
+# Local development stack for expendit.
+# Usage: cp .env.example .env  &&  make up
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - expendit-mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  api-common:
+    build: ./api/common
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      MONGODB_URL: mongodb://mongo:27017/expendit
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@example.com}
+      SMTP_Host: ${SMTP_Host:-}
+      SMTP_User: ${SMTP_User:-}
+      SMTP_Password: ${SMTP_Password:-}
+      SMTP_Port: ${SMTP_Port:-587}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:8080}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api-common:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  expendit-mongo:

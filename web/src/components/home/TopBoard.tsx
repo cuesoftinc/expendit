@@ -7,7 +7,7 @@ import { FiBarChart } from "react-icons/fi";
 import { HiOutlineRefresh } from "react-icons/hi";
 import { MdShowChart } from "react-icons/md";
 import { TbCurrencyNaira } from "react-icons/tb";
-import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas";
+import { formatNumberWithCommas as formatValue } from "@/utils/format-with-commas";
 import Slider from "react-slick";
 import styles from "./styles";
 import { useHomeContext } from "@/context";

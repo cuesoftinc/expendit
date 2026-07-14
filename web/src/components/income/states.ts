@@ -1,10 +1,10 @@
 import { ChangeEvent, useState, useEffect, FormEvent } from "react";
 import { useHomeContext } from "@/context";
-import { incomeCreateApi } from "@/API/APIS/incomeApi";
-import { formatIncome, incomeRequiredFields } from "@/utils/formatIncomeForm";
-import { formatNumberWithCommas as formatValue } from "@/utils/formatWithCommas";
-import { getIncomeApi } from "@/API/APIS/incomeApi";
-import { IncomePayload } from "@/API/types";
+import { incomeCreateApi } from "@/api/apis/income-api";
+import { formatIncome, incomeRequiredFields } from "@/utils/format-income-form";
+import { formatNumberWithCommas as formatValue } from "@/utils/format-with-commas";
+import { getIncomeApi } from "@/api/apis/income-api";
+import { IncomePayload } from "@/api/types";
 
 export interface incomeFormProps {
   source: string;

@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useNavContext, useHomeContext, useSession } from "@/context";
 import { AiOutlineClose } from "react-icons/ai";
-import { logoutApi } from "@/API/APIS/authApi";
+import { logoutApi } from "@/api/apis/auth-api";
 
 import styles from "./styles";
 import { useRouter } from "next/navigation";

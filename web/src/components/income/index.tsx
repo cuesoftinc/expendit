@@ -5,9 +5,9 @@ import React, { useEffect, useState } from "react";
 import Input from "@/components/signup/Input";
 import { useIncomeCustomState } from "./states";
 import LoaderSpinner from "../helpers/LoaderSpinner";
-import { getIncomeListApi } from "@/API/APIS/incomeApi";
-import { API } from "@/API/axiosSetup";
-import { getLocalStorageItem } from "@/utils/localStorage";
+import { getIncomeListApi } from "@/api/apis/income-api";
+import { API } from "@/api/axios-setup";
+import { getLocalStorageItem } from "@/utils/local-storage";
 
 const Index = () => {
   const { form, formLoading, formatValue, handleChange, handleSubmit } =

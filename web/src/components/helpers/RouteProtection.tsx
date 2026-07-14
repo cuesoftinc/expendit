@@ -3,7 +3,7 @@
 import React, { useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import FullPageLoader from "./FullPageLoader";
-import { getLocalStorageItem } from "@/utils/localStorage";
+import { getLocalStorageItem } from "@/utils/local-storage";
 import { useSession } from "@/context";
 
 interface ProtectedRouteProps {
