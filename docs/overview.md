@@ -41,3 +41,11 @@ responsibilities. To run the stack locally, see [setup.md](setup.md).
 Backend services are named by **function**, never by language: the current
 service is `api/common`; a future one would be `api/<function>`. See the
 [repository structure](../README.md#repository-structure) in the README.
+
+## Product & design documentation
+
+- [prd.md](prd.md) — product requirements breakdown (requirements vs current state, user rights, open questions)
+- [architecture.md](architecture.md) — system design, import-pipeline deep dive, target sequences
+- [data-model.md](data-model.md) — current + target entities, identity migration, data classification
+- [api.md](api.md) — full current surface and v1 deltas with gap analysis
+- [roadmap.md](roadmap.md) — phased plan with dependencies
