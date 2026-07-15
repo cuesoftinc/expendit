@@ -110,3 +110,31 @@ downloadable artifacts) and *ecosystem integration*, not building the engine.
    delete-on-confirm for raw files, retain derived transactions **[Proposed]**.
 4. **Figma designs** — Home canvas empty; the implemented landing becomes the
    de-facto design until a Figma pass exists.
+
+---
+
+## 9. Scope expansion (2026-07-16) **[Directive]**
+
+Look and feel: **brex.com** ([design.md](design.md)). Three new capability
+pillars, page-level breakdowns in [pages.md](pages.md):
+
+1. **Bank account linking** (BNK-001/002) — users either upload statements
+   *or link accounts*; synced transactions flow through the same staged-review
+   pipeline. Aggregator choice (Mono/Okra NG-first vs Plaid/TrueLayer) to
+   ratify.
+2. **Company financial records** (CMP-001…003) — company orgs upload balance
+   sheets / income statements / cash-flow statements; a normalized line-item
+   model feeds a ratio engine: liquidity (current/quick/cash), solvency
+   (debt-to-equity, debt ratio, interest coverage), profitability
+   (margins/ROA/ROE), efficiency (turnovers) — every ratio with a formula
+   trace back to line items.
+3. **Taxes** (TAX-001…003) — calculate PIT/CIT/VAT (jurisdiction profile,
+   NG-first **[Proposed]**) and **file**: v1 generates filing-ready documents
+   with guided handoff; v2 adds direct e-filing where APIs/partners exist.
+
+Platform structure **[Directive]**: public home page (shared open-source-site
+pattern: Discord, GitHub, preview link, Try Cloud / Self Host CTAs) + dashboard
++ eventual mobile parity (receipt capture first). Docs on GitBook (Git-synced
+from `docs/`); API reference via Scalar. New open questions: aggregator
+selection + data-access consent UX; tax jurisdiction scope + filing partner;
+org/member model for companies (roles, approvals).

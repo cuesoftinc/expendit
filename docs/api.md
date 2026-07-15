@@ -101,3 +101,20 @@ Server-side emission to Upstat: `upload_success` (job completed),
 Shared with apparule's api.md §4 for ecosystem parity: versioned `/api/v1`,
 error envelope `{"error": {"code", "message"}}`, cursor pagination,
 idempotency keys on upload/purge/report creation.
+
+---
+
+## 5. Expansion surface (2026-07-16) **[Proposed]** — deltas, `/api/v1`
+
+| Group | Endpoints |
+| --- | --- |
+| Orgs | `POST /orgs` · `GET /orgs` · member CRUD (`role: owner|admin|member`) · org-scoped auth context header |
+| Bank links | `POST /bank-links` (provider session init) · provider webhook `/webhooks/bank` · `GET /bank-links` · `POST /bank-links/{id}/sync` · `PATCH` (pause/auto-confirm) · `DELETE ?purge=bool` |
+| Company statements | `POST /statements` (upload) · `GET /statements/{id}/mapping` (staged line items) · `PATCH /statements/{id}/mapping` (fix canonical keys) · `POST /statements/{id}/confirm` |
+| Ratios | `POST /ratios/compute {period}` · `GET /ratios?period` · `GET /ratios/{key}/trace` |
+| Taxes | `GET /tax/profile` · `PUT /tax/profile` · `GET /tax/estimates` · `POST /tax/filings` (wizard draft) · `POST /tax/filings/{id}/generate` · `POST /tax/filings/{id}/submit` (v2, provider-gated) · `GET /tax/filings` |
+
+Bank-synced transactions enter the existing import pipeline as jobs
+(`source: bank_sync`) — one staged-review path for every ingress. Statement
+mapping mirrors import review (staged → human confirm) with the
+`canonical_key` closed vocabulary.

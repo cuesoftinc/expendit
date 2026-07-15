@@ -143,3 +143,69 @@ untouched during migration.
 Retention defaults **[Proposed, to ratify]**: ledger data until user deletion
 (USR-002); import jobs + staging 90 days after confirm/discard; report
 artifacts 30 days (regenerable); raw uploads never at rest.
+
+---
+
+## 5. Expansion entities (2026-07-16) **[Proposed]**
+
+```mermaid
+erDiagram
+    USER ||--o{ ORG_MEMBER : "belongs to"
+    ORG ||--o{ ORG_MEMBER : has
+    ORG ||--o{ BANK_LINK : links
+    BANK_LINK ||--o{ BANK_SYNC : "runs"
+    ORG ||--o{ FIN_STATEMENT : uploads
+    FIN_STATEMENT ||--o{ LINE_ITEM : "normalized into"
+    ORG ||--o{ RATIO_REPORT : computes
+    ORG ||--o{ TAX_PROFILE : configures
+    TAX_PROFILE ||--o{ TAX_ESTIMATE : produces
+    TAX_PROFILE ||--o{ TAX_FILING : files
+
+    ORG { objectid _id PK
+        string name
+        string kind "personal | company"
+        string currency
+        string country }
+    BANK_LINK { objectid _id PK
+        objectid org_id FK
+        string provider "mono|okra|plaid — to ratify"
+        string institution
+        string masked_account
+        string status "active|reauth_required|paused"
+        datetime last_synced_at }
+    FIN_STATEMENT { objectid _id PK
+        objectid org_id FK
+        string kind "balance_sheet|income_statement|cash_flow"
+        string period "e.g. 2026-Q2 / FY2025"
+        string source_file_type
+        string mapping_status "staged|confirmed" }
+    LINE_ITEM { objectid _id PK
+        objectid statement_id FK
+        string canonical_key "current_assets|inventory|total_debt|revenue|cogs|net_income|..."
+        string source_label "as it appeared in the upload"
+        float amount }
+    RATIO_REPORT { objectid _id PK
+        objectid org_id FK
+        string period
+        json ratios "key → {value, formula, inputs[line_item ids], benchmark_band}"
+        datetime computed_at }
+    TAX_FILING { objectid _id PK
+        objectid org_id FK
+        string kind "pit|cit|vat"
+        string period
+        string status "draft|generated|submitted|accepted"
+        json computed_fields "each with input trace"
+        string artifact_key "generated forms"
+        datetime filed_at }
+```
+
+Notes: existing per-user collections become org-scoped (`org_id`) with a
+personal org auto-created per user (migration: `userid` → personal org). The
+`canonical_key` vocabulary is the closed mapping target for AI-suggested
+line mapping (pages.md B6) — same schema-as-boundary pattern as elsewhere.
+Ratio formulas persist **with their inputs** so every gauge is auditable
+(MI-8 trace). Tax computed fields carry input traces for the wizard's
+"how we got this" expanders; filings are immutable once submitted.
+Bank credentials are never stored — only provider tokens, encrypted, with
+provider-side revocation honored (BNK-002 unlink offers keep-or-purge for
+already-imported transactions).

@@ -69,3 +69,26 @@ Phases 0–1 close every **Must** with the least engineering (the engine already
 exists) and make the privacy story real before growth work; Phase 2 pays the
 scaling debt in the pipeline the PRD's traffic assumes; Phase 3 waits on
 external contracts (D1/D2) and the deliberately-deferred bank integration.
+
+---
+
+## Revision — scope expansion (2026-07-16)
+
+Phases 0–2 stand as written (trust surface → downloadables/rights → pipeline
+hardening). The expansion appends:
+
+- **Phase 3 (revised) — Bank linking**: aggregator decision (NG-first
+  Mono/Okra vs Plaid), link/sync/re-auth flows into the shared staged-review
+  pipeline (BNK-001/002). Upstat events + account.cuesoft.io items move here
+  unchanged.
+- **Phase 4 — Company financials**: org model migration (personal org
+  auto-create), statement upload + line-item mapping review, ratio engine +
+  trends (CMP-001…003).
+- **Phase 5 — Tax center**: profile/calendar/estimates (TAX-001), filing
+  wizard generating filing-ready documents (TAX-002); direct e-filing (TAX-003)
+  behind jurisdiction/partner availability.
+- **Phase 6 — Mobile parity** (receipt capture first) + Brex-system dashboard
+  restyle completes (design.md rolls out progressively from Phase 3).
+
+Gates: aggregator + tax-jurisdiction decisions are Phase 3/5 entry criteria;
+company features require the org migration to ship first.
