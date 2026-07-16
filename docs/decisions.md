@@ -73,8 +73,11 @@ until a real customer needs it.
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
   is **Firebase Authentication on GCP project `sandbox-e306a`** ("sandbox") —
   Google sign-in + email flows come from Firebase; services verify Firebase ID
-  tokens (OIDC-compatible). The `account.cuesoft.io` facade fronts this later
-  without contract changes. Environment/secrets live in **Doppler**
+  tokens (OIDC-compatible). `account.cuesoft.io` **is not built yet** — each app replicates the
+  sign-in/sign-up screens **in-app** (own UI per its design system,
+  Firebase Auth underneath: Google sign-in + email/password flows). The
+  central facade fronts the same Firebase project later without contract
+  changes; in-app screens then become optional, not obsolete. Environment/secrets live in **Doppler**
   (`cueprise/cuesoft_stg`; see also the `cuesoft-iac` project) — CLI token
   currently expired (`doppler login` to refresh); config names to be mirrored
   into docs once readable. ☑
