@@ -133,7 +133,7 @@ ecosystem change, PR'd to all three design.md files together.
 ## 7. Figma Style Guide (source of truth for tokens)
 
 The design system lives in the product's Figma file on a dedicated **Style
-Guide** page, backed by a variable collection **`expendit/tokens`**. The file's plan allows a single variable mode, so themes are expressed as **`light/` and `dark/` variable groups** (same token names in each) rather than modes — migrate to true modes if the plan changes. Every color token in §2 exists as a Figma
+Guide** page, backed by a variable collection **`expendit/tokens`** with **true Light and Dark modes** (migrated 2026-07-16 after the pro upgrade; the earlier light/dark-group workaround is retired — components bind one token and switch by mode). The collection also carries the foundations as variables: spacing scale, radii, durations, z-index. Every color token in §2 exists as a Figma
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
