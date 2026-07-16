@@ -40,7 +40,10 @@ the tax-profile model.
 | (b) Self-hosted extraction model before launch | Strongest privacy story | Big ML lift now; blocks everything on it |
 | (c) Drop AI features | — | Guts EXP-003 |
 
-☑ Ratified: option (a) Groq→Gemini + disclosure/consent
+☑ Ratified: option (a) — **revised by X-4 (2026-07-16): cloud uses Vertex AI
+(Gemini, ADC) instead of consumer Groq/Gemini APIs; financial data stays in
+GCP. Disclosure + `ai_processing` consent still apply; Groq/Gemini env keys
+remain the self-host fallback.**
 
 ## E-4 · Org model migration — gates Phase 4 (Company financials)
 
@@ -94,3 +97,10 @@ until a real customer needs it.
   (IaC precedent in `cuesoft-iac`); frontends deploy to **Firebase App
   Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
   cloud and self-host share images, not manifests. ☑
+- **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use
+  **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
+  service account — the `cuesoft-iac/functions/cueprise-gemini-proxy` pattern;
+  reference model `gemini-2.5-flash-lite`, region `us-central1`). No
+  consumer-API keys to third-party AI vendors in cloud deployments — data
+  stays inside GCP, which strengthens every privacy disclosure. Self-host
+  fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
