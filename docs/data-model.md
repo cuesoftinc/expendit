@@ -244,22 +244,22 @@ already-imported transactions).
 
 ---
 
-## 7. Review additions (2026-07-16)
+## 6. Review additions (2026-07-16)
 
-### 7.1 Import-job provenance
+### 6.1 Import-job provenance
 
 `IMPORT_JOB` gains `source: upload | bank_sync` and staged/ledger
 transactions gain `source_link_id` (nullable) — the column the unlink
 `purge=true` path deletes by (flows/bank-link.md §3).
 
-### 7.2 BANK_LINK state transitions
+### 6.2 BANK_LINK state transitions
 
 `pending` (widget opened) → `active` (exchange OK) | purged after 1h ·
 `active` → `reauth_required` (provider revocation) | `degraded` (3
 consecutive sync failures; resets on first success) | `paused` (user) ·
 `reauth_required/degraded/paused` → `active` (re-auth / success / resume).
 
-### 7.3 Mongo→Postgres + org migration runbook (E-4/X-5, "one migration")
+### 6.3 Mongo→Postgres + org migration runbook (E-4/X-5, "one migration")
 
 1. **Freeze window** (not dual-write **[Decided]** — volumes allow a short
    freeze): announce in-app 48h ahead; writes disabled ≤ 30 min.

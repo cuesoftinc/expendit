@@ -51,7 +51,18 @@ The single protected GitHub environment is **`Sandbox`** (X-6) — required
 reviewers + the sandbox URLs (`api.expendit.cuesoft.io`). No other deploy
 environments exist.
 
-## 4. Not in this phase
+## 4. Runtime contract (Cloud Run) **[Decided defaults]**
+
+| Service | CPU / mem | Concurrency | Min–max instances | Timeout |
+| --- | --- | --- | --- | --- |
+| api/common | 1 vCPU / 512 MiB | 80 | 0–5 | 60 s |
+| import worker (same image) | 1 vCPU / 1 GiB | 1 (AI-budget isolation) | 0–3 | 300 s |
+
+- Domain: `api.expendit.cuesoft.io` → api/common.
+- Rollback: redeploy the previous image digest (recorded in the release run).
+- Web env: `NEXT_PUBLIC_*` flows Doppler → `apphosting.yaml` at rollout.
+
+## 5. Not in this phase
 
 Writing these workflows + the Pulumi stack is **implementation work**, out of
 scope for the docs phase — this document is the contract they'll be built
