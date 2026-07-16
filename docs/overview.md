@@ -52,3 +52,5 @@ service is `api/common`; a future one would be `api/<function>`. See the
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [line-items.md](line-items.md) — canonical statement vocabulary + ratio formula registry
 - [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
+- flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [import](flows/import.md), [bank-link](flows/bank-link.md)

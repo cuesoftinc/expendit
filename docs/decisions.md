@@ -77,7 +77,12 @@ until a real customer needs it.
   sign-in/sign-up screens **in-app** (own UI per its design system,
   Firebase Auth underneath: Google sign-in + email/password flows). The
   central facade fronts the same Firebase project later without contract
-  changes; in-app screens then become optional, not obsolete. Environment/secrets live in **Doppler**
+  changes; in-app screens then become optional, not obsolete. **HARDENED
+  2026-07-16: Google sign-in is the ONLY method — no username/password
+  signup or login, product-wide.** Email/Password provider disabled at
+  the Firebase project; backends reject non-Google-provider tokens
+  (`provider-not-allowed`); UI ships exactly one auth CTA. Full contract:
+  [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
   (`cueprise/cuesoft_stg`; see also the `cuesoft-iac` project) — CLI token
   currently expired (`doppler login` to refresh); config names to be mirrored
   into docs once readable. ☑
