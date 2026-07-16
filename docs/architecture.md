@@ -15,7 +15,7 @@ flowchart LR
         DASH[Dashboard suite<br/>expense, income, categories,<br/>history, import, reports, settings]
     end
 
-    subgraph Backend — api/common Go/Gin :8080
+    subgraph BE["Backend — api/common (Go/Gin :8080)"]
         AUTH[Auth: signup/signin/Google,<br/>reset + rate limiting]
         LEDGER[Expenses / Incomes / Categories<br/>CRUD + search + monthly aggregates]
         IMPORT[Import pipeline]
@@ -55,7 +55,7 @@ flowchart LR
         RIGHTS[Export-all / delete-all<br/>account data rights]
     end
 
-    subgraph Ecosystem — external
+    subgraph ECO["Ecosystem — external"]
         ACC[account.cuesoft.io]
         UP[Upstat events]
         CL[clients.cuesoft.io]
@@ -185,7 +185,7 @@ sequenceDiagram
     W-->>U: consequences + type-to-confirm
     W->>A: POST /api/v1/account/purge
     A->>M: mark purge_requested (grace window, e.g. 7 days)
-    Note over A,M: reversible during grace; then hard-delete<br/>expenses, incomes, categories, imports, jobs
+    Note over A,M: reversible during grace · then hard-delete<br/>expenses, incomes, categories, imports, jobs
     A-->>W: scheduled + effective date
 ```
 

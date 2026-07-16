@@ -129,3 +129,17 @@ until a real customer needs it.
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
+- **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
+  API** for all product email (alert emails, money-event receipts, purge
+  confirmations…) — the irealty pattern: `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
+  `BREVO_FROM_NAME` in Doppler. **No SMTP anywhere** — existing SMTP/gomail
+  plumbing retires when next touched. Revises U-4's Resend pick where it
+  applied. ☑
+- **X-8 Protocol standard (RATIFIED 2026-07-16)**: ecosystem APIs are
+  **HTTP/JSON**. gRPC exists ONLY where upstat needs it: **OTLP/gRPC ingest**
+  (OTel industry standard, OBS-001), internal s2s (observability↔common),
+  and the existing monitor control plane until monitors-v2. Cloud Run runs
+  gRPC fine with end-to-end HTTP/2 (h2c) — already how api/common works.
+  **Browser gRPC-Web + Envoy is a sunset path**: no new surface uses it
+  (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP and Envoy
+  retires from the cloud topology. apparule/expendit never adopt gRPC. ☑

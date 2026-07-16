@@ -81,3 +81,14 @@ tokens, generated tax documents' contents, AI prompts containing user data
 - [ ] Migration parity harness exists before E-4 executes
 - [ ] Never-log grep gate in build-and-test.yml
 - [ ] Fixture library covers every import failure-taxonomy row
+
+## CORS contract (ecosystem standard)
+
+- Env: **`CORS_ORIGINS`** — comma-separated exact origins; no wildcard in
+  cloud; `http://localhost:3000` default for native dev.
+- Behaviour: echo the request Origin **only if allowlisted**; `Vary: Origin`;
+  `Allow-Credentials: false` (bearer auth — no cookies);
+  methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
+  `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
+  with `Access-Control-Max-Age: 600`.
+- **Current middleware is a flagged DEFECT: it reflects any origin with `Allow-Credentials: true` — must adopt the contract below at first touch (tracked as a Phase 0 hardening item).**
