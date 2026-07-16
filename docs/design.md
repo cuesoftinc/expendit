@@ -139,3 +139,41 @@ never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
 sync back into this document — the two must never diverge. Type styles and
 component samples are the next Style Guide iteration.
+
+## 8. Figma component build plan (design phase)
+
+> Work order over the live `expendit/tokens` collection + Style Guide page
+> (§7). Screens assemble from component instances only.
+
+### 8.1 Build order
+
+| Stage | Build | Unlocks |
+| --- | --- | --- |
+| 0 Foundations | type styles (§2 incl. editorial display sizes) · Lucide icons · table grid styles (compact 32 / comfortable 44 rows) | everything |
+| 1 Atoms | Button, Input, MoneyCell, CategoryChip, AnomalyBadge, Toast/Banner | molecules |
+| 2 Molecules | StatCard, TxnTable row, UploadDropzone, LinkAccountCard, RatioGauge, Inspector chrome, CommandPalette, WizardShell chrome | tables + flows |
+| 3 Assemblies | TxnTable (full), staged-review table, ratio grid, filing wizard steps, EmptyState set | screens |
+| 4 Screen templates | dashboard, transactions, import review, accounts, company statements+ratios, tax center+wizard, settings/rights | dashboard design |
+| 5 Home page | A1–A11 Brex-editorial sections | landing redesign |
+
+### 8.2 Variant matrices
+
+| Component | Variants × states |
+| --- | --- |
+| Button | primary (accent) / quiet / destructive / danger-armed (countdown) · md/sm · default/pressed/disabled/loading · theme ×2 |
+| MoneyCell | direction: income / expense / zero · size: table / stat |
+| CategoryChip | confirmed / AI-suggested (✨) / editing (combobox open) |
+| AnomalyBadge | large_transaction / spending_spike / abnormal_category / duplicate_charge · inline / feed |
+| StatCard | with/without delta chip · with/without sparkline · loading |
+| TxnTable row | default / hover (actions revealed) / selected / editing / staged-duplicate · density ×2 |
+| UploadDropzone | idle / drag-over / per-file progress / AI-sweep / complete / error |
+| LinkAccountCard | pending / active (breathing dot) / reauth_required / degraded / paused |
+| RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band |
+| Inspector | record / anomaly-explain / trace ("how we got this") |
+| Banner | info / warn (deadline T-30/T-7/T-1 tints) / error (reauth) |
+| EmptyState | transactions / imports / accounts / ratios / tax (each with demo-data toggle where specced) |
+
+### 8.3 Design-prep needed from content
+
+Synthetic demo datasets ×3 (freelancer / SME / company) for realistic
+tables+charts; the Afrocentric line motif for dark editorial sections.
