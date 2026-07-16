@@ -152,7 +152,8 @@ until a real customer needs it.
   for tail sampling/fan-out). **Receiver: upstat's OTLP ingest gateway**
   (OBS-001; gRPC 4317 + HTTP 4318, `Upstat-Ingest-Key` via
   OTEL_EXPORTER_OTLP_HEADERS) — sibling products are its first-party
-  customers. Until OBS-001 ships, services instrument NOW with export
+  customers. **Sibling exporters default to OTLP/HTTP (4318)** — apparule
+  and expendit remain 100% HTTP in practice; only upstat hosts gRPC (X-8). Until OBS-001 ships, services instrument NOW with export
   env-gated (unset OTEL_EXPORTER_OTLP_ENDPOINT = no-op). Logs dual-emit:
   JSON stdout stays (Cloud Run native logging) + OTLP to upstat. Operational
   telemetry (X-9) is SEPARATE from product analytics events (upstat
