@@ -3,6 +3,11 @@
 > Companion to [prd.md](prd.md) / [architecture.md](architecture.md).
 > Markers: **[Current]**, **[PRD]**, **[Proposed]**.
 
+> **X-5 alignment (2026-07-16):** cloud system of record is **Aiven
+> Postgres**; the Mongo entities below describe the *current* code and the
+> self-host default until the Mongo→Postgres migration executes with E-4.
+> Entity shapes are store-agnostic.
+
 ## 1. Current entities **[Current]** (MongoDB)
 
 ```mermaid
