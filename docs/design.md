@@ -58,6 +58,24 @@
 - Density toggle (comfortable/compact) on all tables.
 - Radii 6px; shadows only on overlays; hairline-first like apparule.
 
+
+### Shared foundations (ecosystem parity — identical across the three products)
+
+| Foundation | Value |
+| --- | --- |
+| Spacing scale | 4px base grid: `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64` — no off-scale values; component padding uses the scale, not arbitrary numbers |
+| Breakpoints | `sm 640 · md 768 · lg 1024 · xl 1280 · 2xl 1536` (Tailwind-aligned); mobile-first media queries |
+| Motion durations | `fast 120ms · base 200ms · slow 300ms · entrance 250ms` — MI specs quote exact values, these are the defaults |
+| Motion easing | standard `cubic-bezier(0.2, 0, 0, 1)`; exit `cubic-bezier(0.4, 0, 1, 1)`; springs only where an MI names one |
+| Z-index layers | `base 0 · sticky 10 · dropdown 20 · overlay 30 · sheet/modal 40 · toast 50` — nothing outside these six |
+| Iconography | **Lucide** (24px stroke default) everywhere; product-specific icons only as approved additions in the Figma Style Guide |
+| Focus states | 2px accent ring, 2px offset, `:focus-visible` only — identical rule all products |
+| Radii (product) | 6px |
+| Product note | density toggle honors the compact row height 32px / comfortable 44px |
+
+These rows are standardized in the org SKILL.md — a change here is an
+ecosystem change, PR'd to all three design.md files together.
+
 ## 3. Component inventory
 
 | Component | Anatomy | Notes |
