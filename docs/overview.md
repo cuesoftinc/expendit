@@ -49,3 +49,5 @@ service is `api/common`; a future one would be `api/<function>`. See the
 - [data-model.md](data-model.md) — current + target entities, identity migration, data classification
 - [api.md](api.md) — full current surface and v1 deltas with gap analysis
 - [roadmap.md](roadmap.md) — phased plan with dependencies
+- [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
+- [line-items.md](line-items.md) — canonical statement vocabulary + ratio formula registry

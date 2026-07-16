@@ -111,3 +111,14 @@
 | Home (public) | full marketing page (needs Brex-style redesign) | pages.md Part A |
 | Dashboard | full suite on MUI-era components | progressive restyle to this system, pages.md Part B |
 | Mobile | — | later phase; ledger + receipt-capture first (pages.md Part C sketch) — ecosystem parity **[Directive]** |
+
+## 7. Figma Style Guide (source of truth for tokens)
+
+The design system lives in the product's Figma file on a dedicated **Style
+Guide** page, backed by a variable collection **`expendit/tokens`** with
+**Light** and **Dark** modes. Every color token in §2 exists as a Figma
+variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
+never raw hexes; the Style Guide page renders swatches (both modes), the type
+scale, and status/accent samples. Token changes happen in Figma first, then
+sync back into this document — the two must never diverge. Type styles and
+component samples are the next Style Guide iteration.
