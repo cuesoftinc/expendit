@@ -141,8 +141,9 @@ Guide** page, backed by a variable collection **`expendit/tokens`** with **true 
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
-sync back into this document — the two must never diverge. Type styles and
-component samples are the next Style Guide iteration.
+sync back into this document — the two must never diverge. The local text
+styles (10, through Hero/88 Bold) shipped with the completion pass; the
+rendered-page refresh below is the current sync debt.
 
 Completion-pass additions (2026-07-16): `on-accent` (#FFFFFF in both modes,
 §2) now exists in the `expendit/tokens` collection — primary/destructive
@@ -151,6 +152,20 @@ OpenType **tabular figures (`tnum`)** must be enabled by hand on numeric text
 styles in the Figma UI — the plugin API cannot set font features — so every
 numeric style (MoneyCell, StatCard values, table number columns) needs the
 toggle set manually before it satisfies §2's "tabular figures always on".
+
+Style Guide page refresh (excellence pass, 2026-07-17): the rendered page is
+being trued up to the collection and this doc — adding the missing
+`on-accent` swatch (the variable exists in both modes; the rendered swatch
+list stops at the original 11), replacing the stale
+`tokens: expendit/tokens (light/ + dark/ groups)` subtitle with the
+true-modes wording, correcting the type-scale sample labels to the built
+styles (the page shows "Title / 24 Bold" and "Heading / 20 Semi Bold" where
+the built styles are **Heading/24 Semi Bold** and **Title/20 Semi Bold** —
+names swapped, one weight wrong — and omits Hero/88, Body/14 Medium,
+Table/13 Medium, and Mono/13 samples), and rendering the z-index layers in
+Foundations (`z/base…z/toast` exist as variables, unrendered). The token
+collection itself is already in sync with §2/§7 — the drift is page-render
+only. Per the rule above, the page and this doc must never diverge.
 
 ## 8. Figma component build plan (design phase)
 
@@ -163,7 +178,7 @@ toggle set manually before it satisfies §2's "tabular figures always on".
 | --- | --- | --- |
 | 0 Foundations | type styles (§2 incl. editorial display sizes up to Hero/88) · Lucide icons (extended set — see note below) · table grid styles (compact 32 / comfortable 44 rows) | everything |
 | 1 Atoms | Button, Input, MoneyCell, CategoryChip, AnomalyBadge, Toast/Banner + primitive kit (§8.2b): Checkbox, Radio, Switch, Tag/Badge, Tooltip, Avatar, Kbd, ProgressBar, Skeleton set | molecules |
-| 2 Molecules | StatCard, TxnTable row, UploadDropzone, LinkAccountCard, RatioGauge, Inspector chrome, CommandPalette, WizardShell chrome, FormRow, ManualStatementRow, RemitToCard, TaxCalendarRow + form/overlay kit (§8.2b): Select/Menu, DatePicker/PeriodPicker, Modal/Dialog chrome, SegmentedControl, Tabs, Accordion, WizardStep, StampedCheck, ColorSwatchPicker · app chrome (AppNav/NavItem, OrgSwitcher) · AuthGoogleCTA · product rows (MemberRow, ImportJobRow, ReportArtifactRow, FilingHistoryRow) | tables + flows |
+| 2 Molecules | StatCard, TxnTableRow, UploadDropzone, LinkAccountCard, RatioGauge, Inspector chrome, CommandPalette, WizardShell chrome, FormRow, ManualStatementRow, RemitToCard, TaxCalendarRow + form/overlay kit (§8.2b): Select/Menu, DatePicker/PeriodPicker, Modal/Dialog chrome, SegmentedControl, Tabs, Accordion, WizardStep, StampedCheck, ColorSwatchPicker · app chrome (AppNav/NavItem, OrgSwitcher) · GoogleAuthButton · product rows (MemberRow, ImportJobRow, ReportArtifactRow, FilingHistoryRow) | tables + flows |
 | 3 Assemblies | TxnTable (full), staged-review table, ratio grid, StatementView, filing wizard steps, EmptyState set + table chrome (TableHeader, BulkActionBar, StagedReviewHeader) · chart kit (Chart/Line, Chart/Donut) | screens |
 | 4 Screen templates | dashboard, transactions, import review, accounts, company statements+ratios, tax center+wizard, settings/rights, signin (the single X-1 auth screen), reports (B5), categories (B8) | dashboard design |
 | 5 Home page | A1–A11 Brex-editorial sections + marketing kit (§8.2b): MarketingNav, MarketingFooter, EditorialCard, CodeSnippet, ComparisonTable | landing redesign |
@@ -179,20 +194,50 @@ CTA, the GitHub mark (Lucide's `github` is deprecated), others as needed — are
 approved additions per the shared-foundations iconography rule (§2), **not
 Lucide**.
 
+**Naming standards (canonical across the ecosystem) [Decided 2026-07-17].**
+Component sets are PascalCase; variant property names are lowercase (`kind`,
+`size`, `state`, …); icons are named `icon/<lucide-slug>` (e.g.
+`icon/chevron-down`) and approved brand glyphs `icon/brand-<name>`
+(`icon/brand-google`, `icon/brand-github`); the single X-1 auth CTA component
+is named **GoogleAuthButton** in every product. Two renames land with this
+pass (docs + build): `TxnTable row` → **TxnTableRow** (the one set name that
+broke PascalCase) and `AuthGoogleCTA` → **GoogleAuthButton**.
+
+**Stage-3 assemblies & canvas labels (2026-07-17).** The Stage-3 assemblies
+without §8.2 contract rows — TxnTable (full), the staged-review table, the
+ratio grid, and the filing wizard steps — are **composed at screen time**
+from the built sets (TxnTableRow, TableHeader, BulkActionBar,
+StagedReviewHeader, RatioGauge, WizardStep/WizardShell chrome); they are not,
+and will not become, separate component sets. Note also that the
+Components-page canvas section labels ("Stage 2b — Financial Platform Kit",
+"Stage 3 — App Chrome & Primitives", "Stage 3b — Rows, Charts & Marketing")
+are build-batch groupings that do **not** match the §8.1 stage numbering
+above (docs Stage 3 = Assemblies); the "Mode test — Dark" and "About —
+Component Library" frames on that page are QA/scaffolding artifacts, not
+stages or contract rows.
+
 ### 8.2 Variant matrices
+
+> **Theme note (2026-07-17).** `theme ×2` in the rows here and in §8.2b
+> (incl. Kbd's "on light/dark") is satisfied by the `expendit/tokens` true
+> Light/Dark variable modes (§7) — components carry **no** theme variant
+> axis; dark/light QA happens on the preview frames (the Components page's
+> "Mode test — Dark" frame).
 
 | Component | Variants × states |
 | --- | --- |
 | Button | primary (accent) / quiet / destructive / danger-armed (countdown) · md/sm · default/pressed/disabled/loading · theme ×2 |
+| Input | type: text / search · state: default / focus / filled / disabled / error |
 | MoneyCell | direction: income / expense / zero · size: table / stat |
 | CategoryChip | confirmed / AI-suggested (✨) / editing (combobox open) |
 | AnomalyBadge | large_transaction / spending_spike / abnormal_category / duplicate_charge · inline / feed |
-| StatCard | with/without delta chip · with/without sparkline · loading |
-| TxnTable row | default / hover (actions revealed) / selected / editing / staged-duplicate · density ×2 |
+| StatCard | with/without delta chip · with/without sparkline · loading (as built: a single loading variant, delta + sparkline off — 5 of 8 combos, matching row intent) |
+| TxnTableRow | default / hover (actions revealed) / selected / editing / staged-duplicate · density ×2 (renamed from `TxnTable row` — §8.1 naming standards) |
 | UploadDropzone | idle / drag-over / per-file progress / AI-sweep / complete / error |
 | LinkAccountCard | pending / active (breathing dot) / reauth_required / degraded / paused |
-| RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band |
+| RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band (as built: n-a ships band=off only — no benchmark band on missing input) |
 | Inspector | record / anomaly-explain / trace ("how we got this") |
+| Toast | kind: info / warn / error · transient (the toast half of §3's `Toast/Banner` atom; Banner below is the persistent half) |
 | Banner | info / warn (deadline T-30/T-7/T-1 tints) / error (reauth) |
 | FormRow | label + control + helper/error · state: default/focus/error/disabled (tax profile, org settings, manual entry) |
 | RemitToCard | tax: pit/cit/vat · resolved authority (State IRS e.g. LIRS / FIRS) + amount due + deadline + payment-channel chip (tax-engine §"Remittance & authorities" registry) |
@@ -209,21 +254,23 @@ Lucide**.
 > form/overlay primitives, table chrome, charts, and marketing components.
 > Contract rows below, same conventions as §8.2; each row carries its need:
 > **blocking** (a Stage-4/5 template cannot assemble without it) ·
-> **important** (specced, assemblable later) · **nice-to-have**.
+> **important** (specced, assemblable later) · **nice-to-have**. `theme ×2`
+> (and Kbd's "on light/dark") is delivered by token modes, not a variant
+> axis — see the §8.2 theme note.
 
 **App chrome**
 
 | Component | Variants × states |
 | --- | --- |
 | AppNav / NavItem | **blocking** · item: default / hover / active / with-badge-count (MI-5) · group label · expanded 240px / collapsed 64px icon rail · org-switcher slot top · theme ×2 |
-| OrgSwitcher | **blocking** · closed / open (menu) · org kind: personal / company · current + list rows · theme ×2 |
+| OrgSwitcher | **blocking** · closed / open (menu) · org kind: personal / company · current + list rows · theme ×2 (as built: `open` is modeled on kind=company only — 3 of 4 combos; the open menu is the company exemplar) |
 | MobileTabBar + MobileHeader | **nice-to-have** (Part C, later phase) · 5 tabs Home/Transactions/Capture/Reports/Settings · active/inactive · Capture accent · header: title + back |
 
 **Form & overlay primitives**
 
 | Component | Variants × states |
 | --- | --- |
-| Select / Menu | **blocking** · trigger: default / focus / open / disabled / error · option: default / hover / selected · md/sm · searchable-combobox variant (MI-4, canonical-key mapping) |
+| Select / Menu | **blocking** · trigger: default / focus / open / disabled / error · option: default / hover / selected · md/sm · searchable-combobox variant (MI-4, canonical-key mapping — as built: combobox md-only) |
 | DatePicker / PeriodPicker | **blocking** · modes: day / range / month / quarter / year (closed grammar) · open/closed · error · presets |
 | Modal / Dialog chrome | **blocking** · sm/md/lg · header/body/footer slots · danger variant (type-to-confirm, MI-15) · sheet variant · overlay (z 40) |
 | Tooltip | **blocking** · placement: top / bottom / left / right · text / formula (mono body, MI-8) |
@@ -231,21 +278,21 @@ Lucide**.
 | Checkbox | **blocking** · unchecked / checked / indeterminate × default / hover / focus / disabled · with label |
 | Radio | **important** · selected / unselected × default / hover / focus / disabled · with label+description (choice-card: unlink keep-or-purge, report format) |
 | Switch / Toggle | **blocking** · on/off × default / hover / focus / disabled · with label/helper |
-| SegmentedControl | **blocking** · 2–3 segments · segment: default / hover / selected / disabled · presets: density compact/comfortable, direction income/expense, theme |
-| Tabs | **blocking** · underline (app) / pill (marketing) · tab: default / hover / active / disabled |
+| SegmentedControl | **blocking** · preset: density (compact/comfortable) / direction (income/expense) / theme · state: default / disabled (disabled built for the density preset) — as-built shape 2026-07-17: selection is preset content; no per-segment hover/selected variant axis |
+| Tabs | **blocking** · kind: underline (app) / pill (marketing) · items via **TabItem** sub-component set: default / hover / active / disabled (TabItem in build, 2026-07-17) |
 | Accordion | **blocking** · closed / open · variant: "how we got this" line-item trace (mono formula body, MI-8/MI-10) |
 | WizardStep | **blocking** · state: todo / current / done / error · orientation: vertical rail (MI-10) / horizontal status stepper (MI-9) · with-progress slot ("syncing" live txn counter) |
 | ProgressBar | **important** · determinate / indeterminate · sm/md · label slot (live txn counter, MI-9; inline download progress, MI-14) |
 | Skeleton set | **important** · table row shimmer (density ×2) · chart axis-only · text/stat block (MI-12) |
 | Avatar | **important** · image / initials / icon fallback · xs/sm/md |
 | Kbd | **nice-to-have** · single key / chord (⌘K) · on light/dark (MI-1 shortcut hints) |
-| StampedCheck | **nice-to-have** · stamp-in (animation) / rest · md/lg (MI-10 filing success, stamped receipts) |
+| StampedCheck | **nice-to-have** · md/lg (MI-10 filing success, stamped receipts) — as built: stamp-in is motion, not a variant axis; noted in the component description |
 
 **Table chrome**
 
 | Component | Variants × states |
 | --- | --- |
-| TableHeader | **blocking** · column: text / numeric-right · sort: none / asc / desc · select-all checkbox slot · density ×2 · sticky |
+| TableHeader | **blocking** · density ×2 · sort: none / asc / desc (sort axis in build, 2026-07-17) · column alignment text / numeric-right set per instance (override, not a variant axis) · select-all checkbox slot · sticky |
 | BulkActionBar | **blocking** · hidden / visible ("n selected" + re-categorize / export / clear) · slide-in |
 | StagedReviewHeader | **blocking** · counts ("Import 209 / discard 5 duplicates") · state: reviewing / committing (MI-3 cascade) · warnings-banner slot |
 
@@ -253,19 +300,19 @@ Lucide**.
 
 | Component | Variants × states |
 | --- | --- |
-| Chart/Line | **blocking** · 12mo cash-flow / ratio + line-item trend · state: loading (axis-first, MI-12) / data / empty · data-table toggle (§5) |
-| Chart/Donut | **blocking** · state: loading / data / empty · legend: right / bottom · center total |
+| Chart/Line | **blocking** · state: loading (axis-first, MI-12) / data / empty — as built: content kinds (12mo cash-flow / ratio + line-item trend) via instance overrides; the data-table toggle (§5) attaches at screen assembly, not in the set |
+| Chart/Donut | **blocking** · state: loading / data / empty · legend: right / bottom / none (as built: `none` pairs with loading/empty) · center total |
 
 **Product rows**
 
 | Component | Variants × states |
 | --- | --- |
-| AuthGoogleCTA | **blocking** · default / hover / pressed / loading / disabled · Google mark + "Continue with Google" (the single X-1 auth CTA) · theme ×2 |
+| GoogleAuthButton | **blocking** · default / hover / pressed / loading / disabled · Google mark + "Continue with Google" (the single X-1 auth CTA) · theme ×2 (renamed from `AuthGoogleCTA` — §8.1 naming standards; canonical name in every product) |
 | MemberRow | **important** · avatar + name + email + role select + remove · default / hover / pending-invite / owner |
-| ImportJobRow | **important** · status: processing / completed / completed-empty / failed · counts + anomalies-found · source: upload / bank_sync |
+| ImportJobRow | **important** · status: processing / completed / completed-empty / completed-bank / failed · counts + anomalies-found — as built: the source axis folds into status (`completed-bank` = bank_sync; processing/failed render as upload-source) |
 | ReportArtifactRow | **important** · kind icon + name + period + format · state: generating (inline progress) / ready / NEW (≤24h, MI-14) / expired (TTL) |
 | FilingHistoryRow | **important** · tax kind + period + authority + deadline columns · stamped-✓ receipt download · immutable |
-| ColorSwatchPicker | **nice-to-have** · preset swatch grid · swatch: default / hover / selected (category color, B8) |
+| ColorSwatchPicker | **nice-to-have** · preset swatch grid (category color, B8) — as built: a single component with internal swatch / swatch-hover / swatch-selected frames, not a variant set |
 
 **Marketing (Stage 5)**
 
