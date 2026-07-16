@@ -33,6 +33,11 @@ downloadable artifacts) and *ecosystem integration*, not building the engine.
 | Operational teams | Cash-position analysis and financial reporting | Reports, downloadable summaries |
 | Cuesoft partners | Product incubation, internal financial auditing | Whole stack |
 
+Org-kind mapping: individuals and unincorporated freelancers use their
+auto-created personal org; any business entity that wants statement capture
+/ ratios / CIT creates a company org regardless of incorporation status
+(data-model.md §5 "Who uses which org kind").
+
 ## 3. Functional requirements
 
 ### 3.1 Stated requirements, mapped against current state

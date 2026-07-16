@@ -76,3 +76,21 @@ Events: `upload_success{file_type}` (job completed), `import_confirmed`,
 - [ ] Statement re-upload imports only the non-duplicate remainder
 - [ ] AI-down leaves CSV imports fully functional
 - [ ] No transaction contents in logs (the `[pdf] sample:` class of leak, gone)
+
+## 7. Anomaly rules registry **[Proposed — ratify; capture the actual current-code thresholds during E2-4 and correct this table]**
+
+The computational contract behind the anomaly vocabulary (data-model.md §1,
+architecture.md §4.1) — rules-as-data like line-items.md §5, so a threshold
+change is a docs PR, not a code change. Severity drives the AnomalyBadge
+tint (design.md §3) and escalates `info → warn` when the flagging value
+exceeds 2× its rule threshold.
+
+| rule_id | Formula | Params (v1 constants) | Base severity |
+| --- | --- | --- | --- |
+| `large_transaction` | flag when `\|amount\| > max(k × median_90d, floor)` — median of trailing-90d confirmed transactions, same direction | `k = 5` · `floor = ₦50,000` | warn |
+| `spending_spike` | category month total `> μ + z·σ` of the trailing window; rule skipped below the history minimum | `window = 6 months` · `z = 2` · `min history = 3 months` | warn |
+| `abnormal_category` | flag when `\|amount\| > k ×` trailing mean of its category (same direction); rule skipped below the sample minimum | `k = 3` · `min = 5 prior transactions` | info |
+| `duplicate_charge` | same normalized counterpart + exact amount within `N` days **post-confirm** — distinct from staged-import dedup (§4, which prevents re-imports); this catches double-billing already in the ledger | `N = 3 days` | warn |
+
+Any anomaly on a bank-synced job forces review — §5's auto-confirm override
+consumes these rules.

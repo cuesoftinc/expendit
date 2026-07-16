@@ -19,14 +19,14 @@ paths:
   /api/v1/import/{jobId}/confirm: { post: { tags: [imports], summary: Commit staged rows (atomic, idempotent), responses: { "200": { description: Result } } } }
   /api/v1/bank-links: { post: { tags: [banking], summary: Init Mono link, responses: { "201": { description: Connect config } } }, get: { tags: [banking], summary: List links, responses: { "200": { description: Links } } } }
   /api/v1/bank-links/{id}/sync: { post: { tags: [banking], summary: Manual sync (rate-limited), responses: { "202": { description: Job } } } }
-  /api/v1/statements: { post: { tags: [company], summary: Upload financial statement, responses: { "202": { description: Mapping staged } } } }
+  /api/v1/orgs: { post: { tags: [company], summary: Create org, responses: { "201": { description: Org } } }, get: { tags: [company], summary: List my orgs, responses: { "200": { description: Orgs } } } }
+  /api/v1/orgs/{id}: { patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Update org (name, registered_address, fiscal_year_end — data-model.md §5)", responses: { "200": { description: Org } } } }
+  /api/v1/statements: { post: { tags: [company], summary: "Upload financial statement (multipart) OR manual JSON entry {kind, period, currency, line_items[]} staged directly (flows/statement-mapping.md §2)", responses: { "202": { description: "Upload accepted (mapping_status: processing)" }, "201": { description: "Staged (manual entry)" } } } }
   /api/v1/statements/{id}/confirm: { post: { tags: [company], summary: Confirm mapping (identity-checked), responses: { "200": { description: Statement }, "422": { description: mapping_identity_violation } } } }
   /api/v1/ratios: { get: { tags: [company], summary: Ratio report for period, responses: { "200": { description: Ratios + traces } } } }
-  /api/v1/tax/estimates: { get: { tags: [taxes], summary: Current estimates (rule-set versioned), responses: { "200": { description: Estimates } } } }
+  /api/v1/tax/estimates: { get: { tags: [taxes], summary: "Current estimates (rule-set versioned; incl. resolved remittance authority — tax-engine.md §5.5)", responses: { "200": { description: Estimates } } } }
   /api/v1/tax/filings: { post: { tags: [taxes], summary: Start filing draft, responses: { "201": { description: Draft } } } }
-  /api/v1/reports: { post: { tags: [rights], summary: Generate downloadable report, responses: { "201": { description: Artifact } } } }
   /api/v1/account/export: { post: { tags: [rights], summary: Full-history export (owner), responses: { "202": { description: Archive job } } } }
-  /api/v1/account/purge: { post: { tags: [rights], summary: Request purge (grace window), responses: { "202": { description: Scheduled } } } }
   /api/v1/bank-links/{id}/exchange:
     put: { tags: [banking], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Exchange Mono widget code for account token, responses: { "200": { description: Link active }, "422": { description: link_expired } } }
   /api/v1/bank-links/{id}:
@@ -36,21 +36,39 @@ paths:
     post: { tags: [banking], summary: Mono webhook — signature-auth only; idempotent by provider event id, security: [], responses: { "200": { description: Accepted }, "401": { description: Invalid signature } } }
   /api/v1/statements/{id}/mapping:
     get: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Poll mapping (processing|staged|failed) + staged line items, responses: { "200": { description: Mapping } } }
-    patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Fix canonical keys / park rows unmapped, responses: { "200": { description: Mapping } } }
+    patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Fix canonical keys / park rows unmapped / add parser-missed rows, responses: { "200": { description: Mapping } } }
   /api/v1/ratios/compute:
     post: { tags: [company], summary: Compute ratio report for a period, requestBody: { content: { application/json: { schema: { type: object, required: [period], properties: { period: { type: string } } } } } }, responses: { "201": { description: Ratio report with traces } } }
   /api/v1/ratios/{key}/trace:
     get: { tags: [company], parameters: [{ name: key, in: path, required: true, schema: { type: string } }, { name: period, in: query, required: true, schema: { type: string } }], summary: Formula trace (line-item inputs), responses: { "200": { description: Trace } } }
   /api/v1/tax/profile:
     get: { tags: [taxes], summary: Tax profile, responses: { "200": { description: Profile } } }
-    put: { tags: [taxes], summary: Update profile (jurisdiction, treatments), responses: { "200": { description: Profile } } }
+    put: { tags: [taxes], summary: "Update profile (jurisdiction, treatments, state_of_residence, tin/rc_number/nin — data-model.md §5)", responses: { "200": { description: Profile } } }
   /api/v1/tax/filings/{id}/generate:
-    post: { tags: [taxes], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Generate filing documents, responses: { "201": { description: Artifacts }, "409": { description: ruleset_unsigned }, "422": { description: period_incomplete | mapping_unconfirmed } } }
+    post: { tags: [taxes], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Generate filing documents (incl. remittance sheet — tax-engine.md §5.5)", responses: { "201": { description: Artifacts }, "409": { description: ruleset_unsigned }, "422": { description: period_incomplete | mapping_unconfirmed | tax_identity_incomplete } } }
   /api/v1/reports:
+    post:
+      tags: [rights]
+      summary: Generate downloadable report
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, period, format]
+              properties:
+                kind: { enum: [monthly_summary, cash_movement, category_deep_dive, financial_statement] }
+                period: { type: string, description: "YYYY-MM; statement grammar (line-items.md §6) for financial_statement" }
+                format: { enum: [pdf, csv] }
+                category: { type: string, description: required for category_deep_dive }
+                statement_kind: { enum: [balance_sheet, income_statement, cash_flow], description: required for financial_statement }
+      responses:
+        "201": { description: Artifact }
     get: { tags: [rights], summary: Artifact history (30d TTL), responses: { "200": { description: List } } }
   /api/v1/account/export/{jobId}:
     get: { tags: [rights], parameters: [{ name: jobId, in: path, required: true, schema: { type: string } }], summary: Export job status + signed URL (7d TTL), responses: { "200": { description: Job } } }
   /api/v1/account/purge:
+    post: { tags: [rights], summary: Request purge (grace window), responses: { "202": { description: Scheduled } } }
     delete: { tags: [rights], summary: Cancel purge within grace, responses: { "204": { description: Cancelled }, "410": { description: grace_expired } } }
   /api/v1/consent:
     get: { tags: [rights], summary: Accepted documents, responses: { "200": { description: List } } }

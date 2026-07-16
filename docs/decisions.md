@@ -32,6 +32,11 @@ the tax-profile model.
 
 ☑ Ratified (jurisdiction: Nigeria)
 
+**Scope note (2026-07-16) [Decided]:** PAYE (employer payroll remittance),
+WHT tracking/credits, and state-specific levies are **out of v1 scope** —
+considered and excluded, not overlooked; the rule-set mechanism
+(`kind: paye | wht`) is the extension point when they land (tax-engine.md §1).
+
 ## E-3 · AI processing of financial data — gates the privacy hub copy (Phase 0)
 
 | Option | For | Against |
@@ -160,3 +165,29 @@ until a real customer needs it.
   /v1/events counters) — never mix the pipelines. Env names standard:
   OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_RESOURCE_ATTRIBUTES. ☑
+- **X-10 Identity, profile & KYC tiers (RATIFIED, directive 2026-07-16)**: layered on
+  X-1 — Google-only sign-in stays the sole credential; tiers add profile data and
+  verification, never alternative logins. **Tier 0 — Google identity** (all
+  products): firebase_uid + Google-verified email; grants all read/basic use.
+  **Tier 1 — self-attested profile & location** (captured in product
+  profile/settings; sensitive PII, never logged): apparule = bio + profile
+  location {city, state, country} powering proximity-ranked designer
+  recommendations ("near me") and delivery-address pre-fill (delivery address
+  itself stays frozen per order); expendit = tax-jurisdiction location —
+  state_of_residence for individuals, registered_address for company orgs —
+  which resolves the remittance authority (State IRS vs FIRS); upstat = org
+  timezone (IANA) only, for accurate report rendering and time-bucketing —
+  deliberately the entire upstat requirement. **Tier 2 — provider-verified
+  financial identity** (only where money moves or government filings
+  generate; store provider refs + verification state, never raw government
+  IDs): apparule designer payouts = Paystack bank resolution, BVN-backed
+  (already ratified A-2 — canonized as the ecosystem pattern); expendit
+  filing identity = TIN (+ RC number + registered address for companies)
+  required at filing-pack generation (422 tax_identity_incomplete); v1
+  verification is format validation + attestation, provider-verified arrives
+  with direct e-filing (post-v1); upstat = N/A until billing enters the PRD.
+  **Rules**: tiers gate capabilities, never sign-in; KYC state machines +
+  error codes live in flow docs (apparule kyc_incomplete/post_unavailable is
+  the template); tier-2 fields are high-sensitivity in every data-model §4
+  classification; verification is delegated to the money/filing provider —
+  no in-house document review. ☑

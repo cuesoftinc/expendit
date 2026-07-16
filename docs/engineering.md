@@ -12,8 +12,9 @@ codes live in their flow specs: import (flows/import.md §3 — `file_too_large`
 `unsupported_type`, `no_transactions_found`, `password_protected_pdf`,
 `ai_unavailable`, `job_already_confirmed`), bank-link (flows/bank-link.md —
 `already_linked`, `link_expired`, `reauth_required`), tax
-(`ruleset_unsigned`, `period_incomplete`, `mapping_unconfirmed` — mapped to
-wizard steps in tax-engine.md §5), statements
+(`ruleset_unsigned`, `period_incomplete`, `mapping_unconfirmed`,
+`tax_identity_incomplete` — mapped to wizard steps in tax-engine.md §5),
+statements
 (`mapping_identity_violation`, `unmapped_threshold_exceeded` —
 line-items.md §4), rights (`purge_pending` — 409 on writes while a purge grace window is open;
 `grace_expired` — 410 on cancel attempts after execution). Plus universal:
@@ -49,6 +50,7 @@ Cross-org access is `404 not_found`, never `403` (no existence leaks).
 | Surface | Limit |
 | --- | --- |
 | Import uploads | 10/hr per org, 30/day |
+| Statement uploads | 10/hr per org (flows/statement-mapping.md §5) |
 | Manual bank sync | 1/10min per link (flows/bank-link.md) |
 | Report generation | 12/hr per org |
 | Export-all | 2/day per org |

@@ -90,7 +90,7 @@ ecosystem change, PR'd to all three design.md files together.
 | `LinkAccountCard` | bank logo · masked account · sync status dot · last-synced | bank linking |
 | `WizardShell` | left step rail + content + sticky summary right | imports, tax filing |
 | `Inspector` | right slide-in panel, ESC closes | record detail everywhere |
-| `CommandPalette` | ⌘K: navigate, actions ("upload statement", "new category"), recent records | Brex signature **[Proposed]** |
+| `CommandPalette` | ⌘K: navigate, actions ("upload statement", "new transaction", "new category"), recent records | Brex signature **[Proposed]** |
 | `Toast/Banner` | toasts transient; banners persistent (bank re-auth needed, tax deadline) | |
 
 ## 4. Microinteraction catalog
@@ -151,8 +151,8 @@ component samples are the next Style Guide iteration.
 | --- | --- | --- |
 | 0 Foundations | type styles (§2 incl. editorial display sizes) · Lucide icons · table grid styles (compact 32 / comfortable 44 rows) | everything |
 | 1 Atoms | Button, Input, MoneyCell, CategoryChip, AnomalyBadge, Toast/Banner | molecules |
-| 2 Molecules | StatCard, TxnTable row, UploadDropzone, LinkAccountCard, RatioGauge, Inspector chrome, CommandPalette, WizardShell chrome | tables + flows |
-| 3 Assemblies | TxnTable (full), staged-review table, ratio grid, filing wizard steps, EmptyState set | screens |
+| 2 Molecules | StatCard, TxnTable row, UploadDropzone, LinkAccountCard, RatioGauge, Inspector chrome, CommandPalette, WizardShell chrome, FormRow, ManualStatementRow, RemitToCard, TaxCalendarRow | tables + flows |
+| 3 Assemblies | TxnTable (full), staged-review table, ratio grid, StatementView, filing wizard steps, EmptyState set | screens |
 | 4 Screen templates | dashboard, transactions, import review, accounts, company statements+ratios, tax center+wizard, settings/rights | dashboard design |
 | 5 Home page | A1–A11 Brex-editorial sections | landing redesign |
 
@@ -171,6 +171,11 @@ component samples are the next Style Guide iteration.
 | RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band |
 | Inspector | record / anomaly-explain / trace ("how we got this") |
 | Banner | info / warn (deadline T-30/T-7/T-1 tints) / error (reauth) |
+| FormRow | label + control + helper/error · state: default/focus/error/disabled (tax profile, org settings, manual entry) |
+| RemitToCard | tax: pit/cit/vat · resolved authority (State IRS e.g. LIRS / FIRS) + amount due + deadline + payment-channel chip (tax-engine §"Remittance & authorities" registry) |
+| StatementView | kind: balance_sheet / income_statement / cash_flow · derived rows flagged (formula note) · mapping-warning badges · period-selector header (pages.md B6 statement view) |
+| ManualStatementRow | canonical-key combobox + amount input · state: default / error (identity check) — manual entry + mapping add-row |
+| TaxCalendarRow | tax kind + period + due date + T-30/T-7/T-1 escalation tint (MI-13 data source) |
 | EmptyState | transactions / imports / accounts / ratios / tax (each with demo-data toggle where specced) |
 
 ### 8.3 Design-prep needed from content
