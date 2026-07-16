@@ -143,3 +143,19 @@ until a real customer needs it.
   **Browser gRPC-Web + Envoy is a sunset path**: no new surface uses it
   (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP and Envoy
   retires from the cloud topology. apparule/expendit never adopt gRPC. ☑
+- **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
+  everywhere** — traces, custom metrics, and logs from every service via OTel
+  SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
+  handler; Next: @opentelemetry/sdk-node), W3C `traceparent` propagation
+  across HTTP and gRPC. **Export: direct OTLP from the SDK in v1** (batch
+  processors; collector sidecar on Cloud Run is the documented upgrade path
+  for tail sampling/fan-out). **Receiver: upstat's OTLP ingest gateway**
+  (OBS-001; gRPC 4317 + HTTP 4318, `Upstat-Ingest-Key` via
+  OTEL_EXPORTER_OTLP_HEADERS) — sibling products are its first-party
+  customers. Until OBS-001 ships, services instrument NOW with export
+  env-gated (unset OTEL_EXPORTER_OTLP_ENDPOINT = no-op). Logs dual-emit:
+  JSON stdout stays (Cloud Run native logging) + OTLP to upstat. Operational
+  telemetry (X-9) is SEPARATE from product analytics events (upstat
+  /v1/events counters) — never mix the pipelines. Env names standard:
+  OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
+  OTEL_RESOURCE_ATTRIBUTES. ☑

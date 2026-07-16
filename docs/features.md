@@ -81,3 +81,4 @@
 | EX-4 | build-and-test.yml + release.yml (tag-gated) | deployment.md, X-6 |
 | EX-5 | cuesoft-iac expendit stack (Cloud Run, WIF, Doppler, Aiven PG) | deployment.md §2, X-5 |
 | EX-6 | E2E smoke (release gate) | engineering §4 |
+| EX-7 | OTel instrumentation (traces/metrics/log bridge, env-gated export → upstat) | engineering §Telemetry, X-9 |
