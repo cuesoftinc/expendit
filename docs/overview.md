@@ -55,3 +55,4 @@ service is `api/common`; a future one would be `api/<function>`. See the
 - [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [import](flows/import.md), [bank-link](flows/bank-link.md)
 - [tax-engine.md](tax-engine.md) — NG PIT/CIT/VAT computation contract (versioned rule sets, trace requirements)
+- [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules
