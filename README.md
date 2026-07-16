@@ -104,6 +104,7 @@ Run `make help` to see all available targets. For a detailed walkthrough, see
 [docs/setup.md](./docs/setup.md).
 
 ## Documentation
+- [Hosted docs](https://cuesoft.gitbook.io/expendit) — the full documentation site (auto-synced from `docs/`)
 
 Full documentation lives in the [`docs/`](./docs) folder:
 
