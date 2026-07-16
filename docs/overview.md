@@ -41,3 +41,18 @@ responsibilities. To run the stack locally, see [setup.md](setup.md).
 Backend services are named by **function**, never by language: the current
 service is `api/common`; a future one would be `api/<function>`. See the
 [repository structure](../README.md#repository-structure) in the README.
+
+## Product & design documentation
+
+- [prd.md](prd.md) — product requirements breakdown (requirements vs current state, user rights, open questions)
+- [architecture.md](architecture.md) — system design, import-pipeline deep dive, target sequences
+- [data-model.md](data-model.md) — current + target entities, identity migration, data classification
+- [api.md](api.md) — full current surface and v1 deltas with gap analysis
+- [roadmap.md](roadmap.md) — phased plan with dependencies
+- [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
+- [line-items.md](line-items.md) — canonical statement vocabulary + ratio formula registry
+- [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
+- flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [import](flows/import.md), [bank-link](flows/bank-link.md)
+- [tax-engine.md](tax-engine.md) — NG PIT/CIT/VAT computation contract (versioned rule sets, trace requirements)
+- [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules
