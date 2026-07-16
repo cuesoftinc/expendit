@@ -92,3 +92,17 @@ tokens, generated tax documents' contents, AI prompts containing user data
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`.
 - **Current middleware is a flagged DEFECT: it reflects any origin with `Allow-Credentials: true` — must adopt the contract below at first touch (tracked as a Phase 0 hardening item).**
+
+## Telemetry (OpenTelemetry, X-9)
+
+- Traces: OTel SDK auto-instrumentation (HTTP server/client, gRPC, DB) +
+  manual spans on domain operations; W3C traceparent propagated on every
+  outbound call (incl. service-to-service).
+- Metrics: OTel Meter API — each service registers its KPI instruments
+  (request histograms come free; domain counters per the flow specs'
+  instrumentation sections are PRODUCT events via upstat /v1/events, NOT
+  OTel metrics — keep the pipelines separate).
+- Logs: slog/logging → OTel bridge dual-emit (JSON stdout for Cloud Run +
+  OTLP to upstat). The never-log list applies to BOTH pipelines.
+- Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = upstat
+  ingest (X-9). Sampling: parent-based, 10% default, errors always.
