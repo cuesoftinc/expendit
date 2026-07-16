@@ -18,15 +18,21 @@
 TAX_RULESET {
   id: "ng-pit-2026" | "ng-pit-legacy" | "ng-cit-2026" | "ng-vat-2026" | …
   jurisdiction: "NG"
-  kind: pit | cit | vat
+  kind: pit | cit | vat   // PAYE, WHT & state levies: out of v1 scope [Decided] — this field is their extension point
   effective_from / effective_to
-  params: { bands: […], reliefs: {…}, rates: {…} }
+  params: { bands: […], reliefs: {…}, rates: {…}, filing: {…} }
   signoff: { by, date, reference }   // professional review gate
 }
 ```
 
 Period → rule-set resolution is by the period's start date. FY2025 personal
 filings resolve `ng-pit-legacy`; 2026 onward resolve `ng-pit-2026`.
+`FYYYYY` statement periods derive their start date from the org's
+`fiscal_year_end` (data-model.md §5, default 12-31; grammar in
+line-items.md §6) — a June-year-end company's FY2025 starts 2024-07-01.
+**Authority resolution** (where the liability is payable) is separate from
+rule-set resolution: it reads `TAX_PROFILE.state_of_residence` (individuals)
+/ `ORG.registered_address.state` (companies) — see §5.5.
 
 ## 2. PIT (personal income tax)
 
@@ -135,15 +141,54 @@ theirs to confirm.
 | Mode | Behaviour |
 | --- | --- |
 | **Estimate** (always available) | computed from whatever data exists; banner lists gaps ("3 months of statements missing") |
-| **Filing draft** (TAX-002) | requires: full-period data, confirmed category treatments, signed-off rule set; generates filing-ready documents (PIT self-assessment pack, CIT computation + capital-allowance worksheet, VAT return schedule) with the full trace appendix |
+| **Filing draft** (TAX-002) | requires: full-period data, confirmed category treatments, signed-off rule set, **tax identity complete** (TIN; + RC number and registered address for company profiles; state of residence for individuals); generates filing-ready documents (PIT self-assessment pack, CIT computation + capital-allowance worksheet, VAT return schedule, **plus a remittance sheet per filing**: authority name/code from the §5.5 registry, amount due, period, deadline from the §5.5 calendar, payment channel(s), taxpayer identifiers TIN/RC) with the full trace appendix — TIN/RC/registered address are stamped on every generated form |
 | Direct e-filing (TAX-003) | later; per-channel integration decisions |
 
 Every generated figure stores `{value, ruleset_id, inputs: [transaction/line-item ids], formula}` — the immutable trace that makes an audit answerable.
 
 Error codes per wizard step (engineering.md §1 catalog): draft creation →
 `422 period_incomplete` (missing months) · generate → `409 ruleset_unsigned`
-(no professional sign-off) and `422 mapping_unconfirmed` (CIT draft with
-staged statements) · submit (v2) → provider-specific.
+(no professional sign-off), `422 mapping_unconfirmed` (CIT draft with
+staged statements) and `422 tax_identity_incomplete` (missing TIN; RC
+number/registered address for companies; state of residence for
+individuals) · submit (v2) → provider-specific.
+
+## 5.5 Remittance & authorities
+
+The "where to pay" half of the contract (pages.md B7 "remit to" lines,
+RemitToCard). Same governing rule as the rate tables: **authorities and
+filing deadlines are versioned rules-as-data**, sign-off-gated, so a
+registry change is a config release, not code.
+
+### Authority resolution (rules-as-data)
+
+| Tax kind | Taxpayer | Authority | Resolved from |
+| --- | --- | --- | --- |
+| `pit` | individual (NG resident) | **State IRS** of the state of residence (e.g. `NG-LA` → LIRS) | `TAX_PROFILE.state_of_residence` |
+| `pit` | non-resident / FCT / armed-forces & foreign-service edge cases | **FIRS** | rule-set param; edge cases prompt review |
+| `cit` + development levy | company | **FIRS** | — |
+| `vat` | all | **FIRS** | — |
+
+Authority registry entries carry `{code, name, payment_channels,
+reference_format}` — e.g. FIRS: TaxPro-Max portal + Remita; each State IRS:
+its e-tax portal (LIRS eTax for Lagos) — versioned like `TAX_RULESET` with
+the same professional sign-off gate. Estimates and filings **persist the
+resolved authority** (`TAX_ESTIMATE.authority`, `TAX_FILING.authority` —
+data-model.md §5) so historical records survive registry changes; API
+responses include the authority block (api.md §5).
+
+### Filing calendar (rule-set params)
+
+| Kind | Frequency | Due rule |
+| --- | --- | --- |
+| `pit` annual return | annual | `03-31` — 31 March following the year of assessment |
+| `cit` (+ development levy) | annual | `fy_end+6m` — within 6 months of the accounting year end (`ORG.fiscal_year_end`) |
+| `vat` | monthly | `next_month_21` — the 21st of the following month (§4) |
+
+Encoded as rule-set params (`filing: {frequency: annual|monthly, due_rule}`),
+versioned and sign-off-gated like the rate tables — the data source for the
+B7 tax calendar and the MI-13 T-30/T-7/T-1 deadline banners. ⚠️ Flagged for
+professional review with the rest of the rule set.
 
 ## 6. Acceptance
 
@@ -153,3 +198,7 @@ staged statements) · submit (v2) → provider-specific.
 - [ ] CIT small-company test uses mapped line items; borderline prompts review
 - [ ] VAT net position reconciles to category-filtered transaction sums
 - [ ] No filing document generates from an unsigned rule set
+- [ ] No filing document generates with an incomplete tax identity
+      (`422 tax_identity_incomplete`)
+- [ ] Authority resolution: Lagos-resident individual PIT → LIRS; company
+      CIT/VAT → FIRS; the resolved authority persists on estimate and filing

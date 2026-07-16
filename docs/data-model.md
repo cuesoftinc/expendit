@@ -85,7 +85,8 @@ Notes:
   `internal/model/`; `password`/`refresh_token` are excluded from all JSON
   responses (`json:"-"`).
 - Anomaly vocabulary **[Current]**: `large_transaction`, `spending_spike`,
-  `abnormal_category`, `duplicate_charge`.
+  `abnormal_category`, `duplicate_charge`. Computational contract (formulas,
+  v1 constants, severities): flows/import.md §7.
 - Raw uploaded file bytes are **not persisted** — parsed in-memory only.
   This is a privacy feature to keep, and to document (prd.md §8.3).
 
@@ -100,9 +101,10 @@ erDiagram
     REPORT_ARTIFACT {
         objectid _id PK
         string userid
-        string kind "monthly_summary | cash_movement | full_export"
+        string kind "monthly_summary | cash_movement | category_deep_dive | financial_statement | full_export"
         string format "pdf | csv | json"
-        string period "e.g. 2026-06"
+        string period "e.g. 2026-06; statement grammar for financial_statement"
+        json params "category_deep_dive: {category}; financial_statement: {statement_kind}"
         string object_key "or streamed; TTL"
         datetime created_at
     }
@@ -142,7 +144,7 @@ the same Firebase project — no further migration.
 
 | Class | Data | Rules |
 | --- | --- | --- |
-| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight) | Never in logs (the current `[pdf] sample:` log line must go — architecture.md §4.2); TLS in transit; third-party AI processing disclosed; raw files not at rest |
+| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address` — X-10 tier-1/tier-2 fields, §5) | Never in logs (the current `[pdf] sample:` log line must go — architecture.md §4.2); TLS in transit; third-party AI processing disclosed; raw files not at rest |
 | Sensitive | User identity, consent, purge requests | Standard PII handling; consent/purge rows immutable audit records |
 | Operational | Job status/counters, event counters to Upstat | Safe for logs/metrics; Upstat events are **counters only, never amounts or descriptions** |
 
@@ -171,7 +173,9 @@ erDiagram
         string name
         string kind "personal | company"
         string currency
-        string country }
+        string country
+        string fiscal_year_end "MM-DD, default 12-31 — defines FYYYYY periods (line-items.md §6)"
+        json registered_address "company orgs: {line1, line2?, city, state, country} — state required (CIT/VAT authority, tax-engine.md §5.5); high-sensitivity (§4)" }
     BANK_LINK { objectid _id PK
         objectid org_id FK
         string provider "mono (E-1 ratified); plaid later"
@@ -196,26 +200,34 @@ erDiagram
         objectid org_id FK
         string jurisdiction "NG"
         string taxpayer_kind "individual|company"
-        string tin "optional"
+        string tin "optional until filing (422 tax_identity_incomplete)"
+        string state_of_residence "NG state code; required for individual profiles — resolves the PIT State IRS (tax-engine.md §5.5); high-sensitivity (§4)"
+        string rc_number "company; optional until filing; high-sensitivity (§4)"
+        string nin "individual; optional; high-sensitivity (§4)"
         json category_treatments "category → tax_treatment + vat_treatment + vat_basis" }
     TAX_ESTIMATE { objectid _id PK
         objectid profile_id FK
         string kind "pit|cit|vat"
         string period
         json computed_fields "with input traces"
+        json authority "resolved remittance authority {code, name} — tax-engine.md §5.5"
         string ruleset_id
         datetime computed_at }
     FIN_STATEMENT { objectid _id PK
         objectid org_id FK
         string kind "balance_sheet|income_statement|cash_flow"
-        string period "e.g. 2026-Q2 / FY2025"
-        string source_file_type
-        string mapping_status "staged|confirmed" }
+        string period "closed grammar (line-items.md §6): YYYY-Qn | YYYY-H1/H2 | FYYYYY"
+        string source_file_type "csv|xlsx|pdf|image|manual"
+        string mapping_status "processing|staged|confirmed|failed|superseded (flows/statement-mapping.md §4)"
+        objectid superseded_by FK "nullable — the replacement statement (audit trail)" }
     LINE_ITEM { objectid _id PK
         objectid statement_id FK
-        string canonical_key "current_assets|inventory|total_debt|revenue|cogs|net_income|..."
+        string canonical_key "current_assets|inventory|long_term_debt|revenue|cogs|net_income|..."
         string source_label "as it appeared in the upload"
-        float amount }
+        float amount
+        string status "mapped|unmapped (parked rows excluded from ratios)"
+        float confidence "nullable — AI suggestion confidence 0-1"
+        string mapped_by "ai|user" }
     RATIO_REPORT { objectid _id PK
         objectid org_id FK
         string period
@@ -227,7 +239,8 @@ erDiagram
         string period
         string status "draft|generated|submitted|accepted"
         json computed_fields "each with input trace"
-        string artifact_key "generated forms"
+        json authority "resolved remittance authority {code, name} — immutable once generated"
+        string artifact_key "generated forms incl. remittance sheet"
         datetime filed_at }
 ```
 
@@ -241,6 +254,17 @@ Ratio formulas persist **with their inputs** so every gauge is auditable
 Bank credentials are never stored — only provider tokens, encrypted, with
 provider-side revocation honored (BNK-002 unlink offers keep-or-purge for
 already-imported transactions).
+
+**Who uses which org kind [Decided 2026-07-16]:** individuals and
+unincorporated freelancers use their auto-created **personal org** (ledger
+capture, imports, PIT — no financial statements); any business entity that
+wants statement capture / ratios / CIT creates a **company org regardless of
+incorporation status**, with `TAX_PROFILE.taxpayer_kind`
+(`individual | company`) deciding PIT-vs-CIT treatment (tax-engine.md §2's
+freelancer limitation applies to gross-income PIT either way).
+Cross-referenced from pages.md B6's empty state and prd.md §2. Estimates and
+filings persist their resolved remittance authority (tax-engine.md §5.5) so
+historical records survive registry changes.
 
 ---
 

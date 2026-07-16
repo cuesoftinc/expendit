@@ -63,7 +63,7 @@ without `:userID`, error envelope, pagination) plus these new capabilities:
 
 | Method & path | Purpose |
 | --- | --- |
-| `POST /api/v1/reports` | `{kind: monthly_summary\|cash_movement, period, format: pdf\|csv}` → `201 {artifact_id, signed_url, expires_at}` — **signed URL from the X-5 bucket [Decided]**, 30-day artifact TTL |
+| `POST /api/v1/reports` | `{kind: monthly_summary\|cash_movement\|category_deep_dive\|financial_statement, period, format: pdf\|csv, category?, statement_kind?}` (`category` required for `category_deep_dive`; `statement_kind` + statement-grammar `period` for `financial_statement` — pages.md B5/B6) → `201 {artifact_id, signed_url, expires_at}` — **signed URL from the X-5 bucket [Decided]**, 30-day artifact TTL |
 | `GET /api/v1/reports` | past artifacts (TTL'd) |
 | `POST /api/v1/account/export` | full-history export — USR-001: `202 {job_id}`; poll `GET /api/v1/account/export/{job_id}` → `{status, signed_url?}`; archive = ZIP of CSV per collection + manifest.json; **7-day download TTL [Decided]** |
 | `POST /api/v1/account/purge` | request full deletion (grace window) — USR-002 |
@@ -110,11 +110,11 @@ idempotency keys on upload/purge/report creation.
 
 | Group | Endpoints |
 | --- | --- |
-| Orgs | `POST /orgs` · `GET /orgs` · members: `POST /orgs/{id}/members` (email invite → pending until that email's first sign-in), `PATCH /orgs/{id}/members/{user}` (role), `DELETE` (remove) · **org context via `X-Org-Id` header [Decided]** (absent = personal org) |
+| Orgs | `POST /orgs` · `GET /orgs` · `PATCH /orgs/{id}` (name, `registered_address`, `fiscal_year_end` — data-model.md §5) · members: `POST /orgs/{id}/members` (email invite → pending until that email's first sign-in), `PATCH /orgs/{id}/members/{user}` (role), `DELETE` (remove) · **org context via `X-Org-Id` header [Decided]** (absent = personal org) |
 | Bank links | `POST /bank-links` (widget config) · `PUT /bank-links/{id}/exchange {code}` (token exchange, flows/bank-link.md §1) · `/webhooks/bank` (signature-verified) · `GET /bank-links` · `POST /bank-links/{id}/sync` · `PATCH` (pause/auto-confirm) · `DELETE ?purge=bool` |
-| Company statements | `POST /statements` (upload) · `GET /statements/{id}/mapping` (staged line items) · `PATCH /statements/{id}/mapping` (fix canonical keys) · `POST /statements/{id}/confirm` |
+| Company statements | `POST /statements` (multipart upload → `202 processing`, or JSON manual entry `{kind, period, currency, line_items[]}` → `201` staged directly — flows/statement-mapping.md §2) · `GET /statements/{id}/mapping` (staged line items) · `PATCH /statements/{id}/mapping` (fix canonical keys · add parser-missed rows) · `POST /statements/{id}/confirm` |
 | Ratios | `POST /ratios/compute {period}` · `GET /ratios?period` · `GET /ratios/{key}/trace` |
-| Taxes | `GET /tax/profile` · `PUT /tax/profile` · `GET /tax/estimates` · `POST /tax/filings` (wizard draft) · `POST /tax/filings/{id}/generate` · `POST /tax/filings/{id}/submit` (v2, provider-gated) · `GET /tax/filings` |
+| Taxes | `GET /tax/profile` · `PUT /tax/profile` (jurisdiction, treatments, `state_of_residence`, `tin`/`rc_number`/`nin` — data-model.md §5) · `GET /tax/estimates` (responses include the resolved remittance-authority block, tax-engine.md §5.5) · `POST /tax/filings` (wizard draft) · `POST /tax/filings/{id}/generate` (gated on tax identity — `422 tax_identity_incomplete`) · `POST /tax/filings/{id}/submit` (v2, provider-gated) · `GET /tax/filings` (rows carry authority + deadline) |
 
 Bank-synced transactions enter the existing import pipeline as jobs
 (`source: bank_sync`) — one staged-review path for every ingress. Statement

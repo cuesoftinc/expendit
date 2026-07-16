@@ -120,6 +120,10 @@ flowchart TD
 AI provider selection: `GROQ_API_KEY` → `GEMINI_API_KEY` → none (CSV/PDF regex
 still work; image uploads error with guidance).
 
+The anomaly engine's four rule types have their computational contract
+(formulas, v1 constants, severities) in flows/import.md §7 — a rules-as-data
+registry like line-items.md §5.
+
 ### 4.2 Known architectural debts **[Current → Proposed fixes]**
 
 | Debt | Consequence | Proposed fix |
