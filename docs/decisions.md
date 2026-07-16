@@ -3,6 +3,10 @@
 > Ratify by checking a box; each decision flips its **[Proposed]** tags to
 > **[Decided]** and unblocks the listed phases. Status: ☐ open · ☑ ratified.
 
+> **RATIFIED 2026-07-16** — all recommendations approved wholesale ("decisions
+> look solid"). Where other docs still carry **[Proposed]** on these topics,
+> this sheet governs; tags flip to **[Decided]** as docs are next touched.
+
 ## E-1 · Bank aggregator — gates Phase 3 (Bank linking)
 
 | Option | For | Against |
@@ -15,7 +19,7 @@
 store only provider tokens (encrypted) + masked metadata; sync cadence default
 **daily + manual refresh**.
 
-☐ Ratified: option ___
+☑ Ratified: option (a) Mono NG-first, Plaid later
 
 ## E-2 · Tax jurisdiction & filing path — gates Phase 5 (Tax center)
 
@@ -26,7 +30,7 @@ e-filing (TAX-003) only lands where a credible API/partner exists — evaluated
 after v1 ships. Other jurisdictions = explicit later scope, config-driven via
 the tax-profile model.
 
-☐ Ratified (jurisdiction: ___)
+☑ Ratified (jurisdiction: Nigeria)
 
 ## E-3 · AI processing of financial data — gates the privacy hub copy (Phase 0)
 
@@ -36,7 +40,7 @@ the tax-profile model.
 | (b) Self-hosted extraction model before launch | Strongest privacy story | Big ML lift now; blocks everything on it |
 | (c) Drop AI features | — | Guts EXP-003 |
 
-☐ Ratified: option ___
+☑ Ratified: option (a) Groq→Gemini + disclosure/consent
 
 ## E-4 · Org model migration — gates Phase 4 (Company financials)
 
@@ -45,7 +49,7 @@ user** (migration maps `userid` scoping → personal org); company orgs with
 owner/admin/member roles. One-way, reversible-by-backup migration executed at
 the start of Phase 4, not before (personal features don't need it).
 
-☐ Ratified
+☑ Ratified
 
 ## E-5 · Retention defaults — published in the privacy hub (Phase 0)
 
@@ -54,7 +58,7 @@ the current behavior) · import jobs + staging **90 days** after
 confirm/discard · report artifacts **30 days** (regenerable) · ledger data
 until user deletion · purge grace window **7 days**.
 
-☐ Ratified (or adjust: ___)
+☑ Ratified as recommended
 
 ## E-6 · Currency handling
 
@@ -62,11 +66,17 @@ until user deletion · purge grace window **7 days**.
 creation); no FX conversion. Multi-currency consolidation stays a non-goal
 until a real customer needs it.
 
-☐ Ratified
+☑ Ratified
 
 ## Cross-cutting
 
-- **X-1 account.cuesoft.io**: OIDC target; local JWT interim; migration per
-  data-model.md §3. ☐
+- **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
+  is **Firebase Authentication on GCP project `sandbox-e306a`** ("sandbox") —
+  Google sign-in + email flows come from Firebase; services verify Firebase ID
+  tokens (OIDC-compatible). The `account.cuesoft.io` facade fronts this later
+  without contract changes. Environment/secrets live in **Doppler**
+  (`cueprise/cuesoft_stg`; see also the `cuesoft-iac` project) — CLI token
+  currently expired (`doppler login` to refresh); config names to be mirrored
+  into docs once readable. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
-  refs. ☐
+  refs. ☑
