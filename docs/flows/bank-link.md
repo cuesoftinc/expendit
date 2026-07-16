@@ -30,10 +30,10 @@ Edge cases at link time:
 | Case | Behaviour |
 | --- | --- |
 | Widget closed mid-flow | no link row persisted beyond `pending`; pending rows purged after 1h |
-| Same account linked twice (same org) | `409 already-linked` → "This account is already connected" |
+| Same account linked twice (same org) | `409 already_linked` → "This account is already connected" |
 | Same account, different org | allowed (personal + company can both see their own view) |
 | Bank not supported by Mono | widget handles; our empty-state lists "supported banks" link |
-| Exchange fails (code expired) | `422 link-expired` → restart widget |
+| Exchange fails (code expired) | `422 link_expired` → restart widget |
 
 ## 2. Syncing
 

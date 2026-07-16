@@ -10,7 +10,7 @@
 
 Same three layers as the ecosystem standard (apparule flows/auth.md §1):
 provider disabled in Firebase console; backend rejects
-`sign_in_provider ≠ google.com` (`403 provider-not-allowed`); single
+`sign_in_provider ≠ google.com` (`403 provider_not_allowed`); single
 "Continue with Google" CTA. `/signup`, `/forgot-password` routes retire —
 `/signin` remains as the one auth screen.
 
@@ -34,7 +34,7 @@ flowchart TD
 - Google-asserted emails are verified by definition → link-by-email is safe
   (no unverified-email branch needed).
 - **Window**: legacy `/users/signin` works 60 days with a "switch to Google"
-  banner; then `410 migrate-to-firebase`; password/reset/change-password
+  banner; then `410 migrate_to_firebase`; password/reset/change-password
   endpoints + email templates deleted; password fields dropped (data-model §3).
 - **The stranded-user edge**: a legacy account whose email has no Google
   account (corporate/non-Gmail without Google Workspace). Policy: they sign

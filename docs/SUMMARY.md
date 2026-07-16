@@ -7,6 +7,7 @@
 - [PRD Breakdown](prd.md)
 - [Decisions](decisions.md)
 - [Roadmap](roadmap.md)
+- [Feature Register](features.md)
 
 ## Design
 - [Design Language](design.md)

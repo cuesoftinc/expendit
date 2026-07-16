@@ -37,12 +37,12 @@ flowchart TD
 
 | Code | Cause | UX |
 | --- | --- | --- |
-| `413 file-too-large` | > limit | inline, no upload |
-| `415 unsupported-type` | magic-bytes check fails | "Upload a CSV, PDF, or receipt image" |
-| `422 no-transactions-found` | parsed 0 rows (CSV headers unrecognized / PDF text empty / image not a receipt) | job completed-empty state: guidance per file type + "try a CSV export from your bank" |
-| `422 password-protected-pdf` | encrypted PDF | "Remove the password and re-upload" |
-| `503 ai-unavailable` | Groq+Gemini both down/keyless, file type needs AI (image; PDF after regex fallback fails) | "AI processing is temporarily unavailable" + retry later; CSV path unaffected |
-| `409 job-already-confirmed` | double confirm race | treat as success (idempotent) |
+| `413 file_too_large` | > limit | inline, no upload |
+| `415 unsupported_type` | magic-bytes check fails | "Upload a CSV, PDF, or receipt image" |
+| `422 no_transactions_found` | parsed 0 rows (CSV headers unrecognized / PDF text empty / image not a receipt) | job completed-empty state: guidance per file type + "try a CSV export from your bank" |
+| `422 password_protected_pdf` | encrypted PDF | "Remove the password and re-upload" |
+| `503 ai_unavailable` | Groq+Gemini both down/keyless, file type needs AI (image; PDF after regex fallback fails) | "AI processing is temporarily unavailable" + retry later; CSV path unaffected |
+| `409 job_already_confirmed` | double confirm race | treat as success (idempotent) |
 | worker crash mid-job | job auto-marked `failed` by timeout reaper (10 min) | "Something went wrong — nothing was imported" + retry (new job) |
 
 Partial AI extraction (some pages parse, some don't): job completes with
