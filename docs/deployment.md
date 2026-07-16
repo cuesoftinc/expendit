@@ -29,9 +29,14 @@
 
 | Workflow | Trigger | Does |
 | --- | --- | --- |
-| `build-and-test.yml` | PRs | build + tests per service |
-| `build-push-and-release-staging.yml` | push to `main` | matrix over services: buildx (GHA cache) → push `cuesoft/expendit-<service>` (tags: `latest` + `sha`) → Cloud Run deploy **by image digest** via WIF |
-| `build-push-and-release-production.yml` | GitHub Release | same, pinned to the release commit; frontend rollout via `firebase-tools apphosting:rollouts:create --git-commit` |
+| `build-and-test.yml` | PRs **and** push to `main` | build + tests per service — **no deploy, no image push** (X-6: open-source repos; merges must be inert) |
+| `release.yml` | **tag `v*` created** | matrix over services: buildx (GHA cache) → push `cuesoft/expendit-<service>` (tags: `latest`, `sha`, version) → Cloud Run deploy **by image digest** via WIF → App Hosting rollout pinned to the tag commit |
+
+**Gating (X-6):** `stg` (sandbox) is the only environment and is treated as
+production. Two independent gates: (1) a GitHub **tag ruleset** restricts
+creating `v*` tags to owner-level access; (2) the deploy job runs in a
+protected GitHub **environment** (`Sandbox`) with required reviewers. A merged
+PR never reaches the sandbox on its own.
 
 Two hard-won rules inherited from cueprise, non-negotiable:
 

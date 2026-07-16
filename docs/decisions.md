@@ -119,3 +119,11 @@ until a real customer needs it.
   `sandbox-e306a` (per-product prefixes `expendit/<env>/…`) for capture
   media, exports, and artifacts. Self-host compose keeps its bundled
   stores. ☑
+- **X-6 Environments & deploy gating (RATIFIED 2026-07-16, deliberate
+  deviation from the cueprise norm)**: `stg` = **sandbox** and is the ONLY
+  environment — no production deployment exists for these products. Secrets
+  live in Doppler `<project>/stg`. Because these repos are **open source**,
+  merge-to-main must NOT deploy: main-merge runs build+test only. **Deploys
+  happen exclusively on tag creation (`v*`)**, treated as production-grade:
+  a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
+  deploy workflow additionally runs in a protected GitHub environment. ☑
