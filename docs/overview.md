@@ -31,7 +31,7 @@ flowchart LR
 
 Backend services are named by **function**, never by language: the current
 service is `api/common`; a future one would be `api/<function>`. See the
-[repository structure](../README.md#repository-structure) in the README.
+[repository structure](https://github.com/cuesoftinc/expendit#repository-structure) in the README.
 
 ## Product & design documentation
 > Published site: **https://cuesoft.gitbook.io/expendit** (Git-synced from this folder on every merge to main).
