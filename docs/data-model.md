@@ -129,13 +129,14 @@ erDiagram
   `ai_processing` document records acceptance of third-party AI extraction
   (prd.md §6, open question 1).
 
-## 3. Identity mapping for D1 (account.cuesoft.io) **[Proposed]**
+## 3. Identity mapping (X-1 hardened — Firebase, Google-only) **[Decided]**
 
-When the central account service lands, `USER` gains a nullable
-`account_subject` column; login via D1 links-or-creates the local user row.
-Local credentials remain valid through a deprecation window, then password
-fields are dropped. This keeps every owned collection (`userid` scoping)
-untouched during migration.
+`USER` gains a `firebase_uid` column (unique). First Google sign-in
+links-by-verified-email or creates the row (flows/auth.md §3 is the
+normative flow: 60-day legacy window, then `410 migrate_to_firebase`;
+password fields dropped after the window). Every owned collection keeps its
+`userid` scoping untouched. The future `account.cuesoft.io` facade fronts
+the same Firebase project — no further migration.
 
 ## 4. Data classification & handling **[PRD §5/§7]**
 
@@ -173,11 +174,37 @@ erDiagram
         string country }
     BANK_LINK { objectid _id PK
         objectid org_id FK
-        string provider "mono|okra|plaid — to ratify"
+        string provider "mono (E-1 ratified); plaid later"
         string institution
         string masked_account
-        string status "active|reauth_required|paused"
+        string provider_token_enc "encrypted at rest; never serialized/logged"
+        string sync_cursor "provider transaction cursor; advances only past processed txns"
+        string status "pending|active|reauth_required|degraded|paused"
         datetime last_synced_at }
+    BANK_SYNC { objectid _id PK
+        objectid link_id FK
+        objectid import_job_id FK
+        string cursor_before
+        string cursor_after
+        string status "running|completed|failed"
+        datetime started_at }
+    ORG_MEMBER { objectid org_id FK
+        objectid user_id FK
+        string role "owner|admin|member"
+        datetime joined_at }
+    TAX_PROFILE { objectid _id PK
+        objectid org_id FK
+        string jurisdiction "NG"
+        string taxpayer_kind "individual|company"
+        string tin "optional"
+        json category_treatments "category → tax_treatment + vat_treatment + vat_basis" }
+    TAX_ESTIMATE { objectid _id PK
+        objectid profile_id FK
+        string kind "pit|cit|vat"
+        string period
+        json computed_fields "with input traces"
+        string ruleset_id
+        datetime computed_at }
     FIN_STATEMENT { objectid _id PK
         objectid org_id FK
         string kind "balance_sheet|income_statement|cash_flow"
@@ -214,3 +241,34 @@ Ratio formulas persist **with their inputs** so every gauge is auditable
 Bank credentials are never stored — only provider tokens, encrypted, with
 provider-side revocation honored (BNK-002 unlink offers keep-or-purge for
 already-imported transactions).
+
+---
+
+## 7. Review additions (2026-07-16)
+
+### 7.1 Import-job provenance
+
+`IMPORT_JOB` gains `source: upload | bank_sync` and staged/ledger
+transactions gain `source_link_id` (nullable) — the column the unlink
+`purge=true` path deletes by (flows/bank-link.md §3).
+
+### 7.2 BANK_LINK state transitions
+
+`pending` (widget opened) → `active` (exchange OK) | purged after 1h ·
+`active` → `reauth_required` (provider revocation) | `degraded` (3
+consecutive sync failures; resets on first success) | `paused` (user) ·
+`reauth_required/degraded/paused` → `active` (re-auth / success / resume).
+
+### 7.3 Mongo→Postgres + org migration runbook (E-4/X-5, "one migration")
+
+1. **Freeze window** (not dual-write **[Decided]** — volumes allow a short
+   freeze): announce in-app 48h ahead; writes disabled ≤ 30 min.
+2. Schema pre-created in Aiven PG (this doc's entities as DDL).
+3. Copy with transform: `userid` scoping → auto-created personal `ORG` per
+   user + `ORG_MEMBER(owner)` rows; checksums per table.
+4. **Parity harness**: row counts + per-table content checksums + 20 sampled
+   golden users compared field-by-field; abort on any mismatch.
+5. Cutover: deploy PG-backed release (tag), unfreeze; Mongo kept read-only
+   **30 days** as the rollback artifact (rollback = redeploy previous tag,
+   un-freeze Mongo), then decommissioned.
+6. Self-host: compose ships a migration job container with the same steps.

@@ -25,7 +25,8 @@ flowchart LR
     MOB[Flutter mobile<br/>mobile/, planned] --> API
     API --> MG[(MongoDB)]
     API --> RD[(Redis<br/>rate limits)]
-    API --> AI[Google Gemini / Groq<br/>OAuth + AI]
+    API --> GAUTH[Google OAuth]
+    API --> AI[AI extraction/categorization<br/>Vertex in cloud · BYO keys self-host]
     API --> SMTP[SMTP email]
 ```
 
@@ -92,6 +93,8 @@ The API listens on `http://localhost:8080` and the web app on
 
 Run `make help` to see all available targets. For a detailed walkthrough, see
 [docs/setup.md](./docs/setup.md).
+
+> **Where this is heading:** the ratified target stack (Firebase Google-only auth, Aiven Postgres, Vertex AI, Cloud Run) lives in [docs/decisions.md](docs/decisions.md) — the diagram above is current state.
 
 ## Documentation
 - [Hosted docs](https://cuesoft.gitbook.io/expendit) — the full documentation site (auto-synced from `docs/`)

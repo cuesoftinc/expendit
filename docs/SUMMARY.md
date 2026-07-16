@@ -27,3 +27,5 @@
 - [Authentication](flows/auth.md)
 - [Statement Import](flows/import.md)
 - [Bank Linking](flows/bank-link.md)
+- [Statement Mapping](flows/statement-mapping.md)
+- [Data Rights](flows/rights.md)

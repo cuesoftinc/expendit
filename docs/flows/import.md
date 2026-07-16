@@ -26,8 +26,8 @@ flowchart TD
 
 | Step | Contract |
 | --- | --- |
-| Client checks | CSV/XLSX/TXT/PDF/JPG/PNG/WEBP/HEIC; ≤ 15 MB **[Decided default]**; images client-compressed ≤ 2048px |
-| Upload | multipart + `Idempotency-Key` (UUID per file selection) — retries never double-import; same key returns the same `job_id` |
+| Client checks | CSV/XLSX/TXT/PDF/JPG/PNG/WEBP/HEIC; ≤ 15 MB **[Decided — the binding limit; roadmap exit criteria reference it]**; images client-compressed ≤ 2048px, **server re-validates** (oversize → `413`, oversized-dimension images server-downscaled) |
+| Upload | multipart + `Idempotency-Key` (UUID per file selection) — retries never double-import; same key returns the same `job_id` **while the job is processing or completed; a `failed` job releases its key** (retry = same key allowed, new job) |
 | Processing | async worker; job status `processing → completed \| failed`; poll every 2s with backoff, or SSE later; UI shows the MI-2 AI-sparkle stage |
 | Staged review | duplicates pre-flagged (`is_duplicate`) and excluded from the confirm count by default — user can re-include (false positives happen with recurring identical payments); AI categories carry the ✨ mark until touched |
 | Confirm | `POST /import/:jobId/confirm` idempotent (second call → 200 no-op); writes ledger rows atomically — partial confirm is impossible: all-or-error |
@@ -41,7 +41,8 @@ flowchart TD
 | `415 unsupported_type` | magic-bytes check fails | "Upload a CSV, PDF, or receipt image" |
 | `422 no_transactions_found` | parsed 0 rows (CSV headers unrecognized / PDF text empty / image not a receipt) | job completed-empty state: guidance per file type + "try a CSV export from your bank" |
 | `422 password_protected_pdf` | encrypted PDF | "Remove the password and re-upload" |
-| `503 ai_unavailable` | Groq+Gemini both down/keyless, file type needs AI (image; PDF after regex fallback fails) | "AI processing is temporarily unavailable" + retry later; CSV path unaffected |
+| `503 ai_unavailable` | AI provider unavailable (Vertex in cloud, X-4; BYO Groq/Gemini self-host) and the file type needs AI (image; PDF after regex fallback fails) | "AI processing is temporarily unavailable" + retry later; CSV path unaffected |
+| `403 consent_required` | `ai_processing` consent declined + file type needs AI (images always; PDFs proceed regex-only without AI, with a "reduced accuracy" banner) | consent sheet re-offer |
 | `409 job_already_confirmed` | double confirm race | treat as success (idempotent) |
 | worker crash mid-job | job auto-marked `failed` by timeout reaper (10 min) | "Something went wrong — nothing was imported" + retry (new job) |
 

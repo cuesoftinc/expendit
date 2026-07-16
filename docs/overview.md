@@ -13,7 +13,8 @@ flowchart LR
     MOB[Flutter mobile<br/>mobile/, planned] --> API
     API --> MG[(MongoDB)]
     API --> RD[(Redis<br/>rate limits)]
-    API --> AI[Google Gemini / Groq<br/>OAuth + AI]
+    API --> GAUTH[Google OAuth]
+    API --> AI[AI extraction/categorization<br/>Vertex in cloud · BYO keys self-host]
     API --> SMTP[SMTP email]
 ```
 
@@ -43,7 +44,7 @@ service is `api/common`; a future one would be `api/<function>`. See the
 - [roadmap.md](roadmap.md) — phased plan with dependencies
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [line-items.md](line-items.md) — canonical statement vocabulary + ratio formula registry
-- [decisions.md](decisions.md) — the open-decision register: ratify to unblock phases
+- [decisions.md](decisions.md) — the ratified decision register (governs all docs)
 - [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [import](flows/import.md), [bank-link](flows/bank-link.md)
 - [tax-engine.md](tax-engine.md) — NG PIT/CIT/VAT computation contract (versioned rule sets, trace requirements)

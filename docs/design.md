@@ -41,8 +41,8 @@
 
 ### Type
 
-- Display (marketing + dashboard page titles): editorial grotesk/serif from
-  brand pass — interim `Söhne/Inter Display`-class. Hero sizes 56–88px,
+- Display (marketing + dashboard page titles): **Inter Display** committed for
+  v1 [Decided — no commercial-font procurement now]; revisit at brand pass. Hero sizes 56–88px,
   tight leading (Brex scale).
 - UI/data: `Inter`; base 14, tables 13; **tabular figures always on for
   numeric columns**; money format `₦1,240,300.50` / `$…` with currency from

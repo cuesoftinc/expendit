@@ -87,7 +87,7 @@ downloadable artifacts) and *ecosystem integration*, not building the engine.
 | Demo data | Landing previews and demos must use synthetic data only **[PRD §5]** |
 | Privacy clause | Adhere to the Expendit-specific clause in `privacy.cuesoft.io` **[PRD §7]** (content dependency D3) |
 | User control | USR-001/002 above — export + full deletion, visibly reachable **[PRD §7]** |
-| AI processing disclosure | Statements/receipts are sent to third-party AI providers (Groq/Gemini) for extraction & categorization **[Current fact that §7 disclosure must cover — Proposed to make explicit in the privacy hub]** |
+| AI processing disclosure | Cloud: statements/receipts are processed by **Vertex AI within GCP** (X-4 — no third-party AI vendors); self-host BYO Groq/Gemini keys disclosed as such **[Current fact that §7 disclosure must cover — Proposed to make explicit in the privacy hub]** |
 
 ## 7. Success metrics
 
@@ -100,12 +100,12 @@ downloadable artifacts) and *ecosystem integration*, not building the engine.
 
 ## 8. Open questions
 
-1. **AI provider disclosure & data residency** — statements are processed by
+1. ~~**AI provider disclosure & data residency**~~ **RESOLVED (E-3 + X-4: Vertex in GCP; disclosure + consent stand)**. Original — statements are processed by
    Groq/Gemini today. Does the privacy commitment allow this by default, or is
    an opt-in / self-hosted-model path required for the cloud offering?
 2. **`account.cuesoft.io` migration** — current users hold Expendit-local
    credentials; migration/coexistence strategy needed when D1 lands.
-3. **Retention default** — uploaded source files (statements/receipts): stored
+3. ~~**Retention default**~~ **RESOLVED (E-5)**. Original — uploaded source files (statements/receipts): stored
    how long after a job is confirmed/discarded? data-model.md proposes
    delete-on-confirm for raw files, retain derived transactions **[Proposed]**.
 4. **Figma designs** — Home canvas empty; the implemented landing becomes the
@@ -120,8 +120,8 @@ pillars, page-level breakdowns in [pages.md](pages.md):
 
 1. **Bank account linking** (BNK-001/002) — users either upload statements
    *or link accounts*; synced transactions flow through the same staged-review
-   pipeline. Aggregator choice (Mono/Okra NG-first vs Plaid/TrueLayer) to
-   ratify.
+   pipeline. Aggregator: **Mono, ratified E-1** (Okra wound down; Plaid layers
+   on later).
 2. **Company financial records** (CMP-001…003) — company orgs upload balance
    sheets / income statements / cash-flow statements; a normalized line-item
    model feeds a ratio engine: liquidity (current/quick/cash), solvency

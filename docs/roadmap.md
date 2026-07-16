@@ -39,7 +39,7 @@ met (downloadable summaries + cash movement).
 | Correction feedback loop (corrections inform future categorization) | EXP-003 quality |
 | Import→confirm conversion + correction-rate metrics | prd.md §7 metrics |
 
-**Exit criteria:** a 50 MB statement imports without request timeouts;
+**Exit criteria:** a 15 MB statement (the limit) imports without request timeouts;
 anomalies visible on the dashboard; categorization measurably improves from
 corrections.
 
@@ -59,7 +59,7 @@ migration path proven; bank-integration decision documented.
 
 | ID | Dependency | Blocks |
 | --- | --- | --- |
-| D1 | `account.cuesoft.io` contract | Phase 3 identity |
+| D1 | `account.cuesoft.io` facade | Nothing (X-1: Firebase ratified; facade later) |
 | D2 | Upstat event-ingestion API | Phase 3 events |
 | D3 | Expendit clause on privacy.cuesoft.io | Phase 0 privacy hub copy |
 
@@ -77,10 +77,11 @@ external contracts (D1/D2) and the deliberately-deferred bank integration.
 Phases 0–2 stand as written (trust surface → downloadables/rights → pipeline
 hardening). The expansion appends:
 
-- **Phase 3 (revised) — Bank linking**: aggregator decision (NG-first
-  Mono/Okra vs Plaid), link/sync/re-auth flows into the shared staged-review
-  pipeline (BNK-001/002). Upstat events + account.cuesoft.io items move here
-  unchanged.
+- **Phase 3 (revised) — Bank linking + identity**: Mono (E-1 ratified)
+  link/sync/re-auth flows into the shared staged-review pipeline
+  (BNK-001/002); identity = Firebase Google-only migration (E3-1, X-1 — D1
+  does NOT block this; the facade is a later cosmetic cutover). Upstat events
+  move here unchanged.
 - **Phase 4 — Company financials**: org model migration (personal org
   auto-create), statement upload + line-item mapping review, ratio engine +
   trends (CMP-001…003).

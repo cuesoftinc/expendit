@@ -16,8 +16,12 @@ provider disabled in Firebase console; backend rejects
 
 ## 2. Session model
 
-Ecosystem standard (apparule §2): Firebase SDK session, bearer ID tokens,
-silent-refresh-retry-once, upsert `USER` by `firebase_uid`. Firebase
+Ecosystem standard (inlined): Firebase SDK session — **ID tokens live ~1h,
+SDK auto-refreshes**; bearer on every API call; `401 token_expired` → silent
+refresh → retry once → sign-out; `401 unauthenticated` for missing/invalid
+tokens (both cataloged in engineering.md §1). Upsert `USER` by
+`firebase_uid`. Error envelope (ecosystem standard, verbatim):
+`{"error": {"code": "snake_case", "message": "human copy", "details": {}}}`. Firebase
 throttling replaces the Redis auth rate limiters; Redis limits remain for
 non-auth routes.
 
@@ -51,7 +55,10 @@ unchanged.
 
 ## 5. Instrumentation & acceptance
 
-Events: `auth_signin_completed`, `auth_migration_completed` — counters only.
+Events: `auth_signin_completed`, `auth_migration_completed`,
+`consent_recorded{document}` (emitted by the consent endpoints, E1-5) —
+counters only. `auth_migration_stranded` is **not an ingest event** — it is
+a support-ticket tag counted operationally (registry annotation updated).
 
 - [ ] Legacy user links on first Google sign-in; history intact
 - [ ] Day-61: legacy endpoints 410; password columns dropped; templates gone
