@@ -80,3 +80,9 @@ until a real customer needs it.
   into docs once readable. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
   refs. ☑
+- **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
+  services run on **Google Cloud Run** (per-service containers — the same
+  `cuesoft/<repo>-<service>` images), following the cueprise pattern
+  (IaC precedent in `cuesoft-iac`); frontends deploy to **Firebase App
+  Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
+  cloud and self-host share images, not manifests. ☑
