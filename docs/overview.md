@@ -43,6 +43,8 @@ service is `api/common`; a future one would be `api/<function>`. See the
 [repository structure](../README.md#repository-structure) in the README.
 
 ## Product & design documentation
+> Published site: **https://cuesoft.gitbook.io/expendit** (Git-synced from this folder on every merge to main).
+
 
 - [prd.md](prd.md) — product requirements breakdown (requirements vs current state, user rights, open questions)
 - [architecture.md](architecture.md) — system design, import-pipeline deep dive, target sequences
