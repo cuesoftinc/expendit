@@ -104,3 +104,18 @@ until a real customer needs it.
   consumer-API keys to third-party AI vendors in cloud deployments — data
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
+- **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
+  **Aiven Postgres** as the system of record — financial aggregation, audit
+  trails, ratio/tax traces, and org joins are SQL-shaped. Mongo→Postgres
+  migration is scheduled WITH the E-4 org migration (one migration, not two);
+  self-host compose keeps Mongo until then, then switches to a Postgres
+  container.
+  **Shared Redis**: the sandbox **Aiven Redis** instance, tenancy by
+  **`REDIS_DB` index** (the irealty pattern: discrete `REDIS_HOST/PORT/
+  USERNAME/PASSWORD/TLS/DB` vars; e.g. irealty prd=0, stg/dev=1) — indices
+  per product/config assigned in Doppler by the owner. **Doppler is the env
+  source of truth**: project `expendit` with `dev / dev_personal / stg / prd`
+  configs (already created). **Object storage**: the **default Cloud Storage bucket** in
+  `sandbox-e306a` (per-product prefixes `expendit/<env>/…`) for capture
+  media, exports, and artifacts. Self-host compose keeps its bundled
+  stores. ☑
