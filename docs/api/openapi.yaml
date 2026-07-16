@@ -27,6 +27,63 @@ paths:
   /api/v1/reports: { post: { tags: [rights], summary: Generate downloadable report, responses: { "201": { description: Artifact } } } }
   /api/v1/account/export: { post: { tags: [rights], summary: Full-history export (owner), responses: { "202": { description: Archive job } } } }
   /api/v1/account/purge: { post: { tags: [rights], summary: Request purge (grace window), responses: { "202": { description: Scheduled } } } }
+  /api/v1/bank-links/{id}/exchange:
+    put: { tags: [banking], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Exchange Mono widget code for account token, responses: { "200": { description: Link active }, "422": { description: link_expired } } }
+  /api/v1/bank-links/{id}:
+    patch: { tags: [banking], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Pause / auto-confirm toggle, responses: { "200": { description: Link } } }
+    delete: { tags: [banking], parameters: [{ $ref: "#/components/parameters/Id" }, { name: purge, in: query, schema: { type: boolean, default: false } }], summary: Unlink (keep-or-purge history), responses: { "204": { description: Unlinked } } }
+  /webhooks/bank:
+    post: { tags: [banking], summary: Mono webhook — signature-auth only; idempotent by provider event id, security: [], responses: { "200": { description: Accepted }, "401": { description: Invalid signature } } }
+  /api/v1/statements/{id}/mapping:
+    get: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Poll mapping (processing|staged|failed) + staged line items, responses: { "200": { description: Mapping } } }
+    patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Fix canonical keys / park rows unmapped, responses: { "200": { description: Mapping } } }
+  /api/v1/ratios/compute:
+    post: { tags: [company], summary: Compute ratio report for a period, requestBody: { content: { application/json: { schema: { type: object, required: [period], properties: { period: { type: string } } } } } }, responses: { "201": { description: Ratio report with traces } } }
+  /api/v1/ratios/{key}/trace:
+    get: { tags: [company], parameters: [{ name: key, in: path, required: true, schema: { type: string } }, { name: period, in: query, required: true, schema: { type: string } }], summary: Formula trace (line-item inputs), responses: { "200": { description: Trace } } }
+  /api/v1/tax/profile:
+    get: { tags: [taxes], summary: Tax profile, responses: { "200": { description: Profile } } }
+    put: { tags: [taxes], summary: Update profile (jurisdiction, treatments), responses: { "200": { description: Profile } } }
+  /api/v1/tax/filings/{id}/generate:
+    post: { tags: [taxes], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Generate filing documents, responses: { "201": { description: Artifacts }, "409": { description: ruleset_unsigned }, "422": { description: period_incomplete | mapping_unconfirmed } } }
+  /api/v1/reports:
+    get: { tags: [rights], summary: Artifact history (30d TTL), responses: { "200": { description: List } } }
+  /api/v1/account/export/{jobId}:
+    get: { tags: [rights], parameters: [{ name: jobId, in: path, required: true, schema: { type: string } }], summary: Export job status + signed URL (7d TTL), responses: { "200": { description: Job } } }
+  /api/v1/account/purge:
+    delete: { tags: [rights], summary: Cancel purge within grace, responses: { "204": { description: Cancelled }, "410": { description: grace_expired } } }
+  /api/v1/consent:
+    get: { tags: [rights], summary: Accepted documents, responses: { "200": { description: List } } }
+    post: { tags: [rights], summary: "Record acceptance (tos|privacy|ai_processing); emits consent_recorded", responses: { "201": { description: Recorded } } }
+
 components:
   securitySchemes:
     firebase: { type: http, scheme: bearer, bearerFormat: "Firebase ID token (google.com provider only)" }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, default: 50, maximum: 100 } }
+    OrgId: { name: X-Org-Id, in: header, schema: { type: string }, description: Org context; absent = personal org }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid }, description: "account+endpoint scope, 24h window; failed jobs release keys" }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, description: snake_case stable (engineering.md §1) }
+            message: { type: string }
+            details: { type: object }
+    ImportJob:
+      type: object
+      properties:
+        id: { type: string }
+        source: { enum: [upload, bank_sync] }
+        status: { enum: [processing, completed, failed] }
+        total_parsed: { type: integer }
+        duplicates_found: { type: integer }
+        summary: { type: object }
+        anomalies: { type: array, items: { type: object } }

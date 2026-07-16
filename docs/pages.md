@@ -58,8 +58,8 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 
 ### B4 `/accounts` — Linked bank accounts **[Directive — new]**
 - `LinkAccountCard` grid + "Link account" CTA → provider flow (MI-9).
-- Aggregator: **Mono/Okra for NG banks, Plaid/TrueLayer international —
-  decision to ratify** (architecture.md §8).
+- Aggregator: **Mono (E-1, ratified)**; Plaid layers on for international
+  later. Flow contract: flows/bank-link.md.
 - Per-account: sync schedule, last sync, imported-txn count, pause/unlink
   (unlink offers keep-or-purge history choice).
 - Synced transactions land in the same staged-review pipeline as uploads
@@ -84,7 +84,10 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   - *Profitability*: gross/operating/net margin, ROA, ROE
   - *Efficiency*: asset turnover, inventory turnover, receivables days
   - Each gauge: value, period delta, benchmark band, "how we got this"
-    formula trace (MI-8 tooltip → inspector with line items).
+    formula trace (MI-8 tooltip → inspector with line items). **Benchmark
+    bands [Decided v1]: static per-ratio healthy ranges shipped as constants
+    in the ratio registry** (line-items.md §5), clearly labeled "general
+    guidance"; industry-specific benchmarks are a later data product.
 - Trend view: ratio time-series across periods; export to report artifact.
 - Requires ≥1 mapped statement period; empty state explains inputs needed.
 

@@ -47,8 +47,9 @@ Two hard-won rules inherited from cueprise, non-negotiable:
 2. **WIF only** (`google-github-actions/auth@v3` with
    `workload_identity_provider` + `service_account`) — no JSON keys.
 
-GitHub environments (`Staging <Project>`, `Production`) gate the deploy
-jobs and carry the URLs.
+The single protected GitHub environment is **`Sandbox`** (X-6) — required
+reviewers + the sandbox URLs (`api.expendit.cuesoft.io`). No other deploy
+environments exist.
 
 ## 4. Not in this phase
 

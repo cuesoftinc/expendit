@@ -113,9 +113,11 @@ until a real customer needs it.
   **Shared Redis**: the sandbox **Aiven Redis** instance, tenancy by
   **`REDIS_DB` index** (the irealty pattern: discrete `REDIS_HOST/PORT/
   USERNAME/PASSWORD/TLS/DB` vars; e.g. irealty prd=0, stg/dev=1) — indices
-  per product/config assigned in Doppler by the owner. **Doppler is the env
-  source of truth**: project `expendit` with `dev / dev_personal / stg / prd`
-  configs (already created). **Object storage**: the **default Cloud Storage bucket** in
+  per product/config assigned in Doppler by the owner. **Doppler is the env source of truth: services read project `expendit`,
+  config `stg`** (X-6: stg=sandbox is the only live env; `dev*` are local-dev
+  conveniences and `prd` sits empty until a production ever exists —
+  `cueprise/cuesoft_stg` was the *pattern reference*, not expendit's source).
+  Redis DB index recorded here when assigned: `expendit/stg = TBD-by-owner`. **Object storage**: the **default Cloud Storage bucket** in
   `sandbox-e306a` (per-product prefixes `expendit/<env>/…`) for capture
   media, exports, and artifacts. Self-host compose keeps its bundled
   stores. ☑

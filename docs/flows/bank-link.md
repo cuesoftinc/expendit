@@ -37,7 +37,7 @@ Edge cases at link time:
 
 ## 2. Syncing
 
-- Schedule: daily per link + manual "Sync now" (rate-limited 1/10min per link).
+- Schedule: daily per link (**02:00–05:00 org-local, jittered per link**) + manual "Sync now" (rate-limited 1/10min per link). Initial 6-month backfill pages provider-side but lands as **one** staged import job.
 - Each sync = one import job (`source: bank_sync`, flows/import.md §5):
   fetch since last cursor → stage → duplicate-detect → categorize → anomaly →
   review (or auto-confirm when enabled).
@@ -47,7 +47,7 @@ Edge cases at link time:
 | Sync failure | Behaviour |
 | --- | --- |
 | `reauth_required` (consent lapsed/bank revoked) | link status flips; persistent banner "Reconnect ×××1234" → widget re-auth flow; syncs paused |
-| Mono 5xx / rate-limit | exponential backoff, next scheduled run; after 3 consecutive failures → status `degraded` + banner |
+| Mono 5xx / rate-limit | exponential backoff **1min base ×2 cap 1h, ±20% jitter**; after 3 consecutive failures → status `degraded` + banner (resets on first success) |
 | Partial page fetch | job processes what arrived; cursor advances only past processed transactions |
 
 ## 3. Pause / unlink
@@ -70,14 +70,18 @@ Edge cases at link time:
 - Mono tokens encrypted at rest (KMS/env key via Doppler); never logged;
   never serialized in any API response.
 - Webhooks (`/webhooks/bank`) signature-verified; unverified → 401 + alert,
-  never processed (same rule as payments in apparule).
+  never processed. **Handled events [Decided]**: new-transactions-available →
+  enqueue sync (dedup: skip if a sync is running); reauth-required → flip
+  status + banner; account-unlinked (provider-side) → `reauth_required`.
+  Idempotent by provider event id (processed-ids table, 7-day TTL); always
+  respond 200 fast, process async.
 - All bank-link mutations audit-logged (who, when, what — no payloads).
 
 ## 5. Instrumentation & acceptance
 
-Events: `bank_link_created{institution?}` — institution only if we ratify it
-as a permitted dim; default counters only. `bank_sync_completed`,
-`bank_reauth_required`.
+Events: `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`
+— counters only (the institution dim question is CLOSED: registry forbids
+institutions).
 
 - [ ] Link → initial 6-month backfill lands in staged review
 - [ ] Re-auth banner appears on revocation; reconnect resumes from cursor

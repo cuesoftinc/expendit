@@ -205,3 +205,42 @@ sequenceDiagram
 | D1 | `account.cuesoft.io` contract | ECO-AUTH migration (local JWT is the interim) |
 | D2 | Upstat event-ingestion API | ECO-ANALYTICS events |
 | D3 | Expendit clause on `privacy.cuesoft.io` | EXP-005 copy |
+
+---
+
+## 8. Target architecture (post-ratification: X-3/X-4/X-5, E-1) **[Decided]**
+
+```mermaid
+flowchart LR
+    subgraph Cloud Run
+        API[api/common — Go]
+        WK[import worker — same image,<br/>queue consumer]
+    end
+    subgraph Data plane
+        PG[(Aiven Postgres — X-5)]
+        RD[(Aiven Redis — queue,<br/>rate limits, REDIS_DB tenancy)]
+        CS[(Cloud Storage — report/export artifacts)]
+    end
+    MONO[Mono] -->|widget/exchange + signed webhooks| API
+    VX[Vertex AI — Gemini, ADC] --- WK
+    WEB[web — App Hosting] --> API
+    API --> PG
+    API --> RD
+    WK --> RD
+    WK --> PG
+    WK --> VX
+    API --> CS
+    SCHED[Cloud Scheduler] -->|daily syncs, TTL purges,<br/>deadline banners| JOBS[Cloud Run jobs — same image]
+    JOBS --> PG
+```
+
+- **Scaling**: api/common 1 vCPU/512 MiB, concurrency 80, 0–5 instances;
+  worker 1 vCPU/1 GiB, concurrency 1 (AI budget isolation), 0–3; jobs
+  scheduled, min-instances 0 everywhere **[Decided defaults]**.
+- **Security boundaries**: Mono tokens encrypted (KMS key via Doppler);
+  webhooks signature-verified pre-processing; Vertex via service-account ADC
+  (no keys); Postgres/Redis private-network + TLS (Aiven).
+- **Failure branches for the §5 sequences**: report render failure →
+  `500 internal`, artifact row not created, client retry; purge job crash →
+  grace state persists, next scheduled run resumes (idempotent deletes);
+  bank sequence failures per flows/bank-link.md §2.

@@ -5,6 +5,8 @@
 
 ## 1. Current surface **[Current]** (api/common, :8080)
 
+`GET /health` + `GET /ready` — probes (unauthenticated).
+
 All routes JSON unless noted; protected routes require `Authorization: Bearer <JWT>`
 and scope data to the token's `uid` claim.
 
@@ -61,9 +63,9 @@ without `:userID`, error envelope, pagination) plus these new capabilities:
 
 | Method & path | Purpose |
 | --- | --- |
-| `POST /api/v1/reports` | `{kind: monthly_summary\|cash_movement, period, format: pdf\|csv}` → artifact (stream or signed URL) |
+| `POST /api/v1/reports` | `{kind: monthly_summary\|cash_movement, period, format: pdf\|csv}` → `201 {artifact_id, signed_url, expires_at}` — **signed URL from the X-5 bucket [Decided]**, 30-day artifact TTL |
 | `GET /api/v1/reports` | past artifacts (TTL'd) |
-| `POST /api/v1/account/export` | full-history export (`full_export`, CSV/JSON archive) — USR-001 |
+| `POST /api/v1/account/export` | full-history export — USR-001: `202 {job_id}`; poll `GET /api/v1/account/export/{job_id}` → `{status, signed_url?}`; archive = ZIP of CSV per collection + manifest.json; **7-day download TTL [Decided]** |
 | `POST /api/v1/account/purge` | request full deletion (grace window) — USR-002 |
 | `DELETE /api/v1/account/purge` | cancel within grace |
 | `GET /api/v1/consent` · `POST /api/v1/consent` | ToS/privacy/AI-processing acceptance records |
@@ -72,7 +74,7 @@ without `:userID`, error envelope, pagination) plus these new capabilities:
 
 | Change | Why |
 | --- | --- |
-| `POST /import/upload` → `202 {job_id}`; processing moves to a worker | Synchronous AI budget (≤120 s) inside the request doesn't scale (architecture.md §4.2) |
+| `POST /import/upload` → `202 {job_id}` (v1 path: `/api/v1/import/upload`; the unprefixed route dies at v1 — no alias) | Synchronous AI budget (≤120 s) inside the request doesn't scale (architecture.md §4.2) |
 | `GET /import/:jobId` becomes the polling/streaming surface | Status field already models `processing/completed/failed` |
 | Explicit upload limits (size, MIME) with typed errors | Predictable failure surface |
 
@@ -108,8 +110,8 @@ idempotency keys on upload/purge/report creation.
 
 | Group | Endpoints |
 | --- | --- |
-| Orgs | `POST /orgs` · `GET /orgs` · member CRUD (`role: owner|admin|member`) · org-scoped auth context header |
-| Bank links | `POST /bank-links` (provider session init) · provider webhook `/webhooks/bank` · `GET /bank-links` · `POST /bank-links/{id}/sync` · `PATCH` (pause/auto-confirm) · `DELETE ?purge=bool` |
+| Orgs | `POST /orgs` · `GET /orgs` · members: `POST /orgs/{id}/members` (email invite → pending until that email's first sign-in), `PATCH /orgs/{id}/members/{user}` (role), `DELETE` (remove) · **org context via `X-Org-Id` header [Decided]** (absent = personal org) |
+| Bank links | `POST /bank-links` (widget config) · `PUT /bank-links/{id}/exchange {code}` (token exchange, flows/bank-link.md §1) · `/webhooks/bank` (signature-verified) · `GET /bank-links` · `POST /bank-links/{id}/sync` · `PATCH` (pause/auto-confirm) · `DELETE ?purge=bool` |
 | Company statements | `POST /statements` (upload) · `GET /statements/{id}/mapping` (staged line items) · `PATCH /statements/{id}/mapping` (fix canonical keys) · `POST /statements/{id}/confirm` |
 | Ratios | `POST /ratios/compute {period}` · `GET /ratios?period` · `GET /ratios/{key}/trace` |
 | Taxes | `GET /tax/profile` · `PUT /tax/profile` · `GET /tax/estimates` · `POST /tax/filings` (wizard draft) · `POST /tax/filings/{id}/generate` · `POST /tax/filings/{id}/submit` (v2, provider-gated) · `GET /tax/filings` |

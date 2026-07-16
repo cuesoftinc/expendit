@@ -76,7 +76,7 @@
 | ID | Unit | Refs |
 | --- | --- | --- |
 | EX-1 | Error envelope middleware + catalog tests | engineering §1 |
-| EX-2 | ⌘K palette + Inspector + saved views (PLT-001) | design.md MI-1/11/18 |
+| EX-2 | ⌘K palette + Inspector + saved views (PLT-001) | design.md MI-1/MI-11 (saved views: table-state persistence, no dedicated MI) |
 | EX-3 | Rate limiting (shared Redis) | engineering §3 |
 | EX-4 | build-and-test.yml + release.yml (tag-gated) | deployment.md, X-6 |
 | EX-5 | cuesoft-iac expendit stack (Cloud Run, WIF, Doppler, Aiven PG) | deployment.md §2, X-5 |

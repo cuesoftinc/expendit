@@ -57,18 +57,36 @@
 
 ## 4. Derivation & validation rules
 
-- *(derived)* keys are computed when absent (`current_assets = cash +
-  receivables + inventory + other`) and **cross-checked when present** — a
-  reported total that differs from the component sum by >1% flags a
-  `mapping_warning` on the statement (shown in the B6 review step).
+- *(derived)* keys compute when absent and **cross-check when present** — a
+  reported total differing from the component sum by >1% flags a
+  `mapping_warning` on the statement (B6 review step). Full derivation table:
+
+| Derived key | Formula |
+| --- | --- |
+| `current_assets` | `cash_and_equivalents + receivables + inventory + current_assets_other` |
+| `total_assets` | `current_assets + ppe + intangibles + noncurrent_assets_other` |
+| `current_liabilities` | `payables + short_term_debt + current_liabilities_other` |
+| `total_liabilities` | `current_liabilities + long_term_debt + noncurrent_liabilities_other` |
+| `equity` | `share_capital + retained_earnings` |
+| `gross_profit` | `revenue − cogs` |
+| `operating_profit` | `gross_profit − opex − depreciation_amortization` — **D&A rule: `opex` EXCLUDES D&A by definition**; if the source statement buries D&A inside opex and reports no separate line, map the combined figure to `opex` and leave `depreciation_amortization` absent (interest-coverage trace then notes "EBIT basis, D&A not separable") |
+| `net_income` | `operating_profit + interest_income − interest_expense − tax_expense` |
+| `net_change_in_cash` | `cfo + cfi + cff` |
 - Every mapped statement must satisfy the accounting identity
   `total_assets ≈ total_liabilities + equity` (±1%) before `confirmed`.
 - Amounts are stored in org currency, sign-normalized (assets/revenue
   positive; expenses/liabilities positive magnitudes with the key carrying
-  semantics — no negative-by-convention ambiguity).
+  semantics — no negative-by-convention ambiguity). **Exception: cash-flow
+  keys (`cfo`, `cfi`, `cff`, `capex`, `net_change_in_cash`) are signed** —
+  inflow positive, outflow negative, as reported.
+- **Currency (E-6)**: statements denominated in a currency other than the
+  org's are rejected at upload (`422 currency_mismatch`) — no FX in v1;
+  detection from the mapping review's currency field (user-confirmed).
 - Unmapped source rows can be parked as `unmapped` (excluded from ratios,
   listed in the review step) — but statements with >20% unmapped value by
-  magnitude cannot be confirmed.
+  magnitude cannot be confirmed (`422 unmapped_threshold_exceeded`); identity
+  failure at confirm returns `422 mapping_identity_violation` (these codes
+  originate here; engineering.md §1 catalogs them).
 
 ## 5. Ratio formulas (the auditable registry)
 
@@ -90,7 +108,20 @@
 | Receivables days | `receivables / revenue × 365` |
 
 Each computed `RATIO_REPORT` row persists the formula string + the exact
-`LINE_ITEM` ids used (data-model.md §5), which is what the MI-8 "how we got
-this" trace renders. Period-average denominators (e.g. average inventory)
-are a **[Later]** refinement — v1 uses period-end values, disclosed in the
+`LINE_ITEM` ids used (data-model.md §5) — the MI-8 trace. Period-average
+denominators are **[Later]**; v1 uses period-end values, disclosed in the
 trace.
+
+**Period normalization [Decided]:** flow figures (revenue, cogs, net_income,
+interest) annualize by period length before mixed-ratio computation —
+quarterly ×4, half-year ×2, FY ×1 — and the trace shows the annualization
+factor. Receivables-days uses the period's actual day count (`× days`, not a
+hardcoded 365). **Statement pairing:** ratios mixing BS and IS require
+statements of the SAME `period` value; absent a match, the ratio renders
+"n/a — missing {kind} for {period}".
+
+**Degenerate denominators [Decided]:** denominator = 0 or absent → "n/a"
+with a trace note (never ∞/error): interest coverage with no
+`interest_expense` → "n/a — no interest expense"; inventory turnover with no
+`inventory` → "n/a"; ROE with `equity ≤ 0` → shown as "negative equity"
+badge instead of a number (a real signal, not hidden).
