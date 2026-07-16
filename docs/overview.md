@@ -7,24 +7,14 @@ responsibilities. To run the stack locally, see [setup.md](setup.md).
 
 ## Architecture
 
-```
-                 +---------------------+
-                 |   Next.js web app   |
-                 |       (web/)        |
-                 +----------+----------+
-                            |
-                            | HTTP (REST)
-                            v
-+----------------+   +------+------------------+   +----------------+
-| Flutter mobile |-->|   Go REST API (Gin)     |-->|    MongoDB     |
-| (mobile/, WIP) |   |     (api/common/)       |   |                |
-+----------------+   +------+------------------+   +----------------+
-                            |
-              +-------------+--------------+
-              |             |              |
-              v             v              v
-          Redis        SMTP email    Google / Gemini
-        (rate limit)                  (OAuth + AI)
+```mermaid
+flowchart LR
+    WEB[Next.js web app<br/>web/] -->|HTTPS REST| API[Go REST API — Gin<br/>api/common/]
+    MOB[Flutter mobile<br/>mobile/, planned] --> API
+    API --> MG[(MongoDB)]
+    API --> RD[(Redis<br/>rate limits)]
+    API --> AI[Google Gemini / Groq<br/>OAuth + AI]
+    API --> SMTP[SMTP email]
 ```
 
 - **`web`** — Next.js marketing site + authenticated dashboard (React,
