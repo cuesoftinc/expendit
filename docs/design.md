@@ -216,6 +216,17 @@ above (docs Stage 3 = Assemblies); the "Mode test — Dark" and "About —
 Component Library" frames on that page are QA/scaffolding artifacts, not
 stages or contract rows.
 
+**Screen-state rule [Directive 2026-07-18].** Every data-driven Stage-4
+screen template ships **three frames**: **default** (populated), **empty**
+(EmptyState + first-run copy; demo-data toggle where specced — MI-16), and
+**loading** (Skeleton set, MI-12). pages.md calls the rule out on B1/B2/B6/B7;
+it applies to every data-driven template in the Stage-4 row.
+
+**Canvas hygiene [Directive 2026-07-18].** Design canvases carry **product
+copy only**. Spec annotations — MI references, requirement IDs,
+implementation notes — live in component descriptions and in these docs,
+never on screens.
+
 ### 8.2 Variant matrices
 
 > **Theme note (2026-07-17).** `theme ×2` in the rows here and in §8.2b
