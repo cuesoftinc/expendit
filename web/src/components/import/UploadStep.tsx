@@ -56,9 +56,7 @@ const UploadStep: React.FC<Props> = ({
         ) : (
           <>
             <MdOutlineUploadFile className={styles.uploadIcon} />
-            <p className={styles.uploadTitle}>
-              Drag & drop your file here
-            </p>
+            <p className={styles.uploadTitle}>Drag & drop your file here</p>
             <p className={styles.uploadSub}>
               or click to browse from your computer
             </p>

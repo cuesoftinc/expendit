@@ -40,7 +40,10 @@ const Index = () => {
     }
 
     // AI summary
-    if (!userID) { setSummaryLoading(false); return; }
+    if (!userID) {
+      setSummaryLoading(false);
+      return;
+    }
     API.get(`/ai/summary/${userID}`)
       .then((res) => setAiSummary(res.data?.summary || ""))
       .catch(() => {})
@@ -48,7 +51,8 @@ const Index = () => {
   }, []);
 
   // Prefer directly-fetched list; fall back to context
-  const expenseData = expenseList.length > 0 ? expenseList : (contextExpenses || []);
+  const expenseData =
+    expenseList.length > 0 ? expenseList : contextExpenses || [];
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "-";
@@ -67,15 +71,23 @@ const Index = () => {
       {/* AI Insights Card */}
       <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-purple-600 font-semibold text-sm">AI Insights</span>
-          <span className="text-xs bg-purple-100 text-purple-500 px-2 py-0.5 rounded-full">Last 3 months</span>
+          <span className="text-purple-600 font-semibold text-sm">
+            AI Insights
+          </span>
+          <span className="text-xs bg-purple-100 text-purple-500 px-2 py-0.5 rounded-full">
+            Last 3 months
+          </span>
         </div>
         {summaryLoading ? (
-          <p className="text-sm text-slate-400 animate-pulse">Analysing your finances...</p>
+          <p className="text-sm text-slate-400 animate-pulse">
+            Analysing your finances...
+          </p>
         ) : aiSummary ? (
           <p className="text-sm text-slate-700 leading-relaxed">{aiSummary}</p>
         ) : (
-          <p className="text-sm text-slate-400">No data yet — import a bank statement to get insights.</p>
+          <p className="text-sm text-slate-400">
+            No data yet — import a bank statement to get insights.
+          </p>
         )}
       </div>
 
@@ -136,7 +148,9 @@ const Index = () => {
         <div className="flex-1">
           <h3 className={styles.header}>Recent expenses</h3>
           {!expenseData || expenseData.length === 0 ? (
-            <p className="text-sm text-slate-400 mt-4">No expenses recorded yet.</p>
+            <p className="text-sm text-slate-400 mt-4">
+              No expenses recorded yet.
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
@@ -181,4 +195,3 @@ const Index = () => {
 };
 
 export default Index;
-

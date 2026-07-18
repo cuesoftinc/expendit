@@ -1,15 +1,9 @@
-import React, { Suspense } from "react";
-import { PublicRoute } from "@/components/helpers/RouteProtection";
-import NewPasswordPage from "@/components/forgot-password/NewPassword";
+import { redirect } from "next/navigation";
 
-const Page = () => {
-  return (
-    <PublicRoute>
-      <Suspense fallback={null}>
-        <NewPasswordPage />
-      </Suspense>
-    </PublicRoute>
-  );
+// X-1: Google-only auth — password reset no longer exists; the route
+// redirects to the single auth screen (flows/auth.md §1 acceptance).
+const NewPassword = () => {
+  redirect("/signin");
 };
 
-export default Page;
+export default NewPassword;

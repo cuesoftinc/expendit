@@ -25,7 +25,7 @@ export const discardImportApi = async (jobId: string): Promise<void> => {
 
 export const updateTransactionCategoryApi = async (
   txnId: string,
-  category: string
+  category: string,
 ): Promise<void> => {
   await API.put(`/import/transaction/${txnId}/category`, { category });
 };

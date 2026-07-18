@@ -28,18 +28,21 @@ export const styles = {
   summaryLabel: "text-sm opacity-80 mt-1",
 
   // Anomaly
-  anomalyBanner:
-    "bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6",
-  anomalyTitle: "text-sm font-semibold text-amber-700 mb-2 flex items-center gap-1",
+  anomalyBanner: "bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6",
+  anomalyTitle:
+    "text-sm font-semibold text-amber-700 mb-2 flex items-center gap-1",
   anomalyItem: "text-sm text-amber-800 flex items-start gap-2 mb-1",
 
   // Category breakdown
-  categorySection: "bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6",
-  categoryRow: "flex justify-between items-center py-2 border-b border-gray-50 last:border-0",
+  categorySection:
+    "bg-white rounded-xl p-5 shadow-sm border border-gray-100 mb-6",
+  categoryRow:
+    "flex justify-between items-center py-2 border-b border-gray-50 last:border-0",
   categoryBar: "h-2 rounded-full bg-purpleTheme mt-1",
 
   // Transaction table
-  tableWrap: "bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-x-auto",
+  tableWrap:
+    "bg-white rounded-xl shadow-sm border border-gray-100 mb-6 overflow-x-auto",
   table: "w-full text-sm",
   thead: "bg-grayTheme text-xs text-gray-500 uppercase",
   th: "px-4 py-3 text-left font-semibold",

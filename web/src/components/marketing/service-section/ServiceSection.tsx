@@ -25,7 +25,7 @@ const Services = () => {
   useEffect(() => {
     let currentTab = 0;
 
-    let intervalId = setInterval(() => {
+    const intervalId = setInterval(() => {
       currentTab = (currentTab + 1) % tabs.length;
       setActiveTab(currentTab);
     }, 6000);

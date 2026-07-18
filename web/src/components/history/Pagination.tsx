@@ -25,7 +25,6 @@ const Pagination = () => {
 
   const pagination = generatePagination(currentPage, totalPages);
 
-
   return (
     <div className={styles.pagination}>
       <div className="flex gap-3">

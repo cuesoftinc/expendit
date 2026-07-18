@@ -24,7 +24,9 @@ export const signUpApi = async ({
       router.push("/signin");
     }
   } catch (error: any) {
-    setFormError(error?.response?.data?.error || "an error occurred, try again");
+    setFormError(
+      error?.response?.data?.error || "an error occurred, try again",
+    );
     setFormLoading(false);
   }
 };
@@ -57,7 +59,9 @@ export const signInApi = async ({
       router.push("/dashboard");
     }
   } catch (error: any) {
-    setFormError(error?.response?.data?.error || "an error occurred, try again");
+    setFormError(
+      error?.response?.data?.error || "an error occurred, try again",
+    );
     setFormLoading(false);
   }
 };

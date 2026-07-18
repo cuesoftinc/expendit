@@ -1,18 +1,10 @@
-import React from "react";
-import Page from "@/components/signup/Signup";
-import { PublicRoute } from "@/components/helpers/RouteProtection";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Expendit | Sign-up",
-  description: "Expendit Sign-up page",
-};
-
+// X-1: Google-only auth — the legacy password signup route is retired and
+// redirects to the single auth screen (flows/auth.md §1 acceptance).
+// The old page lives in src/legacy/app/signup/ pending its retirement PR.
 const Signup = () => {
-  return (
-    <PublicRoute>
-      <Page />
-    </PublicRoute>
-  );
+  redirect("/signin");
 };
 
 export default Signup;

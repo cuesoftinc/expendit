@@ -50,7 +50,9 @@ export const useImportState = () => {
       setStep("review");
     } catch (e: any) {
       setError(
-        e?.response?.data?.error ?? e?.message ?? "Upload failed. Please try again."
+        e?.response?.data?.error ??
+          e?.message ??
+          "Upload failed. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -80,7 +82,7 @@ export const useImportState = () => {
 
   const handleCategoryChange = async (txnId: string, category: string) => {
     setTransactions((prev) =>
-      prev.map((t) => (t.id === txnId ? { ...t, category } : t))
+      prev.map((t) => (t.id === txnId ? { ...t, category } : t)),
     );
     try {
       await updateTransactionCategoryApi(txnId, category);
@@ -89,9 +91,14 @@ export const useImportState = () => {
       setTransactions((prev) =>
         prev.map((t) =>
           t.id === txnId
-            ? { ...t, category: transactions.find((x) => x.id === txnId)?.category ?? t.category }
-            : t
-        )
+            ? {
+                ...t,
+                category:
+                  transactions.find((x) => x.id === txnId)?.category ??
+                  t.category,
+              }
+            : t,
+        ),
       );
     }
   };
@@ -104,7 +111,9 @@ export const useImportState = () => {
       await confirmImportApi(result.job.id);
       setStep("done");
     } catch (e: any) {
-      setError(e?.response?.data?.error ?? e?.message ?? "Failed to confirm import.");
+      setError(
+        e?.response?.data?.error ?? e?.message ?? "Failed to confirm import.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +129,9 @@ export const useImportState = () => {
       setTransactions([]);
       setStep("upload");
     } catch (e: any) {
-      setError(e?.response?.data?.error ?? e?.message ?? "Failed to discard import.");
+      setError(
+        e?.response?.data?.error ?? e?.message ?? "Failed to discard import.",
+      );
     } finally {
       setIsLoading(false);
     }

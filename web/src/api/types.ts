@@ -1,6 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { PasswordResetProps } from "@/components/forgot-password/types";
 
 // ---- SignUp Types -----
 export interface SignUpPayload {
@@ -124,18 +123,6 @@ export interface CategoryProps {
 }
 
 // ----- Forget Password ------
-export interface ForgotPasswordProps {
-  email: string;
-  setEmailSuccess: Dispatch<React.SetStateAction<boolean>>;
-  setFormError: Dispatch<React.SetStateAction<string>>;
-  setFormSuccess: Dispatch<React.SetStateAction<string>>;
-  setFormLoading: Dispatch<React.SetStateAction<boolean>>;
-}
-
-export interface ResetPasswordProps {
-  resetToken: string;
-  passwordForm: PasswordResetProps;
-  setFormError: Dispatch<React.SetStateAction<string>>;
-  setFormSuccess: Dispatch<React.SetStateAction<string>>;
-  setFormLoading: Dispatch<React.SetStateAction<boolean>>;
-}
+// ForgotPasswordProps / ResetPasswordProps moved to
+// src/legacy/api/apis/forgot-password-api.ts with the retired
+// password-auth flow (X-1 Google-only — flows/auth.md §1).

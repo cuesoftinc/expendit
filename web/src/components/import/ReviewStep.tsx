@@ -5,7 +5,12 @@ import dayjs from "dayjs";
 import { MdWarningAmber, MdCheckCircleOutline } from "react-icons/md";
 import LoaderSpinner from "@/components/helpers/LoaderSpinner";
 import { styles } from "./styles";
-import type { ImportResult, ImportedTransaction, Anomaly, Currency } from "./types";
+import type {
+  ImportResult,
+  ImportedTransaction,
+  Anomaly,
+  Currency,
+} from "./types";
 
 interface Props {
   result: ImportResult;
@@ -21,7 +26,7 @@ interface Props {
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-NG", { minimumFractionDigits: 0 }).format(
-    Math.round(n)
+    Math.round(n),
   );
 
 const anomalyLabel: Record<string, string> = {
@@ -66,7 +71,9 @@ const ReviewStep: React.FC<Props> = ({
           <p className={styles.statLabel}>Duplicates skipped</p>
         </div>
         <div className={styles.statCard}>
-          <p className={`${styles.statValue} text-purpleTheme`}>{job.imported}</p>
+          <p className={`${styles.statValue} text-purpleTheme`}>
+            {job.imported}
+          </p>
           <p className={styles.statLabel}>Ready to import</p>
         </div>
       </div>
@@ -76,20 +83,27 @@ const ReviewStep: React.FC<Props> = ({
         <div className={styles.summaryGrid}>
           <div className={styles.summaryCard("bg-green-500")}>
             <p className={styles.summaryLabel}>Total Income</p>
-            <p className={styles.summaryAmount}>{sym}{fmt(summary.total_income)}</p>
+            <p className={styles.summaryAmount}>
+              {sym}
+              {fmt(summary.total_income)}
+            </p>
           </div>
           <div className={styles.summaryCard("bg-red-400")}>
             <p className={styles.summaryLabel}>Total Expenses</p>
-            <p className={styles.summaryAmount}>{sym}{fmt(summary.total_expenses)}</p>
+            <p className={styles.summaryAmount}>
+              {sym}
+              {fmt(summary.total_expenses)}
+            </p>
           </div>
           <div
             className={styles.summaryCard(
-              summary.net_cash_flow >= 0 ? "bg-purpleTheme" : "bg-slate-600"
+              summary.net_cash_flow >= 0 ? "bg-purpleTheme" : "bg-slate-600",
             )}
           >
             <p className={styles.summaryLabel}>Net Cash Flow</p>
             <p className={styles.summaryAmount}>
-              {summary.net_cash_flow < 0 ? "-" : ""}{sym}
+              {summary.net_cash_flow < 0 ? "-" : ""}
+              {sym}
               {fmt(Math.abs(summary.net_cash_flow))}
             </p>
           </div>
@@ -101,13 +115,16 @@ const ReviewStep: React.FC<Props> = ({
         <div className={styles.anomalyBanner}>
           <p className={styles.anomalyTitle}>
             <MdWarningAmber className="text-amber-500" />
-            {anomalies.length} anomal{anomalies.length === 1 ? "y" : "ies"} detected
+            {anomalies.length} anomal{anomalies.length === 1 ? "y" : "ies"}{" "}
+            detected
           </p>
           {anomalies.map((a, i) => (
             <p key={i} className={styles.anomalyItem}>
               <span className="mt-0.5">·</span>
               <span>
-                <span className="font-semibold">{anomalyLabel[a.type] ?? a.type}:</span>{" "}
+                <span className="font-semibold">
+                  {anomalyLabel[a.type] ?? a.type}:
+                </span>{" "}
                 {a.description}
               </span>
             </p>
@@ -124,7 +141,10 @@ const ReviewStep: React.FC<Props> = ({
               <div className="flex-1">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-slate-700 font-medium">{cat}</span>
-                  <span className="text-gray-500">{sym}{fmt(amount)}</span>
+                  <span className="text-gray-500">
+                    {sym}
+                    {fmt(amount)}
+                  </span>
                 </div>
                 <div className="h-1.5 rounded-full bg-gray-100">
                   <div
@@ -156,7 +176,10 @@ const ReviewStep: React.FC<Props> = ({
           <tbody>
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-400 text-sm">
+                <td
+                  colSpan={5}
+                  className="text-center py-8 text-gray-400 text-sm"
+                >
                   No transactions to show.
                 </td>
               </tr>
@@ -170,7 +193,8 @@ const ReviewStep: React.FC<Props> = ({
                     {txn.description}
                   </td>
                   <td className={`${styles.td} font-medium`}>
-                    {sym}{fmt(txn.amount)}
+                    {sym}
+                    {fmt(txn.amount)}
                   </td>
                   <td className={styles.td}>
                     <span className={styles.typeBadge(txn.type)}>

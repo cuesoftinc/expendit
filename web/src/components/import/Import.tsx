@@ -34,15 +34,21 @@ const ImportPage = () => {
     <div className="md:ml-3 ml-0">
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-6 text-xs text-gray-400 font-medium">
-        <span className={step === "upload" ? "text-purpleTheme font-semibold" : ""}>
+        <span
+          className={step === "upload" ? "text-purpleTheme font-semibold" : ""}
+        >
           1. Upload
         </span>
         <span>/</span>
-        <span className={step === "review" ? "text-purpleTheme font-semibold" : ""}>
+        <span
+          className={step === "review" ? "text-purpleTheme font-semibold" : ""}
+        >
           2. Review
         </span>
         <span>/</span>
-        <span className={step === "done" ? "text-purpleTheme font-semibold" : ""}>
+        <span
+          className={step === "done" ? "text-purpleTheme font-semibold" : ""}
+        >
           3. Done
         </span>
       </div>
@@ -88,8 +94,12 @@ const ImportPage = () => {
 
           {result.job.ai_summary && (
             <div className="mt-4 mb-6 max-w-md bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-4 text-left">
-              <p className="text-xs font-semibold text-purple-600 mb-1">AI Summary</p>
-              <p className="text-sm text-slate-700 leading-relaxed">{result.job.ai_summary}</p>
+              <p className="text-xs font-semibold text-purple-600 mb-1">
+                AI Summary
+              </p>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                {result.job.ai_summary}
+              </p>
             </div>
           )}
 
@@ -97,10 +107,7 @@ const ImportPage = () => {
             <Link href="/history" className={styles.doneBtn}>
               View history
             </Link>
-            <button
-              className={styles.discardBtn}
-              onClick={handleStartOver}
-            >
+            <button className={styles.discardBtn} onClick={handleStartOver}>
               Import another file
             </button>
           </div>
