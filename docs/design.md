@@ -340,9 +340,59 @@ never on screens.
 > are the whole pricing story: beyond the ComparisonTable price row and its
 > caption, no marketing surface makes a pricing or plan claim.
 
+> **As built [2026-07-18 QA loop].** Four adjustments from QA'ing the built
+> screens while wiring the prototype (§8.4):
+>
+> - **CategoryChip** — the editing-state menu is absolutely positioned; the
+>   open combobox no longer inflates the row height (the MI-6 no-layout-shift
+>   rule now holds in the editing state too).
+> - **Combobox contents** — the CategoryChip editing menu carries registry
+>   categories only (the B8 category registry), no ad-hoc entries.
+> - **WizardShell on B7b** — detached on the filing-wizard frames (pages.md
+>   B7b: data-review + submit-confirm) in favor of anchored "how we got
+>   this" trace rows.
+> - **A5 demo strip** — carries a per-persona (Freelancer) internally
+>   consistent dataset (the §8.3 synthetic-dataset work).
+
 ### 8.3 Design-prep needed from content
 
 Synthetic demo datasets ×3 (freelancer / SME / company) for realistic
 tables+charts; the Afrocentric line motif for dark editorial sections; the A2
 hero device-frame visual and the A8 architecture mini-diagram (illustration
 assets — parity audit 2026-07-16).
+
+### 8.4 Prototype (2026-07-18 QA loop)
+
+The built screens are wired into named click-through flows in the Figma
+file. The conventions here are the prototype standard; the flows listed are
+as built.
+
+**Flows — named starting points, one per page.**
+
+- Dashboard page — **"Core journey — sign in"**: `/signin` → onboarding
+  (B0) → AI-consent sheet → B1 overview → the full navigation mesh (every
+  left-nav section reachable from every other) plus drill-ins (inspectors,
+  wizards, review screens).
+- Home page — **"Marketing site"**: the A1–A11 scroll page, with the nav
+  and hero CTAs wired **cross-page** into `/signin` via move-wire-restore
+  (below) — the technique was first proven in this file.
+
+**Wiring conventions.**
+
+- Reactions are `ON_CLICK` → `NAVIGATE`.
+- Transitions: `DISSOLVE` ~150–200ms for nav/tab switches; `SMART_ANIMATE`
+  for pushes/backs (wizard steps, drill-in/return pairs); `AFTER_TIMEOUT`
+  for async verification states (e.g. syncing → done, MI-9).
+- Empty, loading, QA, and index frames stay **out** of the flow by design —
+  the prototype walks the default (populated) frames only; state frames
+  document the screen-state rule (§8.1), they are not navigation
+  destinations.
+
+**Reachability.** Verified by BFS over the reaction graph: every wired frame
+is reachable from its flow's starting point, and there are no dead ends
+besides intended terminals.
+
+**Cross-page links — the move-wire-restore technique.** The Figma API
+rejects creating a cross-page `NAVIGATE` reaction, but reactions persist if
+the source frame is temporarily moved to the destination page, wired there,
+and moved back. The Home → `/signin` CTAs are wired this way.

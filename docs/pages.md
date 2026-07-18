@@ -26,13 +26,18 @@ setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTA
 | A5a | How it works **[Directive 2026-07-18]** | 3 numbered steps — link/upload → AI review & confirm → reports, ratios & filings — each carrying a **real screen thumbnail** (Stage-4 template captures, not illustrations) | thumbnail click scrolls to the A5 live demo |
 | A6 | AI section | how categorization/anomalies work + privacy note inline (AI providers disclosed) | |
 | A7 | Security & privacy | encryption, retention, delete-all rights; links: security policy + privacy hub (D3) | |
-| A8 | For developers — Contribute (expands Open source **[Directive 2026-07-18]**) | stack line (Go/Gin API · Next.js web · Mongo/Postgres/Redis, architecture.md); "interesting problems" list (statement parsing, categorization engine, ratio/tax engines); good-first-issues + CONTRIBUTING + Discord links; GitHub badge; architecture mini-diagram | badge star count live from GitHub API |
+| A8 | For developers — Contribute (expands Open source **[Directive 2026-07-18]**) | stack line (Go/Gin API · Next.js web · Mongo/Postgres/Redis, architecture.md); "interesting problems" list (statement parsing, categorization engine, ratio/tax engines); good-first-issues + CONTRIBUTING + Discord links; GitHub badge; architecture mini-diagram | badge star count populated at runtime, no number in static designs |
 | A8a | Self-host **[Directive 2026-07-18]** | data-ownership pitch ("your ledger, your infra"); `docker compose up` one-liner + copy (moves here from A8); what ships (api-common · web · Mongo · Redis, architecture.md); self-host docs link | copy ✓ morph |
 | A9 | Community | Discord card + roadmap link | |
 | A10 | Cloud vs Self-host | comparison table; per-column CTAs | |
 | A10a | FAQ **[Directive 2026-07-18]** | 4–5 product Q&As (Accordion): is my bank data safe (read-only via Mono) · does AI see my data (consent-gated, providers disclosed) · can I self-host everything · what does "filing" mean in v1 (filing-ready documents + guided handoff) · which banks/jurisdictions (NG-first) | accordion open/close, one open at a time |
 | A10b | Final CTA band **[Directive 2026-07-18]** | dark editorial band: one-line close + dual CTA **Try Cloud** / **Self Host** (mirrors A2) | CTAs re-emit the A2 events |
 | A11 | Footer | standard + "View Security Policy" CTA (PRD §6) | |
+
+As built (2026-07-18 QA loop): the section register above matches the built
+Home page frame order — A1 → A11 with the 2026-07-18 additions interleaved
+in place (A4a deep-dives, A5a how-it-works, A8a self-host, A10a FAQ, A10b
+final CTA) — no drift.
 
 Events → Upstat (D2): `page_view`, `try_cloud_click`, `self_host_click`,
 `github_click`, `demo_interact`, `contribute_click`, `faq_open`
@@ -124,7 +129,8 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   formula, `mapping_warning` badges, period-selector header (StatementView,
   design.md §8.2); export to report artifact
   (`kind: financial_statement`, api.md §2).
-- **Ratios** (`/company/ratios`): RatioGauge grid (MI-8), grouped:
+- **Ratios** (`/company/ratios` — screen B6b): RatioGauge grid (MI-8),
+  grouped:
   - *Liquidity*: current ratio, quick ratio, cash ratio
   - *Solvency*: debt-to-equity, debt ratio, interest coverage
   - *Profitability*: gross/operating/net margin, ROA, ROE
@@ -143,7 +149,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Requires ≥1 mapped statement period; empty state explains inputs needed
   and which org kind captures statements (data-model.md §5 "Who uses which
   org kind"); empty + loading frames per the screen-state rule
-  (design.md §8.1) **[Directive 2026-07-18]**.
+  (design.md §8.1) **[Directive 2026-07-18]** — as built (2026-07-18 QA
+  loop): both the B6 statements and B6b ratios templates ship their empty +
+  loading frames.
 
 ### B7 `/taxes` — Tax center **[Directive — new]**
 - Overview: jurisdiction profile (org settings; captures **state of
@@ -158,7 +166,8 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   - Personal income tax (PIT) from categorized income
   - Company income tax (CIT) estimate from company statements
   - VAT summary from ledger (output vs input VAT)
-- **Filing wizard** (`/taxes/file`): WizardShell (MI-10): period → data review
+- **Filing wizard** (`/taxes/file` — screen B7b): WizardShell (MI-10):
+  period → data review
   (traceable computed fields; blocks with a "complete your tax profile"
   prompt when TIN/RC/state identifiers are missing —
   `422 tax_identity_incomplete`, tax-engine.md §5) → generated filing forms
@@ -168,10 +177,15 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   - v1: produce filing-ready documents + guided handoff (download/export)
   - v2: direct e-filing via jurisdiction APIs/partners where they exist
     **[Proposed staging — "file the taxes" acceptance met in v2]**
+  - As built (2026-07-18 QA loop): B7b ships as **two frames** — the
+    data-review step and the submit-confirm (step 4) frame; WizardShell is
+    detached on these frames in favor of anchored trace rows (design.md
+    §8.2b QA-loop notes).
 - Filing history: immutable records with stamped receipts; rows show
   authority + deadline columns.
 - Empty + loading frames per the screen-state rule (design.md §8.1)
-  **[Directive 2026-07-18]**.
+  **[Directive 2026-07-18]** — as built (2026-07-18 QA loop): the B7 tax
+  center ships its empty + loading frames.
 
 ### B8 `/categories`, B9 `/settings`
 - Categories: CRUD + color/dot, merge tool, AI-training note.
