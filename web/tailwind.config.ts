@@ -67,6 +67,11 @@ const config: Config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.35" },
         },
+        // MI-12: chart series draw in 400ms after the axis (pathLength=1).
+        "draw-in": {
+          from: { strokeDashoffset: "1" },
+          to: { strokeDashoffset: "0" },
+        },
         // MI-10: filing-success stamp settles in.
         "stamp-in": {
           "0%": { opacity: "0", transform: "scale(1.6) rotate(-8deg)" },
@@ -80,6 +85,7 @@ const config: Config = {
         "slide-in-right": "slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) both",
         "slide-in-up": "slide-in-up 200ms cubic-bezier(0.2, 0, 0, 1) both",
         breathe: "breathe 2s ease-in-out infinite",
+        "draw-in": "draw-in 400ms cubic-bezier(0.2, 0, 0, 1) both",
         "stamp-in": "stamp-in 250ms cubic-bezier(0.2, 0, 0, 1) both",
       },
       zIndex: {
