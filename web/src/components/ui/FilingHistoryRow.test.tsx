@@ -25,18 +25,16 @@ const filing = (overrides: Partial<TaxFiling> = {}): TaxFiling => ({
 });
 
 describe("FilingHistoryRow (design.md §8.2b, MI-10)", () => {
-  it("renders kind, period, authority, amount, deadline columns", () => {
+  it("renders the Figma title, caption, and amount", () => {
     render(<FilingHistoryRow filing={filing()} />);
+    // "PIT · FY2026" title; "LIRS · Filed 15 Jan 2027" caption.
     expect(screen.getByText("pit")).toBeInTheDocument();
-    expect(screen.getByText("FY2026")).toBeInTheDocument();
-    expect(
-      screen.getByText("Lagos State Internal Revenue Service"),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/· FY2026/)).toBeInTheDocument();
+    expect(screen.getByText(/LIRS · Filed 15 Jan 2027/)).toBeInTheDocument();
     expect(screen.getByText("₦342,500.00")).toHaveClass("tabular-nums");
-    expect(screen.getByText("due 2027-03-31")).toBeInTheDocument();
   });
 
-  it("accepted filing carries the stamped-✓ and receipt download", async () => {
+  it("accepted filing carries the stamped-✓ and Receipt download", async () => {
     const onDownloadReceipt = vi.fn();
     render(
       <FilingHistoryRow
@@ -45,9 +43,7 @@ describe("FilingHistoryRow (design.md §8.2b, MI-10)", () => {
       />,
     );
     expect(screen.getByRole("img", { name: "pit filed" })).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole("button", { name: "Download receipt" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: /Receipt/ }));
     expect(onDownloadReceipt).toHaveBeenCalled();
   });
 

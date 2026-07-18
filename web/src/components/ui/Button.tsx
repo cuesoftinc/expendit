@@ -7,6 +7,7 @@
  */
 
 import React, { useEffect, useState } from "react";
+import { TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export type ButtonKind = "primary" | "quiet" | "destructive" | "danger-armed";
@@ -24,17 +25,20 @@ export interface ButtonProps extends Omit<
   className?: string;
 }
 
+// Figma Stage 1 Atoms — Button set (node 53:118): quiet is borderless
+// (pressed/hover show bg-elev only); primary/destructive dim via fill.
 const KIND_CLASSES: Record<ButtonKind, string> = {
   primary: "bg-accent text-on-accent hover:opacity-90 active:opacity-80",
-  quiet:
-    "bg-transparent text-text border border-border hover:bg-bg-elev active:bg-bg-elev",
+  quiet: "bg-transparent text-text hover:bg-bg-elev active:bg-bg-elev",
   destructive: "bg-expense text-on-accent hover:opacity-90 active:opacity-80",
   "danger-armed": "bg-expense text-on-accent",
 };
 
+// Figma: md = 36px / 16px pad / Body 14 Medium; sm = 28px / 12px pad /
+// Table 13 Medium.
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  md: "h-10 px-4 text-sm",
-  sm: "h-8 px-3 text-[13px]",
+  md: "h-9 px-4 text-sm",
+  sm: "h-7 px-3 text-[13px]",
 };
 
 export const Button: React.FC<ButtonProps> = ({
@@ -72,7 +76,10 @@ export const Button: React.FC<ButtonProps> = ({
         "inline-flex items-center justify-center gap-2 rounded font-medium",
         "transition-colors duration-fast ease-standard select-none",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-60",
+        "disabled:cursor-not-allowed",
+        // Figma: only the true disabled state pales — loading and the
+        // armed countdown keep the full fill.
+        disabled && "opacity-60",
         KIND_CLASSES[kind],
         SIZE_CLASSES[size],
         className,
@@ -83,13 +90,21 @@ export const Button: React.FC<ButtonProps> = ({
         <span
           data-testid="button-spinner"
           aria-hidden
-          className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-on-accent/40 border-t-on-accent motion-reduce:animate-none"
+          // currentColor arc so the spinner also reads on quiet buttons.
+          className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none"
         />
+      ) : null}
+      {kind === "danger-armed" && !loading ? (
+        <TriangleAlert aria-hidden className="h-4 w-4" />
       ) : null}
       <span>{children}</span>
       {armed ? (
-        <span data-testid="button-countdown" className="tabular-nums">
-          ({countdown})
+        <span
+          data-testid="button-countdown"
+          // Figma countdown pill: on-accent 25% tint, 13px medium.
+          className="rounded-full bg-on-accent/25 px-1.5 py-0.5 text-[13px] font-medium leading-4 tabular-nums"
+        >
+          {countdown}s
         </span>
       ) : null}
     </button>

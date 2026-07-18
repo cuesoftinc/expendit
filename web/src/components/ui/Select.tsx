@@ -9,7 +9,7 @@
  */
 
 import React, { useEffect, useId, useRef, useState } from "react";
-import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export interface SelectOption {
@@ -135,11 +135,14 @@ export const Select: React.FC<SelectProps> = ({
         className={cn(
           "flex w-full items-center justify-between gap-2 rounded border bg-bg text-left",
           "transition-colors duration-fast ease-standard",
-          size === "md" ? "h-10 px-3 text-sm" : "h-8 px-2.5 text-[13px]",
+          // Figma: md = 36px, sm = 28px.
+          size === "md" ? "h-9 px-3 text-sm" : "h-7 px-2.5 text-[13px]",
           error ? "border-expense" : "border-border",
-          open && "border-text-2",
+          // Figma open/focus trigger: accent border.
+          open && "border-accent",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-          "disabled:cursor-not-allowed disabled:bg-bg-elev disabled:opacity-60",
+          // Figma disabled: whole control at 40%.
+          "disabled:cursor-not-allowed disabled:opacity-40",
         )}
       >
         <span
@@ -150,7 +153,7 @@ export const Select: React.FC<SelectProps> = ({
         >
           {selected?.label ?? placeholder}
         </span>
-        <ChevronsUpDown aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
+        <ChevronDown aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
       </button>
 
       {open ? (

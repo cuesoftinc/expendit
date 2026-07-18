@@ -14,7 +14,8 @@ describe("RatioGauge (design.md §8.2, MI-8)", () => {
         max={3}
       />,
     );
-    expect(screen.getByText("1.85")).toHaveClass("text-income", "tabular-nums");
+    // Figma: the value reads in body text color; status colors the arc.
+    expect(screen.getByText("1.85")).toHaveClass("text-text", "tabular-nums");
     expect(screen.getByText("Current ratio")).toBeInTheDocument();
     expect(
       screen.getByRole("img", { name: "Current ratio: 1.85" }),
@@ -44,7 +45,8 @@ describe("RatioGauge (design.md §8.2, MI-8)", () => {
         band={{ from: 1, to: 2 }}
       />,
     );
-    expect(screen.getByText("n/a")).toBeInTheDocument();
+    // Figma n-a: dash in the value slot + reason caption.
+    expect(screen.getByTestId("gauge-na-dash")).toBeInTheDocument();
     expect(screen.getByText("n/a — negative equity")).toBeInTheDocument();
     // As built: n-a ships band=off only.
     expect(screen.queryByTestId("gauge-band")).not.toBeInTheDocument();
@@ -63,7 +65,7 @@ describe("RatioGauge (design.md §8.2, MI-8)", () => {
     expect(band).toHaveClass("animate-fade-in", "motion-reduce:animate-none");
   });
 
-  it("MI-8: formula tooltip trigger wraps the gauge; needle eases 600ms", () => {
+  it("MI-8: formula tooltip trigger wraps the gauge; arc eases 600ms", () => {
     render(
       <RatioGauge
         label="Current ratio"
@@ -75,9 +77,24 @@ describe("RatioGauge (design.md §8.2, MI-8)", () => {
     expect(
       screen.getByRole("button", { name: "Current ratio formula" }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("gauge-needle")).toHaveClass(
+    expect(screen.getByTestId("gauge-value-arc")).toHaveClass(
       "duration-[600ms]",
       "motion-reduce:transition-none",
     );
+  });
+
+  it("renders the Figma delta line colored by sign", () => {
+    render(
+      <RatioGauge
+        label="Current ratio"
+        value={1.82}
+        status="healthy"
+        delta={0.21}
+        deltaCaption="vs Q1"
+      />,
+    );
+    const delta = screen.getByTestId("gauge-delta");
+    expect(delta).toHaveTextContent("+0.21 vs Q1");
+    expect(delta).toHaveClass("text-income");
   });
 });

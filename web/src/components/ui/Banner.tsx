@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { CircleAlert, Info, TriangleAlert, X } from "lucide-react";
+import { Calendar, Landmark, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export type BannerKind = "info" | "warn" | "error";
@@ -17,19 +17,29 @@ export interface BannerProps {
   onDismiss?: () => void;
 }
 
+// Figma Banner (node 58:109): kind tint at 10%, kind edge at 35%; message
+// stays body text color — only icon and action carry the kind color.
 const KIND_CLASSES: Record<BannerKind, string> = {
-  info: "border-info/40 bg-info/10 text-info",
-  warn: "border-warn/40 bg-warn/10 text-warn",
-  error: "border-expense/40 bg-expense/10 text-expense",
+  info: "border-info/35 bg-info/10",
+  warn: "border-warn/35 bg-warn/10",
+  error: "border-expense/35 bg-expense/10",
 };
 
+const KIND_ICON_CLASSES: Record<BannerKind, string> = {
+  info: "text-info",
+  warn: "text-warn",
+  error: "text-expense",
+};
+
+// Figma icons: info = sparkles (AI), warn = calendar (deadline),
+// error = landmark (bank).
 const KIND_ICON: Record<
   BannerKind,
   React.ComponentType<{ className?: string }>
 > = {
-  info: Info,
-  warn: TriangleAlert,
-  error: CircleAlert,
+  info: Sparkles,
+  warn: Calendar,
+  error: Landmark,
 };
 
 export const Banner: React.FC<BannerProps> = ({
@@ -44,13 +54,25 @@ export const Banner: React.FC<BannerProps> = ({
       role="status"
       data-kind={kind}
       className={cn(
-        "flex items-center gap-2 rounded border px-3 py-2 text-[13px]",
+        "flex items-center gap-2.5 rounded border px-4 py-2.5 text-sm",
         KIND_CLASSES[kind],
       )}
     >
-      <Icon aria-hidden className="h-4 w-4 shrink-0" />
+      <Icon
+        aria-hidden
+        className={cn("h-4 w-4 shrink-0", KIND_ICON_CLASSES[kind])}
+      />
       <div className="flex-1 text-text">{children}</div>
-      {action}
+      {action ? (
+        <div
+          className={cn(
+            "shrink-0 text-[13px] font-medium leading-4",
+            kind === "error" ? "text-expense" : "text-accent",
+          )}
+        >
+          {action}
+        </div>
+      ) : null}
       {onDismiss ? (
         <button
           type="button"

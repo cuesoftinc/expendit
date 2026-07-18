@@ -6,23 +6,32 @@ import type { Config } from "tailwindcss";
  * raw hex. Legacy color names (secondary/purpleTheme/grayTheme) remain
  * only for the pre-redesign pages still live outside src/legacy/.
  */
+/**
+ * Token colors support Tailwind alpha modifiers (bg-info/10, border-warn/40)
+ * via color-mix — a plain var() string silently drops the modifier, which
+ * left every Figma tint surface transparent. <alpha-value> resolves to 1
+ * when no modifier is given, so solid usage is unchanged.
+ */
+const token = (name: string) =>
+  `color-mix(in srgb, var(--color-${name}) calc(<alpha-value> * 100%), transparent)`;
+
 const config: Config = {
   content: ["./src/**/*.{html,js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        bg: "var(--color-bg)",
-        "bg-editorial": "var(--color-bg-editorial)",
-        "bg-elev": "var(--color-bg-elev)",
-        border: "var(--color-border)",
-        text: "var(--color-text)",
-        "text-2": "var(--color-text-2)",
-        accent: "var(--color-accent)",
-        "on-accent": "var(--color-on-accent)",
-        income: "var(--color-income)",
-        expense: "var(--color-expense)",
-        warn: "var(--color-warn)",
-        info: "var(--color-info)",
+        bg: token("bg"),
+        "bg-editorial": token("bg-editorial"),
+        "bg-elev": token("bg-elev"),
+        border: token("border"),
+        text: token("text"),
+        "text-2": token("text-2"),
+        accent: token("accent"),
+        "on-accent": token("on-accent"),
+        income: token("income"),
+        expense: token("expense"),
+        warn: token("warn"),
+        info: token("info"),
         // Legacy palette (MUI-era pages; retired with them at W3).
         secondary: "#121212",
         purpleTheme: "#A259FF",

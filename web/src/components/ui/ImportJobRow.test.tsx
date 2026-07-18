@@ -37,16 +37,18 @@ describe("ImportJobRow (design.md §8.2b)", () => {
     );
   });
 
-  it("completed shows counts + anomalies found", () => {
+  it("completed shows the Figma caption + status tag", () => {
     render(<ImportJobRow job={job()} />);
-    expect(screen.getByText("209/214 imported")).toBeInTheDocument();
-    expect(screen.getByText("5 duplicates")).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument(); // anomaly count tag
+    expect(
+      screen.getByText("209 transactions · 5 duplicates · 1 anomalies found"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Completed")).toBeInTheDocument();
   });
 
-  it("processing renders the spinner copy", () => {
+  it("processing renders the parsing caption + info tag", () => {
     render(<ImportJobRow job={job({ status: "processing" })} />);
-    expect(screen.getByText("Processing…")).toBeInTheDocument();
+    expect(screen.getByText("Parsing…")).toBeInTheDocument();
+    expect(screen.getByText("Processing")).toBeInTheDocument();
   });
 
   it("failed renders the taxonomy code", () => {
@@ -64,7 +66,10 @@ describe("ImportJobRow (design.md §8.2b)", () => {
         job={job({ total_parsed: 0, imported: 0, anomalies: [] })}
       />,
     );
-    expect(screen.getByText("No transactions found")).toBeInTheDocument();
+    expect(
+      screen.getByText("0 transactions found — check file contents"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Empty")).toBeInTheDocument();
     rerender(
       <ImportJobRow job={job({ source: "bank_sync", file_name: null })} />,
     );
@@ -72,6 +77,9 @@ describe("ImportJobRow (design.md §8.2b)", () => {
       "data-status",
       "completed-bank",
     );
-    expect(screen.getByText("bank")).toBeInTheDocument();
+    expect(screen.getByText("Bank sync")).toBeInTheDocument();
+    expect(
+      screen.getByText("209 transactions · auto-confirmed"),
+    ).toBeInTheDocument();
   });
 });

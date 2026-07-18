@@ -1,18 +1,19 @@
 /**
- * ImportJobRow — design.md §8.2b: status processing / completed /
- * completed-empty / completed-bank / failed · counts + anomalies-found.
- * As built the source axis folds into status (completed-bank =
- * bank_sync; processing/failed render as upload-source).
+ * ImportJobRow — design.md §8.2b, Figma Stage 3b: file icon · filename
+ * title + caption line · status Tag (Processing info / Completed success /
+ * Empty neutral / Failed error) · timestamp. As built the source axis
+ * folds into status (completed-bank = bank_sync; processing/failed render
+ * as upload-source).
  */
 
 import React from "react";
 import {
-  CircleAlert,
   FileSpreadsheet,
   FileText,
   Image as ImageIcon,
   Landmark,
 } from "lucide-react";
+import dayjs from "dayjs";
 import type { ImportJob } from "@/models";
 import { cn } from "@/lib/cn";
 import Tag from "./Tag";
@@ -34,6 +35,39 @@ const FILE_ICON = {
   image: ImageIcon,
 } as const;
 
+/** Figma caption line per status. */
+const caption = (job: ImportJob, status: ImportJobRowStatus): string => {
+  switch (status) {
+    case "processing":
+      return "Parsing…";
+    case "failed":
+      return job.error_code ?? "failed";
+    case "completed-empty":
+      return "0 transactions found — check file contents";
+    case "completed-bank":
+      return `${job.imported} transactions${job.confirmed ? " · auto-confirmed" : ""}`;
+    case "completed": {
+      const parts = [`${job.imported} transactions`];
+      if (job.duplicates_found > 0)
+        parts.push(`${job.duplicates_found} duplicates`);
+      if (job.anomalies.length > 0)
+        parts.push(`${job.anomalies.length} anomalies found`);
+      return parts.join(" · ");
+    }
+  }
+};
+
+const STATUS_TAG: Record<
+  ImportJobRowStatus,
+  { label: string; tint: "info" | "success" | "neutral" | "error" }
+> = {
+  processing: { label: "Processing", tint: "info" },
+  completed: { label: "Completed", tint: "success" },
+  "completed-bank": { label: "Completed", tint: "success" },
+  "completed-empty": { label: "Empty", tint: "neutral" },
+  failed: { label: "Failed", tint: "error" },
+};
+
 export interface ImportJobRowProps {
   job: ImportJob;
   onOpen?: () => void;
@@ -48,6 +82,10 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
   const status = rowStatus(job);
   const Icon =
     status === "completed-bank" ? Landmark : FILE_ICON[job.file_type ?? "csv"];
+  const tag = STATUS_TAG[status];
+  const when = dayjs(job.created_at).isValid()
+    ? dayjs(job.created_at).format("D MMM")
+    : job.created_at;
   return (
     <button
       type="button"
@@ -62,45 +100,23 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
       )}
     >
       <Icon aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
-      <span className="min-w-0 flex-1 truncate">
-        {job.file_name ?? (job.source === "bank_sync" ? "Bank sync" : "Upload")}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium leading-4">
+          {job.file_name ??
+            (job.source === "bank_sync" ? "Bank sync" : "Upload")}
+        </span>
+        <span
+          className={cn(
+            "block truncate leading-4",
+            status === "failed" ? "font-mono text-expense" : "text-text-2",
+          )}
+        >
+          {caption(job, status)}
+        </span>
       </span>
-
-      {status === "processing" ? (
-        <span className="inline-flex items-center gap-1.5 text-text-2">
-          <span
-            aria-hidden
-            className="h-3 w-3 animate-spin rounded-full border-2 border-border border-t-accent motion-reduce:animate-none"
-          />
-          Processing…
-        </span>
-      ) : status === "failed" ? (
-        <span className="inline-flex items-center gap-1 text-expense">
-          <CircleAlert aria-hidden className="h-3.5 w-3.5" />
-          <span className="font-mono text-[12px]">
-            {job.error_code ?? "failed"}
-          </span>
-        </span>
-      ) : status === "completed-empty" ? (
-        <span className="text-text-2">No transactions found</span>
-      ) : (
-        <>
-          <span className="tabular-nums text-text-2">
-            {job.imported}/{job.total_parsed} imported
-          </span>
-          {job.duplicates_found > 0 ? (
-            <span className="tabular-nums text-text-2">
-              {job.duplicates_found} duplicates
-            </span>
-          ) : null}
-          {job.anomalies.length > 0 ? (
-            <Tag tint="warn" count={job.anomalies.length} />
-          ) : null}
-          {status === "completed-bank" ? <Tag tint="info">bank</Tag> : null}
-        </>
-      )}
-      <span className="w-20 shrink-0 text-right tabular-nums text-text-2">
-        {job.created_at.slice(0, 10)}
+      <Tag tint={tag.tint}>{tag.label}</Tag>
+      <span className="w-14 shrink-0 text-right tabular-nums text-text-2">
+        {when}
       </span>
     </button>
   );

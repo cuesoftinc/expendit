@@ -86,7 +86,15 @@ const FileStateIndicator: React.FC<{ state: UploadFileState }> = ({
 }) => {
   switch (state.phase) {
     case "progress":
-      return <ProgressRing percent={state.percent} />;
+      // Figma: ring + percent readout ("64%").
+      return (
+        <span className="flex items-center gap-1.5">
+          <ProgressRing percent={state.percent} />
+          <span className="text-[13px] leading-4 tabular-nums text-text-2">
+            {Math.round(state.percent)}%
+          </span>
+        </span>
+      );
     case "ai-sweep":
       // MI-2: ring morphs to an indeterminate AI-sparkle sweep on parse.
       return (
@@ -150,8 +158,9 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         )}
       >
         <Upload aria-hidden className="h-5 w-5 text-text-2" />
-        <p className="text-sm text-text">
-          Drag a statement here, or{" "}
+        {/* Figma idle copy (node 63:207). */}
+        <p className="text-sm font-medium text-text">
+          Drop statements here or{" "}
           <button
             type="button"
             disabled={disabled}
@@ -161,10 +170,8 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
             browse
           </button>
         </p>
-        <p className="flex items-center gap-2 text-[11px] text-text-2">
-          <FileSpreadsheet aria-hidden className="h-3.5 w-3.5" /> CSV
-          <FileText aria-hidden className="h-3.5 w-3.5" /> PDF
-          <ImageIcon aria-hidden className="h-3.5 w-3.5" /> Receipt image
+        <p className="text-[13px] leading-4 text-text-2">
+          CSV, PDF, or receipt images · up to 20 MB
         </p>
         <input
           ref={inputRef}

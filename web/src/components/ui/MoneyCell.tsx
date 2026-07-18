@@ -14,7 +14,11 @@ export interface MoneyCellProps {
   direction: "income" | "expense" | "zero";
   currency?: string;
   size?: "table" | "stat";
-  /** Direction icon (kept for accessibility; hide via prop when dense). */
+  /**
+   * Optional direction arrow. The Figma kit renders MoneyCell with sign
+   * only (+/− already encodes direction without color); arrows are an
+   * opt-in for call sites that want the extra cue.
+   */
   withIcon?: boolean;
   className?: string;
 }
@@ -24,7 +28,7 @@ export const MoneyCell: React.FC<MoneyCellProps> = ({
   direction,
   currency = "NGN",
   size = "table",
-  withIcon = true,
+  withIcon = false,
   className,
 }) => {
   const sign =
@@ -35,7 +39,10 @@ export const MoneyCell: React.FC<MoneyCellProps> = ({
       data-direction={direction}
       className={cn(
         "inline-flex items-center gap-1 tabular-nums",
-        size === "table" ? "text-[13px]" : "text-2xl font-semibold",
+        // Figma: table = Table/13 Medium; stat = Display/32 Bold (-1px).
+        size === "table"
+          ? "text-[13px] font-medium leading-4"
+          : "text-[32px] font-bold leading-[38px] tracking-[-1px]",
         direction === "income" && "text-income",
         direction === "expense" && "text-expense",
         direction === "zero" && "text-text", // never colored for zero

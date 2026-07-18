@@ -49,6 +49,6 @@ describe("Chart/Line (design.md §8.2b, MI-12)", () => {
 
   it("empty renders the MI-16 empty state", () => {
     render(<ChartLine state="empty" emptyKind="transactions" />);
-    expect(screen.getByText("No transactions yet.")).toBeInTheDocument();
+    expect(screen.getByText("No transactions yet")).toBeInTheDocument();
   });
 });

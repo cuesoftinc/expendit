@@ -41,8 +41,6 @@ describe("Chart/Donut (design.md §8.2b)", () => {
     const { rerender } = render(<ChartDonut state="loading" />);
     expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
     rerender(<ChartDonut state="empty" emptyKind="ratios" />);
-    expect(
-      screen.getByText("No statements to compute ratios from."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No ratios yet")).toBeInTheDocument();
   });
 });

@@ -1,9 +1,13 @@
 /**
- * TaxCalendarRow — design.md §8.2 (MI-13 data source): tax kind + period +
- * due date + T-30/T-7/T-1 escalation tint (info → warn).
+ * TaxCalendarRow — design.md §8.2 (MI-13 data source), Figma Stage 2b:
+ * calendar icon + "KIND · period" + right-aligned "Due …" date + an
+ * escalation chip ("Due in 30 days" info → "Due in 7 days" warn → "Due
+ * tomorrow" warn, stronger). Row surface tints with the threshold.
  */
 
 import React from "react";
+import { Calendar } from "lucide-react";
+import dayjs from "dayjs";
 import type { TaxCalendarEntry } from "@/models";
 import { cn } from "@/lib/cn";
 
@@ -17,11 +21,29 @@ export const thresholdFor = (daysToDue: number): DeadlineThreshold => {
   return "none";
 };
 
-const THRESHOLD_CLASSES: Record<DeadlineThreshold, string> = {
-  none: "",
-  "t-30": "border-info/40 bg-info/10",
-  "t-7": "border-warn/40 bg-warn/10",
-  "t-1": "border-expense/40 bg-expense/10",
+// Figma escalation: info tint → warn tint → warn, stronger (T-1 stays
+// warn, not expense).
+const ROW_CLASSES: Record<DeadlineThreshold, string> = {
+  none: "border-border bg-bg",
+  "t-30": "border-info/35 bg-info/[0.08]",
+  "t-7": "border-warn/35 bg-warn/[0.08]",
+  "t-1": "border-warn/50 bg-warn/[0.12]",
+};
+
+const ICON_CLASSES: Record<DeadlineThreshold, string> = {
+  none: "text-text-2",
+  "t-30": "text-info",
+  "t-7": "text-warn",
+  "t-1": "text-warn",
+};
+
+const CHIP_META: Record<
+  Exclude<DeadlineThreshold, "none">,
+  { label: string; className: string }
+> = {
+  "t-30": { label: "Due in 30 days", className: "bg-info/[0.12] text-info" },
+  "t-7": { label: "Due in 7 days", className: "bg-warn/[0.12] text-warn" },
+  "t-1": { label: "Due tomorrow", className: "bg-warn/[0.2] text-warn" },
 };
 
 export interface TaxCalendarRowProps {
@@ -37,34 +59,37 @@ export const TaxCalendarRow: React.FC<TaxCalendarRowProps> = ({
   className,
 }) => {
   const threshold = thresholdFor(daysToDue);
+  const due = dayjs(entry.due_date).isValid()
+    ? dayjs(entry.due_date).format("D MMM YYYY")
+    : entry.due_date;
   return (
     <div
       role="row"
       data-threshold={threshold}
+      title={entry.authority.name}
       className={cn(
-        "flex items-center gap-3 rounded border border-border px-3 py-2 text-[13px] text-text",
-        THRESHOLD_CLASSES[threshold],
+        "flex items-center gap-2.5 rounded border px-3 py-2 text-[13px] text-text",
+        ROW_CLASSES[threshold],
         className,
       )}
     >
-      <span className="w-10 shrink-0 font-medium uppercase">{entry.kind}</span>
-      <span className="w-24 shrink-0 tabular-nums text-text-2">
-        {entry.period}
+      <Calendar
+        aria-hidden
+        className={cn("h-4 w-4 shrink-0", ICON_CLASSES[threshold])}
+      />
+      <span className="min-w-0 flex-1 truncate font-medium">
+        {entry.kind.toUpperCase()}
+        <span className="font-normal text-text-2"> · {entry.period}</span>
       </span>
-      <span className="min-w-0 flex-1 truncate text-text-2">
-        {entry.authority.name}
-      </span>
-      <span className="tabular-nums">due {entry.due_date}</span>
+      <span className="tabular-nums text-text-2">Due {due}</span>
       {threshold !== "none" ? (
         <span
           className={cn(
-            "rounded border px-1.5 text-[11px] font-medium uppercase",
-            threshold === "t-30" && "border-info/40 text-info",
-            threshold === "t-7" && "border-warn/40 text-warn",
-            threshold === "t-1" && "border-expense/40 text-expense",
+            "rounded-full px-1.5 py-0.5 text-[11px] font-medium leading-4",
+            CHIP_META[threshold].className,
           )}
         >
-          {threshold}
+          {CHIP_META[threshold].label}
         </span>
       ) : null}
     </div>

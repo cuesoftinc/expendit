@@ -30,7 +30,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
           side={placement}
           sideOffset={6}
           className={cn(
-            "z-dropdown max-w-xs rounded border border-border bg-bg-elev px-2.5 py-1.5 text-text shadow-lg",
+            // font-sans: portals mount under <body> (legacy Poppins).
+            "z-dropdown max-w-xs rounded border border-border bg-bg-elev px-2.5 py-1.5 font-sans text-text shadow-lg",
             kind === "formula" ? "font-mono text-[12px]" : "text-[13px]",
           )}
         >

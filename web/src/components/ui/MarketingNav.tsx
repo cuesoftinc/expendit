@@ -128,7 +128,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
             >
               {solutions.map((item) => (
                 <a
-                  key={item.href}
+                  key={item.label}
                   role="menuitem"
                   href={item.href}
                   className="block px-3 py-1.5 text-[13px] text-text transition-colors duration-fast ease-standard hover:bg-bg-elev"
@@ -142,7 +142,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
       ) : null}
 
       {links.map((link) => (
-        <a key={link.href} href={link.href} className={itemClass}>
+        <a key={link.label} href={link.href} className={itemClass}>
           {link.label}
         </a>
       ))}

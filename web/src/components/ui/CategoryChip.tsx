@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export interface CategoryOption {
@@ -62,47 +62,65 @@ export const CategoryChip: React.FC<CategoryChipProps> = ({
 
   return (
     <span ref={rootRef} className="relative inline-flex">
-      <button
-        type="button"
-        disabled={!editable}
-        aria-expanded={open}
-        aria-haspopup={editable ? "listbox" : undefined}
-        onClick={() => editable && setOpen((value) => !value)}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded border border-border bg-bg-elev",
-          "px-2 py-0.5 text-[13px] text-text transition-colors duration-fast ease-standard",
-          editable && "hover:border-text-2 cursor-pointer",
-          !editable && "cursor-default",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
-        )}
-      >
-        <span
-          aria-hidden
-          data-testid="category-dot"
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: category.color }}
+      {open ? (
+        // Figma editing state: the chip itself becomes the combobox input
+        // (28px, 2px accent border) with the menu anchored below.
+        <input
+          autoFocus
+          role="combobox"
+          aria-expanded
+          aria-controls="category-chip-listbox"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={category.name}
+          className={cn(
+            "h-7 w-[180px] rounded border-2 border-accent bg-bg px-2",
+            "text-[13px] font-medium leading-4 text-text placeholder:text-text-2",
+            "focus:outline-none",
+          )}
         />
-        <span>{category.name}</span>
-        {aiSuggested ? (
-          <Sparkles
-            data-testid="category-ai-mark"
-            aria-label="AI-suggested"
-            className="h-3 w-3 text-info"
+      ) : (
+        <button
+          type="button"
+          disabled={!editable}
+          aria-expanded={open}
+          aria-haspopup={editable ? "listbox" : undefined}
+          onClick={() => editable && setOpen(true)}
+          className={cn(
+            // Figma chip: bg-elev pill, hairline border, Table/13 Medium.
+            "inline-flex items-center gap-1.5 rounded-full border border-border bg-bg-elev",
+            "px-2 py-[3px] text-[13px] font-medium leading-4 text-text",
+            "transition-colors duration-fast ease-standard",
+            editable && "hover:border-text-2 cursor-pointer",
+            !editable && "cursor-default",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+          )}
+        >
+          <span
+            aria-hidden
+            data-testid="category-dot"
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: category.color }}
           />
-        ) : null}
-      </button>
+          <span>{category.name}</span>
+          {aiSuggested ? (
+            <Sparkles
+              data-testid="category-ai-mark"
+              aria-label="AI-suggested"
+              className="h-3 w-3 text-info"
+            />
+          ) : null}
+        </button>
+      )}
 
       {open ? (
         // Absolutely positioned: the open combobox never shifts row layout.
-        <div className="absolute left-0 top-full z-dropdown mt-1 w-56 rounded border border-border bg-bg shadow-lg">
-          <input
-            autoFocus
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search categories"
-            className="w-full border-b border-border bg-transparent px-3 py-2 text-[13px] text-text placeholder:text-text-2 focus:outline-none"
-          />
-          <ul role="listbox" className="max-h-56 overflow-auto py-1">
+        <div className="absolute left-0 top-8 z-dropdown w-[180px] rounded border border-border bg-bg py-1 shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]">
+          <ul
+            id="category-chip-listbox"
+            role="listbox"
+            className="max-h-56 overflow-auto"
+          >
             {filtered.map((option) => (
               <li key={option.id}>
                 <button
@@ -115,7 +133,7 @@ export const CategoryChip: React.FC<CategoryChipProps> = ({
                     setQuery("");
                   }}
                   className={cn(
-                    "flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] text-text",
+                    "flex w-full items-center gap-1.5 px-2 py-1.5 text-left text-[13px] leading-4 text-text",
                     "hover:bg-bg-elev transition-colors duration-fast ease-standard",
                     option.id === category.id && "bg-bg-elev",
                   )}
@@ -125,12 +143,15 @@ export const CategoryChip: React.FC<CategoryChipProps> = ({
                     className="h-2 w-2 rounded-full"
                     style={{ backgroundColor: option.color }}
                   />
-                  {option.name}
+                  <span className="min-w-0 flex-1 truncate">{option.name}</span>
+                  {option.id === category.id ? (
+                    <Check aria-hidden className="h-3 w-3 text-accent" />
+                  ) : null}
                 </button>
               </li>
             ))}
             {filtered.length === 0 ? (
-              <li className="px-3 py-1.5 text-[13px] text-text-2">
+              <li className="px-2 py-1.5 text-[13px] text-text-2">
                 No matching category
               </li>
             ) : null}

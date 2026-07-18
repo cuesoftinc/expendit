@@ -17,13 +17,14 @@ export interface TagProps {
   children?: React.ReactNode;
 }
 
+// Figma Tag (node 118:1053): borderless pill, 12% tint fill + tint text.
 const TINT_CLASSES: Record<TagTint, string> = {
-  neutral: "border-border bg-bg-elev text-text-2",
-  info: "border-info/40 bg-info/10 text-info",
-  warn: "border-warn/40 bg-warn/10 text-warn",
-  error: "border-expense/40 bg-expense/10 text-expense",
-  success: "border-income/40 bg-income/10 text-income",
-  "new-accent": "border-accent/40 bg-accent/10 text-accent",
+  neutral: "bg-bg-elev text-text-2",
+  info: "bg-info/[0.12] text-info",
+  warn: "bg-warn/[0.12] text-warn",
+  error: "bg-expense/[0.12] text-expense",
+  success: "bg-income/[0.12] text-income",
+  "new-accent": "bg-accent/[0.12] text-accent",
 };
 
 export const Tag: React.FC<TagProps> = ({
@@ -35,9 +36,11 @@ export const Tag: React.FC<TagProps> = ({
   <span
     data-tint={tint}
     className={cn(
-      "inline-flex items-center rounded border font-medium tabular-nums",
+      "inline-flex items-center rounded-full font-medium tabular-nums",
       TINT_CLASSES[tint],
-      size === "sm" ? "px-1.5 py-0 text-[11px]" : "px-2 py-0.5 text-[13px]",
+      size === "sm"
+        ? "px-1.5 py-px text-[11px] leading-4"
+        : "px-2 py-[3px] text-[13px] leading-4",
     )}
   >
     {count !== undefined ? (count > 9 ? "9+" : count) : children}
