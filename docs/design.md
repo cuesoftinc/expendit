@@ -319,6 +319,7 @@ never on screens.
 | Component | Variants × states |
 | --- | --- |
 | GoogleAuthButton | **blocking** · default / hover / pressed / loading / disabled · Google mark + "Continue with Google" (the single X-1 auth CTA) · theme ×2 (renamed from `AuthGoogleCTA` — §8.1 naming standards; canonical name in every product) |
+| MappingReviewRow | **blocking** · state: suggested / confirmed / unmapped · source text → mono canonical-key chip + confidence Tag (✨ n% / Confirmed / Unmapped <60%) + tabular amount (in build 2026-07-18 — the B6 mapping-review screen, flows/statement-mapping.md) |
 | MemberRow | **important** · avatar + name + email + role select + remove · default / hover / pending-invite / owner |
 | ImportJobRow | **important** · status: processing / completed / completed-empty / completed-bank / failed · counts + anomalies-found — as built: the source axis folds into status (`completed-bank` = bank_sync; processing/failed render as upload-source) |
 | ReportArtifactRow | **important** · kind icon + name + period + format · state: generating (inline progress) / ready / NEW (≤24h, MI-14) / expired (TTL) |
@@ -329,11 +330,15 @@ never on screens.
 
 | Component | Variants × states |
 | --- | --- |
-| MarketingNav | **blocking** · on-dark (over hero) / dark-on-light (post-hero scroll, sticky) · item + Solutions dropdown · GitHub badge · Sign in + Try Cloud CTAs |
+| MarketingNav | **blocking** · on-dark (over hero) / dark-on-light (post-hero scroll, sticky) · item + Solutions dropdown · GitHub badge (as built 2026-07-18: neutral — "Star", no count) · Sign in + Try Cloud CTAs |
 | MarketingFooter | **blocking** · link columns · "View Security Policy" CTA · dark |
 | EditorialCard | **important** · pillar (A4) / community (A9) · default / hover (2px lift + accent underline draw) · light/dark section |
 | CodeSnippet | **important** · Mono/13 block on dark · copy: idle / copied (✓ morph) |
-| ComparisonTable | **important** · 2 columns (Cloud vs Self-host) · cell: check / x / text · per-column CTA footer row |
+| ComparisonTable | **important** · 2 columns (Cloud vs Self-host) · cell: check / x / text · per-column CTA footer row — as built 2026-07-18: the price row reads "Announced at GA" / "Free forever", captioned "Cloud pricing is announced at GA — self-hosting is free forever" |
+
+> **Marketing accuracy (as built 2026-07-18).** The two as-built notes above
+> are the whole pricing story: beyond the ComparisonTable price row and its
+> caption, no marketing surface makes a pricing or plan claim.
 
 ### 8.3 Design-prep needed from content
 
