@@ -64,9 +64,12 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
   const [draftError, setDraftError] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // Track the controlled value — adjust-state-during-render, no effect.
+  const [prevValue, setPrevValue] = useState(value);
+  if (prevValue !== value) {
+    setPrevValue(value);
     setDraft(value ?? "");
-  }, [value]);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -107,7 +110,7 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
         type="button"
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-invalid={shownError ? true : undefined}
+        data-invalid={shownError ? true : undefined}
         disabled={disabled}
         onClick={() => setOpen((state) => !state)}
         className={cn(
@@ -120,7 +123,9 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
       >
         <span className="flex items-center gap-2">
           <Calendar aria-hidden className="h-4 w-4 text-text-2" />
-          <span className={cn("tabular-nums", value ? "text-text" : "text-text-2")}>
+          <span
+            className={cn("tabular-nums", value ? "text-text" : "text-text-2")}
+          >
             {value ?? MODE_PLACEHOLDER[mode]}
           </span>
         </span>

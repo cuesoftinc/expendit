@@ -60,7 +60,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
       </div>
       <div className="w-32 shrink-0">
         {isOwner ? (
-          <span className="px-3 text-[13px] font-medium text-text-2">Owner</span>
+          <span className="px-3 text-[13px] font-medium text-text-2">
+            Owner
+          </span>
         ) : (
           <Select
             options={ROLE_OPTIONS.filter((option) => option.value !== "owner")}

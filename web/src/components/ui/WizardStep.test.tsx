@@ -17,10 +17,9 @@ describe("WizardStep (design.md §8.2b, MI-9/MI-10)", () => {
 
   it("current step is aria-current", () => {
     render(<WizardStep state="current" label="Consent" index={2} />);
-    expect(screen.getByText("Consent").closest("[aria-current]")).toHaveAttribute(
-      "aria-current",
-      "step",
-    );
+    expect(
+      screen.getByText("Consent").closest("[aria-current]"),
+    ).toHaveAttribute("aria-current", "step");
   });
 
   it("with-progress slot renders the live counter (MI-9)", () => {

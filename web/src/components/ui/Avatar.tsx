@@ -26,11 +26,7 @@ const initials = (name: string): string =>
     .map((part) => part[0]?.toUpperCase())
     .join("");
 
-export const Avatar: React.FC<AvatarProps> = ({
-  name,
-  src,
-  size = "sm",
-}) => (
+export const Avatar: React.FC<AvatarProps> = ({ name, src, size = "sm" }) => (
   <span
     className={cn(
       "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full",
@@ -40,7 +36,11 @@ export const Avatar: React.FC<AvatarProps> = ({
   >
     {src ? (
       // eslint-disable-next-line @next/next/no-img-element -- avatars are tiny; next/image is overkill here
-      <img src={src} alt={name ?? "avatar"} className="h-full w-full object-cover" />
+      <img
+        src={src}
+        alt={name ?? "avatar"}
+        className="h-full w-full object-cover"
+      />
     ) : name ? (
       <span aria-hidden>{initials(name)}</span>
     ) : (

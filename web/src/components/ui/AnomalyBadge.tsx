@@ -51,11 +51,17 @@ export const AnomalyBadge: React.FC<AnomalyBadgeProps> = ({
         "transition-colors duration-fast ease-standard",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
         tint,
-        variant === "inline" ? "px-1.5 py-0.5 text-[11px]" : "px-2 py-1 text-[13px]",
-        pulse && "animate-pulse [animation-iteration-count:2] motion-reduce:animate-none",
+        variant === "inline"
+          ? "px-1.5 py-0.5 text-[11px]"
+          : "px-2 py-1 text-[13px]",
+        pulse &&
+          "animate-pulse [animation-iteration-count:2] motion-reduce:animate-none",
       )}
     >
-      <Icon aria-hidden className={variant === "inline" ? "h-3 w-3" : "h-4 w-4"} />
+      <Icon
+        aria-hidden
+        className={variant === "inline" ? "h-3 w-3" : "h-4 w-4"}
+      />
       {variant === "feed" ? <span>{label}</span> : null}
     </button>
   );

@@ -34,7 +34,10 @@ export const Accordion: React.FC<AccordionProps> = ({
   <RadixAccordion.Root
     type="multiple"
     defaultValue={defaultOpen}
-    className={cn("divide-y divide-border rounded border border-border", className)}
+    className={cn(
+      "divide-y divide-border rounded border border-border",
+      className,
+    )}
   >
     {items.map((item) => (
       <RadixAccordion.Item key={item.id} value={item.id}>

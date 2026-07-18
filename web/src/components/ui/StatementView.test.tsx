@@ -18,7 +18,7 @@ const lineItems: LineItem[] = [
   {
     id: "li-2",
     statement_id: "st-1",
-    canonical_key: "total_equity",
+    canonical_key: "equity",
     source_label: "Equity",
     amount: 2000000,
     status: "mapped",
@@ -49,7 +49,7 @@ describe("StatementView (design.md §8.2, B6)", () => {
         kind="balance_sheet"
         period="2026-Q2"
         lineItems={lineItems}
-        formulaNotes={{ total_equity: "total_assets − total_liabilities" }}
+        formulaNotes={{ equity: "total_assets − total_liabilities" }}
       />,
     );
     expect(

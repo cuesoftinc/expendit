@@ -3,8 +3,18 @@ import { render, screen } from "@testing-library/react";
 import ChartLine from "./ChartLine";
 
 const series = [
-  { id: "income", label: "Income", color: "income" as const, points: [2, 5, 3, 8] },
-  { id: "expense", label: "Expense", color: "expense" as const, points: [1, 4, 2, 6] },
+  {
+    id: "income",
+    label: "Income",
+    color: "income" as const,
+    points: [2, 5, 3, 8],
+  },
+  {
+    id: "expense",
+    label: "Expense",
+    color: "expense" as const,
+    points: [1, 4, 2, 6],
+  },
 ];
 
 describe("Chart/Line (design.md §8.2b, MI-12)", () => {

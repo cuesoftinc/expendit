@@ -46,7 +46,9 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
         <span
           className={cn(
             "mb-4 flex h-9 w-9 items-center justify-center rounded-full",
-            kind === "community" ? "bg-info/10 text-info" : "bg-accent/10 text-accent",
+            kind === "community"
+              ? "bg-info/10 text-info"
+              : "bg-accent/10 text-accent",
           )}
         >
           <Icon aria-hidden className="h-4.5 w-4.5" />

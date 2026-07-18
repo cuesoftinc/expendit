@@ -40,7 +40,9 @@ describe("Select/Menu (design.md §8.2b)", () => {
     render(<Select options={options} value={null} searchable />);
     await userEvent.click(screen.getByRole("combobox"));
     await userEvent.type(screen.getByPlaceholderText("Search"), "invent");
-    expect(screen.getByRole("option", { name: /inventory/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: /inventory/ }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("option", { name: /cash_and_equivalents/ }),
     ).not.toBeInTheDocument();
@@ -50,7 +52,10 @@ describe("Select/Menu (design.md §8.2b)", () => {
     const { rerender } = render(
       <Select options={options} value={null} error="Required" />,
     );
-    expect(screen.getByRole("combobox")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("combobox")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
     expect(screen.getByRole("alert")).toHaveTextContent("Required");
     rerender(<Select options={options} value={null} disabled />);
     expect(screen.getByRole("combobox")).toBeDisabled();

@@ -60,7 +60,9 @@ describe("ImportJobRow (design.md §8.2b)", () => {
 
   it("completed-empty and completed-bank variants", () => {
     const { rerender } = render(
-      <ImportJobRow job={job({ total_parsed: 0, imported: 0, anomalies: [] })} />,
+      <ImportJobRow
+        job={job({ total_parsed: 0, imported: 0, anomalies: [] })}
+      />,
     );
     expect(screen.getByText("No transactions found")).toBeInTheDocument();
     rerender(

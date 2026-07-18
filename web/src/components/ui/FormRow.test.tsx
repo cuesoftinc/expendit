@@ -23,11 +23,12 @@ describe("FormRow (design.md §8.2)", () => {
       </FormRow>,
     );
     expect(screen.getByRole("alert")).toHaveTextContent("Required");
-    expect(screen.queryByText("Resolves your State IRS")).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/State/).closest("[data-state]")).toHaveAttribute(
-      "data-state",
-      "error",
-    );
+    expect(
+      screen.queryByText("Resolves your State IRS"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/State/).closest("[data-state]"),
+    ).toHaveAttribute("data-state", "error");
   });
 
   it("required marks the label; disabled dims the row", () => {

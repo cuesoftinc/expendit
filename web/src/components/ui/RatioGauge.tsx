@@ -90,13 +90,13 @@ export const RatioGauge: React.FC<RatioGaugeProps> = ({
     reduced ? targetFraction : 0,
   );
   useEffect(() => {
-    if (reduced) {
-      setNeedleFraction(targetFraction);
-      return;
-    }
-    const frame = requestAnimationFrame(() => setNeedleFraction(targetFraction));
+    // One frame later in both modes; the reduced-motion jump-cut comes
+    // from motion-reduce:transition-none on the needle/arc.
+    const frame = requestAnimationFrame(() =>
+      setNeedleFraction(targetFraction),
+    );
     return () => cancelAnimationFrame(frame);
-  }, [targetFraction, reduced]);
+  }, [targetFraction]);
 
   const needleAngle = -90 + needleFraction * 180;
 

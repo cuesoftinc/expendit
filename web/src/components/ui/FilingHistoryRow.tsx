@@ -48,7 +48,11 @@ export const FilingHistoryRow: React.FC<FilingHistoryRowProps> = ({
     <span className="flex w-20 shrink-0 items-center justify-end gap-1.5">
       {filing.status === "accepted" || filing.status === "submitted" ? (
         <>
-          <StampedCheck size="md" label={`${filing.kind} filed`} className="!h-6 !w-6" />
+          <StampedCheck
+            size="md"
+            label={`${filing.kind} filed`}
+            className="!h-6 !w-6"
+          />
           {filing.artifact_key ? (
             <button
               type="button"

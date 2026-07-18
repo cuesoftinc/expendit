@@ -87,7 +87,10 @@ export const OrgSwitcher: React.FC<OrgSwitcherProps> = ({
                 {current.kind === "company" ? "Company" : "Personal"}
               </span>
             </span>
-            <ChevronsUpDown aria-hidden className="h-3.5 w-3.5 shrink-0 text-text-2" />
+            <ChevronsUpDown
+              aria-hidden
+              className="h-3.5 w-3.5 shrink-0 text-text-2"
+            />
           </>
         ) : null}
       </button>

@@ -34,7 +34,9 @@ describe("TaxCalendarRow (design.md §8.2, MI-13)", () => {
   });
 
   it("tints escalate info → warn → expense", () => {
-    const { rerender } = render(<TaxCalendarRow entry={entry} daysToDue={20} />);
+    const { rerender } = render(
+      <TaxCalendarRow entry={entry} daysToDue={20} />,
+    );
     expect(screen.getByRole("row")).toHaveClass("bg-info/10");
     rerender(<TaxCalendarRow entry={entry} daysToDue={5} />);
     expect(screen.getByRole("row")).toHaveClass("bg-warn/10");

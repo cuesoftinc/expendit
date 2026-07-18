@@ -51,7 +51,11 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({
           style={{ backgroundColor: color }}
         >
           {selected ? (
-            <Check aria-hidden strokeWidth={3} className="h-3.5 w-3.5 text-on-accent" />
+            <Check
+              aria-hidden
+              strokeWidth={3}
+              className="h-3.5 w-3.5 text-on-accent"
+            />
           ) : null}
         </button>
       );

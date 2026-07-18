@@ -12,7 +12,9 @@ const columns = [
   },
   {
     heading: "Community",
-    links: [{ label: "GitHub", href: "https://github.com/cuesoftinc/expendit" }],
+    links: [
+      { label: "GitHub", href: "https://github.com/cuesoftinc/expendit" },
+    ],
   },
 ];
 
@@ -32,7 +34,9 @@ describe("MarketingFooter (design.md §8.2b)", () => {
   });
 
   it("carries the View Security Policy CTA", () => {
-    render(<MarketingFooter columns={columns} securityPolicyHref="/security" />);
+    render(
+      <MarketingFooter columns={columns} securityPolicyHref="/security" />,
+    );
     expect(
       screen.getByRole("link", { name: /View Security Policy/ }),
     ).toHaveAttribute("href", "/security");

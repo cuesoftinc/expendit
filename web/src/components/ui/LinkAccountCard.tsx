@@ -40,7 +40,9 @@ export const LinkAccountCard: React.FC<LinkAccountCardProps> = ({
       data-status={link.status}
       className={cn(
         "flex items-center gap-3 rounded border bg-bg-elev p-4",
-        link.status === "reauth_required" ? "border-expense/40" : "border-border",
+        link.status === "reauth_required"
+          ? "border-expense/40"
+          : "border-border",
         className,
       )}
     >

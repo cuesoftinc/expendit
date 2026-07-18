@@ -22,11 +22,18 @@ describe("BulkActionBar (design.md §8.2b)", () => {
       />,
     );
     const bar = screen.getByRole("toolbar", { name: "Bulk actions" });
-    expect(bar).toHaveClass("animate-slide-in-up", "motion-reduce:animate-none");
+    expect(bar).toHaveClass(
+      "animate-slide-in-up",
+      "motion-reduce:animate-none",
+    );
     expect(screen.getByText("12 selected")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: /Re-categorize/ }));
+    await userEvent.click(
+      screen.getByRole("button", { name: /Re-categorize/ }),
+    );
     await userEvent.click(screen.getByRole("button", { name: /Export/ }));
-    await userEvent.click(screen.getByRole("button", { name: "Clear selection" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Clear selection" }),
+    );
     expect(onRecategorize).toHaveBeenCalled();
     expect(onExport).toHaveBeenCalled();
     expect(onClear).toHaveBeenCalled();

@@ -33,7 +33,9 @@ describe("MemberRow (design.md §8.2b)", () => {
   });
 
   it("pending-invite state shows the Invited tag", () => {
-    render(<MemberRow member={member({ status: "pending", joined_at: null })} />);
+    render(
+      <MemberRow member={member({ status: "pending", joined_at: null })} />,
+    );
     expect(screen.getByRole("row")).toHaveAttribute(
       "data-state",
       "pending-invite",
@@ -43,11 +45,16 @@ describe("MemberRow (design.md §8.2b)", () => {
 
   it("owner row is immutable — no role select, no remove", () => {
     render(
-      <MemberRow member={member({ role: "owner" })} onRemove={() => undefined} />,
+      <MemberRow
+        member={member({ role: "owner" })}
+        onRemove={() => undefined}
+      />,
     );
     expect(screen.getByRole("row")).toHaveAttribute("data-state", "owner");
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Remove/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Remove/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("remove fires for non-owner members", async () => {

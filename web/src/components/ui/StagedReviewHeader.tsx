@@ -42,8 +42,9 @@ export const StagedReviewHeader: React.FC<StagedReviewHeaderProps> = ({
         {duplicateCount > 0 ? (
           <span className="text-text-2">
             {" "}
-            ·{" "}
-            <span className="tabular-nums text-warn">{duplicateCount}</span>{" "}
+            · <span className="tabular-nums text-warn">
+              {duplicateCount}
+            </span>{" "}
             duplicates flagged
           </span>
         ) : null}

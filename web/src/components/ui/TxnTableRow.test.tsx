@@ -49,7 +49,9 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
       <TxnTableRow txn={txn} category={category} density="compact" />,
     );
     expect(screen.getByRole("row")).toHaveClass("h-[32px]");
-    rerender(<TxnTableRow txn={txn} category={category} density="comfortable" />);
+    rerender(
+      <TxnTableRow txn={txn} category={category} density="comfortable" />,
+    );
     expect(screen.getByRole("row")).toHaveClass("h-[44px]");
   });
 

@@ -7,12 +7,7 @@ import React from "react";
 import { cn } from "@/lib/cn";
 
 export type TagTint =
-  | "neutral"
-  | "info"
-  | "warn"
-  | "error"
-  | "success"
-  | "new-accent";
+  "neutral" | "info" | "warn" | "error" | "success" | "new-accent";
 
 export interface TagProps {
   tint?: TagTint;

@@ -31,10 +31,7 @@ export const WizardShell: React.FC<WizardShellProps> = ({
     </nav>
     <main className="min-w-0 flex-1">{children}</main>
     {summary ? (
-      <aside
-        aria-label="Summary"
-        className="w-72 shrink-0"
-      >
+      <aside aria-label="Summary" className="w-72 shrink-0">
         <div className="sticky top-4 rounded border border-border bg-bg-elev p-4">
           {summary}
         </div>

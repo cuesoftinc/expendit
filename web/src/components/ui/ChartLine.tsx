@@ -63,7 +63,11 @@ export const ChartLine: React.FC<ChartLineProps> = ({
   }
   if (state === "empty" || series.length === 0) {
     return (
-      <EmptyState kind={emptyKind} onAction={onEmptyAction} className={className} />
+      <EmptyState
+        kind={emptyKind}
+        onAction={onEmptyAction}
+        className={className}
+      />
     );
   }
 
@@ -104,7 +108,14 @@ export const ChartLine: React.FC<ChartLineProps> = ({
           strokeWidth="1"
           className="stroke-border"
         />
-        <line x1="0" y1="0" x2="0" y2={plotHeight} strokeWidth="1" className="stroke-border" />
+        <line
+          x1="0"
+          y1="0"
+          x2="0"
+          y2={plotHeight}
+          strokeWidth="1"
+          className="stroke-border"
+        />
         {/* Series draw in 400ms after the axis (MI-12). */}
         {series.map((entry) => (
           <polyline
@@ -127,7 +138,11 @@ export const ChartLine: React.FC<ChartLineProps> = ({
             x={(index * WIDTH) / Math.max(1, xLabels.length - 1)}
             y={height - 6}
             textAnchor={
-              index === 0 ? "start" : index === xLabels.length - 1 ? "end" : "middle"
+              index === 0
+                ? "start"
+                : index === xLabels.length - 1
+                  ? "end"
+                  : "middle"
             }
             className="fill-text-2 text-[10px] tabular-nums"
           >

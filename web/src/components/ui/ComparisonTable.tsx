@@ -11,9 +11,7 @@ import { Check, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export type ComparisonCell =
-  | { kind: "check" }
-  | { kind: "x" }
-  | { kind: "text"; text: string };
+  { kind: "check" } | { kind: "x" } | { kind: "text"; text: string };
 
 export interface ComparisonRow {
   feature: string;
@@ -32,14 +30,13 @@ export interface ComparisonTableProps {
 const Cell: React.FC<{ cell: ComparisonCell }> = ({ cell }) => {
   if (cell.kind === "check") {
     return (
-      <Check
-        aria-label="Included"
-        className="mx-auto h-4 w-4 text-income"
-      />
+      <Check aria-label="Included" className="mx-auto h-4 w-4 text-income" />
     );
   }
   if (cell.kind === "x") {
-    return <X aria-label="Not included" className="mx-auto h-4 w-4 text-text-2" />;
+    return (
+      <X aria-label="Not included" className="mx-auto h-4 w-4 text-text-2" />
+    );
   }
   return <span className="text-[13px] text-text">{cell.text}</span>;
 };
@@ -57,13 +54,22 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     </caption>
     <thead>
       <tr className="border-b border-border">
-        <th scope="col" className="w-1/2 py-3 text-left text-[13px] font-medium text-text-2">
+        <th
+          scope="col"
+          className="w-1/2 py-3 text-left text-[13px] font-medium text-text-2"
+        >
           Feature
         </th>
-        <th scope="col" className="py-3 text-center text-sm font-semibold text-text">
+        <th
+          scope="col"
+          className="py-3 text-center text-sm font-semibold text-text"
+        >
           Cloud
         </th>
-        <th scope="col" className="py-3 text-center text-sm font-semibold text-text">
+        <th
+          scope="col"
+          className="py-3 text-center text-sm font-semibold text-text"
+        >
           Self-host
         </th>
       </tr>
@@ -71,7 +77,10 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
     <tbody>
       {rows.map((row) => (
         <tr key={row.feature} className="border-b border-border">
-          <th scope="row" className="py-2.5 text-left text-[13px] font-normal text-text">
+          <th
+            scope="row"
+            className="py-2.5 text-left text-[13px] font-normal text-text"
+          >
             {row.feature}
           </th>
           <td className="py-2.5 text-center">

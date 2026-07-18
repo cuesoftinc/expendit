@@ -38,10 +38,13 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
           data-testid="progress-fill"
           className={cn(
             "h-full rounded-full bg-accent transition-[width] duration-base ease-standard",
-            !determinate &&
-              "w-1/3 animate-pulse motion-reduce:animate-none",
+            !determinate && "w-1/3 animate-pulse motion-reduce:animate-none",
           )}
-          style={determinate ? { width: `${Math.min(100, Math.max(0, value))}%` } : undefined}
+          style={
+            determinate
+              ? { width: `${Math.min(100, Math.max(0, value))}%` }
+              : undefined
+          }
         />
       </div>
     </div>

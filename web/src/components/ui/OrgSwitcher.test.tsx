@@ -36,7 +36,9 @@ describe("OrgSwitcher (design.md §8.2b)", () => {
 
   it("open lists all orgs, marks current, and selects", async () => {
     const onSelect = vi.fn();
-    render(<OrgSwitcher orgs={orgs} currentOrgId="org-c" onSelect={onSelect} />);
+    render(
+      <OrgSwitcher orgs={orgs} currentOrgId="org-c" onSelect={onSelect} />,
+    );
     await userEvent.click(screen.getByRole("button"));
     const options = screen.getAllByRole("option");
     expect(options).toHaveLength(2);

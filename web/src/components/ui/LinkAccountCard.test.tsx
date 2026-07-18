@@ -36,7 +36,9 @@ describe("LinkAccountCard (design.md §8.2, MI-9)", () => {
       const { container, unmount } = render(
         <LinkAccountCard link={link(status)} />,
       );
-      expect(container.querySelector(`[data-status="${status}"]`)).not.toBeNull();
+      expect(
+        container.querySelector(`[data-status="${status}"]`),
+      ).not.toBeNull();
       unmount();
     }
   });

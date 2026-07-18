@@ -67,7 +67,11 @@ export const Tabs: React.FC<TabsProps> = ({
   children,
   className,
 }) => (
-  <RadixTabs.Root value={value} onValueChange={onValueChange} className={className}>
+  <RadixTabs.Root
+    value={value}
+    onValueChange={onValueChange}
+    className={className}
+  >
     <RadixTabs.List
       aria-label={ariaLabel}
       className={cn(
@@ -87,7 +91,10 @@ export const TabPanel: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ value, children, className }) => (
-  <RadixTabs.Content value={value} className={cn("pt-3 focus:outline-none", className)}>
+  <RadixTabs.Content
+    value={value}
+    className={cn("pt-3 focus:outline-none", className)}
+  >
     {children}
   </RadixTabs.Content>
 );

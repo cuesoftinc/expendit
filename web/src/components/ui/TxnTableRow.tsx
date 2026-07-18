@@ -84,7 +84,9 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       role="row"
       tabIndex={0}
       aria-selected={selected}
-      data-state={stagedDuplicate ? "staged-duplicate" : selected ? "selected" : "default"}
+      data-state={
+        stagedDuplicate ? "staged-duplicate" : selected ? "selected" : "default"
+      }
       onKeyDown={onKeyDown}
       onDoubleClick={onOpen}
       className={cn(
@@ -118,7 +120,11 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         onSelect={onCategorySelect}
       />
       <span className="w-32 shrink-0 text-right">
-        <MoneyCell amount={txn.amount} direction={txn.direction} withIcon={false} />
+        <MoneyCell
+          amount={txn.amount}
+          direction={txn.direction}
+          withIcon={false}
+        />
       </span>
       <span className="w-6 shrink-0">
         {anomaly ? (

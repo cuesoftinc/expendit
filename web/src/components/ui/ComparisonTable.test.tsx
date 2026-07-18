@@ -3,8 +3,16 @@ import { render, screen } from "@testing-library/react";
 import ComparisonTable, { type ComparisonRow } from "./ComparisonTable";
 
 const rows: ComparisonRow[] = [
-  { feature: "AI categorization", cloud: { kind: "check" }, selfHost: { kind: "check" } },
-  { feature: "Managed upgrades", cloud: { kind: "check" }, selfHost: { kind: "x" } },
+  {
+    feature: "AI categorization",
+    cloud: { kind: "check" },
+    selfHost: { kind: "check" },
+  },
+  {
+    feature: "Managed upgrades",
+    cloud: { kind: "check" },
+    selfHost: { kind: "x" },
+  },
   {
     feature: "Price",
     cloud: { kind: "text", text: "Announced at GA" },
@@ -44,7 +52,9 @@ describe("ComparisonTable (design.md §8.2b)", () => {
         selfHostCta={<button>Read the docs</button>}
       />,
     );
-    expect(screen.getByRole("button", { name: "Try Cloud" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Try Cloud" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Read the docs" }),
     ).toBeInTheDocument();

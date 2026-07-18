@@ -32,7 +32,11 @@ describe("AnomalyBadge (design.md §8.2, MI-5)", () => {
     );
     expect(screen.getByText("Abnormal for category")).toBeInTheDocument();
     rerender(
-      <AnomalyBadge type="abnormal_category" severity="warn" variant="inline" />,
+      <AnomalyBadge
+        type="abnormal_category"
+        severity="warn"
+        variant="inline"
+      />,
     );
     expect(screen.queryByText("Abnormal for category")).not.toBeInTheDocument();
   });
@@ -45,7 +49,11 @@ describe("AnomalyBadge (design.md §8.2, MI-5)", () => {
   it("click routes to the inspector explanation", async () => {
     const onClick = vi.fn();
     render(
-      <AnomalyBadge type="large_transaction" severity="warn" onClick={onClick} />,
+      <AnomalyBadge
+        type="large_transaction"
+        severity="warn"
+        onClick={onClick}
+      />,
     );
     await userEvent.click(screen.getByRole("button"));
     expect(onClick).toHaveBeenCalled();

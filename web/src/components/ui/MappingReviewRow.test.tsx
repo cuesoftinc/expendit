@@ -17,7 +17,10 @@ const row = (state: MappingRow["state"]): MappingRow => ({
 describe("MappingReviewRow (design.md §8.2b, B6)", () => {
   it("suggested: ✨ confidence tag + source → key + tabular amount", () => {
     render(
-      <MappingReviewRow row={row("suggested")} keyOptions={BALANCE_SHEET_KEYS} />,
+      <MappingReviewRow
+        row={row("suggested")}
+        keyOptions={BALANCE_SHEET_KEYS}
+      />,
     );
     expect(screen.getByRole("row")).toHaveAttribute("data-state", "suggested");
     expect(screen.getByText("Cash at bank and in hand")).toBeInTheDocument();
@@ -27,11 +30,17 @@ describe("MappingReviewRow (design.md §8.2b, B6)", () => {
 
   it("confirmed and unmapped tags", () => {
     const { rerender } = render(
-      <MappingReviewRow row={row("confirmed")} keyOptions={BALANCE_SHEET_KEYS} />,
+      <MappingReviewRow
+        row={row("confirmed")}
+        keyOptions={BALANCE_SHEET_KEYS}
+      />,
     );
     expect(screen.getByText("Confirmed")).toBeInTheDocument();
     rerender(
-      <MappingReviewRow row={row("unmapped")} keyOptions={BALANCE_SHEET_KEYS} />,
+      <MappingReviewRow
+        row={row("unmapped")}
+        keyOptions={BALANCE_SHEET_KEYS}
+      />,
     );
     expect(screen.getByText("Unmapped <60%")).toBeInTheDocument();
   });

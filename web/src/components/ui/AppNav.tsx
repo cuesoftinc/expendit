@@ -35,14 +35,18 @@ export const NavItem: React.FC<NavItemProps> = ({
   const className = cn(
     "group/nav-item relative flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-[13px] font-medium",
     "transition-colors duration-fast ease-standard",
-    active ? "bg-accent/10 text-accent" : "text-text-2 hover:bg-bg-elev hover:text-text",
+    active
+      ? "bg-accent/10 text-accent"
+      : "text-text-2 hover:bg-bg-elev hover:text-text",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
     collapsed && "justify-center px-0",
   );
   const content = (
     <>
       <Icon aria-hidden className="h-4 w-4 shrink-0" />
-      {!collapsed ? <span className="min-w-0 flex-1 truncate">{label}</span> : null}
+      {!collapsed ? (
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+      ) : null}
       {badgeCount !== undefined && badgeCount > 0 ? (
         <span className={cn(collapsed && "absolute -right-0.5 -top-0.5")}>
           <Tag tint="warn" count={badgeCount} />

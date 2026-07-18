@@ -27,7 +27,9 @@ describe("RatioGauge (design.md §8.2, MI-8)", () => {
       const { container, unmount } = render(
         <RatioGauge label="Quick ratio" value={1} status={status} />,
       );
-      expect(container.querySelector(`[data-status="${status}"]`)).not.toBeNull();
+      expect(
+        container.querySelector(`[data-status="${status}"]`),
+      ).not.toBeNull();
       unmount();
     }
   });

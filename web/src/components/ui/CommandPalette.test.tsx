@@ -35,7 +35,11 @@ describe("CommandPalette (design.md §8.2, MI-1)", () => {
   it("⌘K toggles open", async () => {
     const onOpenChange = vi.fn();
     render(
-      <CommandPalette open={false} onOpenChange={onOpenChange} items={items()} />,
+      <CommandPalette
+        open={false}
+        onOpenChange={onOpenChange}
+        items={items()}
+      />,
     );
     await userEvent.keyboard("{Meta>}k{/Meta}");
     expect(onOpenChange).toHaveBeenCalledWith(true);
@@ -70,9 +74,7 @@ describe("CommandPalette (design.md §8.2, MI-1)", () => {
 
   it("ESC and overlay click close", async () => {
     const onOpenChange = vi.fn();
-    render(
-      <CommandPalette open onOpenChange={onOpenChange} items={items()} />,
-    );
+    render(<CommandPalette open onOpenChange={onOpenChange} items={items()} />);
     await userEvent.click(screen.getByTestId("palette-overlay"));
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });

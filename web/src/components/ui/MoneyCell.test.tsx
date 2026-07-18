@@ -5,7 +5,9 @@ import MoneyCell from "./MoneyCell";
 describe("MoneyCell (design.md §3/§8.2)", () => {
   it("formats money with sign + direction color for income", () => {
     render(<MoneyCell amount={1240300.5} direction="income" />);
-    const cell = screen.getByText("+₦1,240,300.50").closest("span[data-direction]");
+    const cell = screen
+      .getByText("+₦1,240,300.50")
+      .closest("span[data-direction]");
     expect(cell).toHaveAttribute("data-direction", "income");
     expect(cell).toHaveClass("text-income", "tabular-nums");
   });

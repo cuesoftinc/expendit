@@ -4,9 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReportArtifact } from "@/models";
 import ReportArtifactRow from "./ReportArtifactRow";
 
-const artifact = (
-  overrides: Partial<ReportArtifact> = {},
-): ReportArtifact => ({
+const artifact = (overrides: Partial<ReportArtifact> = {}): ReportArtifact => ({
   id: "ra-1",
   org_id: "org-1",
   kind: "monthly_summary",

@@ -9,8 +9,10 @@ import React from "react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface InputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "type"
+> {
   type?: "text" | "search";
   error?: string | null;
   label?: string;

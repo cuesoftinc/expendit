@@ -36,14 +36,12 @@ const useCountUp = (target: number): number => {
     const from = fromRef.current;
     fromRef.current = target;
     if (from === target) return;
-    if (prefersReducedMotion() || typeof requestAnimationFrame !== "function") {
-      setShown(target);
-      return;
-    }
+    // Reduced motion renders the final value on the first frame.
+    const reduce = prefersReducedMotion();
     const started = performance.now();
     let frame = 0;
     const tick = (now: number) => {
-      const progress = Math.min(1, (now - started) / 300);
+      const progress = reduce ? 1 : Math.min(1, (now - started) / 300);
       // ease-standard-ish deceleration
       const eased = 1 - (1 - progress) ** 3;
       setShown(from + (target - from) * eased);
@@ -119,7 +117,9 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   const positive = (delta ?? 0) >= 0;
   return (
-    <div className={cn("rounded border border-border bg-bg-elev p-4", className)}>
+    <div
+      className={cn("rounded border border-border bg-bg-elev p-4", className)}
+    >
       <div className="text-[13px] font-medium text-text-2">{label}</div>
       <div className="mt-1 flex items-end justify-between gap-3">
         <span className="text-2xl font-semibold tabular-nums text-text">

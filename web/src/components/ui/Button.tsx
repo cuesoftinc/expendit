@@ -12,8 +12,10 @@ import { cn } from "@/lib/cn";
 export type ButtonKind = "primary" | "quiet" | "destructive" | "danger-armed";
 export type ButtonSize = "md" | "sm";
 
-export interface ButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "className"> {
+export interface ButtonProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "className"
+> {
   kind?: ButtonKind;
   size?: ButtonSize;
   loading?: boolean;
@@ -26,8 +28,7 @@ const KIND_CLASSES: Record<ButtonKind, string> = {
   primary: "bg-accent text-on-accent hover:opacity-90 active:opacity-80",
   quiet:
     "bg-transparent text-text border border-border hover:bg-bg-elev active:bg-bg-elev",
-  destructive:
-    "bg-expense text-on-accent hover:opacity-90 active:opacity-80",
+  destructive: "bg-expense text-on-accent hover:opacity-90 active:opacity-80",
   "danger-armed": "bg-expense text-on-accent",
 };
 

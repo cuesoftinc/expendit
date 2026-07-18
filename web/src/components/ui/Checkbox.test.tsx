@@ -7,7 +7,11 @@ describe("Checkbox (design.md §8.2b)", () => {
   it("renders unchecked and toggles on click", async () => {
     const onCheckedChange = vi.fn();
     render(
-      <Checkbox checked={false} onCheckedChange={onCheckedChange} label="All" />,
+      <Checkbox
+        checked={false}
+        onCheckedChange={onCheckedChange}
+        label="All"
+      />,
     );
     const box = screen.getByRole("checkbox", { name: "All" });
     expect(box).not.toBeChecked();
@@ -28,9 +32,7 @@ describe("Checkbox (design.md §8.2b)", () => {
     render(
       <Checkbox checked={false} onCheckedChange={onCheckedChange} disabled />,
     );
-    await userEvent
-      .click(screen.getByRole("checkbox"))
-      .catch(() => undefined);
+    await userEvent.click(screen.getByRole("checkbox")).catch(() => undefined);
     expect(onCheckedChange).not.toHaveBeenCalled();
   });
 });

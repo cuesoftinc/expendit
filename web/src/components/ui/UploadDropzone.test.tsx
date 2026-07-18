@@ -41,7 +41,12 @@ describe("UploadDropzone (design.md §8.2, MI-2)", () => {
 
   it("AI-sweep phase renders the indeterminate sparkle sweep", () => {
     const files: UploadFileItem[] = [
-      { id: "f1", name: "june.pdf", fileType: "pdf", state: { phase: "ai-sweep" } },
+      {
+        id: "f1",
+        name: "june.pdf",
+        fileType: "pdf",
+        state: { phase: "ai-sweep" },
+      },
     ];
     render(<UploadDropzone files={files} />);
     expect(screen.getByTestId("upload-ai-sweep")).toBeInTheDocument();

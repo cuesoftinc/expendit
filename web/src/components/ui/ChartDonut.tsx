@@ -51,12 +51,19 @@ export const ChartDonut: React.FC<ChartDonutProps> = ({
   }
   if (state === "empty" || slices.length === 0) {
     return (
-      <EmptyState kind={emptyKind} onAction={onEmptyAction} className={className} />
+      <EmptyState
+        kind={emptyKind}
+        onAction={onEmptyAction}
+        className={className}
+      />
     );
   }
 
   const total = slices.reduce((sum, slice) => sum + slice.value, 0) || 1;
-  let offset = 0;
+  const dashes = slices.map((slice) => (slice.value / total) * CIRCUMFERENCE);
+  const offsets = dashes.map((_, index) =>
+    dashes.slice(0, index).reduce((sum, dash) => sum + dash, 0),
+  );
 
   return (
     <figure
@@ -76,26 +83,20 @@ export const ChartDonut: React.FC<ChartDonutProps> = ({
         aria-label={`Donut chart: ${slices.map((slice) => slice.label).join(", ")}`}
       >
         <g transform="rotate(-90 60 60)">
-          {slices.map((slice) => {
-            const fraction = slice.value / total;
-            const dash = fraction * CIRCUMFERENCE;
-            const element = (
-              <circle
-                key={slice.id}
-                data-testid={`donut-slice-${slice.id}`}
-                cx="60"
-                cy="60"
-                r={R}
-                fill="none"
-                strokeWidth="14"
-                stroke={slice.color}
-                strokeDasharray={`${dash} ${CIRCUMFERENCE - dash}`}
-                strokeDashoffset={-offset}
-              />
-            );
-            offset += dash;
-            return element;
-          })}
+          {slices.map((slice, index) => (
+            <circle
+              key={slice.id}
+              data-testid={`donut-slice-${slice.id}`}
+              cx="60"
+              cy="60"
+              r={R}
+              fill="none"
+              strokeWidth="14"
+              stroke={slice.color}
+              strokeDasharray={`${dashes[index]} ${CIRCUMFERENCE - dashes[index]}`}
+              strokeDashoffset={-offsets[index]}
+            />
+          ))}
         </g>
         {centerTotal ? (
           <>
@@ -124,7 +125,9 @@ export const ChartDonut: React.FC<ChartDonutProps> = ({
         <figcaption
           className={cn(
             "flex gap-x-3 gap-y-1 text-[11px] text-text-2",
-            legend === "right" ? "flex-col" : "flex-row flex-wrap justify-center",
+            legend === "right"
+              ? "flex-col"
+              : "flex-row flex-wrap justify-center",
           )}
         >
           {slices.map((slice) => (

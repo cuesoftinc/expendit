@@ -81,7 +81,9 @@ const ProgressRing: React.FC<{ percent: number }> = ({ percent }) => (
   </svg>
 );
 
-const FileStateIndicator: React.FC<{ state: UploadFileState }> = ({ state }) => {
+const FileStateIndicator: React.FC<{ state: UploadFileState }> = ({
+  state,
+}) => {
   switch (state.phase) {
     case "progress":
       return <ProgressRing percent={state.percent} />;

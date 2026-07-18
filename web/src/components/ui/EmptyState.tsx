@@ -5,23 +5,13 @@
  */
 
 import React from "react";
-import {
-  Banknote,
-  Gauge,
-  Landmark,
-  ReceiptText,
-  Upload,
-} from "lucide-react";
+import { Banknote, Gauge, Landmark, ReceiptText, Upload } from "lucide-react";
 import { cn } from "@/lib/cn";
 import Button from "./Button";
 import Switch from "./Switch";
 
 export type EmptyStateKind =
-  | "transactions"
-  | "imports"
-  | "accounts"
-  | "ratios"
-  | "tax";
+  "transactions" | "imports" | "accounts" | "ratios" | "tax";
 
 const KIND_META: Record<
   EmptyStateKind,

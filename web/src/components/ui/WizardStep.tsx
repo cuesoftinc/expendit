@@ -64,7 +64,9 @@ export const WizardStep: React.FC<WizardStepProps> = ({
     )}
   >
     <Marker state={state} index={index} />
-    <div className={cn(orientation === "horizontal" && "flex items-center gap-2")}>
+    <div
+      className={cn(orientation === "horizontal" && "flex items-center gap-2")}
+    >
       <div
         className={cn(
           "text-[13px]",

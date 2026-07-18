@@ -27,7 +27,8 @@ export const MoneyCell: React.FC<MoneyCellProps> = ({
   withIcon = true,
   className,
 }) => {
-  const sign = direction === "income" ? "+" : direction === "expense" ? "−" : "";
+  const sign =
+    direction === "income" ? "+" : direction === "expense" ? "−" : "";
   const Icon = direction === "income" ? ArrowUpRight : ArrowDownLeft;
   return (
     <span
@@ -42,7 +43,10 @@ export const MoneyCell: React.FC<MoneyCellProps> = ({
       )}
     >
       {withIcon && direction !== "zero" ? (
-        <Icon aria-hidden className={size === "table" ? "h-3.5 w-3.5" : "h-5 w-5"} />
+        <Icon
+          aria-hidden
+          className={size === "table" ? "h-3.5 w-3.5" : "h-5 w-5"}
+        />
       ) : null}
       <span>
         {sign}

@@ -16,7 +16,11 @@ describe("Banner (design.md §8.2, MI-13)", () => {
   it("carries an action slot and snooze-dismiss", async () => {
     const onDismiss = vi.fn();
     render(
-      <Banner kind="warn" action={<button>Re-link</button>} onDismiss={onDismiss}>
+      <Banner
+        kind="warn"
+        action={<button>Re-link</button>}
+        onDismiss={onDismiss}
+      >
         Re-auth required
       </Banner>,
     );

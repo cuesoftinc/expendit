@@ -12,8 +12,7 @@ export interface SkeletonProps {
   className?: string;
 }
 
-const shimmer =
-  "animate-pulse rounded bg-bg-elev motion-reduce:animate-none";
+const shimmer = "animate-pulse rounded bg-bg-elev motion-reduce:animate-none";
 
 export const Skeleton: React.FC<SkeletonProps> = ({
   variant = "text",

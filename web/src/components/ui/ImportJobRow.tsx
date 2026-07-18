@@ -18,11 +18,7 @@ import { cn } from "@/lib/cn";
 import Tag from "./Tag";
 
 export type ImportJobRowStatus =
-  | "processing"
-  | "completed"
-  | "completed-empty"
-  | "completed-bank"
-  | "failed";
+  "processing" | "completed" | "completed-empty" | "completed-bank" | "failed";
 
 /** Folded row status (design.md §8.2b as-built note). */
 export const rowStatus = (job: ImportJob): ImportJobRowStatus => {
@@ -51,9 +47,7 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
 }) => {
   const status = rowStatus(job);
   const Icon =
-    status === "completed-bank"
-      ? Landmark
-      : FILE_ICON[job.file_type ?? "csv"];
+    status === "completed-bank" ? Landmark : FILE_ICON[job.file_type ?? "csv"];
   return (
     <button
       type="button"
@@ -102,9 +96,7 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
           {job.anomalies.length > 0 ? (
             <Tag tint="warn" count={job.anomalies.length} />
           ) : null}
-          {status === "completed-bank" ? (
-            <Tag tint="info">bank</Tag>
-          ) : null}
+          {status === "completed-bank" ? <Tag tint="info">bank</Tag> : null}
         </>
       )}
       <span className="w-20 shrink-0 text-right tabular-nums text-text-2">

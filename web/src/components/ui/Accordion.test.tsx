@@ -17,9 +17,13 @@ describe("Accordion (design.md §8.2b, MI-8/MI-10)", () => {
   it("opens and closes on trigger click", async () => {
     render(<Accordion items={items} />);
     expect(screen.queryByText("Body text")).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Plain section" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Plain section" }),
+    );
     expect(screen.getByText("Body text")).toBeVisible();
-    await userEvent.click(screen.getByRole("button", { name: "Plain section" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Plain section" }),
+    );
     expect(screen.queryByText("Body text")).not.toBeInTheDocument();
   });
 

@@ -75,12 +75,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onOpenChange]);
 
-  useEffect(() => {
+  // Reset on close — adjust-state-during-render, not an effect.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (!open) {
       setQuery("");
       setActiveIndex(0);
     }
-  }, [open]);
+  }
 
   const filtered = useMemo(() => {
     const matched = query
@@ -112,8 +115,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       if (item) commit(item);
     }
   };
-
-  let lastGroup: CommandItem["group"] | null = null;
 
   return (
     <>
@@ -158,8 +159,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           className="max-h-80 overflow-auto py-1"
         >
           {filtered.map((item, index) => {
-            const showGroup = item.group !== lastGroup;
-            lastGroup = item.group;
+            const showGroup =
+              index === 0 || filtered[index - 1].group !== item.group;
             return (
               <React.Fragment key={item.id}>
                 {showGroup ? (

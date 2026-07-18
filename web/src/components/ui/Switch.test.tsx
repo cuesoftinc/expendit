@@ -26,7 +26,9 @@ describe("Switch (design.md §8.2b)", () => {
 
   it("disabled blocks toggling", async () => {
     const onCheckedChange = vi.fn();
-    render(<Switch checked={false} onCheckedChange={onCheckedChange} disabled />);
+    render(
+      <Switch checked={false} onCheckedChange={onCheckedChange} disabled />,
+    );
     await userEvent.click(screen.getByRole("switch")).catch(() => undefined);
     expect(onCheckedChange).not.toHaveBeenCalled();
   });

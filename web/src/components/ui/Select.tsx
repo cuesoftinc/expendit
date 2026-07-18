@@ -68,11 +68,22 @@ export const Select: React.FC<SelectProps> = ({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
-  useEffect(() => {
-    if (open) setActiveIndex(Math.max(0, filtered.findIndex((o) => o.value === value)));
-    else setQuery("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on open only
-  }, [open]);
+  // Reset the active row/search when the menu opens or closes — the
+  // React "adjust state during render" pattern (no effect involved).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (open) {
+      setActiveIndex(
+        Math.max(
+          0,
+          filtered.findIndex((option) => option.value === value),
+        ),
+      );
+    } else {
+      setQuery("");
+    }
+  }
 
   const commit = (option: SelectOption) => {
     if (option.disabled) return;
@@ -160,7 +171,11 @@ export const Select: React.FC<SelectProps> = ({
               />
             </div>
           ) : null}
-          <ul id={listboxId} role="listbox" className="max-h-56 overflow-auto py-1">
+          <ul
+            id={listboxId}
+            role="listbox"
+            className="max-h-56 overflow-auto py-1"
+          >
             {filtered.map((option, index) => (
               <li key={option.value}>
                 <button

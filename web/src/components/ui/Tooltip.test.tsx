@@ -26,8 +26,6 @@ describe("Tooltip (design.md §8.2b)", () => {
     );
     await userEvent.tab();
     const tips = await screen.findAllByText(/Current ratio =/);
-    expect(
-      tips.some((tip) => tip.closest(".font-mono") !== null),
-    ).toBe(true);
+    expect(tips.some((tip) => tip.closest(".font-mono") !== null)).toBe(true);
   });
 });

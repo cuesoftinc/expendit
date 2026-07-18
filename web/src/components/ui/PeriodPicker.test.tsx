@@ -51,7 +51,10 @@ describe("PeriodPicker (design.md §8.2b)", () => {
       <PeriodPicker mode="year" value={null} onValueChange={onValueChange} />,
     );
     await userEvent.click(screen.getByRole("button"));
-    await userEvent.type(screen.getByPlaceholderText("FYYYYY"), "FY2026{Enter}");
+    await userEvent.type(
+      screen.getByPlaceholderText("FYYYYY"),
+      "FY2026{Enter}",
+    );
     expect(onValueChange).toHaveBeenCalledWith("FY2026");
   });
 

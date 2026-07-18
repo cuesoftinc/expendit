@@ -82,7 +82,8 @@ const config: Config = {
       animation: {
         "fade-in": "fade-in 200ms cubic-bezier(0.2, 0, 0, 1) both",
         "rise-in": "rise-in 120ms cubic-bezier(0.2, 0, 0, 1) both",
-        "slide-in-right": "slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) both",
+        "slide-in-right":
+          "slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) both",
         "slide-in-up": "slide-in-up 200ms cubic-bezier(0.2, 0, 0, 1) both",
         breathe: "breathe 2s ease-in-out infinite",
         "draw-in": "draw-in 400ms cubic-bezier(0.2, 0, 0, 1) both",

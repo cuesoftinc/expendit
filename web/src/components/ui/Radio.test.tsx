@@ -15,7 +15,9 @@ const options: RadioOption[] = [
 describe("Radio (design.md §8.2b)", () => {
   it("selects the given value and changes on click", async () => {
     const onValueChange = vi.fn();
-    render(<Radio value="keep" onValueChange={onValueChange} options={options} />);
+    render(
+      <Radio value="keep" onValueChange={onValueChange} options={options} />,
+    );
     expect(
       screen.getByRole("radio", { name: /Keep transactions/ }),
     ).toHaveAttribute("aria-checked", "true");

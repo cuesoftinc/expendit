@@ -54,7 +54,12 @@ describe("Inspector (design.md §8.2, MI-11)", () => {
 
   it("variants set data-variant; trace renders mono body", () => {
     const { rerender } = render(
-      <Inspector open onClose={() => undefined} title="Why" variant="anomaly-explain">
+      <Inspector
+        open
+        onClose={() => undefined}
+        title="Why"
+        variant="anomaly-explain"
+      >
         explanation
       </Inspector>,
     );
@@ -68,7 +73,9 @@ describe("Inspector (design.md §8.2, MI-11)", () => {
       </Inspector>,
     );
     expect(
-      screen.getByText("current_assets ÷ current_liabilities").closest(".font-mono"),
+      screen
+        .getByText("current_assets ÷ current_liabilities")
+        .closest(".font-mono"),
     ).not.toBeNull();
   });
 });
