@@ -17,10 +17,16 @@ jest.mock("next/navigation", () => ({
 }));
 
 describe("HomePage", () => {
-  it("renders the landing page hero", () => {
+  // W2: `/` is the Part A Brex-editorial home (pages.md); the legacy
+  // marketing sections await their W3 quarantine tranche.
+  it("renders the Part A hero", () => {
     render(<Home />);
 
-    const hero = screen.getByTestId("hero-section");
-    expect(hero).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "See every naira. File every tax.",
+      }),
+    ).toBeInTheDocument();
   });
 });

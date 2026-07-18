@@ -3,7 +3,9 @@
 /**
  * Accordion — design.md §8.2b: closed / open · variant "how we got this"
  * line-item trace with a mono formula body (MI-8/MI-10). Radix Accordion
- * supplies disclosure semantics (reuse policy).
+ * supplies disclosure semantics (reuse policy). `mode="single"` keeps one
+ * item open at a time (pages.md A10a FAQ); `onOpenChange` reports the open
+ * set (the home page emits `faq_open` from it).
  */
 
 import React from "react";
@@ -23,17 +25,34 @@ export interface AccordionProps {
   items: AccordionItem[];
   /** Item ids expanded initially. */
   defaultOpen?: string[];
+  /** single = one item open at a time (A10a FAQ); default multiple. */
+  mode?: "multiple" | "single";
+  /** Fires with the currently-open item ids on every toggle. */
+  onOpenChange?: (openIds: string[]) => void;
   className?: string;
 }
 
 export const Accordion: React.FC<AccordionProps> = ({
   items,
   defaultOpen = [],
+  mode = "multiple",
+  onOpenChange,
   className,
 }) => (
   <RadixAccordion.Root
-    type="multiple"
-    defaultValue={defaultOpen}
+    {...(mode === "single"
+      ? {
+          type: "single" as const,
+          collapsible: true,
+          defaultValue: defaultOpen[0],
+          onValueChange: (value: string) =>
+            onOpenChange?.(value ? [value] : []),
+        }
+      : {
+          type: "multiple" as const,
+          defaultValue: defaultOpen,
+          onValueChange: (value: string[]) => onOpenChange?.(value),
+        })}
     className={cn(
       "divide-y divide-border rounded border border-border",
       className,

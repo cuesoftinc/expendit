@@ -32,4 +32,32 @@ describe("Accordion (design.md §8.2b, MI-8/MI-10)", () => {
     const body = screen.getByText("net_income ÷ revenue");
     expect(body.closest(".font-mono")).not.toBeNull();
   });
+
+  it("single mode keeps one item open at a time (pages.md A10a)", async () => {
+    render(<Accordion items={items} mode="single" defaultOpen={["one"]} />);
+    expect(screen.getByText("net_income ÷ revenue")).toBeVisible();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Plain section" }),
+    );
+    expect(screen.getByText("Body text")).toBeVisible();
+    expect(screen.queryByText("net_income ÷ revenue")).not.toBeInTheDocument();
+  });
+
+  it("onOpenChange reports the open set (faq_open source)", async () => {
+    const openIds: string[][] = [];
+    render(
+      <Accordion
+        items={items}
+        mode="single"
+        onOpenChange={(ids) => openIds.push(ids)}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Plain section" }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Plain section" }),
+    );
+    expect(openIds).toEqual([["two"], []]);
+  });
 });

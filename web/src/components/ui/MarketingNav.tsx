@@ -28,6 +28,8 @@ export interface MarketingNavProps {
   links?: MarketingNavLink[];
   solutions?: MarketingNavLink[];
   githubHref?: string;
+  /** Analytics hook for the GitHub badge (pages.md `github_click`). */
+  onGithubClick?: () => void;
   onSignIn?: () => void;
   onTryCloud?: () => void;
   className?: string;
@@ -50,6 +52,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
   links = [],
   solutions = [],
   githubHref = "https://github.com/cuesoftinc/expendit",
+  onGithubClick,
   onSignIn,
   onTryCloud,
   className,
@@ -104,7 +107,8 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
       </Link>
 
       {solutions.length > 0 ? (
-        <div ref={solutionsRef} className="relative">
+        // Text items collapse below md (375w floor keeps logo + CTAs).
+        <div ref={solutionsRef} className="relative hidden md:block">
           <button
             type="button"
             aria-expanded={solutionsOpen}
@@ -142,7 +146,11 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
       ) : null}
 
       {links.map((link) => (
-        <a key={link.label} href={link.href} className={itemClass}>
+        <a
+          key={link.label}
+          href={link.href}
+          className={cn(itemClass, "hidden md:inline-block")}
+        >
           {link.label}
         </a>
       ))}
@@ -153,6 +161,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
           href={githubHref}
           target="_blank"
           rel="noreferrer"
+          onClick={onGithubClick}
           className={cn(
             "inline-flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-[13px] font-medium text-text",
             "transition-colors duration-fast ease-standard hover:bg-bg-elev",

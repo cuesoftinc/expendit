@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export interface EditorialCardProps {
@@ -15,6 +15,8 @@ export interface EditorialCardProps {
   body: string;
   href?: string;
   icon?: React.ComponentType<{ className?: string }>;
+  /** Accent CTA line at the card foot (Figma A4/A9 instances). */
+  cta?: string;
   className?: string;
 }
 
@@ -25,6 +27,7 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
   body,
   href,
   icon: Icon,
+  cta,
   className,
 }) => {
   const Root: React.ElementType = href ? "a" : "div";
@@ -72,6 +75,12 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
         ) : null}
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-text-2">{body}</p>
+      {cta ? (
+        <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-accent">
+          {cta}
+          <ChevronRight aria-hidden className="h-3.5 w-3.5" />
+        </span>
+      ) : null}
     </Root>
   );
 };

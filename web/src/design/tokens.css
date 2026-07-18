@@ -60,6 +60,26 @@
   --row-comfortable: 44px;
 }
 
+/*
+ * Light re-declaration for nested scoping: a light subtree inside a dark
+ * editorial section (the A2 hero device frame) re-binds the same §2 Light
+ * values. Same collection, no new tokens — scoping mechanics only.
+ */
+[data-theme="light"] {
+  --color-bg: #ffffff;
+  --color-bg-editorial: #0c0c0e;
+  --color-bg-elev: #f7f7f8;
+  --color-border: #e5e5e7;
+  --color-text: #111113;
+  --color-text-2: #6e6e76;
+  --color-accent: #f46a1f;
+  --color-on-accent: #ffffff;
+  --color-income: #1b7f4b;
+  --color-expense: #c6373c;
+  --color-warn: #b26a00;
+  --color-info: #2456d6;
+}
+
 /* Dark theme values (design.md §2, Dark column). */
 [data-theme="dark"] {
   --color-bg: #0c0c0e;
