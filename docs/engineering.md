@@ -3,7 +3,9 @@
 > Error catalog, authorization matrix, rate limits, testing strategy, logging
 > rules. Ecosystem conventions shared with apparule/upstat (envelope, code
 > discipline, never-log gating — see apparule engineering.md §1 for the
-> envelope definition).
+> envelope definition). The web implementation follows
+> [web-implementation.md](web-implementation.md) — the CueLABS Web
+> Implementation Standard (W0–W3, TEST_MODE, mock server, legacy policy).
 
 ## 1. Error catalog (product families)
 
