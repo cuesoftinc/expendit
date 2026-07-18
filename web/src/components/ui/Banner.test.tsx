@@ -5,12 +5,14 @@ import Banner from "./Banner";
 
 describe("Banner (design.md §8.2, MI-13)", () => {
   it("renders info / warn / error tints", () => {
+    // Figma: 10% kind tint + 35% kind edge.
     const { rerender } = render(<Banner kind="info">T-30: VAT due</Banner>);
-    expect(screen.getByRole("status")).toHaveClass("border-info/40");
+    expect(screen.getByRole("status")).toHaveClass("border-info/35");
+    expect(screen.getByRole("status")).toHaveClass("bg-info/10");
     rerender(<Banner kind="warn">T-7: VAT due</Banner>);
-    expect(screen.getByRole("status")).toHaveClass("border-warn/40");
+    expect(screen.getByRole("status")).toHaveClass("border-warn/35");
     rerender(<Banner kind="error">Bank re-auth needed</Banner>);
-    expect(screen.getByRole("status")).toHaveClass("border-expense/40");
+    expect(screen.getByRole("status")).toHaveClass("border-expense/35");
   });
 
   it("carries an action slot and snooze-dismiss", async () => {

@@ -68,7 +68,9 @@ export const Modal: React.FC<ModalProps> = ({
         <Dialog.Content
           aria-describedby={undefined}
           className={cn(
-            "fixed z-modal border border-border bg-bg shadow-lg focus:outline-none",
+            // font-sans: portals mount under <body>, which still carries
+            // the legacy Poppins font until the legacy pages retire (W3).
+            "fixed z-modal border border-border bg-bg font-sans shadow-lg focus:outline-none",
             variant === "sheet"
               ? "inset-y-0 right-0 flex w-full max-w-md flex-col rounded-none"
               : cn(

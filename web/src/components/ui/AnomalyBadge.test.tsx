@@ -13,32 +13,41 @@ describe("AnomalyBadge (design.md §8.2, MI-5)", () => {
     ).toBeInTheDocument();
     rerender(<AnomalyBadge type="duplicate_charge" severity="info" />);
     expect(
-      screen.getByRole("button", { name: "Possible duplicate charge (info)" }),
+      screen.getByRole("button", { name: "Possible duplicate (info)" }),
     ).toBeInTheDocument();
   });
 
-  it("severity picks the tint", () => {
+  it("tint keys off the anomaly type (Figma: spike = expense)", () => {
     const { rerender } = render(
       <AnomalyBadge type="spending_spike" severity="warn" />,
     );
-    expect(screen.getByRole("button")).toHaveClass("text-warn");
-    rerender(<AnomalyBadge type="spending_spike" severity="info" />);
+    expect(screen.getByRole("button")).toHaveClass("text-expense");
+    rerender(<AnomalyBadge type="abnormal_category" severity="info" />);
     expect(screen.getByRole("button")).toHaveClass("text-info");
+    rerender(<AnomalyBadge type="large_transaction" severity="warn" />);
+    expect(screen.getByRole("button")).toHaveClass("text-warn");
   });
 
-  it("feed variant shows the label text; inline is icon-only", () => {
-    const { rerender } = render(
-      <AnomalyBadge type="abnormal_category" severity="warn" variant="feed" />,
-    );
-    expect(screen.getByText("Abnormal for category")).toBeInTheDocument();
-    rerender(
+  it("inline shows the Figma short label", () => {
+    render(<AnomalyBadge type="large_transaction" severity="warn" />);
+    expect(screen.getByText("Large txn")).toBeInTheDocument();
+  });
+
+  it("feed variant renders title, description and timestamp", () => {
+    render(
       <AnomalyBadge
-        type="abnormal_category"
+        type="spending_spike"
         severity="warn"
-        variant="inline"
+        variant="feed"
+        description="Dining out is up 62% vs last month"
+        timestamp="2h"
       />,
     );
-    expect(screen.queryByText("Abnormal for category")).not.toBeInTheDocument();
+    expect(screen.getByText("Spending spike")).toBeInTheDocument();
+    expect(
+      screen.getByText("Dining out is up 62% vs last month"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2h")).toBeInTheDocument();
   });
 
   it("MI-5 pulse class applies on first render only when asked", () => {

@@ -8,17 +8,19 @@ describe("Button (design.md §8.2)", () => {
     const { rerender } = render(<Button kind="primary">Save</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-accent");
     expect(screen.getByRole("button")).toHaveClass("text-on-accent");
+    // Figma: quiet is borderless — text on transparent, bg-elev on hover.
     rerender(<Button kind="quiet">Save</Button>);
-    expect(screen.getByRole("button")).toHaveClass("border-border");
+    expect(screen.getByRole("button")).toHaveClass("bg-transparent");
+    expect(screen.getByRole("button")).not.toHaveClass("border-border");
     rerender(<Button kind="destructive">Delete</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-expense");
   });
 
-  it("supports md/sm sizes", () => {
+  it("supports md/sm sizes (Figma: 36px / 28px)", () => {
     const { rerender } = render(<Button size="md">A</Button>);
-    expect(screen.getByRole("button")).toHaveClass("h-10");
+    expect(screen.getByRole("button")).toHaveClass("h-9");
     rerender(<Button size="sm">A</Button>);
-    expect(screen.getByRole("button")).toHaveClass("h-8");
+    expect(screen.getByRole("button")).toHaveClass("h-7");
   });
 
   it("loading state disables and shows the spinner", () => {
@@ -38,11 +40,12 @@ describe("Button (design.md §8.2)", () => {
     );
     const button = screen.getByRole("button");
     expect(button).toBeDisabled();
-    expect(screen.getByTestId("button-countdown")).toHaveTextContent("(2)");
+    // Figma countdown pill reads "2s", not "(2)".
+    expect(screen.getByTestId("button-countdown")).toHaveTextContent("2s");
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    expect(screen.getByTestId("button-countdown")).toHaveTextContent("(1)");
+    expect(screen.getByTestId("button-countdown")).toHaveTextContent("1s");
     act(() => {
       vi.advanceTimersByTime(1000);
     });

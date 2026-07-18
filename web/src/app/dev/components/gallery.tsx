@@ -389,7 +389,11 @@ export const ComponentGallery: React.FC = () => {
               <Input label="Description" name="g-desc" placeholder="Fuel" />
             </div>
             <div className="w-56">
-              <Input type="search" placeholder="Search transactions" />
+              <Input
+                type="search"
+                placeholder="Search transactions"
+                kbdHint="⌘K"
+              />
             </div>
             <div className="w-56">
               <Input label="Amount" name="g-amt" error="Amount is required" />
@@ -436,27 +440,43 @@ export const ComponentGallery: React.FC = () => {
             <AnomalyBadge type="duplicate_charge" severity="info" />
           </Variant>
           <Variant label="feed · MI-5 pulse">
-            <AnomalyBadge
-              type="spending_spike"
-              severity="warn"
-              variant="feed"
-            />
-            <AnomalyBadge
-              type="large_transaction"
-              severity="warn"
-              variant="feed"
-              pulse
-            />
+            <div className="w-full max-w-sm space-y-2">
+              <AnomalyBadge
+                type="spending_spike"
+                severity="warn"
+                variant="feed"
+                description="Dining out is up 62% vs last month"
+                timestamp="2h"
+              />
+              <AnomalyBadge
+                type="large_transaction"
+                severity="warn"
+                variant="feed"
+                description="₦480,000.00 is 3.4× your median for Equipment"
+                timestamp="2h"
+                pulse
+              />
+            </div>
           </Variant>
         </Section>
 
         <Section title="Toast / Banner">
           <Variant label="Toast: info / warn / error">
-            <Toast kind="info" onDismiss={() => undefined}>
+            <Toast
+              kind="info"
+              action={<button type="button">Download</button>}
+              onDismiss={() => undefined}
+            >
               214 transactions found
             </Toast>
-            <Toast kind="warn">Some rows were partially extracted</Toast>
-            <Toast kind="error" onDismiss={() => undefined}>
+            <Toast kind="warn" onDismiss={() => undefined}>
+              Some rows were partially extracted
+            </Toast>
+            <Toast
+              kind="error"
+              action={<button type="button">Retry</button>}
+              onDismiss={() => undefined}
+            >
               Upload failed — unreadable_file
             </Toast>
           </Variant>
@@ -470,11 +490,7 @@ export const ComponentGallery: React.FC = () => {
               </Banner>
               <Banner
                 kind="error"
-                action={
-                  <Button size="sm" kind="quiet">
-                    Re-link
-                  </Button>
-                }
+                action={<button type="button">Re-authenticate</button>}
               >
                 GTBank needs re-authentication
               </Banner>
@@ -490,6 +506,7 @@ export const ComponentGallery: React.FC = () => {
                 value={statValue}
                 format={(value) => formatMoney(value, "NGN", { decimals: 0 })}
                 delta={0.042}
+                deltaCaption="vs Jun"
                 sparkline={[3, 5, 4, 8, 7, 9, 12]}
               />
               <StatCard label="Expenses (June)" value={412000} delta={-0.08} />
@@ -644,6 +661,8 @@ export const ComponentGallery: React.FC = () => {
               display="1.85"
               status="healthy"
               band={{ from: 1.2, to: 2.0 }}
+              delta={0.21}
+              deltaCaption="vs Q1"
               formula="Current ratio = current assets ÷ current liabilities"
             />
             <RatioGauge
@@ -652,6 +671,8 @@ export const ComponentGallery: React.FC = () => {
               display="0.95"
               status="warning"
               band={{ from: 1.0, to: 1.5 }}
+              delta={-0.18}
+              deltaCaption="vs Q1"
             />
             <RatioGauge
               label="Debt to equity"
@@ -659,6 +680,8 @@ export const ComponentGallery: React.FC = () => {
               display="2.60"
               status="critical"
               max={3}
+              delta={-0.44}
+              deltaCaption="vs Q1"
             />
             <RatioGauge
               label="Interest cover"
@@ -884,10 +907,11 @@ export const ComponentGallery: React.FC = () => {
                 authority={{
                   code: "FIRS",
                   name: "Federal Inland Revenue Service",
-                  payment_channels: ["TaxPro-Max"],
+                  payment_channels: ["TaxPro-Max", "Remita"],
                 }}
                 amountDue={87500}
                 dueDate="2026-07-21"
+                daysToDue={1}
               />
             </div>
           </Variant>
@@ -976,6 +1000,7 @@ export const ComponentGallery: React.FC = () => {
                     orgs={orgs}
                     currentOrgId="org-c"
                     compact={navCollapsed}
+                    onCreate={() => undefined}
                   />
                 }
               >

@@ -31,6 +31,7 @@ describe("MoneyCell (design.md §3/§8.2)", () => {
       <MoneyCell amount={99.9} direction="income" size="stat" currency="USD" />,
     );
     const cell = screen.getByText("+$99.90").closest("span[data-direction]");
-    expect(cell).toHaveClass("text-2xl");
+    // Figma stat ramp: Display/32 Bold.
+    expect(cell).toHaveClass("text-[32px]", "font-bold");
   });
 });

@@ -4,6 +4,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design-system base resets (QA loop 2026-07-18): UA button chrome
+ * centers text, which corrupted left-aligned row/nav buttons. Preflight
+ * does not reset text-align, so do it here in the base layer.
+ */
+@layer base {
+  button {
+    text-align: inherit;
+  }
+}
+
+/* ---- Legacy globals (pre-redesign pages; retired at W3) -------------- */
+
 * {
   margin: 0;
   padding: 0;

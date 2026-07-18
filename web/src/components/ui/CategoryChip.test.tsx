@@ -56,10 +56,8 @@ describe("CategoryChip (design.md §8.2, MI-4)", () => {
       />,
     );
     await userEvent.click(screen.getByRole("button"));
-    await userEvent.type(
-      screen.getByPlaceholderText("Search categories"),
-      "zzz",
-    );
+    // Figma editing state: the chip itself becomes the combobox input.
+    await userEvent.type(screen.getByRole("combobox"), "zzz");
     expect(screen.getByText("No matching category")).toBeInTheDocument();
   });
 

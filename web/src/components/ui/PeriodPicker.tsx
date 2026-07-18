@@ -7,7 +7,8 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { Calendar, ChevronsUpDown } from "lucide-react";
+import { Calendar, ChevronDown } from "lucide-react";
+import dayjs from "dayjs";
 import { cn } from "@/lib/cn";
 
 export type PeriodMode = "day" | "range" | "month" | "quarter" | "year";
@@ -48,6 +49,31 @@ const MODE_PATTERN: Record<PeriodMode, RegExp> = {
 /** Grammar validation for a period string in the given mode. */
 export const isValidPeriod = (mode: PeriodMode, value: string): boolean =>
   MODE_PATTERN[mode].test(value);
+
+/**
+ * Figma trigger copy is humanized ("12 Jan 2026", "1 Apr – 30 Jun 2026",
+ * "Jun 2026", "Q2 2026", "FY2025") while the value keeps the period
+ * grammar (line-items.md §6).
+ */
+export const formatPeriod = (mode: PeriodMode, value: string): string => {
+  if (!isValidPeriod(mode, value)) return value;
+  switch (mode) {
+    case "day":
+      return dayjs(value).format("D MMM YYYY");
+    case "range": {
+      const [from, to] = value.split("..");
+      return `${dayjs(from).format("D MMM")} – ${dayjs(to).format("D MMM YYYY")}`;
+    }
+    case "month":
+      return dayjs(`${value}-01`).format("MMM YYYY");
+    case "quarter": {
+      const [year, quarter] = value.split("-");
+      return `${quarter} ${year}`;
+    }
+    case "year":
+      return value;
+  }
+};
 
 export const PeriodPicker: React.FC<PeriodPickerProps> = ({
   mode,
@@ -114,11 +140,13 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
         disabled={disabled}
         onClick={() => setOpen((state) => !state)}
         className={cn(
-          "flex h-10 w-full items-center justify-between gap-2 rounded border bg-bg px-3 text-left text-sm",
+          // Figma trigger: 32px, Table/13.
+          "flex h-8 w-full items-center justify-between gap-2 rounded border bg-bg px-3 text-left text-[13px]",
           "transition-colors duration-fast ease-standard",
           shownError ? "border-expense" : "border-border",
+          open && !shownError && "border-accent",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-          "disabled:cursor-not-allowed disabled:bg-bg-elev disabled:opacity-60",
+          "disabled:cursor-not-allowed disabled:opacity-40",
         )}
       >
         <span className="flex items-center gap-2">
@@ -126,10 +154,10 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
           <span
             className={cn("tabular-nums", value ? "text-text" : "text-text-2")}
           >
-            {value ?? MODE_PLACEHOLDER[mode]}
+            {value ? formatPeriod(mode, value) : MODE_PLACEHOLDER[mode]}
           </span>
         </span>
-        <ChevronsUpDown aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
+        <ChevronDown aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
       </button>
 
       {open ? (

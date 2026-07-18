@@ -1,18 +1,21 @@
 /**
- * RemitToCard — design.md §8.2: tax pit/cit/vat · resolved authority
- * (State IRS e.g. LIRS / FIRS) + amount due + deadline + payment-channel
- * chips (tax-engine §"Remittance & authorities" registry).
+ * RemitToCard — design.md §8.2, Figma Stage 2b: white card · tinted icon
+ * well · tax title + "Remit to {authority}" caption · "Amount due" label ·
+ * Display/32 tabular amount · calendar due line (T-x chip when close) ·
+ * one "Pay via …" channel chip (tax-engine §"Remittance & authorities").
  */
 
 import React from "react";
-import { Landmark } from "lucide-react";
+import { Calendar, Landmark } from "lucide-react";
 import type { Authority, TaxKind } from "@/models";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
+import dayjs from "dayjs";
+import { thresholdFor } from "./TaxCalendarRow";
 
 const TAX_LABEL: Record<TaxKind, string> = {
-  pit: "Personal income tax",
-  cit: "Company income tax",
+  pit: "Personal Income Tax",
+  cit: "Companies Income Tax + Development Levy",
   vat: "VAT",
 };
 
@@ -21,8 +24,10 @@ export interface RemitToCardProps {
   authority: Authority;
   amountDue: number;
   currency?: string;
-  /** ISO due date, rendered as given. */
+  /** ISO due date. */
   dueDate: string;
+  /** Days until due — shows the T-30/T-7/T-1 chip when close. */
+  daysToDue?: number;
   className?: string;
 }
 
@@ -32,43 +37,54 @@ export const RemitToCard: React.FC<RemitToCardProps> = ({
   amountDue,
   currency = "NGN",
   dueDate,
+  daysToDue,
   className,
-}) => (
-  <div
-    data-kind={kind}
-    className={cn("rounded border border-border bg-bg-elev p-4", className)}
-  >
-    <div className="flex items-center justify-between gap-2">
-      <span className="rounded border border-border bg-bg px-1.5 text-[11px] font-medium uppercase tracking-wide text-text-2">
-        {TAX_LABEL[kind]}
-      </span>
-      <span className="text-[13px] tabular-nums text-text-2">
-        due {dueDate}
-      </span>
-    </div>
-    <div className="mt-3 flex items-center gap-2 text-sm text-text">
-      <Landmark aria-hidden className="h-4 w-4 text-text-2" />
-      <span className="font-medium">Remit to {authority.name}</span>
-      <span className="font-mono text-[12px] text-text-2">
-        ({authority.code})
-      </span>
-    </div>
-    <div className="mt-1 text-2xl font-semibold tabular-nums text-text">
-      {formatMoney(amountDue, currency)}
-    </div>
-    {authority.payment_channels.length > 0 ? (
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {authority.payment_channels.map((channel) => (
-          <span
-            key={channel}
-            className="rounded border border-info/40 bg-info/10 px-1.5 py-0 text-[11px] font-medium text-info"
-          >
-            {channel}
-          </span>
-        ))}
+}) => {
+  const due = dayjs(dueDate).isValid()
+    ? dayjs(dueDate).format("D MMM YYYY")
+    : dueDate;
+  const threshold = daysToDue === undefined ? "none" : thresholdFor(daysToDue);
+  return (
+    <div
+      data-kind={kind}
+      className={cn("rounded border border-border bg-bg p-4", className)}
+    >
+      <div className="flex items-start gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-accent/[0.12] text-accent">
+          <Landmark aria-hidden className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <div className="text-sm font-medium leading-5 text-text">
+            {TAX_LABEL[kind]}
+          </div>
+          <div className="truncate text-[13px] leading-4 text-text-2">
+            Remit to {authority.name}{" "}
+            <span className="font-mono">({authority.code})</span>
+          </div>
+        </div>
       </div>
-    ) : null}
-  </div>
-);
+      <div className="mt-3 text-[13px] leading-4 text-text-2">Amount due</div>
+      <div className="mt-1 text-[32px] font-bold leading-[38px] tracking-[-0.01em] tabular-nums text-text">
+        {formatMoney(amountDue, currency)}
+      </div>
+      <div className="mt-2 flex items-center gap-1.5 text-[13px] leading-4 text-text-2">
+        <Calendar aria-hidden className="h-3.5 w-3.5" />
+        <span className="tabular-nums">Due {due}</span>
+        {threshold !== "none" ? (
+          <span className="rounded-full bg-warn/[0.15] px-1.5 py-0.5 text-[11px] font-medium uppercase leading-4 text-warn">
+            {threshold}
+          </span>
+        ) : null}
+      </div>
+      {authority.payment_channels.length > 0 ? (
+        <div className="mt-3">
+          <span className="inline-flex rounded border border-border bg-bg px-1.5 py-0.5 text-[11px] font-medium leading-4 text-text">
+            Pay via {authority.payment_channels.join(" / ")}
+          </span>
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 export default RemitToCard;

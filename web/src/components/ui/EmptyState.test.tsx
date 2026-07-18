@@ -7,9 +7,13 @@ describe("EmptyState (design.md §8.2, MI-16)", () => {
   it("renders the one-line + primary action per kind", async () => {
     const onAction = vi.fn();
     render(<EmptyState kind="transactions" onAction={onAction} />);
-    expect(screen.getByText("No transactions yet.")).toBeInTheDocument();
+    // Figma copy: title + hint + CTA.
+    expect(screen.getByText("No transactions yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("Upload your first statement to see your ledger."),
+    ).toBeInTheDocument();
     await userEvent.click(
-      screen.getByRole("button", { name: "Upload your first statement" }),
+      screen.getByRole("button", { name: "Upload statement" }),
     );
     expect(onAction).toHaveBeenCalled();
   });
@@ -37,7 +41,7 @@ describe("EmptyState (design.md §8.2, MI-16)", () => {
         demoToggle={{ enabled: false, onChange }}
       />,
     );
-    expect(screen.getByText("Synthetic")).toBeInTheDocument();
+    expect(screen.getByText("synthetic")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("switch"));
     expect(onChange).toHaveBeenCalledWith(true);
   });

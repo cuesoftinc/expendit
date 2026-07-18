@@ -21,7 +21,10 @@ describe("LinkAccountCard (design.md §8.2, MI-9)", () => {
     render(<LinkAccountCard link={link("active")} />);
     expect(screen.getByText("GTBank")).toBeInTheDocument();
     expect(screen.getByText("•••• 4521")).toBeInTheDocument();
-    expect(screen.getByText(/last synced 2026-07-17/)).toBeInTheDocument();
+    // Figma active caption: "Last synced … · n transactions".
+    expect(
+      screen.getByText(/Last synced 2026-07-17 · 120 transactions/),
+    ).toBeInTheDocument();
   });
 
   it("covers all five BANK_LINK states", () => {
@@ -49,8 +52,11 @@ describe("LinkAccountCard (design.md §8.2, MI-9)", () => {
     expect(dot).toHaveClass("animate-breathe", "motion-reduce:animate-none");
   });
 
-  it("reauth_required tints the card border", () => {
+  it("reauth_required shows the warn status pill", () => {
     render(<LinkAccountCard link={link("reauth_required")} />);
-    expect(screen.getByText("Re-auth required")).toBeInTheDocument();
+    const pill = screen.getByText("Re-auth required");
+    expect(pill).toBeInTheDocument();
+    // Figma: reauth pill is warn-tinted (not expense).
+    expect(pill.closest("span")).toHaveClass("text-warn");
   });
 });

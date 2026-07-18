@@ -28,4 +28,15 @@ describe("Toast (design.md §8.2)", () => {
     render(<Toast>Copied</Toast>);
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
+
+  it("carries the Figma inline action slot", () => {
+    render(
+      <Toast kind="info" action={<button>Download</button>}>
+        Report ready
+      </Toast>,
+    );
+    expect(
+      screen.getByRole("button", { name: "Download" }),
+    ).toBeInTheDocument();
+  });
 });

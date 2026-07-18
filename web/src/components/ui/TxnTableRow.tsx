@@ -17,6 +17,7 @@ import {
   Pencil,
   Split,
 } from "lucide-react";
+import dayjs from "dayjs";
 import type { TxnEntry, TxnSource } from "@/models";
 import { cn } from "@/lib/cn";
 import AnomalyBadge from "./AnomalyBadge";
@@ -94,24 +95,40 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         "transition-colors duration-[60ms] ease-standard",
         density === "compact" ? "h-[32px]" : "h-[44px]",
         "hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
-        selected && "bg-accent/5",
-        stagedDuplicate && "opacity-60",
+        // Figma: selected = accent tint row; staged-duplicate = warn tint.
+        selected && "bg-accent/[0.08]",
+        stagedDuplicate && "bg-warn/[0.08]",
       )}
     >
-      {onSelectedChange ? (
-        <Checkbox
-          checked={selected}
-          onCheckedChange={(next) => onSelectedChange(next === true)}
-        />
-      ) : null}
-      <span className="w-20 shrink-0 tabular-nums text-text-2">
-        {txn.txn_date}
+      <Checkbox
+        checked={selected}
+        onCheckedChange={
+          onSelectedChange
+            ? (next) => onSelectedChange(next === true)
+            : undefined
+        }
+      />
+      {/* Figma date column: short date, Table/13, text-2 (e.g. "12 Jan"). */}
+      <span className="w-14 shrink-0 whitespace-nowrap tabular-nums text-text-2">
+        {dayjs(txn.txn_date).isValid()
+          ? dayjs(txn.txn_date).format("D MMM")
+          : txn.txn_date}
       </span>
+      {/* Figma: source icon sits between date and description. */}
+      <SourceIcon
+        aria-label={sourceLabel}
+        className="h-3.5 w-3.5 shrink-0 text-text-2"
+      />
       <span className="min-w-0 flex-1 truncate">{txn.description}</span>
       {stagedDuplicate ? (
-        <span className="rounded border border-warn/40 bg-warn/10 px-1.5 text-[11px] font-medium text-warn">
-          duplicate
-        </span>
+        // Figma staged-duplicate: the inline Duplicate anomaly pill.
+        <AnomalyBadge type="duplicate_charge" severity="info" />
+      ) : anomaly ? (
+        <AnomalyBadge
+          type={anomaly.rule_id}
+          severity={anomaly.severity}
+          variant="inline"
+        />
       ) : null}
       <CategoryChip
         category={category}
@@ -126,25 +143,13 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           withIcon={false}
         />
       </span>
-      <span className="w-6 shrink-0">
-        {anomaly ? (
-          <AnomalyBadge
-            type={anomaly.rule_id}
-            severity={anomaly.severity}
-            variant="inline"
-          />
-        ) : null}
-      </span>
-      <SourceIcon
-        aria-label={sourceLabel}
-        className="h-3.5 w-3.5 shrink-0 text-text-2"
-      />
 
       {/* MI-6: absolutely positioned actions — hover reveal, no layout shift. */}
       <span
         data-testid="row-actions"
         className={cn(
-          "absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded border border-border bg-bg px-1 py-0.5 shadow-sm",
+          // Figma hover: bare icons over the row's hover surface.
+          "absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 bg-bg-elev pl-2",
           "opacity-0 transition-opacity duration-[60ms] ease-standard",
           "group-hover:opacity-100 group-focus-within:opacity-100",
         )}

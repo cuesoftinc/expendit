@@ -23,15 +23,18 @@ describe("RemitToCard (design.md §8.2)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("(LIRS)")).toBeInTheDocument();
     expect(screen.getByText("₦342,500.75")).toHaveClass("tabular-nums");
-    expect(screen.getByText("due 2027-03-31")).toBeInTheDocument();
-    expect(screen.getByText("eTax portal")).toBeInTheDocument();
-    expect(screen.getByText("Bank branch")).toBeInTheDocument();
+    // Figma: "Amount due" label + "Due 31 Mar 2027" + one "Pay via" chip.
+    expect(screen.getByText("Amount due")).toBeInTheDocument();
+    expect(screen.getByText("Due 31 Mar 2027")).toBeInTheDocument();
+    expect(
+      screen.getByText("Pay via eTax portal / Bank branch"),
+    ).toBeInTheDocument();
   });
 
   it("covers pit / cit / vat kinds", () => {
     const kinds = [
-      ["pit", "Personal income tax"],
-      ["cit", "Company income tax"],
+      ["pit", "Personal Income Tax"],
+      ["cit", "Companies Income Tax + Development Levy"],
       ["vat", "VAT"],
     ] as const;
     for (const [kind, label] of kinds) {

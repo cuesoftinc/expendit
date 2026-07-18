@@ -38,7 +38,7 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
           </h3>
           <ul className="space-y-2">
             {column.links.map((link) => (
-              <li key={link.href}>
+              <li key={link.label}>
                 <a
                   href={link.href}
                   className="rounded text-[13px] text-text transition-colors duration-fast ease-standard hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"

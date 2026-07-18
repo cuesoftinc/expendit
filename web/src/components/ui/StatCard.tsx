@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { prefersReducedMotion } from "@/lib/use-reduced-motion";
 import Skeleton from "./Skeleton";
@@ -21,6 +21,8 @@ export interface StatCardProps {
   format?: (value: number) => string;
   /** Delta vs previous period, as a fraction (0.042 = +4.2%). */
   delta?: number;
+  /** Comparison caption after the delta (Figma: "vs Jun"). */
+  deltaCaption?: string;
   /** Sparkline series (bespoke SVG; omit to hide). */
   sparkline?: number[];
   loading?: boolean;
@@ -98,18 +100,21 @@ export const StatCard: React.FC<StatCardProps> = ({
   value,
   format = (val) => Math.round(val).toLocaleString("en-NG"),
   delta,
+  deltaCaption,
   sparkline,
   loading = false,
   className,
 }) => {
   const shown = useCountUp(value);
 
+  // Figma card: white bg + hairline border, 16px pad, 8px stack gap.
+  const card = "flex flex-col gap-2 rounded border border-border bg-bg p-4";
+
   if (loading) {
     return (
-      <div
-        data-loading="true"
-        className={cn("rounded border border-border bg-bg-elev p-4", className)}
-      >
+      <div data-loading="true" className={cn(card, className)}>
+        {/* Figma loading state keeps the label; value + meta shimmer. */}
+        <div className="text-[13px] leading-4 text-text-2">{label}</div>
         <Skeleton variant="stat" />
       </div>
     );
@@ -117,36 +122,42 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   const positive = (delta ?? 0) >= 0;
   return (
-    <div
-      className={cn("rounded border border-border bg-bg-elev p-4", className)}
-    >
-      <div className="text-[13px] font-medium text-text-2">{label}</div>
-      <div className="mt-1 flex items-end justify-between gap-3">
-        <span className="text-2xl font-semibold tabular-nums text-text">
-          {format(shown)}
-        </span>
-        {sparkline && sparkline.length > 1 ? (
-          <Sparkline series={sparkline} positive={positive} />
-        ) : null}
-      </div>
-      {delta !== undefined ? (
-        <span
-          data-testid="stat-delta"
-          className={cn(
-            "mt-2 inline-flex items-center gap-0.5 rounded border px-1.5 py-0 text-[11px] font-medium tabular-nums",
-            positive
-              ? "border-income/40 bg-income/10 text-income"
-              : "border-expense/40 bg-expense/10 text-expense",
-          )}
-        >
-          {positive ? (
-            <ArrowUpRight aria-hidden className="h-3 w-3" />
+    <div className={cn(card, className)}>
+      <div className="text-[13px] leading-4 text-text-2">{label}</div>
+      {/* Figma value: Display/32 Bold. */}
+      <span className="text-[32px] font-bold leading-[38px] tracking-[-0.01em] tabular-nums text-text">
+        {format(shown)}
+      </span>
+      {delta !== undefined || (sparkline && sparkline.length > 1) ? (
+        <div className="flex w-full items-center justify-between gap-3">
+          {delta !== undefined ? (
+            <span
+              data-testid="stat-delta"
+              className={cn(
+                // Figma delta pill: 12% tint, no border, Table/13 Medium.
+                "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5",
+                "text-[13px] font-medium leading-4 tabular-nums",
+                positive
+                  ? "bg-income/[0.12] text-income"
+                  : "bg-expense/[0.12] text-expense",
+              )}
+            >
+              {positive ? (
+                <TrendingUp aria-hidden className="h-3 w-3" />
+              ) : (
+                <TrendingDown aria-hidden className="h-3 w-3" />
+              )}
+              {positive ? "+" : "−"}
+              {Math.abs(delta * 100).toFixed(1)}%
+              {deltaCaption ? <span>{deltaCaption}</span> : null}
+            </span>
           ) : (
-            <ArrowDownRight aria-hidden className="h-3 w-3" />
+            <span />
           )}
-          {positive ? "+" : "−"}
-          {Math.abs(delta * 100).toFixed(1)}%
-        </span>
+          {sparkline && sparkline.length > 1 ? (
+            <Sparkline series={sparkline} positive={positive} />
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

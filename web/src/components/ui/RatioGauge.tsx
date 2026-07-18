@@ -1,10 +1,13 @@
 "use client";
 
 /**
- * RatioGauge — design.md §3/§8.2 (MI-8): bespoke SVG semicircle gauge +
- * value + benchmark band. Status healthy / warning / critical / n-a
- * ("missing input" — band off, per the as-built note). Needle eases to
- * value 600ms cubic, benchmark band fades in after; hover/focus shows the
+ * RatioGauge — design.md §3/§8.2 (MI-8), Figma Stage 2 (node 66:321):
+ * white card · label top-left · bespoke SVG semicircle (12px track, value
+ * arc in the status color, 3px benchmark band floating outside at 45%
+ * income) · Display/32 value · delta line ("+0.21 vs Q1") · caption
+ * (benchmark or formula). Status healthy / warning / critical / n-a
+ * ("missing input" — band off, value dash). The value arc eases to its
+ * value over 600ms, the band fades in after; hover/focus shows the
  * formula tooltip; reduced motion jump-cuts (design.md §5).
  */
 
@@ -26,7 +29,12 @@ export interface RatioGaugeProps {
   status: RatioStatus;
   /** Benchmark band in the value domain; off for status="na". */
   band?: { from: number; to: number } | null;
-  /** MI-8 formula tooltip content. */
+  /** Delta vs previous period (Figma: "+0.21 vs Q1"). */
+  delta?: number;
+  deltaCaption?: string;
+  /** Caption line; defaults to the benchmark range when band is on. */
+  caption?: string;
+  /** MI-8 formula tooltip content (also the band-off caption). */
   formula?: string;
   /** n/a reason ("missing input"). */
   naReason?: string | null;
@@ -40,27 +48,27 @@ const STATUS_STROKE: Record<RatioStatus, string> = {
   na: "stroke-border",
 };
 
-const STATUS_TEXT: Record<RatioStatus, string> = {
-  healthy: "text-income",
-  warning: "text-warn",
-  critical: "text-expense",
-  na: "text-text-2",
-};
+// Figma gauge geometry (node 66:266): 182×100 viewBox, centre (88,88),
+// track r=70 / 12px round caps, band r=81 / 3px at 45% income.
+const CX = 88;
+const CY = 88;
+const R = 70;
+const BAND_R = 81;
 
-const CX = 80;
-const CY = 72;
-const R = 60;
-
-/** Angle in degrees for a domain fraction: 180° (left) → 0° (right). */
+/** Point on the arc for a domain fraction: 180° (left) → 0° (right). */
 const arcPoint = (fraction: number, radius = R): [number, number] => {
   const angle = Math.PI * (1 - fraction);
   return [CX + radius * Math.cos(angle), CY - radius * Math.sin(angle)];
 };
 
-const arcPath = (fromFraction: number, toFraction: number): string => {
-  const [x1, y1] = arcPoint(fromFraction);
-  const [x2, y2] = arcPoint(toFraction);
-  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${R} ${R} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+const arcPath = (
+  fromFraction: number,
+  toFraction: number,
+  radius = R,
+): string => {
+  const [x1, y1] = arcPoint(fromFraction, radius);
+  const [x2, y2] = arcPoint(toFraction, radius);
+  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${radius} ${radius} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
 };
 
 const clamp01 = (fraction: number): number =>
@@ -74,6 +82,9 @@ export const RatioGauge: React.FC<RatioGaugeProps> = ({
   max = 3,
   status,
   band = null,
+  delta,
+  deltaCaption,
+  caption,
   formula,
   naReason = null,
   className,
@@ -84,69 +95,72 @@ export const RatioGauge: React.FC<RatioGaugeProps> = ({
     ? 0
     : clamp01((Number(value) - min) / (max - min || 1));
 
-  // MI-8: needle starts at rest and eases to the value (600ms cubic);
+  // MI-8: the value arc starts at rest and eases to the value (600ms);
   // reduced motion jump-cuts straight to the target.
-  const [needleFraction, setNeedleFraction] = useState(
-    reduced ? targetFraction : 0,
-  );
+  const [arcFraction, setArcFraction] = useState(reduced ? targetFraction : 0);
   useEffect(() => {
-    // One frame later in both modes; the reduced-motion jump-cut comes
-    // from motion-reduce:transition-none on the needle/arc.
-    const frame = requestAnimationFrame(() =>
-      setNeedleFraction(targetFraction),
-    );
+    const frame = requestAnimationFrame(() => setArcFraction(targetFraction));
     return () => cancelAnimationFrame(frame);
   }, [targetFraction]);
 
-  const needleAngle = -90 + needleFraction * 180;
+  const deltaPositive = (delta ?? 0) >= 0;
+  const captionText =
+    caption ??
+    (band && !isNa ? `Benchmark ${band.from}–${band.to}` : (formula ?? null));
 
   const gauge = (
     <figure
       data-status={status}
       className={cn(
-        "inline-flex flex-col items-center rounded border border-border bg-bg-elev p-4",
+        "inline-flex w-[240px] flex-col items-center gap-1 rounded border border-border bg-bg p-4",
         className,
       )}
     >
+      <figcaption className="w-full text-left text-[13px] font-medium leading-4 text-text-2">
+        {label}
+      </figcaption>
       <svg
-        width="160"
-        height="88"
-        viewBox="0 0 160 88"
+        width="182"
+        height="100"
+        viewBox="0 0 182 100"
         role="img"
         aria-label={`${label}: ${isNa ? (naReason ?? "n/a — missing input") : (display ?? String(value))}`}
+        className="overflow-visible"
       >
         {/* Track */}
         <path
           d={arcPath(0, 1)}
           fill="none"
-          strokeWidth="8"
+          strokeWidth="12"
           strokeLinecap="round"
           className="stroke-border"
         />
-        {/* Benchmark band — fades in after the needle settles (MI-8). */}
+        {/* Benchmark band — floats outside; fades in after the arc (MI-8). */}
         {band && !isNa ? (
           <path
             data-testid="gauge-band"
             d={arcPath(
               clamp01((band.from - min) / (max - min || 1)),
               clamp01((band.to - min) / (max - min || 1)),
+              BAND_R,
             )}
             fill="none"
-            strokeWidth="8"
+            strokeWidth="3"
             strokeLinecap="round"
             className={cn(
-              "stroke-income/40",
+              "stroke-income/45",
               !reduced &&
                 "animate-fade-in [animation-delay:600ms] motion-reduce:animate-none",
             )}
           />
         ) : null}
-        {/* Value arc */}
+        {/* Value arc — eases to the value (MI-8). */}
         {!isNa ? (
           <path
-            d={arcPath(0, Math.max(0.001, needleFraction))}
+            data-testid="gauge-value-arc"
+            d={arcPath(0, Math.max(0.001, arcFraction))}
             fill="none"
-            strokeWidth="8"
+            strokeWidth="12"
             strokeLinecap="round"
             className={cn(
               STATUS_STROKE[status],
@@ -154,45 +168,41 @@ export const RatioGauge: React.FC<RatioGaugeProps> = ({
             )}
           />
         ) : null}
-        {/* Needle */}
-        <g
-          data-testid="gauge-needle"
-          style={{
-            transform: `rotate(${needleAngle}deg)`,
-            transformOrigin: `${CX}px ${CY}px`,
-          }}
-          className={cn(
-            "transition-transform duration-[600ms] ease-standard",
-            "motion-reduce:transition-none",
-          )}
-        >
-          <line
-            x1={CX}
-            y1={CY}
-            x2={CX}
-            y2={CY - R + 14}
-            strokeWidth="2"
-            className={isNa ? "stroke-border" : "stroke-text"}
-          />
-        </g>
-        <circle cx={CX} cy={CY} r="3.5" className="fill-text" />
       </svg>
-      <figcaption className="mt-1 text-center">
+      {isNa ? (
+        // Figma n-a: a quiet dash in the value slot.
+        <span
+          aria-hidden
+          className="flex h-[38px] items-center"
+          data-testid="gauge-na-dash"
+        >
+          <span className="h-1 w-6 rounded-full bg-text-2" />
+        </span>
+      ) : (
+        <div className="text-[32px] font-bold leading-[38px] tracking-[-0.01em] tabular-nums text-text">
+          {display ?? String(value)}
+        </div>
+      )}
+      {!isNa && delta !== undefined ? (
         <div
+          data-testid="gauge-delta"
           className={cn(
-            "text-xl font-semibold tabular-nums",
-            STATUS_TEXT[status],
+            "text-[13px] font-medium leading-4 tabular-nums",
+            deltaPositive ? "text-income" : "text-expense",
           )}
         >
-          {isNa ? "n/a" : (display ?? String(value))}
+          {deltaPositive ? "+" : "−"}
+          {Math.abs(delta)}
+          {deltaCaption ? ` ${deltaCaption}` : null}
         </div>
-        <div className="text-[13px] text-text-2">{label}</div>
-        {isNa ? (
-          <div className="mt-0.5 text-[11px] text-text-2">
-            {naReason ?? "missing input"}
-          </div>
-        ) : null}
-      </figcaption>
+      ) : null}
+      {isNa ? (
+        <div className="text-[13px] leading-4 text-text-2">
+          {naReason ?? "missing input"}
+        </div>
+      ) : captionText ? (
+        <div className="text-[13px] leading-4 text-text-2">{captionText}</div>
+      ) : null}
     </figure>
   );
 

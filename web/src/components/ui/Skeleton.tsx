@@ -49,10 +49,11 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     );
   }
   if (variant === "stat") {
+    // Figma StatCard loading: value bar then meta bar.
     return (
       <div data-testid="skeleton-stat" className={cn("space-y-2", className)}>
-        <span className={cn(shimmer, "block h-3 w-24")} />
         <span className={cn(shimmer, "block h-7 w-36")} />
+        <span className={cn(shimmer, "block h-3 w-24")} />
       </div>
     );
   }

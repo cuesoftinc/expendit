@@ -29,8 +29,12 @@ const initials = (name: string): string =>
 export const Avatar: React.FC<AvatarProps> = ({ name, src, size = "sm" }) => (
   <span
     className={cn(
-      "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full",
-      "border border-border bg-bg-elev font-medium text-text-2",
+      "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-medium",
+      // Figma: initials disc = 15% accent tint + accent text (no border);
+      // image/icon fallbacks stay neutral.
+      !src && name
+        ? "bg-accent/[0.15] text-accent"
+        : "border border-border bg-bg-elev text-text-2",
       SIZE_CLASSES[size],
     )}
   >

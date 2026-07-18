@@ -27,7 +27,8 @@ const category = { id: "cat-1", name: "Transport", color: "#2456D6" };
 describe("TxnTableRow (design.md §8.2, MI-6)", () => {
   it("renders date, description, chip, money, anomaly, and source", () => {
     render(<TxnTableRow txn={txn} category={category} />);
-    expect(screen.getByText("2026-06-14")).toBeInTheDocument();
+    // Figma date column: short date ("14 Jun"), single line.
+    expect(screen.getByText("14 Jun")).toBeInTheDocument();
     expect(screen.getByText("Fuel — Lekki toll")).toBeInTheDocument();
     expect(screen.getByText("Transport")).toBeInTheDocument();
     expect(screen.getByText("−₦18,000.00")).toBeInTheDocument();
@@ -65,7 +66,9 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
       "data-state",
       "staged-duplicate",
     );
-    expect(screen.getByText("duplicate")).toBeInTheDocument();
+    // Figma staged-duplicate: warn-tinted row + inline Duplicate pill.
+    expect(screen.getByRole("row")).toHaveClass("bg-warn/[0.08]");
+    expect(screen.getByText("Duplicate")).toBeInTheDocument();
   });
 
   it("keyboard: Enter opens, `e` edits (design.md §5)", async () => {

@@ -33,7 +33,8 @@ export const NavItem: React.FC<NavItemProps> = ({
 }) => {
   const collapsed = useContext(NavCollapsedContext);
   const className = cn(
-    "group/nav-item relative flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-[13px] font-medium",
+    // text-left: buttons default to centered text, the kit is left-aligned.
+    "group/nav-item relative flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-left text-[13px] font-medium",
     "transition-colors duration-fast ease-standard",
     active
       ? "bg-accent/10 text-accent"
