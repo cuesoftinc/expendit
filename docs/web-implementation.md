@@ -131,7 +131,13 @@ currency from org settings.
 ## 4. Route map — pages.md Part A/B → app routes
 
 pages.md names the Part B routes directly in its screen headers — the map
-below restates them and resolves the drill-ins **[Proposed]**. Detail views
+below restates them and resolves the drill-ins. Route shape
+**[Decided 2026-07-18, route canon]** (user directive, canonical across the
+ecosystem): `/` is the public home, `/signin` is the only auth route, and
+**every app surface nests under `/dashboard/<area>`** — the earlier flat
+proposals (`/transactions`, `/imports`, …) are superseded by the nested
+rows below. Legacy flat routes stay untouched until their §8 quarantine
+step. Detail views
 open in the Inspector (deep-linkable `?record=`, MI-11), not routes —
 tables never navigate away for a single record (design.md §2 layout rule);
 the ⌘K palette (MI-1) is a global overlay, not a route.
@@ -142,20 +148,22 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | flows/auth.md §1 | `/signin` | Single auth screen — GoogleAuthButton + legal links (the one X-1 auth screen; Stage-4 `signin` template) |
 | B0 | `/onboarding` | First-run: org create (personal/company kind picker) + AI-consent sheet |
 | B1 | `/dashboard` | Overview (StatCards, cash-flow chart, category donut, anomaly feed, latest txns) |
-| B2 | `/transactions` | Ledger (full TxnTable, filters, saved views, inline edit, inspector) |
-| B3 | `/imports` · `/imports/{job_id}` **[Proposed]** | Import hub + staged-review job detail |
-| B4 | `/accounts` | Linked bank accounts (LinkAccountCard grid, MI-9 flow) |
-| B5 | `/reports` | Reports & downloads (artifact history, MI-14) |
-| B6 | `/company` · `/company/statements/{id}` **[Proposed]** | Company financials — statements list + upload; mapping review & statement view drill-in |
-| B6b | `/company/ratios` | Ratio grid (RatioGauge groups, trends; traces open in the Inspector) |
-| B7 | `/taxes` | Tax center (profile, calendar, estimates with RemitToCard, filing history) |
-| B7b | `/taxes/file` | Filing wizard (MI-10) |
-| B8 | `/categories` | Categories (CRUD, color, merge) |
-| B9 | `/settings` | Settings incl. members/roles, org profile, rights & data screens (export-all, purge MI-15) |
+| B2 | `/dashboard/transactions` | Ledger (full TxnTable, filters, saved views, inline edit, inspector) |
+| B3 | `/dashboard/imports` · `/dashboard/imports/{job_id}` | Import hub + staged-review job detail |
+| B4 | `/dashboard/accounts` | Linked bank accounts (LinkAccountCard grid, MI-9 flow) |
+| B5 | `/dashboard/reports` | Reports & downloads (artifact history, MI-14) |
+| B6 | `/dashboard/company` · `/dashboard/company/statements/{id}` | Company financials — statements list + upload; mapping review & statement view drill-in |
+| B6b | `/dashboard/company/ratios` | Ratio grid (RatioGauge groups, trends; traces open in the Inspector) |
+| B7 | `/dashboard/taxes` | Tax center (profile, calendar, estimates with RemitToCard, filing history) |
+| B7b | `/dashboard/taxes/file` | Filing wizard (MI-10) |
+| B8 | `/dashboard/categories` | Categories (CRUD, color, merge) |
+| B9 | `/dashboard/settings` | Settings incl. members/roles, org profile, rights & data screens (export-all, purge MI-15) |
 
 Part C (mobile) has no web routes — it is a later phase (§8). Legacy route
-collisions and renames (`/history`+`/expense`+`/income` → `/transactions`,
-`/import` → `/imports`) are handled in §8.
+folds and renames (`/history`+`/expense`+`/income` →
+`/dashboard/transactions`, `/import` → `/dashboard/imports`) are handled
+in §8; under the route canon only `/` , `/signin`, and `/dashboard` itself
+collide with legacy paths.
 
 ## 5. TEST_MODE contract
 
@@ -285,17 +293,18 @@ PR:
 | `signin` · `signup` · `forgot-password` · `change-password` | `/signin` Google-only + redirects (above) | W0 |
 | `/` (current marketing home) | Part A Brex-editorial home | W2 |
 | `dashboard` | B1 `/dashboard` | W3 |
-| `expense` · `income` · `history` | B2 `/transactions` — three legacy screens fold into one ledger | W3 |
-| `import` | B3 `/imports` (route renamed) | W3 |
-| `reports` | B5 `/reports` | W3 |
-| `categories` | B8 `/categories` | W3 |
-| `settings` | B9 `/settings` | W3 |
+| `expense` · `income` · `history` | B2 `/dashboard/transactions` — three legacy screens fold into one ledger | W3 |
+| `import` | B3 `/dashboard/imports` (route renamed + nested) | W3 |
+| `reports` | B5 `/dashboard/reports` (nested — route canon, §4) | W3 |
+| `categories` | B8 `/dashboard/categories` (nested — route canon, §4) | W3 |
+| `settings` | B9 `/dashboard/settings` (nested — route canon, §4) | W3 |
 
-New routes with no legacy predecessor (`/onboarding`, `/accounts`,
-`/company`, `/taxes`) land greenfield at W3. Colliding routes (`/signin`,
-`/dashboard`, `/reports`, `/categories`, `/settings`) are replaced in place
-— quarantine and replacement land in the same stage PR; retirement PRs are
-always separate.
+New routes with no legacy predecessor (`/onboarding`,
+`/dashboard/accounts`, `/dashboard/company`, `/dashboard/taxes`) land
+greenfield at W3. Under the §4 route canon only `/signin` and `/dashboard`
+itself are replaced in place (the nested areas no longer collide with the
+legacy flat paths) — quarantine and replacement land in the same stage PR;
+retirement PRs are always separate.
 
 Mechanics: moving out of `src/app/` removes routing by construction (App
 Router is filesystem-based); `src/legacy/` is excluded from the TS build

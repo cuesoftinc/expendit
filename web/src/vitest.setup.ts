@@ -38,6 +38,24 @@ class MemoryStorage implements Storage {
   }
 }
 
+/**
+ * jsdom ships no ResizeObserver; Radix primitives (tooltip/popover) size
+ * their content with it. A no-op implementation is enough for unit tests.
+ */
+class NoopResizeObserver implements ResizeObserver {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+
+if (typeof globalThis.ResizeObserver === "undefined") {
+  Object.defineProperty(globalThis, "ResizeObserver", {
+    value: NoopResizeObserver,
+    writable: true,
+    configurable: true,
+  });
+}
+
 const globals = globalThis as { localStorage?: Storage };
 if (
   typeof globals.localStorage === "undefined" ||
