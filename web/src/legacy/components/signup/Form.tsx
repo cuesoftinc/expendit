@@ -1,15 +1,16 @@
 "use client";
 import React, { Fragment, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation"; // ADD THIS
 import styles from "./styles";
-import Input from "../signup/Input";
+import Input from "./Input";
 import LoaderSpinner from "../helpers/LoaderSpinner";
 import Notification from "../helpers/Notification";
-import { useSignInCustomState } from "./states";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSignUpCustomState } from "./states";
 
 const Form = () => {
-  const router = useRouter();
+  const router = useRouter(); // ADD THIS
+
   const {
     form,
     formError,
@@ -17,8 +18,8 @@ const Form = () => {
     formLoading,
     handleChange,
     handleSubmit,
-    setFormError,
-  } = useSignInCustomState();
+    setFormError, // ADD THIS
+  } = useSignUpCustomState();
 
   const handleGoogle = (response: any) => {
     const token = response.credential;
@@ -30,8 +31,8 @@ const Form = () => {
       },
       body: JSON.stringify({ token }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.user) {
           const jwt = data.user.token;
           const user_id = data.user.user_id;
@@ -42,7 +43,7 @@ const Form = () => {
           router.push("/dashboard");
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Google login error:", err);
         setFormError("Google sign in failed, try again");
       });
@@ -67,7 +68,7 @@ const Form = () => {
           theme: "outline",
           size: "large",
           width: "100%",
-        }
+        },
       );
     };
   }, []);
@@ -77,7 +78,24 @@ const Form = () => {
       {formError !== "" && <Notification msg={formError} type="error" />}
       {formSuccess !== "" && <Notification msg={formSuccess} type="success" />}
       <form className={`${styles.formCont}`} onSubmit={handleSubmit}>
-        <p className={styles.subHead}>Login</p>
+        <p className={styles.subHead}>Create your account</p>
+
+        <Input
+          label="First Name"
+          name="firstName"
+          type="text"
+          value={form.firstName}
+          placeholder="Enter your Firstname"
+          handleChange={handleChange}
+        />
+        <Input
+          label="Last Name"
+          name="lastName"
+          type="text"
+          value={form.lastName}
+          placeholder="Enter your Lastname"
+          handleChange={handleChange}
+        />
         <Input
           label="Email"
           name="email"
@@ -94,14 +112,23 @@ const Form = () => {
           placeholder="Enter your Password"
           handleChange={handleChange}
         />
-        <div className={styles.checkboxWrapper}>
-          <p className={styles.checkbox}>
-            <input className="mr-2" type="checkbox" />
-            Remember me
-          </p>
-          <Link href="/forgot-password" className={styles.link}>
-            Forgot password?
-          </Link>
+        <Input
+          label="Phone Number"
+          name="phoneNumber"
+          type="text"
+          value={form.phoneNumber}
+          placeholder="Enter your Phone Number"
+          handleChange={handleChange}
+        />
+
+        <div className="w-full">
+          <div className={`${styles.check} mt-8`}>
+            <input type="checkbox" className={styles.checkbox} />
+            <p>
+              By signing up, I agree to Expendit&apos;s &nbsp;
+              <span className={styles.links}>terms & conditions</span>
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center my-4">
@@ -110,7 +137,7 @@ const Form = () => {
           <div className="flex-1 h-px bg-gray-300"></div>
         </div>
 
-        <div className="w-full mb-4">
+        <div className="w-full mt-6">
           <div id="googleBtn"></div>
         </div>
 
@@ -119,16 +146,16 @@ const Form = () => {
             {formLoading ? (
               <LoaderSpinner style="spin" variant="spin-small" />
             ) : (
-              "Sign in"
+              "Sign up"
             )}
           </button>
         </div>
-        <p className={styles.signUp}>
-          New to Expendit?{" "}
-          <Link href="/signup" className={styles.link}>
-            Create an account
+        <div className="mt-3 text-sm">
+          Already have an Account? &nbsp;
+          <Link href="/signin" className={styles.links} onClick={() => {}}>
+            Log in
           </Link>
-        </p>
+        </div>
       </form>
     </Fragment>
   );

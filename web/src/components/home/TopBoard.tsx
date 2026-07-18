@@ -52,7 +52,7 @@ const TopBoard = () => {
     setTotalBalance(presentIncome - totalExpense);
   }, [totalExpense, presentIncome]);
 
-  var settings = {
+  const settings = {
     dots: false,
     infinite: true,
     slidesToShow: 3,

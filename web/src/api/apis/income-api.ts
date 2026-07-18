@@ -59,17 +59,14 @@ export const getIncomeApi = async () => {
     );
 
     if (data) {
-
       return data;
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 };
 
 export const getIncomeListApi = async () => {
   try {
     const { data } = await API.get("/income");
     if (data) return data;
-  } catch (error) {
-  }
+  } catch (error) {}
 };

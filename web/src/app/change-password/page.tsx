@@ -1,17 +1,9 @@
-import React from "react";
-import { PublicRoute } from "@/components/helpers/RouteProtection";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Expendit | New Password",
-  description: "Expendit New Password page",
+// X-1: Google-only auth — there are no passwords to change; the route
+// redirects to the single auth screen (flows/auth.md §1).
+const ChangePassword = () => {
+  redirect("/signin");
 };
 
-const Page = () => {
-  return (
-    <PublicRoute>
-      <div>Hello new password alone</div>
-    </PublicRoute>
-  );
-};
-
-export default Page;
+export default ChangePassword;

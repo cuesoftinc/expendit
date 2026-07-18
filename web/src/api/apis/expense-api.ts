@@ -74,8 +74,7 @@ export const getExpenseApi = async () => {
     if (data) {
       return data;
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 };
 
 export const getMonthlyExpenseApi = async () => {
@@ -85,8 +84,7 @@ export const getMonthlyExpenseApi = async () => {
     if (data) {
       return data;
     }
-  } catch (error) {
-  }
+  } catch (error) {}
 };
 
 export const deleteExpenseApi = async () => {};

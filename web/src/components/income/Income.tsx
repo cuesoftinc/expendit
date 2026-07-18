@@ -24,7 +24,10 @@ const Index = () => {
     });
     const raw = getLocalStorageItem("Expendit-userID");
     const userID = raw ? JSON.parse(raw) : null;
-    if (!userID) { setSummaryLoading(false); return; }
+    if (!userID) {
+      setSummaryLoading(false);
+      return;
+    }
     API.get(`/ai/summary/${userID}`)
       .then((res) => setAiSummary(res.data?.summary || ""))
       .catch(() => {})
@@ -48,15 +51,23 @@ const Index = () => {
       {/* AI Insights Card */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-green-600 font-semibold text-sm">AI Insights</span>
-          <span className="text-xs bg-green-100 text-green-500 px-2 py-0.5 rounded-full">Last 3 months</span>
+          <span className="text-green-600 font-semibold text-sm">
+            AI Insights
+          </span>
+          <span className="text-xs bg-green-100 text-green-500 px-2 py-0.5 rounded-full">
+            Last 3 months
+          </span>
         </div>
         {summaryLoading ? (
-          <p className="text-sm text-slate-400 animate-pulse">Analysing your finances...</p>
+          <p className="text-sm text-slate-400 animate-pulse">
+            Analysing your finances...
+          </p>
         ) : aiSummary ? (
           <p className="text-sm text-slate-700 leading-relaxed">{aiSummary}</p>
         ) : (
-          <p className="text-sm text-slate-400">No data yet — import a bank statement to get insights.</p>
+          <p className="text-sm text-slate-400">
+            No data yet — import a bank statement to get insights.
+          </p>
         )}
       </div>
 
@@ -106,7 +117,9 @@ const Index = () => {
         <div className="flex-1">
           <h1 className={styles.header}>Recent income</h1>
           {incomeList.length === 0 ? (
-            <p className="text-sm text-slate-400 mt-4">No income recorded yet.</p>
+            <p className="text-sm text-slate-400 mt-4">
+              No income recorded yet.
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">

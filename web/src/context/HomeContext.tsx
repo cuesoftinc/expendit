@@ -114,8 +114,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
             }
           }
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     }
 
     getInitialData();
@@ -169,8 +168,7 @@ export const HomeProvider = ({ children }: HomeProviderProps) => {
             }
           }
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     }
 
     getInitialReportsData();

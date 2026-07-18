@@ -3,7 +3,10 @@
 import { useState, ChangeEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useHomeContext } from "@/context";
-import { postEmailApi, postNewPasswordApi } from "@/api/apis/forgot-password-api";
+import {
+  postEmailApi,
+  postNewPasswordApi,
+} from "@/api/apis/forgot-password-api";
 import { PasswordResetProps, forgotPasswordProps } from "./types";
 
 export const useForgotPasswordCustomState = () => {

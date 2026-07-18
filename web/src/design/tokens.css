@@ -1,0 +1,95 @@
+/**
+ * Expendit design tokens — docs/design.md §2 (Foundations), verbatim.
+ *
+ * Source of truth: the Figma `expendit/tokens` variable collection
+ * (design.md §7) — this file mirrors it; the two must never diverge.
+ *
+ * Themes: light values on :root; dark values under [data-theme="dark"] and,
+ * for OS preference without a manual override, under prefers-color-scheme.
+ * Components bind tokens only — no raw hex outside this file.
+ */
+
+:root {
+  /* ---- Color (light) ---------------------------------------------- */
+  --color-bg: #ffffff; /* canvas */
+  --color-bg-editorial: #0c0c0e; /* hero/dark marketing sections (both themes) */
+  --color-bg-elev: #f7f7f8; /* cards, table headers */
+  --color-border: #e5e5e7; /* hairlines */
+  --color-text: #111113; /* primary */
+  --color-text-2: #6e6e76; /* secondary */
+  --color-accent: #f46a1f; /* the Expendit orange: primary CTAs, active nav, focus rings */
+  --color-on-accent: #ffffff; /* text/icons on accent & destructive fills (both modes) */
+  --color-income: #1b7f4b; /* inflows, positive deltas */
+  --color-expense: #c6373c; /* outflows, negative deltas */
+  --color-warn: #b26a00; /* anomalies, tax deadlines */
+  --color-info: #2456d6; /* AI/insight chips */
+
+  /* ---- Spacing (4px base grid — no off-scale values) --------------- */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* ---- Radii ------------------------------------------------------- */
+  --radius: 6px;
+
+  /* ---- Motion durations -------------------------------------------- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-entrance: 250ms;
+
+  /* ---- Motion easing ------------------------------------------------ */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---- Z-index layers (nothing outside these six) ------------------- */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-overlay: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+
+  /* ---- Table density row heights (design.md §2 product note) -------- */
+  --row-compact: 32px;
+  --row-comfortable: 44px;
+}
+
+/* Dark theme values (design.md §2, Dark column). */
+[data-theme="dark"] {
+  --color-bg: #0c0c0e;
+  --color-bg-editorial: #0c0c0e;
+  --color-bg-elev: #17171a;
+  --color-border: #26262b;
+  --color-text: #f5f5f6;
+  --color-text-2: #a0a0a8;
+  --color-accent: #f46a1f;
+  --color-on-accent: #ffffff;
+  --color-income: #34c77b;
+  --color-expense: #ff6b6e;
+  --color-warn: #ffb020;
+  --color-info: #7da2ff;
+}
+
+/* OS dark preference applies unless a manual light override is set. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #0c0c0e;
+    --color-bg-editorial: #0c0c0e;
+    --color-bg-elev: #17171a;
+    --color-border: #26262b;
+    --color-text: #f5f5f6;
+    --color-text-2: #a0a0a8;
+    --color-accent: #f46a1f;
+    --color-on-accent: #ffffff;
+    --color-income: #34c77b;
+    --color-expense: #ff6b6e;
+    --color-warn: #ffb020;
+    --color-info: #7da2ff;
+  }
+}

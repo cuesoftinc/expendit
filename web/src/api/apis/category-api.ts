@@ -42,8 +42,7 @@ export const getCategoryApi = async () => {
   try {
     const { data } = await API.get("/category");
     return data;
-  } catch (error) {
-  }
+  } catch (error) {}
 };
 
 export const deleteCategoryApi = async ({

@@ -34,7 +34,10 @@ const ImportCard = () => {
         </div>
 
         {/* Right: big icon */}
-        <MdOutlineUploadFile className="text-white/30 shrink-0 hidden sm:block" style={{ fontSize: 140 }} />
+        <MdOutlineUploadFile
+          className="text-white/30 shrink-0 hidden sm:block"
+          style={{ fontSize: 140 }}
+        />
       </div>
     </div>
   );

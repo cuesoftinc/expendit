@@ -1,0 +1,60 @@
+"use client";
+
+/**
+ * /signin view — the one auth screen (flows/auth.md §1): a single
+ * "Continue with Google" CTA, nothing else. Render-only; state lives in
+ * the auth controller.
+ */
+
+import React from "react";
+import Link from "next/link";
+import { useAuthController } from "@/controllers/use-auth";
+import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
+
+const SigninView: React.FC = () => {
+  const { signInWithGoogle, loading, error } = useAuthController();
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-bg px-6">
+      <div className="w-full max-w-sm">
+        <Link href="/" className="mb-12 block text-center">
+          <span className="font-display text-2xl font-bold tracking-tight text-text">
+            expendit
+          </span>
+        </Link>
+
+        <h1 className="text-center font-display text-2xl font-semibold tracking-tight text-text">
+          Sign in
+        </h1>
+        <p className="mt-2 text-center text-sm text-text-2">
+          Financial intelligence for modern growth.
+        </p>
+
+        <div className="mt-8">
+          <GoogleAuthButton onClick={signInWithGoogle} loading={loading} />
+        </div>
+
+        {error ? (
+          <p role="alert" className="mt-4 text-center text-sm text-expense">
+            {error}
+          </p>
+        ) : null}
+
+        <p className="mt-6 text-center text-xs leading-relaxed text-text-2">
+          Google is the only sign-in method — no passwords, ever. By continuing
+          you agree to the{" "}
+          <Link href="/" className="underline hover:text-text">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/" className="underline hover:text-text">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+      </div>
+    </main>
+  );
+};
+
+export default SigninView;
