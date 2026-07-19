@@ -21,9 +21,7 @@ describe("TableHeader (design.md §8.2b)", () => {
   it("renders columns; numeric columns right-align", () => {
     render(<TableHeader columns={columns} />);
     expect(screen.getByText("Description")).toBeInTheDocument();
-    expect(
-      screen.getByText("Amount").closest("th"),
-    ).toHaveClass("text-right");
+    expect(screen.getByText("Amount").closest("th")).toHaveClass("text-right");
   });
 
   it("sort cycles none → asc → desc → none", async () => {
@@ -40,9 +38,10 @@ describe("TableHeader (design.md §8.2b)", () => {
         onSortChange={onSortChange}
       />,
     );
-    expect(
-      screen.getByText("Date").closest("th"),
-    ).toHaveAttribute("aria-sort", "ascending");
+    expect(screen.getByText("Date").closest("th")).toHaveAttribute(
+      "aria-sort",
+      "ascending",
+    );
     await userEvent.click(screen.getByRole("button", { name: "Date" }));
     expect(onSortChange).toHaveBeenLastCalledWith("date", "desc");
     rerender(

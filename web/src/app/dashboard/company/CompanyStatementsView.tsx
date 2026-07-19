@@ -90,10 +90,19 @@ export const CompanyStatementsView: React.FC = () => {
       const id = `${file.name}-${Date.now()}`;
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
       const fileType =
-        ext === "pdf" ? "pdf" : ["jpg", "jpeg", "png", "heic"].includes(ext) ? "image" : "csv";
+        ext === "pdf"
+          ? "pdf"
+          : ["jpg", "jpeg", "png", "heic"].includes(ext)
+            ? "image"
+            : "csv";
       setUploads((prev) => [
         ...prev,
-        { id, name: file.name, fileType, state: { phase: "progress", percent: 50 } },
+        {
+          id,
+          name: file.name,
+          fileType,
+          state: { phase: "progress", percent: 50 },
+        },
       ]);
       void statements
         .upload(file, kind, period)
@@ -237,7 +246,10 @@ export const CompanyStatementsView: React.FC = () => {
         ) : (
           <ul className="list-none rounded border border-border">
             {sorted.map((statement) => (
-              <li key={statement.id} className="border-b border-border last:border-b-0">
+              <li
+                key={statement.id}
+                className="border-b border-border last:border-b-0"
+              >
                 <button
                   type="button"
                   onClick={() =>
@@ -245,7 +257,10 @@ export const CompanyStatementsView: React.FC = () => {
                   }
                   className="flex w-full items-center gap-3 px-3 py-2 text-left text-[13px] text-text transition-colors duration-fast ease-standard hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                 >
-                  <FileSpreadsheet aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
+                  <FileSpreadsheet
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 text-text-2"
+                  />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium leading-4">
                       {KIND_LABEL[statement.kind]}
@@ -259,9 +274,13 @@ export const CompanyStatementsView: React.FC = () => {
                     </span>
                   </span>
                   {statement.mapping_warnings.length > 0 ? (
-                    <Tag tint="warn">{statement.mapping_warnings.length} warnings</Tag>
+                    <Tag tint="warn">
+                      {statement.mapping_warnings.length} warnings
+                    </Tag>
                   ) : null}
-                  <Tag tint={STATUS_TINT[statement.mapping_status] ?? "neutral"}>
+                  <Tag
+                    tint={STATUS_TINT[statement.mapping_status] ?? "neutral"}
+                  >
                     {statement.mapping_status}
                   </Tag>
                   <span className="w-20 shrink-0 text-right tabular-nums text-text-2">
@@ -333,7 +352,11 @@ export const CompanyStatementsView: React.FC = () => {
           onClick={() =>
             setManualRows((prev) => [
               ...prev,
-              { id: Math.max(...prev.map((r) => r.id)) + 1, key: null, amount: "" },
+              {
+                id: Math.max(...prev.map((r) => r.id)) + 1,
+                key: null,
+                amount: "",
+              },
             ])
           }
         >

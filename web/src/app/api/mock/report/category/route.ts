@@ -31,7 +31,10 @@ export async function GET(request: Request) {
     ) {
       continue;
     }
-    totals.set(txn.category_id, (totals.get(txn.category_id) ?? 0) + txn.amount);
+    totals.set(
+      txn.category_id,
+      (totals.get(txn.category_id) ?? 0) + txn.amount,
+    );
   }
 
   const items = [...totals.entries()]

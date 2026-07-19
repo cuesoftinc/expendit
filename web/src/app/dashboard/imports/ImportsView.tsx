@@ -65,30 +65,44 @@ export const ImportsView: React.FC = () => {
   // MI-2 lifecycle sync: as the controller polls jobs, per-file chips
   // advance progress → AI-sweep → complete (row count) / error.
   useEffect(() => {
-    setUploads((prev) =>
-      prev.map((item) => {
-        const jobId = uploadJobs[item.id];
-        if (!jobId) return item;
-        const job =
-          imports.jobs.find((candidate) => candidate.id === jobId) ??
-          (imports.activeJob?.id === jobId ? imports.activeJob : undefined);
-        if (!job) return item;
-        if (job.status === "processing") {
-          return item.state.phase === "ai-sweep"
+    // Defer to a microtask — effects must not set state synchronously.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setUploads((prev) =>
+        prev.map((item) => {
+          const jobId = uploadJobs[item.id];
+          if (!jobId) return item;
+          const job =
+            imports.jobs.find((candidate) => candidate.id === jobId) ??
+            (imports.activeJob?.id === jobId ? imports.activeJob : undefined);
+          if (!job) return item;
+          if (job.status === "processing") {
+            return item.state.phase === "ai-sweep"
+              ? item
+              : { ...item, state: { phase: "ai-sweep" } };
+          }
+          if (job.status === "failed") {
+            return {
+              ...item,
+              state: {
+                phase: "error",
+                message: failureMessage(job.error_code),
+              },
+            };
+          }
+          return item.state.phase === "complete"
             ? item
-            : { ...item, state: { phase: "ai-sweep" } };
-        }
-        if (job.status === "failed") {
-          return {
-            ...item,
-            state: { phase: "error", message: failureMessage(job.error_code) },
-          };
-        }
-        return item.state.phase === "complete"
-          ? item
-          : { ...item, state: { phase: "complete", rowCount: job.total_parsed } };
-      }),
-    );
+            : {
+                ...item,
+                state: { phase: "complete", rowCount: job.total_parsed },
+              };
+        }),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [imports.jobs, imports.activeJob, uploadJobs]);
 
   const onFiles = (files: File[]) => {
@@ -98,7 +112,12 @@ export const ImportsView: React.FC = () => {
       const fileType = EXT_TO_TYPE[ext] ?? "csv";
       setUploads((prev) => [
         ...prev,
-        { id, name: file.name, fileType, state: { phase: "progress", percent: 45 } },
+        {
+          id,
+          name: file.name,
+          fileType,
+          state: { phase: "progress", percent: 45 },
+        },
       ]);
       void imports
         .upload(file)
@@ -128,9 +147,7 @@ export const ImportsView: React.FC = () => {
 
   const sortedJobs = useMemo(
     () =>
-      [...imports.jobs].sort((a, b) =>
-        a.created_at < b.created_at ? 1 : -1,
-      ),
+      [...imports.jobs].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)),
     [imports.jobs],
   );
 
@@ -152,7 +169,9 @@ export const ImportsView: React.FC = () => {
           files={uploads}
           onFiles={onFiles}
           accept={ACCEPT}
-          className={highlightUpload ? "ring-2 ring-accent ring-offset-2" : undefined}
+          className={
+            highlightUpload ? "ring-2 ring-accent ring-offset-2" : undefined
+          }
         />
       </section>
 

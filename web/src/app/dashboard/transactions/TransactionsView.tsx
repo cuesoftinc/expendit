@@ -120,7 +120,11 @@ export const TransactionsView: React.FC = () => {
 
   const categoryOptions = useMemo(
     () =>
-      categories.map((cat) => ({ id: cat.id, name: cat.name, color: cat.color })),
+      categories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        color: cat.color,
+      })),
     [categories],
   );
   const categoryById = useMemo(
@@ -506,7 +510,12 @@ export const TransactionsView: React.FC = () => {
               density={density}
               sticky
               columns={[
-                { id: "date", label: "Date", sortable: true, widthClass: "w-14" },
+                {
+                  id: "date",
+                  label: "Date",
+                  sortable: true,
+                  widthClass: "w-14",
+                },
                 { id: "source", label: "", widthClass: "w-4" },
                 {
                   id: "description",
@@ -525,9 +534,7 @@ export const TransactionsView: React.FC = () => {
               ]}
               sort={sort}
               onSortChange={(columnId, direction) =>
-                setSort(
-                  direction === "none" ? null : { columnId, direction },
-                )
+                setSort(direction === "none" ? null : { columnId, direction })
               }
               selectAll={{
                 checked: allSelected
@@ -573,8 +580,12 @@ export const TransactionsView: React.FC = () => {
                   onCategorySelect={(categoryId) =>
                     void txns.update(txn.id, { category_id: categoryId })
                   }
-                  onOpen={() => openInspector({ kind: "record", txnId: txn.id })}
-                  onEdit={() => openInspector({ kind: "record", txnId: txn.id })}
+                  onOpen={() =>
+                    openInspector({ kind: "record", txnId: txn.id })
+                  }
+                  onEdit={() =>
+                    openInspector({ kind: "record", txnId: txn.id })
+                  }
                   onSplit={() => {
                     openInspector({ kind: "record", txnId: txn.id });
                   }}
@@ -702,7 +713,11 @@ export const TransactionsView: React.FC = () => {
               <Button kind="quiet" size="sm" onClick={closeInspector}>
                 Cancel
               </Button>
-              <Button size="sm" loading={saving} onClick={() => void saveDraft()}>
+              <Button
+                size="sm"
+                loading={saving}
+                onClick={() => void saveDraft()}
+              >
                 {inspector.kind === "new" ? "Add transaction" : "Save"}
               </Button>
             </div>
@@ -731,7 +746,10 @@ export const TransactionsView: React.FC = () => {
                   id={id}
                   value={draft.amount}
                   onChange={(event) =>
-                    setDraft((prev) => ({ ...prev, amount: event.target.value }))
+                    setDraft((prev) => ({
+                      ...prev,
+                      amount: event.target.value,
+                    }))
                   }
                   placeholder="0.00"
                 />
@@ -796,7 +814,9 @@ export const TransactionsView: React.FC = () => {
                         excluded_from_reports: checked === true,
                       })
                     }
-                    label={activeTxn.excluded_from_reports ? "Excluded" : "Included"}
+                    label={
+                      activeTxn.excluded_from_reports ? "Excluded" : "Included"
+                    }
                   />
                 )}
               </FormRow>

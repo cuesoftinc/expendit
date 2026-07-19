@@ -21,7 +21,10 @@ describe("MemberRow (design.md §8.2b)", () => {
     expect(screen.getByText("Ada Obi")).toBeInTheDocument();
     expect(screen.getByText("ada@bellafricana.ng")).toBeInTheDocument();
     expect(screen.getByRole("combobox")).toBeInTheDocument();
-    expect(screen.getByRole("listitem")).toHaveAttribute("data-state", "default");
+    expect(screen.getByRole("listitem")).toHaveAttribute(
+      "data-state",
+      "default",
+    );
   });
 
   it("role change goes through the select", async () => {

@@ -34,9 +34,7 @@ const Card: React.FC<{
   action?: React.ReactNode;
   className?: string;
 }> = ({ title, children, action, className }) => (
-  <section
-    className={`rounded border border-border bg-bg ${className ?? ""}`}
-  >
+  <section className={`rounded border border-border bg-bg ${className ?? ""}`}>
     <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
       <h2 className="text-[13px] font-medium text-text">{title}</h2>
       {action}
@@ -49,7 +47,8 @@ const Card: React.FC<{
 // exception per the token rule; mirrors the mock categories default).
 const FALLBACK_CATEGORY_COLOR = "#6E6E76";
 
-const monthLabel = (month: string): string => dayjs(`${month}-01`).format("MMM");
+const monthLabel = (month: string): string =>
+  dayjs(`${month}-01`).format("MMM");
 
 export const OverviewView: React.FC = () => {
   const router = useRouter();
@@ -175,30 +174,30 @@ export const OverviewView: React.FC = () => {
           <table className="w-full" aria-label="Demo transactions">
             <tbody className="contents">
               {demo.txns.slice(0, 5).map((txn) => (
-              <TxnTableRow
-                key={txn.id}
-                txn={{
-                  id: txn.id,
-                  org_id: "demo",
-                  description: txn.description,
-                  amount: txn.amount,
-                  direction: txn.direction,
-                  category_id: txn.categoryId,
-                  txn_date: txn.date,
-                  source: txn.source,
-                  source_link_id: null,
-                  ai_categorized: txn.ai ?? false,
-                  excluded_from_reports: false,
-                  anomalies: [],
-                  created_at: txn.date,
-                }}
-                category={
-                  demoCatById.get(txn.categoryId) ?? {
-                    id: txn.categoryId,
-                    name: txn.categoryId,
-                    color: FALLBACK_CATEGORY_COLOR,
+                <TxnTableRow
+                  key={txn.id}
+                  txn={{
+                    id: txn.id,
+                    org_id: "demo",
+                    description: txn.description,
+                    amount: txn.amount,
+                    direction: txn.direction,
+                    category_id: txn.categoryId,
+                    txn_date: txn.date,
+                    source: txn.source,
+                    source_link_id: null,
+                    ai_categorized: txn.ai ?? false,
+                    excluded_from_reports: false,
+                    anomalies: [],
+                    created_at: txn.date,
+                  }}
+                  category={
+                    demoCatById.get(txn.categoryId) ?? {
+                      id: txn.categoryId,
+                      name: txn.categoryId,
+                      color: FALLBACK_CATEGORY_COLOR,
+                    }
                   }
-                }
                 />
               ))}
             </tbody>
@@ -318,7 +317,10 @@ export const OverviewView: React.FC = () => {
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr,2fr]">
-        <Card title="Anomalies" action={<Tag tint="warn" count={anomalies.length} />}>
+        <Card
+          title="Anomalies"
+          action={<Tag tint="warn" count={anomalies.length} />}
+        >
           {anomalies.length === 0 ? (
             <p className="text-[13px] text-text-2">
               Nothing unusual in your ledger.

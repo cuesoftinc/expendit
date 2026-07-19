@@ -100,25 +100,25 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
         )}
       >
-      <Icon aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-medium leading-4">
-          {job.file_name ??
-            (job.source === "bank_sync" ? "Bank sync" : "Upload")}
+        <Icon aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium leading-4">
+            {job.file_name ??
+              (job.source === "bank_sync" ? "Bank sync" : "Upload")}
+          </span>
+          <span
+            className={cn(
+              "block truncate leading-4",
+              status === "failed" ? "font-mono text-expense" : "text-text-2",
+            )}
+          >
+            {caption(job, status)}
+          </span>
         </span>
-        <span
-          className={cn(
-            "block truncate leading-4",
-            status === "failed" ? "font-mono text-expense" : "text-text-2",
-          )}
-        >
-          {caption(job, status)}
+        <Tag tint={tag.tint}>{tag.label}</Tag>
+        <span className="w-14 shrink-0 text-right tabular-nums text-text-2">
+          {when}
         </span>
-      </span>
-      <Tag tint={tag.tint}>{tag.label}</Tag>
-      <span className="w-14 shrink-0 text-right tabular-nums text-text-2">
-        {when}
-      </span>
       </button>
     </li>
   );

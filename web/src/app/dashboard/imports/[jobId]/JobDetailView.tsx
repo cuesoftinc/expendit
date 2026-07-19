@@ -12,7 +12,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, CircleAlert } from "lucide-react";
-import { useCategoriesController, useImportsController, useOrg } from "@/controllers";
+import {
+  useCategoriesController,
+  useImportsController,
+  useOrg,
+} from "@/controllers";
 import type { StagedTransaction, TxnEntry } from "@/models";
 import Banner from "@/components/ui/Banner";
 import Button from "@/components/ui/Button";
@@ -75,7 +79,12 @@ export const JobDetailView: React.FC = () => {
   const staged = imports.staged;
 
   const categoryOptions = useMemo(
-    () => categories.map((cat) => ({ id: cat.id, name: cat.name, color: cat.color })),
+    () =>
+      categories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        color: cat.color,
+      })),
     [categories],
   );
   const categoryById = useMemo(
@@ -93,9 +102,7 @@ export const JobDetailView: React.FC = () => {
     setCommitting(true);
     try {
       const result = await imports.confirm(job.id);
-      router.push(
-        `/dashboard/transactions?imported=${result.imported}`,
-      );
+      router.push(`/dashboard/transactions?imported=${result.imported}`);
     } catch (err) {
       setToast(err instanceof Error ? err.message : "Confirm failed");
       setCommitting(false);
@@ -130,7 +137,8 @@ export const JobDetailView: React.FC = () => {
     );
   }
 
-  const title = job.file_name ?? (job.source === "bank_sync" ? "Bank sync" : "Upload");
+  const title =
+    job.file_name ?? (job.source === "bank_sync" ? "Bank sync" : "Upload");
 
   // B3c — failure taxonomy screen (flows/import.md §3).
   if (job.status === "failed") {
@@ -156,7 +164,10 @@ export const JobDetailView: React.FC = () => {
             ) : null}
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => router.push("/dashboard/imports?upload=1")}>
+            <Button
+              size="sm"
+              onClick={() => router.push("/dashboard/imports?upload=1")}
+            >
               Retry with a new upload
             </Button>
             <Button kind="quiet" size="sm" onClick={() => void discard()}>
@@ -171,7 +182,10 @@ export const JobDetailView: React.FC = () => {
   if (job.status === "processing") {
     return (
       <>
-        <PageHeader title={title} description="Processing — AI is categorizing your rows." />
+        <PageHeader
+          title={title}
+          description="Processing — AI is categorizing your rows."
+        />
         <div>
           {[...Array(8)].map((_, i) => (
             <Skeleton key={i} variant="row" />
@@ -200,7 +214,10 @@ export const JobDetailView: React.FC = () => {
                 ? "No transaction text found in the PDF — try a CSV export from your bank."
                 : "This image does not look like a receipt — try a clearer photo or a CSV export."}
           </p>
-          <Button size="sm" onClick={() => router.push("/dashboard/imports?upload=1")}>
+          <Button
+            size="sm"
+            onClick={() => router.push("/dashboard/imports?upload=1")}
+          >
             Upload another file
           </Button>
         </section>
@@ -253,12 +270,18 @@ export const JobDetailView: React.FC = () => {
               { id: "source", label: "", widthClass: "w-4" },
               { id: "description", label: "Description" },
               { id: "category", label: "Category", widthClass: "w-40" },
-              { id: "amount", label: "Amount", numeric: true, widthClass: "w-32" },
+              {
+                id: "amount",
+                label: "Amount",
+                numeric: true,
+                widthClass: "w-32",
+              },
             ]}
           />
           <tbody className="contents">
             {staged.map((row) => {
-              const excludedDuplicate = row.is_duplicate && !row.include_duplicate;
+              const excludedDuplicate =
+                row.is_duplicate && !row.include_duplicate;
               return (
                 <TxnTableRow
                   key={row.id}
@@ -277,8 +300,7 @@ export const JobDetailView: React.FC = () => {
                   selected={!excludedDuplicate}
                   onSelectedChange={
                     row.is_duplicate
-                      ? (next) =>
-                          void imports.setIncludeDuplicate(row.id, next)
+                      ? (next) => void imports.setIncludeDuplicate(row.id, next)
                       : undefined
                   }
                   onCategorySelect={(categoryId) =>

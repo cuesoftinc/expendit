@@ -11,7 +11,11 @@
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import dayjs from "dayjs";
-import { useCategoriesController, useOrg, useReportsController } from "@/controllers";
+import {
+  useCategoriesController,
+  useOrg,
+  useReportsController,
+} from "@/controllers";
 import type { ReportFormat, ReportKind, StatementKind } from "@/models";
 import Banner from "@/components/ui/Banner";
 import Button from "@/components/ui/Button";
@@ -183,8 +187,7 @@ export const ReportsView: React.FC = () => {
           <Button
             loading={generating}
             disabled={
-              !effectivePeriod ||
-              (kind === "category_deep_dive" && !category)
+              !effectivePeriod || (kind === "category_deep_dive" && !category)
             }
             onClick={() => void generate()}
           >

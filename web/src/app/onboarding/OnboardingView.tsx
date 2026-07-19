@@ -92,18 +92,14 @@ export const OnboardingView: React.FC = () => {
           <FormRow
             label={kind === "company" ? "Company name" : "Workspace name"}
             required={kind === "company"}
-            helper={
-              kind === "personal" ? 'Defaults to "Personal".' : undefined
-            }
+            helper={kind === "personal" ? 'Defaults to "Personal".' : undefined}
           >
             {(id) => (
               <Input
                 id={id}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder={
-                  kind === "company" ? "Cuesoft Ltd" : "Personal"
-                }
+                placeholder={kind === "company" ? "Cuesoft Ltd" : "Personal"}
               />
             )}
           </FormRow>
@@ -180,17 +176,20 @@ export const OnboardingView: React.FC = () => {
       >
         <div className="space-y-3 text-[13px] leading-5 text-text-2">
           <p className="flex items-start gap-2">
-            <Sparkles aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-info" />
+            <Sparkles
+              aria-hidden
+              className="mt-0.5 h-4 w-4 shrink-0 text-info"
+            />
             <span>
-              Imported statements and receipts are categorized by an AI
-              provider (disclosed in the privacy hub). Only transaction rows
-              are sent — never your credentials.
+              Imported statements and receipts are categorized by an AI provider
+              (disclosed in the privacy hub). Only transaction rows are sent —
+              never your credentials.
             </span>
           </p>
           <p>
             Receipt images and image-only PDFs need AI to parse at all —
-            declining limits imports to CSV and text PDFs (you can change
-            this any time in Settings → Data &amp; privacy).
+            declining limits imports to CSV and text PDFs (you can change this
+            any time in Settings → Data &amp; privacy).
           </p>
         </div>
       </Modal>

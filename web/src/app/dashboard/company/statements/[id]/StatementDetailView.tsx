@@ -51,7 +51,7 @@ export const StatementDetailView: React.FC = () => {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const statementId = params.id;
-  const { activeOrg, activeOrgId } = useOrg();
+  const { activeOrgId } = useOrg();
   const statements = useStatementsController(activeOrgId);
   const reports = useReportsController(activeOrgId);
 
@@ -71,7 +71,7 @@ export const StatementDetailView: React.FC = () => {
         .openMapping(statementId)
         .then((detail) => {
           if (detail.statement.mapping_status === "processing") {
-            statements.pollMapping?.(statementId);
+            statements.pollMapping(statementId);
           }
         })
         .catch((err: unknown) =>
@@ -147,7 +147,10 @@ export const StatementDetailView: React.FC = () => {
     return (
       <>
         {back}
-        <PageHeader title={title} description="Parsing — AI is suggesting canonical mappings." />
+        <PageHeader
+          title={title}
+          description="Parsing — AI is suggesting canonical mappings."
+        />
         <div>
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} variant="row" />
@@ -192,9 +195,13 @@ export const StatementDetailView: React.FC = () => {
                     format: "pdf",
                     statement_kind: statement.kind,
                   })
-                  .then(() => setToast("Report artifact generated — see Reports."))
+                  .then(() =>
+                    setToast("Report artifact generated — see Reports."),
+                  )
                   .catch((err: unknown) =>
-                    setToast(err instanceof Error ? err.message : "Export failed"),
+                    setToast(
+                      err instanceof Error ? err.message : "Export failed",
+                    ),
                   )
                   .finally(() => setBusy(false));
               }}
@@ -206,8 +213,9 @@ export const StatementDetailView: React.FC = () => {
         {statement.mapping_status === "superseded" ? (
           <div className="mb-3">
             <Banner kind="info">
-              This statement was superseded by a newer confirmation for the
-              same period{statement.superseded_by ? ` (${statement.superseded_by})` : ""}.
+              This statement was superseded by a newer confirmation for the same
+              period
+              {statement.superseded_by ? ` (${statement.superseded_by})` : ""}.
             </Banner>
           </div>
         ) : null}
@@ -296,7 +304,9 @@ export const StatementDetailView: React.FC = () => {
               currency={statement.currency}
               onKeyChange={(key) =>
                 void statements.patchMapping(statement.id, {
-                  updates: [{ line_item_id: row.line_item_id, canonical_key: key }],
+                  updates: [
+                    { line_item_id: row.line_item_id, canonical_key: key },
+                  ],
                 })
               }
               onConfirm={() =>
@@ -323,7 +333,9 @@ export const StatementDetailView: React.FC = () => {
                 keyOptions={keyOptions}
                 canonicalKey={addRow.key}
                 amount={addRow.amount}
-                onKeyChange={(key) => setAddRow((prev) => prev && { ...prev, key })}
+                onKeyChange={(key) =>
+                  setAddRow((prev) => prev && { ...prev, key })
+                }
                 onAmountChange={(amount) =>
                   setAddRow((prev) => prev && { ...prev, amount })
                 }
@@ -338,7 +350,10 @@ export const StatementDetailView: React.FC = () => {
                 void statements
                   .patchMapping(statement.id, {
                     additions: [
-                      { canonical_key: addRow.key, amount: Number(addRow.amount) },
+                      {
+                        canonical_key: addRow.key,
+                        amount: Number(addRow.amount),
+                      },
                     ],
                   })
                   .then(() => setAddRow(null));

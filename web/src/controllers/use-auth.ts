@@ -65,7 +65,10 @@ export const useAuthController = (): AuthController => {
  * no session exists. `checked` distinguishes "still reading the session"
  * from "signed out" so views can hold their loading state.
  */
-export const useRequireAuth = (): { user: AuthUser | null; checked: boolean } => {
+export const useRequireAuth = (): {
+  user: AuthUser | null;
+  checked: boolean;
+} => {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [checked, setChecked] = useState(false);

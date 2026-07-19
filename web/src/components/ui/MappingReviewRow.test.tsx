@@ -22,7 +22,10 @@ describe("MappingReviewRow (design.md §8.2b, B6)", () => {
         keyOptions={BALANCE_SHEET_KEYS}
       />,
     );
-    expect(screen.getByRole("listitem")).toHaveAttribute("data-state", "suggested");
+    expect(screen.getByRole("listitem")).toHaveAttribute(
+      "data-state",
+      "suggested",
+    );
     expect(screen.getByText("Cash at bank and in hand")).toBeInTheDocument();
     expect(screen.getByText("92%")).toBeInTheDocument();
     expect(screen.getByText("₦1,250,000.00")).toHaveClass("tabular-nums");

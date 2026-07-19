@@ -22,7 +22,8 @@ export const Reveal: React.FC<{
     const node = ref.current;
     if (!node) return;
     if (prefersReducedMotion() || typeof IntersectionObserver === "undefined") {
-      setShown(true);
+      // Defer to a microtask — effects must not set state synchronously.
+      queueMicrotask(() => setShown(true));
       return;
     }
     const observer = new IntersectionObserver(

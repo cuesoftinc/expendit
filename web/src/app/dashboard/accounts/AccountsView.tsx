@@ -11,7 +11,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import dayjs from "dayjs";
 import { Landmark, Plus, RefreshCw } from "lucide-react";
 import { useAccountsController, useOrg } from "@/controllers";
 import { importsRepo, ApiError } from "@/models/repositories";
@@ -34,7 +33,10 @@ type JourneyStep = "connect" | "consent" | "syncing" | "done";
 
 const STEP_ORDER: JourneyStep[] = ["connect", "consent", "syncing", "done"];
 
-const stepState = (step: JourneyStep, current: JourneyStep): WizardStepState => {
+const stepState = (
+  step: JourneyStep,
+  current: JourneyStep,
+): WizardStepState => {
   const a = STEP_ORDER.indexOf(step);
   const b = STEP_ORDER.indexOf(current);
   return a < b ? "done" : a === b ? "current" : "todo";
@@ -251,7 +253,10 @@ export const AccountsView: React.FC = () => {
                         }
                         onClick={() => void manualSync(link)}
                       >
-                        <RefreshCw aria-hidden className="mr-1 inline h-3 w-3" />
+                        <RefreshCw
+                          aria-hidden
+                          className="mr-1 inline h-3 w-3"
+                        />
                         Sync now
                       </Button>
                       {link.status === "active" || link.status === "paused" ? (
@@ -294,7 +299,10 @@ export const AccountsView: React.FC = () => {
         title="Link a bank account"
         size="md"
       >
-        <nav aria-label="Link progress" className="mb-4 flex items-center gap-2">
+        <nav
+          aria-label="Link progress"
+          className="mb-4 flex items-center gap-2"
+        >
           <WizardStep
             state={stepState("connect", step)}
             label="Connect"
@@ -332,9 +340,10 @@ export const AccountsView: React.FC = () => {
         {step === "connect" ? (
           <div className="space-y-3">
             <p className="text-[13px] leading-5 text-text-2">
-              Expendit connects through <strong className="text-text">Mono</strong>{" "}
-              with read-only access — we can see transactions, never move
-              money. You can unlink at any time.
+              Expendit connects through{" "}
+              <strong className="text-text">Mono</strong> with read-only access
+              — we can see transactions, never move money. You can unlink at any
+              time.
             </p>
             <Button loading={busy} onClick={() => void startConnect()}>
               Continue to Mono

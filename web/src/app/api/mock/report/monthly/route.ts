@@ -20,7 +20,9 @@ const monthWindow = (count: number): string[] => {
   const now = mockNow();
   const keys: string[] = [];
   for (let offset = count - 1; offset >= 0; offset -= 1) {
-    keys.push(monthKey(new Date(now.getFullYear(), now.getMonth() - offset, 1)));
+    keys.push(
+      monthKey(new Date(now.getFullYear(), now.getMonth() - offset, 1)),
+    );
   }
   return keys;
 };

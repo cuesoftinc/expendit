@@ -107,9 +107,7 @@ const isActive = (pathname: string, route: NavRoute): boolean => {
   return !deeper && pathname.startsWith(`${route.href}/`);
 };
 
-const ShellChrome: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname() ?? "/dashboard";
   const { signOut, user } = useAuthController();
@@ -200,8 +198,6 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({
     return [...actions, ...navigation];
   }, [router]);
 
-  let lastGroup: string | undefined;
-
   return (
     <div className="flex h-screen overflow-hidden bg-bg text-text">
       <AppNav
@@ -239,10 +235,11 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({
           </div>
         }
       >
-        {NAV_ROUTES.map((route) => {
+        {NAV_ROUTES.map((route, index) => {
           const groupLabel =
-            route.group && route.group !== lastGroup ? route.group : null;
-          lastGroup = route.group;
+            route.group && route.group !== NAV_ROUTES[index - 1]?.group
+              ? route.group
+              : null;
           return (
             <React.Fragment key={route.href}>
               {groupLabel ? <NavGroupLabel>{groupLabel}</NavGroupLabel> : null}

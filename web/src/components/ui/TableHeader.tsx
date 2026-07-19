@@ -70,63 +70,63 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
           />
         </th>
       ) : null}
-    {columns.map((column) => {
-      const direction: SortDirection =
-        sort?.columnId === column.id ? sort.direction : "none";
-      const label = (
-        <span
-          className={cn(
-            "text-[11px] font-medium uppercase tracking-wide text-text-2",
-            column.numeric && "tabular-nums",
-          )}
-        >
-          {column.label}
-        </span>
-      );
-      return (
-        <th
-          key={column.id}
-          scope="col"
-          aria-sort={
-            direction === "none"
-              ? undefined
-              : direction === "asc"
-                ? "ascending"
-                : "descending"
-          }
-          className={cn(
-            column.widthClass ?? "flex-1",
-            "min-w-0 font-normal",
-            column.numeric && "text-right",
-          )}
-        >
-          {column.sortable ? (
-            <button
-              type="button"
-              onClick={() =>
-                onSortChange?.(column.id, nextDirection(direction))
-              }
-              className={cn(
-                "inline-flex items-center gap-1 rounded transition-colors duration-fast ease-standard hover:text-text",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-                column.numeric && "flex-row-reverse",
-              )}
-            >
-              {label}
-              {direction === "asc" ? (
-                <ChevronUp aria-hidden className="h-3 w-3 text-accent" />
-              ) : direction === "desc" ? (
-                <ChevronDown aria-hidden className="h-3 w-3 text-accent" />
-              ) : (
-                <ChevronsUpDown aria-hidden className="h-3 w-3 text-text-2" />
-              )}
-            </button>
-          ) : (
-            label
-          )}
-        </th>
-      );
-    })}
+      {columns.map((column) => {
+        const direction: SortDirection =
+          sort?.columnId === column.id ? sort.direction : "none";
+        const label = (
+          <span
+            className={cn(
+              "text-[11px] font-medium uppercase tracking-wide text-text-2",
+              column.numeric && "tabular-nums",
+            )}
+          >
+            {column.label}
+          </span>
+        );
+        return (
+          <th
+            key={column.id}
+            scope="col"
+            aria-sort={
+              direction === "none"
+                ? undefined
+                : direction === "asc"
+                  ? "ascending"
+                  : "descending"
+            }
+            className={cn(
+              column.widthClass ?? "flex-1",
+              "min-w-0 font-normal",
+              column.numeric && "text-right",
+            )}
+          >
+            {column.sortable ? (
+              <button
+                type="button"
+                onClick={() =>
+                  onSortChange?.(column.id, nextDirection(direction))
+                }
+                className={cn(
+                  "inline-flex items-center gap-1 rounded transition-colors duration-fast ease-standard hover:text-text",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                  column.numeric && "flex-row-reverse",
+                )}
+              >
+                {label}
+                {direction === "asc" ? (
+                  <ChevronUp aria-hidden className="h-3 w-3 text-accent" />
+                ) : direction === "desc" ? (
+                  <ChevronDown aria-hidden className="h-3 w-3 text-accent" />
+                ) : (
+                  <ChevronsUpDown aria-hidden className="h-3 w-3 text-text-2" />
+                )}
+              </button>
+            ) : (
+              label
+            )}
+          </th>
+        );
+      })}
     </tr>
   </thead>
 );

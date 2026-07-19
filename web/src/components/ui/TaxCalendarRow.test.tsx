@@ -32,7 +32,10 @@ describe("TaxCalendarRow (design.md §8.2, MI-13)", () => {
       "title",
       "Federal Inland Revenue Service",
     );
-    expect(screen.getByRole("listitem")).toHaveAttribute("data-threshold", "none");
+    expect(screen.getByRole("listitem")).toHaveAttribute(
+      "data-threshold",
+      "none",
+    );
   });
 
   it("tints escalate info → warn → warn-stronger (Figma MI-13)", () => {

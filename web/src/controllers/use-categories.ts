@@ -50,7 +50,9 @@ export const useCategoriesController = (orgId?: string) => {
   const update = useCallback(
     async (id: string, patch: CategoryUpdate) => {
       const category = await categoriesRepo.update(id, patch, { orgId });
-      setItems((prev) => prev.map((item) => (item.id === id ? category : item)));
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? category : item)),
+      );
       return category;
     },
     [orgId],
