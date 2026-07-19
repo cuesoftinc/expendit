@@ -134,10 +134,13 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const effectiveCollapsed = collapsed || isMobile;
 
-  // Crossing up to ≥md dismisses the drawer — the in-flow nav takes over.
-  useEffect(() => {
+  // Crossing up to ≥md dismisses the drawer — the in-flow nav takes
+  // over. Adjust-state-during-render, no effect (react-hooks rule).
+  const [prevIsMobile, setPrevIsMobile] = useState(isMobile);
+  if (prevIsMobile !== isMobile) {
+    setPrevIsMobile(isMobile);
     if (!isMobile) setDrawerOpen(false);
-  }, [isMobile]);
+  }
 
   // First-run guard: a signed-in user with no org lands on B0.
   useEffect(() => {
