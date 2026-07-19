@@ -243,6 +243,13 @@ never on screens.
 > Light/Dark variable modes (§7) — components carry **no** theme variant
 > axis; dark/light QA happens on the preview frames (the Components page's
 > "Mode test — Dark" frame).
+>
+> **Theme parity (2026-07-19).** Runtime light/dark switching ships on the
+> marketing nav, the dashboard chrome (AppNav) and in settings via the
+> ThemeToggle component, per the cross-product "Marketing nav, footer &
+> theme parity canon": apparule's `ThemeProvider` contract replicated —
+> `data-theme` on `<html>`, persisted at localStorage key `expendit.theme`,
+> falling back to the product design default. [Directive 2026-07-19]
 
 | Component | Variants × states |
 | --- | --- |
@@ -282,7 +289,8 @@ never on screens.
 
 | Component | Variants × states |
 | --- | --- |
-| AppNav / NavItem | **blocking** · item: default / hover / active / with-badge-count (MI-5) · group label · expanded 240px / collapsed 64px icon rail · org-switcher slot top · theme ×2 |
+| AppNav / NavItem | **blocking** · item: default / hover / active / with-badge-count (MI-5) · group label · expanded 240px / collapsed 64px icon rail · org-switcher slot top · theme ×2 · ThemeToggle instance in the chrome (expanded footer + collapsed rail) [Directive 2026-07-19] |
+| ThemeToggle | **blocking** · theme: light / dark (active cell tracks the applied theme) · lucide sun/moon icons · token-bound (`bg-elev`/`border`/`bg`, icon strokes → `text`) so one master renders in both modes · instances pinned in MarketingNav and AppNav chrome per the cross-product canon [Directive 2026-07-19] |
 | OrgSwitcher | **blocking** · closed / open (menu) · org kind: personal / company · current + list rows · theme ×2 (as built: `open` is modeled on kind=company only — 3 of 4 combos; the open menu is the company exemplar) |
 | MobileTabBar + MobileHeader | **nice-to-have** (Part C, later phase) · 5 tabs Home/Transactions/Capture/Reports/Settings · active/inactive · Capture accent · header: title + back |
 
@@ -339,8 +347,8 @@ never on screens.
 
 | Component | Variants × states |
 | --- | --- |
-| MarketingNav | **blocking** · on-dark (over hero) / dark-on-light (post-hero scroll, sticky) · item + Solutions dropdown · GitHub badge (as built 2026-07-18: neutral — "Star", no count) · Sign in + Try Cloud CTAs |
-| MarketingFooter | **blocking** · link columns · "View Security Policy" CTA · dark |
+| MarketingNav | **blocking** · on-dark (over hero) / dark-on-light (post-hero scroll, sticky) · 4 text links pinned to the cross-product canon: Features · Pricing · Docs (GitBook root) · GitHub · ThemeToggle instance · Sign in CTA (`/signin`) — Solutions dropdown, GitHub badge and Try Cloud CTA retired from the nav [Directive 2026-07-19] |
+| MarketingFooter | **blocking** · brand block (wordmark + tagline) + 4 link columns pinned to the cross-product canon — Product (Features · Pricing · Try Cloud · Self Host) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS) · Legal (Privacy · Terms · Status) — legal bar verbatim "© Cuesoft Inc. 2026. Expendit. CueLABS™ Division. MIT License." ("Cuesoft Inc." → cuesoft.io, "MIT License" → repo LICENSE) · "View Security Policy" CTA (repo SECURITY.md) · English language selector · dark editorial band in both themes [Directive 2026-07-19] |
 | EditorialCard | **important** · pillar (A4) / community (A9) · default / hover (2px lift + accent underline draw) · light/dark section |
 | CodeSnippet | **important** · Mono/13 block on dark · copy: idle / copied (✓ morph) |
 | ComparisonTable | **important** · 2 columns (Cloud vs Self-host) · cell: check / x / text · per-column CTA footer row — as built 2026-07-18: the price row reads "Announced at GA" / "Free forever", captioned "Cloud pricing is announced at GA — self-hosting is free forever" |
