@@ -63,5 +63,5 @@ a support-ticket tag counted operationally (registry annotation updated).
 - [ ] Legacy user links on first Google sign-in; history intact
 - [ ] Day-61: legacy endpoints 410; password columns dropped; templates gone
 - [ ] Non-Google-provider tokens rejected (crafted-token test)
-- [ ] `/signup` + `/forgot-password` routes removed; redirects to `/signin`
+- [ ] `/signup` + `/forgot-password` routes removed; 404 on the branded page (no redirect stub, web-implementation.md §4)
 - [ ] Rate-limiter middleware removed from auth routes only
