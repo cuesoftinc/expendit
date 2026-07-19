@@ -66,6 +66,12 @@ export async function GET(request: Request, context: Context) {
   if (!job) return notFound();
 
   // Async lifecycle: processing → completed | failed (flows/import.md §1).
+  // A SEEDED processing job has no clock entry — its lifecycle starts on
+  // the first poll, so opening it demonstrates the normal upload flow
+  // instead of an infinite spinner (PR #216 review).
+  if (job.status === "processing" && db.processingSince[job.id] === undefined) {
+    db.processingSince[job.id] = Date.now();
+  }
   const since = db.processingSince[job.id];
   if (job.status === "processing" && since !== undefined) {
     if (Date.now() - since >= PROCESSING_MS) {

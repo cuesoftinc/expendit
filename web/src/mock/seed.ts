@@ -367,10 +367,13 @@ type Row = [
   opts?: { link?: string; ai?: boolean; anomalies?: Anomaly[] },
 ];
 
-const month = (yymm: string, rows: Row[]): TxnSeed[] =>
+const month = (dataset: "c" | "p", yymm: string, rows: Row[]): TxnSeed[] =>
   rows.map(
     ([day, description, amount, direction, category, source, opts], index) => ({
-      id: `txn-${yymm}-${String(index + 1).padStart(2, "0")}`,
+      // Dataset prefix keeps ids globally unique across orgs — DELETE
+      // /transactions/{id} filters by id alone, so a shared id would
+      // remove the twin from the other org (PR #216 review).
+      id: `txn-${dataset}-${yymm}-${String(index + 1).padStart(2, "0")}`,
       date: `20${yymm.slice(0, 2)}-${yymm.slice(2)}-${String(day).padStart(2, "0")}`,
       description,
       amount,
@@ -391,7 +394,7 @@ const month = (yymm: string, rows: Row[]): TxnSeed[] =>
  */
 const cuesoftTxns: TxnSeed[] = [
   // ---- January 2026 — first full month on Expendit (GTB linked 12 Jan) --
-  ...month("2601", [
+  ...month("c", "2601", [
     [
       6,
       "Retainer — Kudaworks",
@@ -503,7 +506,7 @@ const cuesoftTxns: TxnSeed[] = [
     ],
   ]),
   // ---- February 2026 (Zenith linked 3 Feb) ------------------------------
-  ...month("2602", [
+  ...month("c", "2602", [
     [
       5,
       "Retainer — Kudaworks",
@@ -634,7 +637,7 @@ const cuesoftTxns: TxnSeed[] = [
     ],
   ]),
   // ---- March 2026 --------------------------------------------------------
-  ...month("2603", [
+  ...month("c", "2603", [
     [
       5,
       "Retainer — Kudaworks",
@@ -765,7 +768,7 @@ const cuesoftTxns: TxnSeed[] = [
   ]),
   // ---- April 2026 — staff-up month: payroll doubles (net −2,610,000,
   // the first of the three runway-burn months) ----------------------------
-  ...month("2604", [
+  ...month("c", "2604", [
     [
       7,
       "Retainer — Kudaworks",
@@ -894,7 +897,7 @@ const cuesoftTxns: TxnSeed[] = [
     ],
   ]),
   // ---- May 2026 (net −2,340,000) -----------------------------------------
-  ...month("2605", [
+  ...month("c", "2605", [
     [
       6,
       "Retainer — Kudaworks",
@@ -1053,7 +1056,7 @@ const cuesoftTxns: TxnSeed[] = [
   // → output VAT 636,000; cloud 1,224,067 → input VAT 85,400; net
   // −2,400,000). The five GTB rows below synced BEFORE the June GTB feed
   // outage — they are the staged job's 5 duplicates. ----------------------
-  ...month("2606", [
+  ...month("c", "2606", [
     [
       4,
       "Retainer — Kudaworks",
@@ -1201,7 +1204,7 @@ const cuesoftTxns: TxnSeed[] = [
   // ---- July 2026 MTD (LOCKED: income 8,435,200 / expenses 3,614,800;
   // monthly payroll runs on the 28th — the 18 Jul row is the contractor
   // advance, which is why July spend looks light mid-month) ----------------
-  ...month("2607", [
+  ...month("c", "2607", [
     [
       3,
       "Retainer — Kudaworks",
@@ -1373,7 +1376,7 @@ const cuesoftTxns: TxnSeed[] = [
  * types appear here too (web-implementation.md §6).
  */
 const personalTxns: TxnSeed[] = [
-  ...month("2601", [
+  ...month("p", "2601", [
     [
       20,
       "Pitch deck — Kudaworks referral",
@@ -1393,7 +1396,7 @@ const personalTxns: TxnSeed[] = [
       { link: "link-personal-gtb", ai: true },
     ],
   ]),
-  ...month("2602", [
+  ...month("p", "2602", [
     [
       10,
       "Dividend — Cuesoft Ltd",
@@ -1421,7 +1424,7 @@ const personalTxns: TxnSeed[] = [
       { ai: true },
     ],
   ]),
-  ...month("2603", [
+  ...month("p", "2603", [
     [
       11,
       "Landing page — Lekki Gardens listing",
@@ -1449,7 +1452,7 @@ const personalTxns: TxnSeed[] = [
       { link: "link-personal-gtb", ai: true },
     ],
   ]),
-  ...month("2604", [
+  ...month("p", "2604", [
     [
       15,
       "Advisory fee — Delta Ventures",
@@ -1495,7 +1498,7 @@ const personalTxns: TxnSeed[] = [
       { ai: true },
     ],
   ]),
-  ...month("2605", [
+  ...month("p", "2605", [
     [
       8,
       "Brand audit — PiggyVest referral",
@@ -1533,7 +1536,7 @@ const personalTxns: TxnSeed[] = [
       { ai: true },
     ],
   ]),
-  ...month("2606", [
+  ...month("p", "2606", [
     [
       30,
       "Dividend — Cuesoft Ltd",
@@ -1587,7 +1590,7 @@ const personalTxns: TxnSeed[] = [
       },
     ],
   ]),
-  ...month("2607", [
+  ...month("p", "2607", [
     [
       5,
       "Rent — Lekki apartment (H2)",
