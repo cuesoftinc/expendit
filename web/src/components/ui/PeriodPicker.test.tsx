@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PeriodPicker, { isValidPeriod } from "./PeriodPicker";
@@ -61,5 +61,45 @@ describe("PeriodPicker (design.md §8.2b)", () => {
   it("renders external error state", () => {
     render(<PeriodPicker mode="month" value="2026-06" error="Out of range" />);
     expect(screen.getByRole("alert")).toHaveTextContent("Out of range");
+  });
+
+  describe("viewport collision clamp (system QA 2026-07-19)", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    it("translates the popover back inside the viewport when it would overflow right", async () => {
+      // Overview header regression: w-36 trigger at the right edge of a
+      // 1440 viewport; the min-w-56 panel overflowed by 56px.
+      vi.stubGlobal("innerWidth", 1440);
+      vi.spyOn(
+        window.HTMLElement.prototype,
+        "getBoundingClientRect",
+      ).mockReturnValue({ left: 1272, right: 1496 } as DOMRect);
+
+      render(<PeriodPicker mode="month" value="2026-07" />);
+      await userEvent.click(screen.getByRole("button"));
+
+      expect(screen.getByRole("dialog")).toHaveStyle({
+        transform: "translateX(-64px)",
+      });
+    });
+
+    it("leaves an in-viewport popover unshifted", async () => {
+      vi.stubGlobal("innerWidth", 1440);
+      vi.spyOn(
+        window.HTMLElement.prototype,
+        "getBoundingClientRect",
+      ).mockReturnValue({ left: 400, right: 624 } as DOMRect);
+
+      render(<PeriodPicker mode="month" value="2026-07" />);
+      await userEvent.click(screen.getByRole("button"));
+
+      expect(screen.getByRole("dialog")).not.toHaveStyle({
+        transform: "translateX(-64px)",
+      });
+      expect(screen.getByRole("dialog").style.transform).toBe("");
+    });
   });
 });
