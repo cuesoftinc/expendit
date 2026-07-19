@@ -14,17 +14,26 @@
     text-align: inherit;
   }
 
+  /* Anchor scrolling is smooth unless the user opts out (design.md §5). */
   html {
     scroll-behavior: smooth;
   }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 
+  /*
+   * No overflow-x mask on body (live QA 2026-07-19): it hid container
+   * misfits instead of surfacing them — overflow gets fixed, not clipped.
+   */
   body {
     font-family: var(--font-inter), Inter, system-ui, sans-serif;
     background-color: var(--color-bg);
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
   }
 }
 

@@ -53,7 +53,7 @@ export const CompareSection: React.FC<{
   onTryCloud: () => void;
   onSelfHost: () => void;
 }> = ({ onTryCloud, onSelfHost }) => (
-  <section id={ANCHORS.compare} className="bg-bg py-20">
+  <section id={ANCHORS.compare} className="scroll-mt-16 bg-bg py-20">
     <SectionInner>
       <SectionHeading>Cloud or self-host — same product</SectionHeading>
       <div className="mx-auto mt-10 max-w-2xl">
@@ -117,7 +117,7 @@ const FAQ_ITEMS = [
 export const FaqSection: React.FC = () => {
   const { track } = useAnalyticsController();
   return (
-    <section id={ANCHORS.faq} className="bg-bg pb-24 pt-16">
+    <section id={ANCHORS.faq} className="scroll-mt-16 bg-bg pb-24 pt-16">
       <SectionInner>
         <SectionHeading>Questions, answered</SectionHeading>
         <div className="mx-auto mt-8 max-w-[720px]">

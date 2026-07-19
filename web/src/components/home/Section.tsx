@@ -5,6 +5,11 @@
  * plus the Afrocentric line motif at 4% opacity on dark editorial
  * surfaces (design.md §2 — an asset, drawn inline as a token-free SVG
  * pattern; documented exception, decorative only).
+ *
+ * Container pin [Decided 2026-07-19, design.md §2]: every band lays its
+ * content in the single centered 1200px container (x 120–1320 on the
+ * 1440 frame, min 24px gutters) — hence max-w-[1248px] + px-6 here, so
+ * the content box is exactly 1200px wherever the viewport allows.
  */
 
 import React from "react";
@@ -32,7 +37,10 @@ export const SectionInner: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ className, children }) => (
-  <div className={cn("mx-auto w-full max-w-[1200px] px-6", className)}>
+  <div
+    data-section-inner
+    className={cn("mx-auto w-full max-w-[1248px] px-6", className)}
+  >
     {children}
   </div>
 );

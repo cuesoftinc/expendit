@@ -64,7 +64,9 @@ export const DemoSection: React.FC = () => {
             <TabPanel key={key} value={key} className="w-full pt-8">
               {key !== persona ? null : (
                 <>
-                  <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-3">
+                  {/* 3-up stat row on the 384px-card / 24px-gutter rhythm,
+                      spanning the 1200px container (design.md §2 pin). */}
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                     <StatCard
                       label={stats.net.label}
                       value={stats.net.value}
@@ -91,7 +93,7 @@ export const DemoSection: React.FC = () => {
                     />
                   </div>
 
-                  <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
+                  <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
                     <div className="rounded border border-border bg-bg p-4">
                       <div className="mb-3 flex items-center justify-between">
                         <span className="text-[13px] font-medium text-text">
@@ -180,7 +182,10 @@ export const DemoSection: React.FC = () => {
                     data-testid="demo-table"
                     className="mt-6 overflow-x-auto rounded border border-border bg-bg"
                   >
-                    <table className="w-full min-w-[720px]">
+                    <table
+                      aria-label="Demo transactions"
+                      className="w-full min-w-[720px]"
+                    >
                       <TableHeader
                         columns={TXN_COLUMNS}
                         sort={{ columnId: "date", direction: "desc" }}

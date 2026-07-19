@@ -92,99 +92,103 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
       // on-dark: dark token mode scoped to the nav subtree (both themes).
       data-theme={onDark ? "dark" : undefined}
       className={cn(
-        "flex w-full items-center gap-1 px-6 py-3",
+        "w-full px-6 py-3",
         onDark
           ? "bg-bg-editorial"
           : "sticky top-0 z-sticky border-b border-border bg-bg",
         className,
       )}
     >
-      <Link
-        href="/"
-        className="mr-4 rounded text-sm font-semibold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-      >
-        expendit
-      </Link>
+      {/* Bar background is full-bleed; content sits in the one centered
+          1200px landing container (design.md §2 container pin). */}
+      <div className="mx-auto flex w-full max-w-[1200px] items-center gap-1">
+        <Link
+          href="/"
+          className="mr-4 rounded text-sm font-semibold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          expendit
+        </Link>
 
-      {solutions.length > 0 ? (
-        // Text items collapse below md (375w floor keeps logo + CTAs).
-        <div ref={solutionsRef} className="relative hidden md:block">
+        {solutions.length > 0 ? (
+          // Text items collapse below md (375w floor keeps logo + CTAs).
+          <div ref={solutionsRef} className="relative hidden md:block">
+            <button
+              type="button"
+              aria-expanded={solutionsOpen}
+              aria-haspopup="menu"
+              onClick={() => setSolutionsOpen((state) => !state)}
+              className={cn(itemClass, "inline-flex items-center gap-1")}
+            >
+              Solutions
+              <ChevronDown
+                aria-hidden
+                className={cn(
+                  "h-3.5 w-3.5 transition-transform duration-fast ease-standard",
+                  solutionsOpen && "rotate-180",
+                )}
+              />
+            </button>
+            {solutionsOpen ? (
+              <div
+                role="menu"
+                className="absolute left-0 top-full z-dropdown mt-1 w-56 rounded border border-border bg-bg py-1 shadow-lg"
+              >
+                {solutions.map((item) => (
+                  <a
+                    key={item.label}
+                    role="menuitem"
+                    href={item.href}
+                    className="block px-3 py-1.5 text-[13px] text-text transition-colors duration-fast ease-standard hover:bg-bg-elev"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {links.map((link) => (
+          <a
+            key={link.label}
+            href={link.href}
+            className={cn(itemClass, "hidden md:inline-block")}
+          >
+            {link.label}
+          </a>
+        ))}
+
+        <div className="ml-auto flex items-center gap-2">
+          {/* GitHub badge — neutral "Star", no count (as built). */}
+          <a
+            href={githubHref}
+            target="_blank"
+            rel="noreferrer"
+            onClick={onGithubClick}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-[13px] font-medium text-text",
+              "transition-colors duration-fast ease-standard hover:bg-bg-elev",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+            )}
+          >
+            <GitHubMark className="h-3.5 w-3.5" />
+            Star
+          </a>
+          <button type="button" onClick={onSignIn} className={itemClass}>
+            Sign in
+          </button>
           <button
             type="button"
-            aria-expanded={solutionsOpen}
-            aria-haspopup="menu"
-            onClick={() => setSolutionsOpen((state) => !state)}
-            className={cn(itemClass, "inline-flex items-center gap-1")}
+            onClick={onTryCloud}
+            className={cn(
+              "rounded bg-accent px-3 py-1.5 text-[13px] font-medium text-on-accent",
+              "transition-colors duration-fast ease-standard hover:opacity-90",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+            )}
           >
-            Solutions
-            <ChevronDown
-              aria-hidden
-              className={cn(
-                "h-3.5 w-3.5 transition-transform duration-fast ease-standard",
-                solutionsOpen && "rotate-180",
-              )}
-            />
+            Try Cloud
           </button>
-          {solutionsOpen ? (
-            <div
-              role="menu"
-              className="absolute left-0 top-full z-dropdown mt-1 w-56 rounded border border-border bg-bg py-1 shadow-lg"
-            >
-              {solutions.map((item) => (
-                <a
-                  key={item.label}
-                  role="menuitem"
-                  href={item.href}
-                  className="block px-3 py-1.5 text-[13px] text-text transition-colors duration-fast ease-standard hover:bg-bg-elev"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          ) : null}
         </div>
-      ) : null}
-
-      {links.map((link) => (
-        <a
-          key={link.label}
-          href={link.href}
-          className={cn(itemClass, "hidden md:inline-block")}
-        >
-          {link.label}
-        </a>
-      ))}
-
-      <div className="ml-auto flex items-center gap-2">
-        {/* GitHub badge — neutral "Star", no count (as built). */}
-        <a
-          href={githubHref}
-          target="_blank"
-          rel="noreferrer"
-          onClick={onGithubClick}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-[13px] font-medium text-text",
-            "transition-colors duration-fast ease-standard hover:bg-bg-elev",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-          )}
-        >
-          <GitHubMark className="h-3.5 w-3.5" />
-          Star
-        </a>
-        <button type="button" onClick={onSignIn} className={itemClass}>
-          Sign in
-        </button>
-        <button
-          type="button"
-          onClick={onTryCloud}
-          className={cn(
-            "rounded bg-accent px-3 py-1.5 text-[13px] font-medium text-on-accent",
-            "transition-colors duration-fast ease-standard hover:opacity-90",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-          )}
-        >
-          Try Cloud
-        </button>
       </div>
     </nav>
   );

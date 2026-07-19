@@ -76,10 +76,11 @@ export const HowItWorksSection: React.FC = () => {
   };
 
   return (
-    <section id={ANCHORS.howItWorks} className="bg-bg py-20">
+    <section id={ANCHORS.howItWorks} className="scroll-mt-16 bg-bg py-20">
       <SectionInner>
         <SectionHeading>How it works</SectionHeading>
-        <ol className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-3">
+        {/* 3-up steps on the container-wide 384/24 rhythm (§2 pin). */}
+        <ol className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-6">
           {STEPS.map((step) => (
             <li key={step.number}>
               {/* Thumb: inert composition + link overlay (no nested

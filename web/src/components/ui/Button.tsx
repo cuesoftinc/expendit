@@ -73,7 +73,10 @@ export const Button: React.FC<ButtonProps> = ({
       aria-busy={loading}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded font-medium",
+        // whitespace-nowrap: labels never wrap (Figma buttons are
+        // single-line) — a narrow column squeezed "Try the sandbox" out
+        // of its pill on the A10 mobile comparison (live QA 2026-07-19).
+        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded font-medium",
         "transition-colors duration-fast ease-standard select-none",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed",

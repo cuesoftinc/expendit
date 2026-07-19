@@ -125,39 +125,36 @@ export const HomeView: React.FC = () => {
         </div>
       ) : null}
 
-      <div ref={heroRef}>
-        <HeroSection
-          nav={
-            <MarketingNav
-              variant="on-dark"
-              {...navProps}
-              className="mx-auto max-w-[1248px]"
-            />
-          }
-          onTryCloud={() => tryCloud("hero")}
-          onSelfHost={() => selfHost("hero")}
-        />
-      </div>
+      {/* The page's one main landmark — everything but the nav + footer. */}
+      <main>
+        <div ref={heroRef}>
+          <HeroSection
+            nav={<MarketingNav variant="on-dark" {...navProps} />}
+            onTryCloud={() => tryCloud("hero")}
+            onSelfHost={() => selfHost("hero")}
+          />
+        </div>
 
-      <LogoStrip />
-      <PillarsSection />
-      <DeepDivesSection />
-      <DemoSection />
-      <HowItWorksSection />
-      <AiSection />
-      <SecuritySection />
-      <ContributeSection />
-      <SelfHostSection />
-      <CommunitySection />
-      <CompareSection
-        onTryCloud={() => tryCloud("compare")}
-        onSelfHost={() => selfHost("compare")}
-      />
-      <FaqSection />
-      <FinalCtaSection
-        onTryCloud={() => tryCloud("final_cta")}
-        onSelfHost={() => selfHost("final_cta")}
-      />
+        <LogoStrip />
+        <PillarsSection />
+        <DeepDivesSection />
+        <DemoSection />
+        <HowItWorksSection />
+        <AiSection />
+        <SecuritySection />
+        <ContributeSection />
+        <SelfHostSection />
+        <CommunitySection />
+        <CompareSection
+          onTryCloud={() => tryCloud("compare")}
+          onSelfHost={() => selfHost("compare")}
+        />
+        <FaqSection />
+        <FinalCtaSection
+          onTryCloud={() => tryCloud("final_cta")}
+          onSelfHost={() => selfHost("final_cta")}
+        />
+      </main>
 
       <MarketingFooter
         columns={FOOTER_COLUMNS}

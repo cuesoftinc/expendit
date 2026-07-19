@@ -46,7 +46,8 @@ export const SecuritySection: React.FC = () => (
   <section className="bg-bg py-20">
     <SectionInner>
       <SectionHeading>Security &amp; privacy, in plain language</SectionHeading>
-      <div className="mx-auto mt-10 grid max-w-4xl gap-8 md:grid-cols-3">
+      {/* 3-up columns on the container-wide 384/24 rhythm (§2 pin). */}
+      <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
         {SECURITY_COLUMNS.map((column) => (
           <div key={column.title}>
             <h3 className="text-base font-semibold text-text">

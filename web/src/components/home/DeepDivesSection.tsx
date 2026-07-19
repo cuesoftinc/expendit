@@ -149,15 +149,17 @@ const DEEP_DIVES: DeepDive[] = [
 export const DeepDivesSection: React.FC = () => (
   <section className="bg-bg pb-24">
     <SectionInner className="space-y-20">
+      {/* Space-between splits (§2 pin): copy and visual pin to the
+          container edges of their sides. */}
       {DEEP_DIVES.map((dive) => (
         <div
           key={dive.title}
-          className="grid grid-cols-1 items-center gap-10 md:grid-cols-2"
+          className="grid grid-cols-1 items-center gap-10 md:grid-cols-2 md:gap-6"
         >
           <div
             className={cn(
               "max-w-[480px]",
-              dive.copySide === "right" && "md:order-2",
+              dive.copySide === "right" && "md:order-2 md:justify-self-end",
             )}
           >
             <div className="text-[11px] font-semibold uppercase tracking-wider text-accent">
@@ -170,13 +172,20 @@ export const DeepDivesSection: React.FC = () => (
               {dive.body}
             </p>
           </div>
-          <Reveal
-            className={cn(
-              "flex justify-center",
-              dive.copySide === "right" && "md:order-1",
-            )}
-          >
-            {dive.visual}
+          <Reveal className={cn(dive.copySide === "right" && "md:order-1")}>
+            {/* Decorative still (like the hero embed / A5a thumbs):
+                inert keeps its dead controls out of tab order + AX tree. */}
+            <div
+              inert
+              className={cn(
+                "flex select-none justify-center",
+                dive.copySide === "right"
+                  ? "md:justify-start"
+                  : "md:justify-end",
+              )}
+            >
+              {dive.visual}
+            </div>
           </Reveal>
         </div>
       ))}
