@@ -19,13 +19,20 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
     const company = await json<{ items: TaxEstimate[] }>(
       await getEstimates(mockRequest("/api/mock/tax/estimates")),
     );
+    // June (complete, due 21 Jul) + July (in progress, due 21 Aug) + CIT.
     expect(company.items.map((estimate) => estimate.kind).sort()).toEqual([
       "cit",
+      "vat",
       "vat",
     ]);
     expect(
       company.items.every((estimate) => estimate.authority.code === "FIRS"),
     ).toBe(true);
+    const julyVat = company.items.find(
+      (estimate) => estimate.kind === "vat" && estimate.period === "2026-07",
+    );
+    expect(julyVat?.due_date).toBe("2026-08-21");
+    expect(julyVat?.banners[0]).toContain("in progress");
 
     const personal = await json<{ items: TaxEstimate[] }>(
       await getEstimates(

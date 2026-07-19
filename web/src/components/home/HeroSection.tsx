@@ -2,7 +2,7 @@
 
 /**
  * A2 — Hero (dark editorial): Hero/88 display headline, sub, dual CTA
- * Try Cloud / Self Host, "Open source · MIT licensed" caption, and the
+ * Try Cloud / Self Host, "Open-source · MIT licensed" caption, and the
  * dashboard-in-device-frame visual (the B1 overview embed) with the
  * one-shot categorization-chip animation (pages.md A2: chips animate
  * once; static under reduced motion).
@@ -75,7 +75,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </Button>
       </div>
       <p className="mt-6 text-[13px] text-text-2">
-        Open source · MIT licensed · Self-host with one command
+        Open-source · MIT licensed · Self-host with one command
       </p>
 
       {/* Hero visual — the B1 overview in a device frame, with the

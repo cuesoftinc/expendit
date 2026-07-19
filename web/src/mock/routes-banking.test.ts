@@ -19,15 +19,22 @@ describe("mock bank links (flows/bank-link.md)", () => {
     resetDb();
   });
 
-  it("seeds GTBank ···0482 / Zenith ···3306 / Access ···7719 with states", async () => {
+  it("seeds six company links covering all five BANK_LINK states", async () => {
     const { items } = await json<{ items: BankLink[] }>(
       await listLinks(mockRequest("/api/mock/bank-links")),
     );
     expect(items.map((link) => link.masked_account)).toEqual([
-      "···0482",
-      "···3306",
-      "···7719",
+      "···0482", // GTBank — active
+      "···3306", // Zenith — active, auto-confirm
+      "···7719", // Access — reauth_required
+      "···5521", // UBA — paused
+      "···8843", // First Bank — degraded
+      "···1017", // Kuda — pending
     ]);
+    // Every §6.2 state appears in the seed (web-implementation.md §6).
+    expect(new Set(items.map((link) => link.status))).toEqual(
+      new Set(["pending", "active", "reauth_required", "degraded", "paused"]),
+    );
     expect(items.find((l) => l.institution === "Access Bank")?.status).toBe(
       "reauth_required",
     );

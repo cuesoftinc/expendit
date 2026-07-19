@@ -52,14 +52,39 @@ describe("ratio engine (FY2025 seed — line-items.md §5 registry)", () => {
     ).toBe(true);
   });
 
-  it("renders n/a rows per the degenerate rules", () => {
-    // No cash-flow statement for FY2025 → CFO metrics n/a with reason.
-    expect(metric("operating_cash_flow_ratio").status).toBe("na");
-    expect(metric("operating_cash_flow_ratio").na_reason).toContain(
+  it("computes CFO metrics from the confirmed FY2025 cash flow", () => {
+    expect(metric("operating_cash_flow_ratio").value).toBeCloseTo(13.4 / 11, 4);
+    // FCF = cfo + capex as-reported (capex signed, line-items.md §5).
+    expect(metric("free_cash_flow").value).toBe(8_200_000);
+  });
+
+  it("computes growth vs FY2024 — with the sign-change suppression", () => {
+    // Revenue growth: (128.4 − 96.8) / 96.8.
+    expect(metric("revenue_growth").value).toBeCloseTo(31.6 / 96.8, 4);
+    // FY2024 net income is a small loss → percentage suppressed with the
+    // absolute change in the trace (line-items.md §5 growth rules).
+    const niGrowth = metric("net_income_growth");
+    expect(niGrowth.status).toBe("na");
+    expect(niGrowth.na_reason).toBe("n/a — sign change");
+  });
+
+  it("renders n/a rows per the degenerate rules (FY2024 view)", () => {
+    const fy2024 = computeRatioReport(ORG_CUESOFT, "FY2024");
+    const metric2024 = (key: string) =>
+      fy2024.ratios.find((ratio) => ratio.key === key)!;
+    // No FY2024 cash-flow statement → CFO metrics n/a with reason.
+    expect(metric2024("operating_cash_flow_ratio").status).toBe("na");
+    expect(metric2024("operating_cash_flow_ratio").na_reason).toContain(
       "missing cash_flow",
     );
-    // No FY2024 statements → growth metrics n/a — no prior period.
-    expect(metric("revenue_growth").na_reason).toBe("n/a — no prior period");
+    // No FY2023 statements → growth metrics n/a — no prior period.
+    expect(metric2024("revenue_growth").na_reason).toBe(
+      "n/a — no prior period",
+    );
+    // The turnaround story's "before": warning/critical gauges.
+    expect(metric2024("current_ratio").status).toBe("warning");
+    expect(metric2024("debt_ratio").status).toBe("warning");
+    expect(metric2024("interest_coverage").status).toBe("critical");
   });
 
   it("persists formula + resolved line-item inputs (the MI-8 trace)", () => {

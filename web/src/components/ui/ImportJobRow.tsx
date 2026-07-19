@@ -64,7 +64,9 @@ const caption = (job: ImportJob, status: ImportJobRowStatus): string => {
         : staged;
     }
     case "completed-bank":
-      return `${job.imported} transactions${job.confirmed ? " · auto-confirmed" : ""}`;
+      return `${job.imported} ${
+        job.imported === 1 ? "transaction" : "transactions"
+      }${job.confirmed ? " · auto-confirmed" : ""}`;
     case "completed": {
       const parts = [
         `${job.imported} ${job.imported === 1 ? "transaction" : "transactions"}`,

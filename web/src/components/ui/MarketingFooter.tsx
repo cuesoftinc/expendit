@@ -28,7 +28,7 @@ export interface MarketingFooterProps {
 export const MarketingFooter: React.FC<MarketingFooterProps> = ({
   columns,
   securityPolicyHref = "/security",
-  note = "© Expendit. Open source under Cuesoft.",
+  note = "© Expendit — an open-source product by CueLABS™.",
   brand,
   meta,
   className,
@@ -69,9 +69,12 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
         ))}
       </div>
     </div>
+    {/* Footer mobile canon (2026-07-19): below md the legal bar stacks ©
+        first, then the utilities (security CTA · language) as ONE grouped
+        wrapping cluster; desktop keeps the right-aligned design. */}
     <div className="mx-auto mt-10 flex max-w-[1200px] flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
       <p className="text-[13px] text-text-2">{note}</p>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <a
           href={securityPolicyHref}
           {...(/^https?:\/\//.test(securityPolicyHref)
