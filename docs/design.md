@@ -117,7 +117,7 @@ ecosystem change, PR'd to all three design.md files together.
 | MI-3 | **Staged-review commit** | confirm button shows count ("Import 209 / discard 5 duplicates"); on commit, staged rows cascade-collapse into the ledger toast (240ms stagger ≤10 rows, then batch) |
 | MI-4 | **Inline category edit** | click chip → combobox in-cell; enter commits with 80ms chip color crossfade; AI ✨ mark clears on human confirm; `e` on focused row opens it |
 | MI-5 | **Anomaly pulse** | new anomalies pulse twice on first render, then rest; count in nav badge |
-| MI-6 | **Row hover** | 60ms bg tint + action icons fade-in right-aligned; no layout shift (icons absolutely positioned). Actions dock at the right edge of the DESCRIPTION cell, overlaying only truncation whitespace — the amount column stays legible during hover [Decided 2026-07-19] |
+| MI-6 | **Row hover** | 60ms bg tint + action icon cluster fades in docked at the right edge of the description (flex-1) cell, overlaying only its truncation whitespace — the category chip and amount column keep their positions and the amount stays fully legible; no layout shift (cluster absolutely positioned) **[Revised 2026-07-19]** |
 | MI-7 | **Number tick** | stat cards animate value changes with 300ms count-up (once per data refresh, not on scroll) |
 | MI-8 | **Ratio gauge** | needle eases to value 600ms cubic; benchmark band fades in after; hover shows formula tooltip ("Current ratio = current assets ÷ current liabilities") |
 | MI-9 | **Bank link flow** | provider modal (Mono/Plaid-style) inside `WizardShell`; status stepper: connect → consent → syncing (progress with live txn counter) → done; sync dot breathes while syncing |
@@ -261,7 +261,7 @@ never on screens.
 | CategoryChip | confirmed / AI-suggested (✨) / editing (combobox open) |
 | AnomalyBadge | large_transaction / spending_spike / abnormal_category / duplicate_charge · inline / feed |
 | StatCard | with/without delta chip · with/without sparkline · loading (as built: a single loading variant, delta + sparkline off — 5 of 8 combos, matching row intent) |
-| TxnTableRow | default / hover (actions revealed) / selected / editing / staged-duplicate · density ×2 (renamed from `TxnTable row` — §8.1 naming standards) |
+| TxnTableRow | default / hover (actions revealed — cluster docks at the description cell's right edge, MI-6) / selected / editing / staged-duplicate · density ×2 (renamed from `TxnTable row` — §8.1 naming standards) |
 | UploadDropzone | idle / drag-over / per-file progress / AI-sweep / complete / error |
 | LinkAccountCard | pending / active (breathing dot) / reauth_required / degraded / paused |
 | RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band (as built: n-a ships band=off only — no benchmark band on missing input) |
