@@ -241,4 +241,38 @@ describe("mock bank links (flows/bank-link.md)", () => {
     expect(polled.staged.length).toBeGreaterThan(0); // parked for review
     db.purgeRequest = null;
   });
+
+  it("unlink with purge removes parked staged syncs — confirm cannot resurrect purged rows (Codex round 4)", async () => {
+    const db = getDb();
+    // Park a clean sync in staged review on the GTBank link.
+    const started = await syncNow(
+      mockRequest("/api/mock/bank-links/link-gtb/sync", { method: "POST" }),
+      params({ id: "link-gtb" }),
+    );
+    const { job_id } = await json<{ job_id: string }>(started);
+    db.processingSince[job_id] = Date.now() - 5_000;
+    await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+      params: Promise.resolve({ jobId: job_id }),
+    });
+    expect(db.stagedTxns.some((row) => row.job_id === job_id)).toBe(true);
+
+    // Unlink with purge: the parked job + staged rows go with the link.
+    const removed = await unlink(
+      mockRequest("/api/mock/bank-links/link-gtb?purge=true", {
+        method: "DELETE",
+      }),
+      params({ id: "link-gtb" }),
+    );
+    expect(removed.status).toBe(204);
+    expect(db.importJobs.some((job) => job.id === job_id)).toBe(false);
+    expect(db.stagedTxns.some((row) => row.job_id === job_id)).toBe(false);
+    expect(db.jobLinks[job_id]).toBeUndefined();
+
+    // Confirming the vanished job 404s instead of writing purged rows.
+    const confirmed = await confirmJob(
+      mockRequest(`/api/mock/import/${job_id}/confirm`, { method: "POST" }),
+      { params: Promise.resolve({ jobId: job_id }) },
+    );
+    expect(confirmed.status).toBe(404);
+  });
 });

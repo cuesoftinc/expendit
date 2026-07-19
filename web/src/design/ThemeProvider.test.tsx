@@ -97,6 +97,31 @@ describe("ThemeProvider", () => {
     }
   });
 
+  it("write-blocked storage (readable, setItem throws) still flips the store (Codex round 4)", async () => {
+    const setSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("quota");
+      });
+    try {
+      render(
+        <ThemeProvider>
+          <Probe />
+        </ThemeProvider>,
+      );
+      await userEvent.click(screen.getByRole("button", { name: "dark" }));
+      // getItem works and returns null — but the failed write means the
+      // in-session preference must win, or the toggle sticks.
+      expect(screen.getByTestId("pref")).toHaveTextContent("dark");
+      await userEvent.click(screen.getByRole("button", { name: "light" }));
+      expect(screen.getByTestId("pref")).toHaveTextContent("light");
+      expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    } finally {
+      setSpy.mockRestore();
+      window.localStorage.clear();
+    }
+  });
+
   it("system reset clears the in-memory fallback too", async () => {
     render(
       <ThemeProvider>

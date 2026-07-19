@@ -70,7 +70,12 @@ export async function GET(request: Request) {
     ["amount_min", amountMin],
     ["amount_max", amountMax],
   ] as const) {
-    if (value !== null && !AMOUNT_PATTERN.test(value)) {
+    if (
+      value !== null &&
+      (!AMOUNT_PATTERN.test(value) || !Number.isFinite(Number(value)))
+    ) {
+      // Digit-only but overflowing values become Infinity and silently
+      // unfilter/empty the ledger (Codex round 4).
       return invalidParam(name, value);
     }
   }

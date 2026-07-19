@@ -43,15 +43,20 @@ function emit(): void {
 }
 
 // In-memory fallback: when storage is blocked (private mode, privacy
-// policies), the last set preference still drives the store — otherwise a
-// toggle click applied data-theme but the snapshot stayed "system" and the
-// control could never switch back (Codex round 3 on PR #209).
+// policies, full quota), the last set preference still drives the store —
+// otherwise a toggle click applied data-theme but the snapshot stayed
+// "system" and the control could never switch back (Codex rounds 3–4 on
+// PR #209). Readable+writable storage stays the source of truth; after a
+// FAILED write the stored value is stale, so the in-session preference
+// wins until a write succeeds again.
 let memoryPreference: ThemePreference = "system";
+let storageDesynced = false;
 
 function readStoredPreference(): ThemePreference {
   try {
+    if (storageDesynced) return memoryPreference;
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    // Readable storage is the source of truth (null = no override).
+    // Readable, in-sync storage is the source of truth (null = none).
     return stored === "light" || stored === "dark" ? stored : "system";
   } catch {
     // Storage unavailable — the in-session preference stands.
@@ -99,8 +104,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       } else {
         window.localStorage.setItem(THEME_STORAGE_KEY, next);
       }
+      storageDesynced = false;
     } catch {
-      // non-fatal: preference just won't persist
+      // non-fatal: the in-session preference drives the store instead.
+      storageDesynced = true;
     }
     emit();
   }, []);

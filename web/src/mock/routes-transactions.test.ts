@@ -127,6 +127,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
   it("query grammar is a boundary: malformed params 422 instead of silently filtering (review canon)", async () => {
     const cases: Array<[string, string]> = [
       ["amount_min", "abc"], // NaN-compared every row away before the fix
+      ["amount_min", "9".repeat(400)], // digit-only overflow → Infinity
       ["amount_max", "1,000"],
       ["date_from", "yesterday"],
       ["date_from", "2026-02-30"], // shape-valid, calendar-impossible
