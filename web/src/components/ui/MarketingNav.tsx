@@ -181,9 +181,12 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
         {links.map((link) =>
           renderLink(
             link,
-            // The star badge is a flex row — md:inline-block would stack
-            // the glyph over the label.
-            link.star ? "hidden md:inline-flex" : "hidden md:inline-block",
+            // The star badge is a flex row (its base class carries
+            // inline-flex), so it hides via max-md: — a bare `hidden`
+            // conflicts with the base display utility and v4's property
+            // order lets inline-flex win. Plain links have no base display
+            // class, so hidden + md:inline-block is unambiguous.
+            link.star ? "max-md:hidden" : "hidden md:inline-block",
           ),
         )}
 

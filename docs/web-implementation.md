@@ -12,9 +12,10 @@
 
 ## 1. The standard (ecosystem, shared across the three products)
 
-- **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
-  the token CSS variables (§3). Components are token/Tailwind-based — the
-  live tree carries no MUI (§8 boundary gates).
+- **Stack**: Next.js 16 App Router (typed `next.config.ts`) + React 19 +
+  TypeScript; Tailwind v4 maps to the token CSS variables (§3). Components
+  are token/Tailwind-based — the live tree carries no MUI (§8 boundary
+  gates).
 - **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
   mirroring design.md §2 exactly (light on `:root`, dark on
   `[data-theme="dark"]`, honoring `prefers-color-scheme` with manual
@@ -259,7 +260,14 @@ One custom property per Figma variable in the `expendit/tokens` collection
 | Spacing | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64` — the 4px-grid scale, no off-scale values |
 | Radii | `--radius: 6px` (the product radius) · `--radius-full: 9999px` (avatars, dots, progress rings) |
 | Motion | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)` |
-| Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-sheet: 40` · `--z-toast: 50` |
+| Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-modal: 40` · `--z-toast: 50` |
+
+The mapping is consumed through Tailwind v4's `@theme inline` block in
+`globals.css` (the `--color-` prefix on the color tokens is the v4 `@theme`
+convention; the Figma variables carry the bare names). Utilities resolve the
+custom properties at runtime, so theme switching needs no class swaps, and
+alpha modifiers (`bg-info/10`, `border-warn/40`) apply natively to the
+var-backed colors — v4 compiles them to `color-mix()`.
 
 Notes: Expendit has no chart series-palette tokens — donut slices take the
 registry category colors (B8, ColorSwatchPicker presets) and line charts

@@ -54,7 +54,10 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
               : "bg-accent/10 text-accent",
           )}
         >
-          <Icon aria-hidden className="h-4.5 w-4.5" />
+          {/* 24px — h-4.5 was outside the v3 spacing scale, so the lucide
+              default (24) is what shipped; keep the rendered size (v4
+              resolves fractional spacing, which would silently shrink it). */}
+          <Icon aria-hidden className="h-6 w-6" />
         </span>
       ) : null}
       {eyebrow ? (
