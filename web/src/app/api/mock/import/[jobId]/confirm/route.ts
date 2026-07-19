@@ -57,7 +57,10 @@ export async function POST(request: Request, context: Context) {
     category_id: row.category_id,
     txn_date: row.txn_date,
     source: fileSource,
-    source_link_id: null,
+    // Bank rows keep their link provenance so DELETE ?purge=true can
+    // remove every transaction from that link (Codex round 3).
+    source_link_id:
+      job.source === "bank_sync" ? (db.jobLinks[job.id] ?? null) : null,
     ai_categorized: row.ai_categorized,
     excluded_from_reports: false,
     anomalies: [],

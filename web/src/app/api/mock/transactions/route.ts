@@ -6,6 +6,18 @@ import { mockNow } from "@/mock/clock";
 import { fail, ok, paginate, resolveOrgId, writeBlocked } from "@/mock/http";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Shape AND calendar validity — 2026-02-30 is not a date (Codex round 3). */
+const isRealDate = (value: string): boolean => {
+  if (!DATE_PATTERN.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+};
 const AMOUNT_PATTERN = /^\d+(\.\d+)?$/;
 const LIMIT_PATTERN = /^\d+$/;
 const SOURCES: readonly string[] = ["manual", "csv", "pdf", "receipt", "bank"];
@@ -44,7 +56,7 @@ export async function GET(request: Request) {
     ["date_from", dateFrom],
     ["date_to", dateTo],
   ] as const) {
-    if (value !== null && !DATE_PATTERN.test(value)) {
+    if (value !== null && !isRealDate(value)) {
       return invalidParam(name, value);
     }
   }

@@ -121,8 +121,8 @@ test.describe("public home `/` (Part A)", () => {
     page,
   }) => {
     await page.goto("/");
-    // Hero Try Cloud (the A2 CTA — first Try Cloud on the page; the nav
-    // CTA is "Sign in" under the parity canon).
+    // Hero Try Cloud (the A2 CTA — the first Try Cloud BUTTON; the nav
+    // Try Cloud is a link, canon revision 2026-07-19).
     await page.getByRole("button", { name: "Try Cloud" }).first().click();
     await page.waitForURL("**/signin");
     await expect(

@@ -42,14 +42,21 @@ function emit(): void {
   for (const listener of listeners) listener();
 }
 
+// In-memory fallback: when storage is blocked (private mode, privacy
+// policies), the last set preference still drives the store — otherwise a
+// toggle click applied data-theme but the snapshot stayed "system" and the
+// control could never switch back (Codex round 3 on PR #209).
+let memoryPreference: ThemePreference = "system";
+
 function readStoredPreference(): ThemePreference {
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
+    // Readable storage is the source of truth (null = no override).
+    return stored === "light" || stored === "dark" ? stored : "system";
   } catch {
-    // storage unavailable (private mode etc.) — fall through to system
+    // Storage unavailable — the in-session preference stands.
+    return memoryPreference;
   }
-  return "system";
 }
 
 function getServerSnapshot(): ThemePreference {
@@ -84,6 +91,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 
   const setPreference = useCallback((next: ThemePreference) => {
+    memoryPreference = next;
     applyPreference(next);
     try {
       if (next === "system") {

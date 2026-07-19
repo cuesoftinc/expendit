@@ -14,6 +14,18 @@
     text-align: inherit;
   }
 
+  /* Cursor affordance canon [Directive 2026-07-19]: enabled interactive
+     controls show the pointer — explicit so Tailwind v3/v4 repos behave
+     identically (v4 preflight dropped the button pointer). Links use the
+     native pointer; disabled controls keep the default cursor. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
   /* Anchor scrolling is smooth unless the user opts out (design.md §5). */
   html {
     scroll-behavior: smooth;

@@ -129,7 +129,9 @@ describe("mock /transactions (docs-coherent ledger)", () => {
       ["amount_min", "abc"], // NaN-compared every row away before the fix
       ["amount_max", "1,000"],
       ["date_from", "yesterday"],
+      ["date_from", "2026-02-30"], // shape-valid, calendar-impossible
       ["date_to", "2026-7-1"],
+      ["date_to", "2026-13-01"],
       ["direction", "sideways"],
       ["source", "carrier-pigeon"],
       ["limit", "abc"],

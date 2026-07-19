@@ -10,9 +10,15 @@ const props = {
     { label: "Features", href: "#product" },
     { label: "Pricing", href: "#compare" },
     { label: "Docs", href: "https://cuesoft.gitbook.io/expendit" },
-    { label: "GitHub", href: "https://github.com/cuesoftinc/expendit" },
+    {
+      label: "GitHub",
+      href: "https://github.com/cuesoftinc/expendit",
+      star: true,
+    },
   ],
 };
+
+const STAR_NAME = "Star cuesoftinc/expendit on GitHub";
 
 describe("MarketingNav (design.md §8.2b + parity canon)", () => {
   it("on-dark variant scopes dark token mode over the hero", () => {
@@ -30,7 +36,7 @@ describe("MarketingNav (design.md §8.2b + parity canon)", () => {
     expect(nav).toHaveClass("sticky");
   });
 
-  it("renders the canonical links — external ones open in a new tab", () => {
+  it("renders the canonical links — GitHub as the star badge, externals in a new tab", () => {
     render(<MarketingNav {...props} />);
     expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute(
       "href",
@@ -43,25 +49,40 @@ describe("MarketingNav (design.md §8.2b + parity canon)", () => {
     const docs = screen.getByRole("link", { name: "Docs" });
     expect(docs).toHaveAttribute("href", "https://cuesoft.gitbook.io/expendit");
     expect(docs).toHaveAttribute("target", "_blank");
-    const github = screen.getByRole("link", { name: "GitHub" });
+    const github = screen.getByRole("link", { name: STAR_NAME });
     expect(github).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/expendit",
     );
     expect(github).toHaveAttribute("target", "_blank");
+    // Neutral badge — no count is ever hardcoded.
+    expect(github.textContent).toBe("Star");
   });
 
-  it("Sign in is the CTA and links to /signin", () => {
-    render(<MarketingNav {...props} />);
+  it("star badge renders the live count when provided", () => {
+    render(<MarketingNav {...props} starCount={1280} />);
+    const github = screen.getByRole("link", { name: STAR_NAME });
+    expect(github.textContent).toBe("Star1,280");
+  });
+
+  it("Sign in is a text link and Try Cloud the primary CTA — both to /signin", async () => {
+    const onTryCloud = vi.fn();
+    render(<MarketingNav {...props} onTryCloud={onTryCloud} />);
     const signIn = screen.getByRole("link", { name: "Sign in" });
     expect(signIn).toHaveAttribute("href", "/signin");
-    expect(signIn).toHaveClass("bg-accent");
+    expect(signIn).not.toHaveClass("bg-accent");
+    const tryCloud = screen.getByRole("link", { name: "Try Cloud" });
+    expect(tryCloud).toHaveAttribute("href", "/signin");
+    expect(tryCloud).toHaveClass("bg-accent");
+    tryCloud.addEventListener("click", (event) => event.preventDefault());
+    await userEvent.click(tryCloud);
+    expect(onTryCloud).toHaveBeenCalled();
   });
 
   it("link clicks report their label (github_click analytics hook)", async () => {
     const onLinkClick = vi.fn();
     render(<MarketingNav {...props} onLinkClick={onLinkClick} />);
-    const github = screen.getByRole("link", { name: "GitHub" });
+    const github = screen.getByRole("link", { name: STAR_NAME });
     github.addEventListener("click", (event) => event.preventDefault());
     await userEvent.click(github);
     expect(onLinkClick).toHaveBeenCalledWith("GitHub");
@@ -74,7 +95,7 @@ describe("MarketingNav (design.md §8.2b + parity canon)", () => {
     expect(screen.getByTestId("slot")).toBeInTheDocument();
   });
 
-  it("mobile: hamburger disclosure carries the 4 links + trailing + Sign in (parity canon)", async () => {
+  it("mobile: hamburger disclosure carries the 4 links + trailing + Sign in + Try Cloud (parity canon)", async () => {
     render(
       <MarketingNav {...props} trailing={<span data-testid="slot">t</span>} />,
     );
@@ -92,13 +113,14 @@ describe("MarketingNav (design.md §8.2b + parity canon)", () => {
       ["Features", "#product"],
       ["Pricing", "#compare"],
       ["Docs", "https://cuesoft.gitbook.io/expendit"],
-      ["GitHub", "https://github.com/cuesoftinc/expendit"],
+      [STAR_NAME, "https://github.com/cuesoftinc/expendit"],
     ] as const) {
       const links = screen.getAllByRole("link", { name: label });
       expect(links.length).toBeGreaterThanOrEqual(2);
       for (const link of links) expect(link).toHaveAttribute("href", href);
     }
     expect(screen.getAllByRole("link", { name: "Sign in" }).length).toBe(2);
+    expect(screen.getAllByRole("link", { name: "Try Cloud" }).length).toBe(2);
     expect(screen.getAllByTestId("slot").length).toBe(2);
 
     await userEvent.click(menu);

@@ -10,11 +10,15 @@ import { expect, test, type Page } from "@playwright/test";
 const GITHUB = "https://github.com/cuesoftinc/expendit";
 const DOCS = "https://cuesoft.gitbook.io/expendit";
 
+const STAR_NAME = "Star cuesoftinc/expendit on GitHub";
+
+// The GitHub item renders as the star badge (canon revision 2026-07-19);
+// its accessible name is the badge aria-label.
 const NAV_LINKS: Array<[string, string]> = [
   ["Features", "#product"],
   ["Pricing", "#compare"],
   ["Docs", DOCS],
-  ["GitHub", GITHUB],
+  [STAR_NAME, GITHUB],
 ];
 
 const FOOTER_LINKS: Array<[string, string, string]> = [
@@ -36,7 +40,9 @@ const FOOTER_LINKS: Array<[string, string, string]> = [
   ["Legal", "Status", "https://status.cuesoft.io"],
 ];
 
-test("nav carries the canonical 4 links + Sign in CTA", async ({ page }) => {
+test("nav carries the canonical 4 links + Sign in + Try Cloud CTA", async ({
+  page,
+}) => {
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Marketing" }).first();
   for (const [label, href] of NAV_LINKS) {
@@ -45,9 +51,26 @@ test("nav carries the canonical 4 links + Sign in CTA", async ({ page }) => {
       href,
     );
   }
+  // TEST_MODE: the star badge stays neutral — no hardcoded count.
+  await expect(nav.getByRole("link", { name: STAR_NAME })).toHaveText("Star");
   await expect(nav.getByRole("link", { name: "Sign in" })).toHaveAttribute(
     "href",
     "/signin",
+  );
+  await expect(nav.getByRole("link", { name: "Try Cloud" })).toHaveAttribute(
+    "href",
+    "/signin",
+  );
+
+  // Cursor affordance canon [Directive 2026-07-19]: pointer on enabled
+  // controls and links.
+  const cursorOf = (locator: ReturnType<typeof nav.getByRole>) =>
+    locator.evaluate((el) => getComputedStyle(el).cursor);
+  expect(
+    await cursorOf(nav.getByRole("button", { name: /Switch to .* theme/ })),
+  ).toBe("pointer");
+  expect(await cursorOf(nav.getByRole("link", { name: "Docs" }))).toBe(
+    "pointer",
   );
 });
 
@@ -71,6 +94,9 @@ test("footer carries the 4-column canonical inventory + legal bar", async ({
   await expect(
     footer.getByRole("link", { name: "Cuesoft Inc." }),
   ).toHaveAttribute("href", "https://cuesoft.io");
+  await expect(
+    footer.getByRole("link", { name: "CueLABS™ Division" }),
+  ).toHaveAttribute("href", "https://cuelabs.cuesoft.io");
   await expect(
     footer.getByRole("link", { name: "MIT License" }),
   ).toHaveAttribute("href", `${GITHUB}/blob/main/LICENSE`);
@@ -106,6 +132,9 @@ test("mobile (390w): the hamburger panel reaches every canonical nav destination
   }
   await expect(
     nav.getByRole("link", { name: "Sign in" }).filter({ visible: true }),
+  ).toHaveAttribute("href", "/signin");
+  await expect(
+    nav.getByRole("link", { name: "Try Cloud" }).filter({ visible: true }),
   ).toHaveAttribute("href", "/signin");
 
   // Theme toggle works from the panel.

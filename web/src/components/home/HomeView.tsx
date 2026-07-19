@@ -16,6 +16,7 @@ import {
   useAnalyticsController,
   usePageView,
 } from "@/controllers/use-analytics";
+import { useGithubStarsController } from "@/controllers/use-github-stars";
 import HeroSection from "./HeroSection";
 import { LogoStrip, PillarsSection } from "./PillarsSection";
 import DeepDivesSection from "./DeepDivesSection";
@@ -51,7 +52,9 @@ const NAV_LINKS = [
   { label: "Features", href: `#${ANCHORS.product}` },
   { label: "Pricing", href: `#${ANCHORS.compare}` },
   { label: "Docs", href: DOCS_URL },
-  { label: "GitHub", href: GITHUB_URL },
+  // Star badge — live count via the stars controller (canon revision:
+  // never hardcoded; neutral "Star" in TEST_MODE / on fetch failure).
+  { label: "GitHub", href: GITHUB_URL, star: true },
 ];
 
 // A11 footer — brand block + 4 columns + legal bar (parity canon).
@@ -123,12 +126,16 @@ export const HomeView: React.FC = () => {
     scrollToAnchor(ANCHORS.selfHost);
   };
 
+  const { stars } = useGithubStarsController();
+
   const navProps = {
     links: NAV_LINKS,
     trailing: <ThemeToggle />,
+    starCount: stars,
     onLinkClick: (label: string) => {
       if (label === "GitHub") track("github_click", { source: "nav" });
     },
+    onTryCloud: () => track("try_cloud_click", { source: "nav" }),
   };
 
   return (
@@ -187,7 +194,16 @@ export const HomeView: React.FC = () => {
             >
               Cuesoft Inc.
             </a>{" "}
-            2026. Expendit. CueLABS™ Division.{" "}
+            2026. Expendit.{" "}
+            <a
+              href={CUELABS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded transition-colors duration-fast ease-standard hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              CueLABS™ Division
+            </a>
+            .{" "}
             <a
               href={LICENSE_URL}
               target="_blank"

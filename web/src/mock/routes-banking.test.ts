@@ -9,6 +9,7 @@ import {
 import { PUT as exchange } from "@/app/api/mock/bank-links/[id]/exchange/route";
 import { POST as syncNow } from "@/app/api/mock/bank-links/[id]/sync/route";
 import { GET as pollJob } from "@/app/api/mock/import/[jobId]/route";
+import { POST as confirmJob } from "@/app/api/mock/import/[jobId]/confirm/route";
 import type { BankLink } from "@/models";
 import { getDb, resetDb } from "./db";
 import { json, mockRequest, params } from "./test-helpers";
@@ -177,6 +178,20 @@ describe("mock bank links (flows/bank-link.md)", () => {
     // Bank feeds are clean — no duplicate flags either way.
     expect(auto.job.duplicates_found).toBe(0);
     expect(manual.job.duplicates_found).toBe(0);
+
+    // Manually confirming the staged sync keeps link provenance so
+    // unlink-with-purge can remove the rows (Codex round 3).
+    const confirmed = await confirmJob(
+      mockRequest(`/api/mock/import/${manual.jobId}/confirm`, {
+        method: "POST",
+      }),
+      { params: Promise.resolve({ jobId: manual.jobId }) },
+    );
+    expect(confirmed.status).toBe(200);
+    const gtbRows = getDb().transactions.filter(
+      (txn) => txn.source_link_id === "link-gtb",
+    );
+    expect(gtbRows.length).toBeGreaterThan(0);
   });
 
   it("purge grace keeps the ledger read-only: auto-confirm falls back to staging (Codex P1 regression)", async () => {
