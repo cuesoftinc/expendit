@@ -131,8 +131,11 @@ export const Modal: React.FC<ModalProps> = ({
                       Cancel
                     </Button>
                   </Dialog.Close>
+                  {/* MI-15: type-to-confirm + 5s countdown-armed CTA
+                      (Figma 208:4194 "Purge everything 5s"). */}
                   <Button
-                    kind="destructive"
+                    kind="danger-armed"
+                    armedSeconds={5}
                     size="sm"
                     disabled={!confirmReady}
                     onClick={onConfirm}

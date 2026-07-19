@@ -315,21 +315,27 @@ export const DashboardEmbed: React.FC = () => {
               View all →
             </span>
           </div>
-          <TableHeader
-            columns={TXN_COLUMNS}
-            density="compact"
-            sort={{ columnId: "date", direction: "desc" }}
-          />
-          {HERO_TXNS.map((txn) => (
-            <TxnTableRow
-              key={txn.id}
-              txn={toTxnEntry(txn)}
-              category={
-                HERO_CATEGORIES[txn.categoryId as keyof typeof HERO_CATEGORIES]
-              }
+          <table className="w-full">
+            <TableHeader
+              columns={TXN_COLUMNS}
               density="compact"
+              sort={{ columnId: "date", direction: "desc" }}
             />
-          ))}
+            <tbody className="contents">
+              {HERO_TXNS.map((txn) => (
+                <TxnTableRow
+                  key={txn.id}
+                  txn={toTxnEntry(txn)}
+                  category={
+                    HERO_CATEGORIES[
+                      txn.categoryId as keyof typeof HERO_CATEGORIES
+                    ]
+                  }
+                  density="compact"
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -351,24 +357,28 @@ export const ImportReviewEmbed: React.FC = () => {
       <div className="min-w-0 flex-1 space-y-3 overflow-hidden p-5">
         <StagedReviewHeader importCount={209} duplicateCount={5} />
         <div>
-          <TableHeader
-            columns={TXN_COLUMNS}
-            density="compact"
-            sort={{ columnId: "date", direction: "desc" }}
-          />
-          {freelancer.txns.map((txn, index) => (
-            <TxnTableRow
-              key={txn.id}
-              txn={toTxnEntry(txn)}
-              category={
-                freelancer.categories.find(
-                  (category) => category.id === txn.categoryId,
-                ) ?? freelancer.categories[0]
-              }
+          <table className="w-full">
+            <TableHeader
+              columns={TXN_COLUMNS}
               density="compact"
-              stagedDuplicate={index === freelancer.txns.length - 1}
+              sort={{ columnId: "date", direction: "desc" }}
             />
-          ))}
+            <tbody className="contents">
+              {freelancer.txns.map((txn, index) => (
+                <TxnTableRow
+                  key={txn.id}
+                  txn={toTxnEntry(txn)}
+                  category={
+                    freelancer.categories.find(
+                      (category) => category.id === txn.categoryId,
+                    ) ?? freelancer.categories[0]
+                  }
+                  density="compact"
+                  stagedDuplicate={index === freelancer.txns.length - 1}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
         <p className="text-[13px] text-text-2">
           209 rows will join your ledger. Discarded duplicates stay recoverable
@@ -430,7 +440,7 @@ export const TaxCenterEmbed: React.FC = () => (
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wide text-text-2">
           Filing calendar
         </div>
-        <div className="space-y-1.5">
+        <ul className="list-none space-y-1.5">
           <TaxCalendarRow
             entry={{
               kind: "vat",
@@ -458,13 +468,13 @@ export const TaxCenterEmbed: React.FC = () => (
             }}
             daysToDue={254}
           />
-        </div>
+        </ul>
       </div>
       <div>
         <div className="mb-2 text-[11px] font-medium uppercase tracking-wide text-text-2">
           Filing history
         </div>
-        <div className="rounded border border-border">
+        <ul className="list-none rounded border border-border">
           <FilingHistoryRow
             filing={{
               id: "tf-vat-2026-05",
@@ -497,7 +507,7 @@ export const TaxCenterEmbed: React.FC = () => (
               created_at: "2026-05-15T10:00:00.000Z",
             }}
           />
-        </div>
+        </ul>
       </div>
     </div>
   </div>

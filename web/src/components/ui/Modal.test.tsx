@@ -34,7 +34,7 @@ describe("Modal/Dialog (design.md §8.2b)", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("MI-15 danger: confirm stays disabled until the phrase is typed", async () => {
+  it("MI-15 danger: typed phrase alone does not fire — the 5s arming countdown must also elapse", async () => {
     const onConfirm = vi.fn();
     render(
       <Modal
@@ -49,15 +49,17 @@ describe("Modal/Dialog (design.md §8.2b)", () => {
         This cannot be undone.
       </Modal>,
     );
-    const confirm = screen.getByRole("button", { name: "Purge" });
+    // Countdown pill renders while armed (Figma "Purge everything 5s");
+    // the elapse→enabled path is covered by the Button danger-armed test.
+    const confirm = screen.getByRole("button", { name: /Purge/ });
     expect(confirm).toBeDisabled();
+    expect(screen.getByTestId("button-countdown")).toBeInTheDocument();
     await userEvent.type(
       screen.getByLabelText('Type "personal-org" to confirm'),
       "personal-org",
     );
-    expect(confirm).toBeEnabled();
-    await userEvent.click(confirm);
-    expect(onConfirm).toHaveBeenCalled();
+    expect(confirm).toBeDisabled(); // still inside the arming window
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it("sheet variant renders right-anchored chrome", () => {

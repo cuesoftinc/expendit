@@ -120,7 +120,7 @@ export const TaxesView: React.FC = () => {
   return (
     <>
       <PageHeader
-        title="Taxes"
+        title="Tax center"
         description="NG-first estimates with named authorities — every figure traceable to its inputs."
         actions={
           <Button

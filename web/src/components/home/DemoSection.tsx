@@ -180,27 +180,29 @@ export const DemoSection: React.FC = () => {
                     data-testid="demo-table"
                     className="mt-6 overflow-x-auto rounded border border-border bg-bg"
                   >
-                    <div className="min-w-[720px]">
+                    <table className="w-full min-w-[720px]">
                       <TableHeader
                         columns={TXN_COLUMNS}
                         sort={{ columnId: "date", direction: "desc" }}
                       />
-                      {txns.map((txn) => (
-                        <TxnTableRow
-                          key={txn.id}
-                          txn={toTxnEntry(txn)}
-                          category={
-                            dataset.categories.find(
-                              (category) => category.id === txn.categoryId,
-                            ) ?? dataset.categories[0]
-                          }
-                          categoryOptions={dataset.categories}
-                          onCategorySelect={(categoryId) =>
-                            recategorize(txn.id, categoryId)
-                          }
-                        />
-                      ))}
-                    </div>
+                      <tbody className="contents">
+                        {txns.map((txn) => (
+                          <TxnTableRow
+                            key={txn.id}
+                            txn={toTxnEntry(txn)}
+                            category={
+                              dataset.categories.find(
+                                (category) => category.id === txn.categoryId,
+                              ) ?? dataset.categories[0]
+                            }
+                            categoryOptions={dataset.categories}
+                            onCategorySelect={(categoryId) =>
+                              recategorize(txn.id, categoryId)
+                            }
+                          />
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </>
               )}
