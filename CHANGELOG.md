@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `RequestID`/`Logger`/`Recovery`/CORS middleware, and graceful shutdown.
 - Local Docker stack: root `docker-compose.yml` (mongo, redis, api-common:8080,
   web:3000), compose-driven `Makefile`, and `.env.example`.
-- Standardized repository structure and shared CueLABS community-health files
+- Standardized repository structure and shared CueLABS™ community-health files
   (SECURITY, CODE_OF_CONDUCT, CONTRIBUTING, CODEOWNERS, PR/issue templates), a
   scoped Dependabot config, `deploy/{docker,helm,terraform}`, and
   `docs/overview.md` + `docs/setup.md`.
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   purpose-based packages and `snake_case.go` files.
 - Standardized web naming (kebab-case folders + modules, PascalCase components);
   moved `src/API/APIS` → `src/api`.
-- Aligned README + docs (overview, setup) to the shared CueLABS section
+- Aligned README + docs (overview, setup) to the shared CueLABS™ section
   structure; run commands use `make up` / `go run ./cmd/server`.
 - Rewrote README/CONTRIBUTING to match the real stack (Go + Gin + MongoDB,
   Next.js); aligned `.gitignore`, `.editorconfig`, and `.dockerignore` to the
