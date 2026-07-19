@@ -34,4 +34,16 @@ describe("EditorialCard (design.md §8.2b)", () => {
     expect(card).toHaveAttribute("data-kind", "community");
     expect(card).toHaveClass("hover:-translate-y-0.5");
   });
+
+  it("renders the optional accent CTA line (Figma A4/A9 instances)", () => {
+    render(
+      <EditorialCard
+        title="Statements → intelligence"
+        body="Upload or link."
+        cta="Explore imports"
+        href="/signin"
+      />,
+    );
+    expect(screen.getByText("Explore imports")).toHaveClass("text-accent");
+  });
 });

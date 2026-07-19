@@ -41,4 +41,16 @@ describe("MarketingFooter (design.md §8.2b)", () => {
       screen.getByRole("link", { name: /View Security Policy/ }),
     ).toHaveAttribute("href", "/security");
   });
+
+  it("renders optional brand and meta slots (Figma A11 instance)", () => {
+    render(
+      <MarketingFooter
+        columns={columns}
+        brand={<span>expendit — tagline</span>}
+        meta={<span>English</span>}
+      />,
+    );
+    expect(screen.getByText("expendit — tagline")).toBeInTheDocument();
+    expect(screen.getByText("English")).toBeInTheDocument();
+  });
 });

@@ -46,6 +46,15 @@ describe("MarketingNav (design.md §8.2b)", () => {
     expect(badge.textContent).toBe("Star");
   });
 
+  it("GitHub badge click reports for analytics (github_click)", async () => {
+    const onGithubClick = vi.fn();
+    render(<MarketingNav {...props} onGithubClick={onGithubClick} />);
+    const badge = screen.getByRole("link", { name: /Star/ });
+    badge.addEventListener("click", (event) => event.preventDefault());
+    await userEvent.click(badge);
+    expect(onGithubClick).toHaveBeenCalled();
+  });
+
   it("Sign in + Try Cloud CTAs fire", async () => {
     const onSignIn = vi.fn();
     const onTryCloud = vi.fn();
