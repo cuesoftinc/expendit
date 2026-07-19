@@ -68,6 +68,19 @@ export async function DELETE(request: Request, context: Context) {
     db.transactions = db.transactions.filter(
       (txn) => txn.source_link_id !== id,
     );
+    // Pending staged syncs go with them — otherwise confirming a parked
+    // bank job later would re-create rows for the purged link that the
+    // purge can no longer delete (Codex round 4 on PR #209).
+    const linkedJobs = Object.entries(db.jobLinks)
+      .filter(([, linkId]) => linkId === id)
+      .map(([jobId]) => jobId);
+    db.importJobs = db.importJobs.filter(
+      (job) => !(linkedJobs.includes(job.id) && !job.confirmed),
+    );
+    db.stagedTxns = db.stagedTxns.filter(
+      (row) => !linkedJobs.includes(row.job_id),
+    );
+    for (const jobId of linkedJobs) delete db.jobLinks[jobId];
   }
   // purge=false (default): imported transactions stay — the user's records.
   db.bankLinks = db.bankLinks.filter((item) => item.id !== id);

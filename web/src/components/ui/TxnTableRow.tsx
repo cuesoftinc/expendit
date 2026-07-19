@@ -160,10 +160,15 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       <td
         data-testid="row-actions"
         className={cn(
-          // Figma hover: bare icons over the row's hover surface.
+          // Figma hover variant: bare icons right-aligned over the row's
+          // hover surface (they cover the amount only while this row is
+          // hovered/focused). pointer-events gating keeps the hidden
+          // cluster hit-transparent — without it the invisible strip
+          // swallowed clicks on cells beneath it (system QA 2026-07-19).
           "absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 bg-bg-elev pl-2",
-          "opacity-0 transition-opacity duration-[60ms] ease-standard",
-          "group-hover:opacity-100 group-focus-within:opacity-100",
+          "pointer-events-none opacity-0 transition-opacity duration-[60ms] ease-standard",
+          "group-hover:pointer-events-auto group-hover:opacity-100",
+          "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
         )}
       >
         <button

@@ -62,10 +62,21 @@ describe("ratio engine (FY2025 seed — line-items.md §5 registry)", () => {
     expect(metric("revenue_growth").na_reason).toBe("n/a — no prior period");
   });
 
-  it("persists formula + line-item inputs (the MI-8 trace)", () => {
+  it("persists formula + resolved line-item inputs (the MI-8 trace)", () => {
     const current = metric("current_ratio");
     expect(current.formula).toBe("current_assets / current_liabilities");
     expect(current.inputs.length).toBeGreaterThan(0);
+    // Resolved inputs: id (audit pointer) + key + amount, so the trace is
+    // auditable on sight (system QA 2026-07-19).
+    for (const input of current.inputs) {
+      expect(input.id).toBeTruthy();
+      expect(input.canonical_key).toBeTruthy();
+      expect(typeof input.amount).toBe("number");
+    }
+    expect(current.inputs.map((input) => input.canonical_key).sort()).toEqual([
+      "current_assets",
+      "current_liabilities",
+    ]);
   });
 
   it("returns n/a rows for an org with no statements", () => {

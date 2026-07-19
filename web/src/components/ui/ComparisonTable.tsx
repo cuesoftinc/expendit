@@ -38,7 +38,11 @@ const Cell: React.FC<{ cell: ComparisonCell }> = ({ cell }) => {
       <X aria-label="Not included" className="mx-auto h-4 w-4 text-text-2" />
     );
   }
-  return <span className="text-[13px] text-text">{cell.text}</span>;
+  // Single line always: on the 390 comparison the price row wrapped and
+  // mis-baselined against its neighbor (system QA 2026-07-19).
+  return (
+    <span className="whitespace-nowrap text-[13px] text-text">{cell.text}</span>
+  );
 };
 
 export const ComparisonTable: React.FC<ComparisonTableProps> = ({
@@ -83,10 +87,10 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
           >
             {row.feature}
           </th>
-          <td className="py-2.5 text-center">
+          <td className="py-2.5 text-center align-middle">
             <Cell cell={row.cloud} />
           </td>
-          <td className="py-2.5 text-center">
+          <td className="py-2.5 text-center align-middle">
             <Cell cell={row.selfHost} />
           </td>
         </tr>
@@ -96,8 +100,8 @@ export const ComparisonTable: React.FC<ComparisonTableProps> = ({
       <tfoot>
         <tr>
           <td className="py-3" />
-          <td className="py-3 text-center">{cloudCta}</td>
-          <td className="py-3 text-center">{selfHostCta}</td>
+          <td className="py-3 text-center align-middle">{cloudCta}</td>
+          <td className="py-3 text-center align-middle">{selfHostCta}</td>
         </tr>
       </tfoot>
     ) : null}

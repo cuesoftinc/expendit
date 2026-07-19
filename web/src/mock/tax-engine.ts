@@ -6,6 +6,7 @@
  * tax_identity_incomplete).
  */
 
+import { missingTaxIdentifiers } from "@/models/tax";
 import type { ComputedField, TaxEstimate, TaxKind, TaxProfile } from "@/models";
 import { resolveAuthority } from "@/models/registry/authorities";
 import { mockNow } from "./clock";
@@ -419,16 +420,10 @@ export const computeEstimates = (orgId: string): TaxEstimate[] => {
 };
 
 /** Tax-identity completeness (tax-engine.md §5). */
-export const identityIncomplete = (profile: TaxProfile): string[] => {
-  const missing: string[] = [];
-  if (!profile.tin) missing.push("tin");
-  if (profile.taxpayer_kind === "company") {
-    const db = getDb();
-    const org = db.orgs.find((item) => item.id === profile.org_id);
-    if (!profile.rc_number) missing.push("rc_number");
-    if (!org?.registered_address) missing.push("registered_address");
-  } else if (!profile.state_of_residence) {
-    missing.push("state_of_residence");
-  }
-  return missing;
-};
+export const identityIncomplete = (profile: TaxProfile): string[] =>
+  // One predicate with the wizard gate (models/tax.ts) — the org lookup
+  // supplies the registered-address requirement for companies.
+  missingTaxIdentifiers(
+    profile,
+    getDb().orgs.find((item) => item.id === profile.org_id),
+  );

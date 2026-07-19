@@ -166,4 +166,39 @@ describe("mock import pipeline (flows/import.md)", () => {
       getDb().stagedTxns.filter((row) => row.job_id === STAGED_JOB_ID),
     ).toHaveLength(0);
   });
+
+  it("consent gate: image uploads 403 consent_required without ai_processing consent (review canon: the consent control gates results)", async () => {
+    const db = getDb();
+    const image = () =>
+      upload(
+        mockRequest("/api/mock/import/upload", {
+          method: "POST",
+          form: {
+            file: new File(["fake"], "receipt.jpg", { type: "image/jpeg" }),
+          },
+        }),
+      );
+
+    // Seeded consent present → images accepted.
+    const withConsent = await image();
+    expect(withConsent.status).toBe(202);
+
+    // Withdraw the consent record → images refused with the taxonomy code
+    // (flows/import.md §3); CSVs never need AI and still pass.
+    db.consents = db.consents.filter(
+      (record) => record.document !== "ai_processing",
+    );
+    const refused = await image();
+    expect(refused.status).toBe(403);
+    const body = await json<{ error: { code: string } }>(refused);
+    expect(body.error.code).toBe("consent_required");
+
+    const csv = await upload(
+      mockRequest("/api/mock/import/upload", {
+        method: "POST",
+        form: { file: new File(["a,b"], "ledger.csv", { type: "text/csv" }) },
+      }),
+    );
+    expect(csv.status).toBe(202);
+  });
 });

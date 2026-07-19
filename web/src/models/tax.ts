@@ -14,6 +14,33 @@ export interface CategoryTreatment {
   vat_basis: VatBasis;
 }
 
+/**
+ * The filing-identity completeness predicate — ONE definition shared by
+ * the mock generate endpoint and the wizard's data-review gate (Codex
+ * review on PR #209: the gate branched on filing kind and checked only
+ * TIN, so a company with TIN but no RC sailed past the review step into
+ * the 422). Requirements follow the TAXPAYER, not the filing kind
+ * (tax-engine.md §5.5): TIN always; companies add RC number + registered
+ * address; individuals add state of residence.
+ */
+export const missingTaxIdentifiers = (
+  profile: Pick<
+    TaxProfile,
+    "taxpayer_kind" | "tin" | "rc_number" | "state_of_residence"
+  >,
+  org?: { registered_address?: unknown } | null,
+): string[] => {
+  const missing: string[] = [];
+  if (!profile.tin) missing.push("tin");
+  if (profile.taxpayer_kind === "company") {
+    if (!profile.rc_number) missing.push("rc_number");
+    if (!org?.registered_address) missing.push("registered_address");
+  } else if (!profile.state_of_residence) {
+    missing.push("state_of_residence");
+  }
+  return missing;
+};
+
 export interface TaxProfile {
   id: string;
   org_id: string;

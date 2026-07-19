@@ -59,4 +59,33 @@ describe("StatCard (design.md §8.2, MI-7)", () => {
     );
     expect(screen.getByText("₦1,500")).toBeInTheDocument();
   });
+
+  it("down-good metrics tint a falling delta as improvement (system QA regression)", () => {
+    render(
+      <StatCard
+        label="Expenses"
+        value={100}
+        delta={-0.686}
+        deltaDirection="down-good"
+      />,
+    );
+    const chip = screen.getByTestId("stat-delta");
+    expect(chip.className).toContain("text-income");
+    // Sign still encodes the raw direction (design.md §5).
+    expect(chip.textContent).toContain("−68.6%");
+  });
+
+  it("down-good metrics tint a rising delta as regression", () => {
+    render(
+      <StatCard
+        label="Expenses"
+        value={100}
+        delta={0.034}
+        deltaDirection="down-good"
+      />,
+    );
+    expect(screen.getByTestId("stat-delta").className).toContain(
+      "text-expense",
+    );
+  });
 });

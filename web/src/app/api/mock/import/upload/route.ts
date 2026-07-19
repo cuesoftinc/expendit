@@ -59,6 +59,23 @@ export async function POST(request: Request) {
     return fail(415, "unsupported_type", "Upload a CSV, PDF, or receipt image");
   }
 
+  // Consent gate (flows/import.md §3): images always need AI to parse —
+  // without an `ai_processing` consent record they are refused with
+  // 403 consent_required (PDFs proceed regex-only; CSV never needs AI).
+  // Review canon 2026-07-19: the advertised consent control must
+  // observably gate results, not decorate them.
+  if (
+    fileType === "image" &&
+    !db.consents.some((record) => record.document === "ai_processing")
+  ) {
+    return fail(
+      403,
+      "consent_required",
+      "Receipt images need AI processing — record the ai_processing consent first",
+      { document: "ai_processing" },
+    );
+  }
+
   const job: ImportJob = {
     id: nextId("job"),
     org_id: orgId,

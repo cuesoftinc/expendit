@@ -36,6 +36,20 @@ const HERO_CHIPS = [
   { id: "transport", name: "Transport", color: "#B26A00", ai: true },
 ];
 
+/**
+ * Hero-visual composition geometry (design space, px): the 1037-wide
+ * device frame (the Figma hero-visual scale 1037/1440 ≈ 0.72) plus a
+ * 16px chip overhang above its top edge.
+ */
+const HERO_VISUAL_WIDTH = 1037;
+const CHIP_OVERHANG = 16;
+const HERO_VISUAL_HEIGHT =
+  Math.round(
+    DASHBOARD_EMBED_HEIGHT * (HERO_VISUAL_WIDTH / DASHBOARD_EMBED_WIDTH),
+  ) +
+  2 + // frame border (1px top + bottom)
+  CHIP_OVERHANG;
+
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onTryCloud,
   onSelfHost,
@@ -64,38 +78,59 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         Open source · MIT licensed · Self-host with one command
       </p>
 
-      {/* Hero visual — the B1 overview in a device frame. */}
-      <div className="relative mx-auto mt-14 max-w-[1037px]">
-        {/* Categorization chips animate in once (MI-4 moment). */}
-        <div
-          aria-hidden
-          data-testid="hero-chips"
-          className="pointer-events-none absolute -top-4 right-6 flex gap-2"
+      {/* Hero visual — the B1 overview in a device frame, with the
+          categorization chips floating over its top edge. Chips + frame
+          form ONE scaled composition (design width 1037): the chips ride
+          the same transform as the dashboard, so they keep the Figma
+          proportion at every viewport — and they render AFTER the frame
+          in the DOM so they paint above the embed's own stacking context
+          (system QA 2026-07-19: as positioned siblings BEFORE the
+          transformed subtree they painted underneath it, clipped at the
+          frame's top edge). */}
+      <div className="mx-auto mt-14 max-w-[1037px]">
+        <ScaledEmbed
+          designWidth={HERO_VISUAL_WIDTH}
+          designHeight={HERO_VISUAL_HEIGHT}
         >
-          {HERO_CHIPS.map((chip, index) => (
-            <span
-              key={chip.id}
-              className="animate-rise-in motion-reduce:animate-none"
-              style={{ animationDelay: `${200 + index * 150}ms` }}
+          {/* pt matches CHIP_OVERHANG so the floating chips stay inside
+              the scaled box (no clipping). */}
+          <div className="relative h-full w-full pt-4">
+            <div
+              data-theme="light"
+              // Decorative composition: inert removes it from tab order and
+              // the accessibility tree (the CTAs above are the real actions).
+              inert
+              className="overflow-hidden rounded-lg border border-border bg-bg text-left"
             >
-              <CategoryChip category={chip} aiSuggested={chip.ai} disabled />
-            </span>
-          ))}
-        </div>
-        <div
-          data-theme="light"
-          // Decorative composition: inert removes it from tab order and
-          // the accessibility tree (the CTAs above are the real actions).
-          inert
-          className="overflow-hidden rounded-lg border border-border bg-bg text-left"
-        >
-          <ScaledEmbed
-            designWidth={DASHBOARD_EMBED_WIDTH}
-            designHeight={DASHBOARD_EMBED_HEIGHT}
-          >
-            <DashboardEmbed />
-          </ScaledEmbed>
-        </div>
+              <ScaledEmbed
+                designWidth={DASHBOARD_EMBED_WIDTH}
+                designHeight={DASHBOARD_EMBED_HEIGHT}
+              >
+                <DashboardEmbed />
+              </ScaledEmbed>
+            </div>
+            {/* Categorization chips animate in once (MI-4 moment). */}
+            <div
+              aria-hidden
+              data-testid="hero-chips"
+              className="pointer-events-none absolute right-6 top-0 flex gap-2"
+            >
+              {HERO_CHIPS.map((chip, index) => (
+                <span
+                  key={chip.id}
+                  className="animate-rise-in motion-reduce:animate-none"
+                  style={{ animationDelay: `${200 + index * 150}ms` }}
+                >
+                  <CategoryChip
+                    category={chip}
+                    aiSuggested={chip.ai}
+                    disabled
+                  />
+                </span>
+              ))}
+            </div>
+          </div>
+        </ScaledEmbed>
       </div>
     </SectionInner>
   </EditorialDark>

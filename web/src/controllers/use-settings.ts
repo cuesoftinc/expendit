@@ -99,6 +99,16 @@ export const useSettingsController = (orgId?: string) => {
     [orgId],
   );
 
+  /**
+   * Pending purge survives reloads: `null` = none on file
+   * (flows/rights.md §2 — the grace banner + cancel must persist for the
+   * whole window).
+   */
+  const purgeStatus = useCallback(
+    () => rightsRepo.purgeStatus({ orgId }),
+    [orgId],
+  );
+
   const recordConsent = useCallback(
     async (document: ConsentRecord["document"], version: string) => {
       const record = await rightsRepo.recordConsent(document, version, {
@@ -124,6 +134,7 @@ export const useSettingsController = (orgId?: string) => {
     exportStatus,
     requestPurge,
     cancelPurge,
+    purgeStatus,
     recordConsent,
   };
 };

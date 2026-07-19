@@ -3,7 +3,7 @@
  * (DELETE). Processing jobs complete ~1.2s after upload on the next poll.
  */
 
-import type { StagedTransaction } from "@/models";
+import type { StagedTransaction, TxnEntry } from "@/models";
 import { getDb, nextId } from "@/mock/db";
 import { mockNow } from "@/mock/clock";
 import {
@@ -18,8 +18,16 @@ type Context = { params: Promise<{ jobId: string }> };
 
 const PROCESSING_MS = 1200;
 
-/** Deterministic staged rows for jobs created through the mock upload. */
-const generateStagedRows = (jobId: string): StagedTransaction[] => {
+/**
+ * Deterministic staged rows for jobs created through the mock upload.
+ * `clean` skips the duplicate flags — bank feeds are exact copies of the
+ * account, so bank_sync jobs stage clean rows (duplicates come from
+ * re-uploaded files).
+ */
+const generateStagedRows = (
+  jobId: string,
+  options: { clean?: boolean } = {},
+): StagedTransaction[] => {
   const rows: StagedTransaction[] = [];
   const merchants = [
     "POS — Shoprite Lekki",
@@ -39,7 +47,7 @@ const generateStagedRows = (jobId: string): StagedTransaction[] => {
       direction: isIncome ? "income" : "expense",
       category_id: isIncome ? "cat-consulting" : "cat-ops",
       ai_categorized: true,
-      is_duplicate: i % 9 === 8, // 2 of 18 duplicates
+      is_duplicate: options.clean ? false : i % 9 === 8, // 2 of 18 duplicates
       include_duplicate: false,
       txn_date: `2026-07-${String((i % 18) + 1).padStart(2, "0")}`,
     });
@@ -71,6 +79,49 @@ export async function GET(request: Request, context: Context) {
         job.status = "completed"; // completed-empty (no_transactions_found UX)
         job.total_parsed = 0;
         job.completed_at = mockNow().toISOString();
+      } else if (job.source === "bank_sync") {
+        // The link's advertised "Auto-confirm clean syncs" control must
+        // observably change the outcome (review canon 2026-07-19: the
+        // completer never read it — a dead toggle). Clean feed rows:
+        // auto_confirm on → committed straight to the ledger; off → the
+        // usual staged review.
+        const linkId = db.jobLinks[job.id];
+        const link = db.bankLinks.find((item) => item.id === linkId);
+        const rows = generateStagedRows(job.id, { clean: true });
+        job.status = "completed";
+        job.total_parsed = rows.length;
+        job.duplicates_found = 0;
+        job.ai_summary = `${rows.length} transactions synced.`;
+        job.completed_at = mockNow().toISOString();
+        // Purge grace keeps the ledger read-only (flows/rights.md §2) —
+        // the async completion path must not commit what the sync POST
+        // could no longer write (Codex P1 on PR #209): fall back to
+        // staging; confirm-after-cancel goes through the guarded POST.
+        const purgePending = db.purgeRequest?.status === "pending";
+        if (link?.auto_confirm && !purgePending) {
+          const entries: TxnEntry[] = rows.map((row) => ({
+            id: nextId("txn"),
+            org_id: job.org_id,
+            description: row.description,
+            amount: row.amount,
+            direction: row.direction,
+            category_id: row.category_id,
+            txn_date: row.txn_date,
+            source: "bank",
+            source_link_id: linkId ?? null,
+            ai_categorized: row.ai_categorized,
+            excluded_from_reports: false,
+            anomalies: [],
+            created_at: mockNow().toISOString(),
+          }));
+          db.transactions.unshift(...entries);
+          job.imported = entries.length;
+          job.confirmed = true;
+          // The LinkAccountCard total tracks committed rows (Codex P2).
+          link.imported_txn_count += entries.length;
+        } else {
+          db.stagedTxns.push(...rows);
+        }
       } else {
         const rows = generateStagedRows(job.id);
         db.stagedTxns.push(...rows);

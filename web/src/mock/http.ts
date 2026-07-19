@@ -50,12 +50,17 @@ export const writeBlocked = (): NextResponse | null => {
   return null;
 };
 
-/** Cursor pagination over an already-filtered array. */
+/**
+ * Cursor pagination over an already-filtered array. An unknown cursor
+ * returns null so callers can 422 — silently restarting from page one
+ * double-served rows (review canon 2026-07-19).
+ */
 export const paginate = <T extends { id: string }>(
   items: T[],
   cursor: string | null,
   limit: number,
-): { items: T[]; next_cursor: string | null } => {
+): { items: T[]; next_cursor: string | null } | null => {
+  if (cursor && !items.some((item) => item.id === cursor)) return null;
   const start = cursor ? items.findIndex((item) => item.id === cursor) + 1 : 0;
   const pageItems = items.slice(start, start + limit);
   const next =

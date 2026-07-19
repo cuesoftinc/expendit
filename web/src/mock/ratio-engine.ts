@@ -18,6 +18,7 @@ import { getDb, nextId, type MockDb } from "./db";
 interface ValueRef {
   amount: number;
   id: string;
+  key: CanonicalKey;
 }
 
 interface PeriodValues {
@@ -47,7 +48,11 @@ const collectValues = (
         item.status === "mapped" &&
         item.canonical_key
       ) {
-        values[item.canonical_key] = { amount: item.amount, id: item.id };
+        values[item.canonical_key] = {
+          amount: item.amount,
+          id: item.id,
+          key: item.canonical_key,
+        };
       }
     }
   }
@@ -193,7 +198,12 @@ export const computeRatioReport = (
         status: def.band ? status : "healthy",
         na_reason: null,
         badge,
-        inputs: inputs.map((input) => input.id),
+        // Resolved trace inputs (id + key + amount) — auditable on sight.
+        inputs: inputs.map((input) => ({
+          id: input.id,
+          canonical_key: input.key,
+          amount: input.amount,
+        })),
         trace_notes: [
           ...notes,
           "v1 uses period-end values (period-average denominators are later)",

@@ -48,6 +48,8 @@ export interface MockDb {
   idempotency: Record<string, string>;
   /** link id → real-clock ms of the last manual sync (rate limiting). */
   lastManualSync: Record<string, number>;
+  /** bank_sync job → link id (the completer honors the link's auto_confirm). */
+  jobLinks: Record<string, string>;
   /** Real-clock ms a processing job/statement was created (lifecycle). */
   processingSince: Record<string, number>;
   seq: number;

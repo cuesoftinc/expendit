@@ -25,7 +25,11 @@ export const formatMoney = (
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
-  return `${currencySymbol(currency)}${formatted}`;
+  // Preserve the sign — a −₦950,000 net month rendered as ₦950,000.00 on
+  // the overview StatCard (system QA 2026-07-19). Callers that render
+  // direction themselves (MoneyCell) pass unsigned magnitudes.
+  const sign = amount < 0 ? "−" : "";
+  return `${sign}${currencySymbol(currency)}${formatted}`;
 };
 
 export const formatPercent = (value: number, decimals = 1): string =>

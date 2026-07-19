@@ -1,39 +1,50 @@
 "use client";
 
 /**
- * MarketingNav — design.md §8.2b: on-dark (over hero) / dark-on-light
- * (post-hero scroll, sticky) · item + Solutions dropdown · GitHub badge
- * (neutral "Star", no count — as built 2026-07-18) · Sign in + Try Cloud
- * CTAs. The GitHub mark is an approved brand glyph (icon/brand-github,
- * design.md §8.1 — Lucide's `github` is deprecated), inline SVG.
+ * MarketingNav — design.md §8.2b variants: on-dark (over hero) /
+ * dark-on-light (post-hero scroll, sticky). Composition per the revised
+ * parity canon (2026-07-19): 4 text links where the GitHub item renders
+ * as a compact star badge (live count, neutral "Star" in TEST_MODE or on
+ * fetch failure — never hardcoded) + theme toggle + "Sign in" text link +
+ * the "Try Cloud" primary CTA (→ /signin). Below md everything collapses
+ * into the hamburger disclosure panel.
  *
  * Tokens only: the on-dark variant scopes `data-theme="dark"` on its own
  * subtree (editorial sections are #0C0C0E in both themes, design.md §2),
  * so every color here stays a token binding.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export interface MarketingNavLink {
   label: string;
   href: string;
+  /** Render as the compact GitHub star badge (star glyph + count). */
+  star?: boolean;
 }
 
 export interface MarketingNavProps {
   /** on-dark: over the hero; dark-on-light: post-hero sticky scroll. */
   variant?: "on-dark" | "dark-on-light";
+  /** The 4 canonical links (GitHub carries `star: true`). */
   links?: MarketingNavLink[];
-  solutions?: MarketingNavLink[];
-  githubHref?: string;
-  /** Analytics hook for the GitHub badge (pages.md `github_click`). */
-  onGithubClick?: () => void;
-  onSignIn?: () => void;
+  /** Trailing slot before the CTAs (the theme toggle). */
+  trailing?: React.ReactNode;
+  /** Live stargazer count — null/undefined renders the neutral "Star". */
+  starCount?: number | null;
+  signInHref?: string;
+  tryCloudHref?: string;
+  /** Analytics hook for external links (pages.md `github_click`). */
+  onLinkClick?: (label: string) => void;
+  /** Analytics hook for the Try Cloud CTA (`try_cloud_click`). */
   onTryCloud?: () => void;
   className?: string;
 }
+
+const isExternal = (href: string): boolean => /^https?:\/\//.test(href);
 
 const GitHubMark: React.FC<{ className?: string }> = ({ className }) => (
   // Brand glyph (icon/brand-github) — not Lucide; inherits currentColor.
@@ -50,40 +61,91 @@ const GitHubMark: React.FC<{ className?: string }> = ({ className }) => (
 export const MarketingNav: React.FC<MarketingNavProps> = ({
   variant = "on-dark",
   links = [],
-  solutions = [],
-  githubHref = "https://github.com/cuesoftinc/expendit",
-  onGithubClick,
-  onSignIn,
+  trailing,
+  starCount = null,
+  signInHref = "/signin",
+  tryCloudHref = "/signin",
+  onLinkClick,
   onTryCloud,
   className,
 }) => {
-  const [solutionsOpen, setSolutionsOpen] = useState(false);
-  const solutionsRef = useRef<HTMLDivElement>(null);
   const onDark = variant === "on-dark";
+  // Mobile canon (org SKILL.md, 2026-07-19): below md the text links
+  // collapse into a hamburger disclosure — never display:none with no
+  // fallback. The panel carries the same 4 links + theme toggle + Sign in.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
 
   useEffect(() => {
-    if (!solutionsOpen) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!solutionsRef.current?.contains(event.target as Node)) {
-        setSolutionsOpen(false);
-      }
-    };
+    if (!menuOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSolutionsOpen(false);
+      if (event.key === "Escape") setMenuOpen(false);
     };
-    document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [solutionsOpen]);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   const itemClass = cn(
     "rounded px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-fast ease-standard",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
     "text-text-2 hover:bg-bg-elev hover:text-text",
   );
+
+  const ctaClass = cn(
+    "rounded bg-accent px-3 py-1.5 text-[13px] font-medium text-on-accent",
+    "transition-colors duration-fast ease-standard hover:opacity-90",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+  );
+
+  const renderLink = (
+    link: MarketingNavLink,
+    extraClass: string,
+    onNavigate?: () => void,
+  ) =>
+    link.star ? (
+      // Compact star badge — live count, neutral "Star" when unknown
+      // (TEST_MODE / fetch failure); the count is never hardcoded.
+      <a
+        key={link.label}
+        href={link.href}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Star cuesoftinc/expendit on GitHub"
+        onClick={() => {
+          onLinkClick?.(link.label);
+          onNavigate?.();
+        }}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-[13px] font-medium text-text",
+          "transition-colors duration-fast ease-standard hover:bg-bg-elev",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+          extraClass,
+        )}
+      >
+        <GitHubMark className="h-3.5 w-3.5" />
+        Star
+        {typeof starCount === "number" ? (
+          <span className="tabular-nums text-text-2">
+            {starCount.toLocaleString("en-NG")}
+          </span>
+        ) : null}
+      </a>
+    ) : (
+      <a
+        key={link.label}
+        href={link.href}
+        {...(isExternal(link.href)
+          ? { target: "_blank", rel: "noreferrer" }
+          : {})}
+        onClick={() => {
+          onLinkClick?.(link.label);
+          onNavigate?.();
+        }}
+        className={cn(itemClass, extraClass)}
+      >
+        {link.label}
+      </a>
+    );
 
   return (
     <nav
@@ -92,7 +154,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
       // on-dark: dark token mode scoped to the nav subtree (both themes).
       data-theme={onDark ? "dark" : undefined}
       className={cn(
-        "w-full px-6 py-3",
+        "relative w-full px-6 py-3",
         onDark
           ? "bg-bg-editorial"
           : "sticky top-0 z-sticky border-b border-border bg-bg",
@@ -109,87 +171,85 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
           expendit
         </Link>
 
-        {solutions.length > 0 ? (
-          // Text items collapse below md (375w floor keeps logo + CTAs).
-          <div ref={solutionsRef} className="relative hidden md:block">
-            <button
-              type="button"
-              aria-expanded={solutionsOpen}
-              aria-haspopup="menu"
-              onClick={() => setSolutionsOpen((state) => !state)}
-              className={cn(itemClass, "inline-flex items-center gap-1")}
-            >
-              Solutions
-              <ChevronDown
-                aria-hidden
-                className={cn(
-                  "h-3.5 w-3.5 transition-transform duration-fast ease-standard",
-                  solutionsOpen && "rotate-180",
-                )}
-              />
-            </button>
-            {solutionsOpen ? (
-              <div
-                role="menu"
-                className="absolute left-0 top-full z-dropdown mt-1 w-56 rounded border border-border bg-bg py-1 shadow-lg"
-              >
-                {solutions.map((item) => (
-                  <a
-                    key={item.label}
-                    role="menuitem"
-                    href={item.href}
-                    className="block px-3 py-1.5 text-[13px] text-text transition-colors duration-fast ease-standard hover:bg-bg-elev"
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        {links.map((link) =>
+          renderLink(
+            link,
+            // The star badge is a flex row — md:inline-block would stack
+            // the glyph over the label.
+            link.star ? "hidden md:inline-flex" : "hidden md:inline-block",
+          ),
+        )}
 
-        {links.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            className={cn(itemClass, "hidden md:inline-block")}
-          >
-            {link.label}
-          </a>
-        ))}
-
-        <div className="ml-auto flex items-center gap-2">
-          {/* GitHub badge — neutral "Star", no count (as built). */}
-          <a
-            href={githubHref}
-            target="_blank"
-            rel="noreferrer"
-            onClick={onGithubClick}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded border border-border px-2.5 py-1 text-[13px] font-medium text-text",
-              "transition-colors duration-fast ease-standard hover:bg-bg-elev",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-            )}
-          >
-            <GitHubMark className="h-3.5 w-3.5" />
-            Star
-          </a>
-          <button type="button" onClick={onSignIn} className={itemClass}>
+        <div className="ml-auto hidden items-center gap-2 md:flex">
+          {trailing}
+          <Link href={signInHref} className={itemClass}>
             Sign in
-          </button>
-          <button
-            type="button"
-            onClick={onTryCloud}
-            className={cn(
-              "rounded bg-accent px-3 py-1.5 text-[13px] font-medium text-on-accent",
-              "transition-colors duration-fast ease-standard hover:opacity-90",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-            )}
-          >
+          </Link>
+          <Link href={tryCloudHref} className={ctaClass} onClick={onTryCloud}>
             Try Cloud
-          </button>
+          </Link>
         </div>
+
+        {/* Mobile disclosure trigger. */}
+        <button
+          type="button"
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+          aria-controls={menuId}
+          onClick={() => setMenuOpen((open) => !open)}
+          className={cn(
+            "ml-auto rounded p-1.5 text-text-2 md:hidden",
+            "transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+          )}
+        >
+          {menuOpen ? (
+            <X aria-hidden className="h-5 w-5" />
+          ) : (
+            <Menu aria-hidden className="h-5 w-5" />
+          )}
+        </button>
       </div>
+
+      {menuOpen ? (
+        <div
+          id={menuId}
+          className={cn(
+            "absolute inset-x-0 top-full z-dropdown border-b border-border bg-bg px-6 py-3 md:hidden",
+            onDark && "border-t border-t-border",
+          )}
+        >
+          <div className="flex flex-col gap-1">
+            {links.map((link) =>
+              renderLink(link, link.star ? "self-start" : "block", () =>
+                setMenuOpen(false),
+              ),
+            )}
+            <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-3">
+              {trailing}
+              <span className="flex items-center gap-2">
+                <Link
+                  href={signInHref}
+                  className={itemClass}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href={tryCloudHref}
+                  className={ctaClass}
+                  onClick={() => {
+                    onTryCloud?.();
+                    setMenuOpen(false);
+                  }}
+                >
+                  Try Cloud
+                </Link>
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </nav>
   );
 };

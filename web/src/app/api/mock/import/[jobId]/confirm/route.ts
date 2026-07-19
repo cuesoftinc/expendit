@@ -57,7 +57,10 @@ export async function POST(request: Request, context: Context) {
     category_id: row.category_id,
     txn_date: row.txn_date,
     source: fileSource,
-    source_link_id: null,
+    // Bank rows keep their link provenance so DELETE ?purge=true can
+    // remove every transaction from that link (Codex round 3).
+    source_link_id:
+      job.source === "bank_sync" ? (db.jobLinks[job.id] ?? null) : null,
     ai_categorized: row.ai_categorized,
     excluded_from_reports: false,
     anomalies: [],
@@ -66,6 +69,11 @@ export async function POST(request: Request, context: Context) {
 
   // Atomic: all-or-error (single synchronous store mutation).
   db.transactions.unshift(...entries);
+  if (job.source === "bank_sync") {
+    // The LinkAccountCard total tracks committed rows (Codex P2 class).
+    const link = db.bankLinks.find((item) => item.id === db.jobLinks[job.id]);
+    if (link) link.imported_txn_count += entries.length;
+  }
   db.stagedTxns = db.stagedTxns.filter((row) => row.job_id !== jobId);
   job.confirmed = true;
   job.imported = entries.length;

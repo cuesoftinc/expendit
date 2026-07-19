@@ -8,6 +8,8 @@ import {
 } from "@/app/api/mock/bank-links/[id]/route";
 import { PUT as exchange } from "@/app/api/mock/bank-links/[id]/exchange/route";
 import { POST as syncNow } from "@/app/api/mock/bank-links/[id]/sync/route";
+import { GET as pollJob } from "@/app/api/mock/import/[jobId]/route";
+import { POST as confirmJob } from "@/app/api/mock/import/[jobId]/confirm/route";
 import type { BankLink } from "@/models";
 import { getDb, resetDb } from "./db";
 import { json, mockRequest, params } from "./test-helpers";
@@ -118,5 +120,159 @@ describe("mock bank links (flows/bank-link.md)", () => {
       params({ id: "link-zenith" }),
     );
     expect(getDb().transactions.length).toBe(before);
+  });
+
+  it("auto_confirm observably changes the sync outcome (review canon: no dead controls)", async () => {
+    const runSync = async (linkId: string) => {
+      const db = getDb();
+      const response = await syncNow(
+        mockRequest(`/api/mock/bank-links/${linkId}/sync`, { method: "POST" }),
+        params({ id: linkId }),
+      );
+      expect(response.status).toBe(202);
+      const { job_id } = await json<{ job_id: string }>(response);
+      // Fast-forward the async lifecycle, then poll to complete.
+      db.processingSince[job_id] = Date.now() - 5_000;
+      const polled = await json<{
+        job: {
+          confirmed: boolean;
+          imported: number;
+          total_parsed: number;
+          duplicates_found: number;
+        };
+        staged: unknown[];
+      }>(
+        await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+          params: Promise.resolve({ jobId: job_id }),
+        }),
+      );
+      return { job: polled.job, staged: polled.staged, jobId: job_id };
+    };
+
+    // Zenith (auto_confirm: true): the sync commits straight to the ledger.
+    const before = getDb().transactions.length;
+    const countBefore = getDb().bankLinks.find(
+      (link) => link.id === "link-zenith",
+    )!.imported_txn_count;
+    const auto = await runSync("link-zenith");
+    expect(auto.job.confirmed).toBe(true);
+    expect(auto.job.imported).toBeGreaterThan(0);
+    expect(auto.staged.length).toBe(0);
+    const committed = getDb().transactions.length - before;
+    expect(committed).toBe(auto.job.imported);
+    // The LinkAccountCard total tracks the commit (Codex P2).
+    expect(
+      getDb().bankLinks.find((link) => link.id === "link-zenith")!
+        .imported_txn_count,
+    ).toBe(countBefore + auto.job.imported);
+    expect(
+      getDb().transactions.filter((txn) => txn.source_link_id === "link-zenith")
+        .length,
+    ).toBeGreaterThanOrEqual(auto.job.imported);
+
+    // GTBank (auto_confirm: false): same feed parks in staged review.
+    const manual = await runSync("link-gtb");
+    expect(manual.job.confirmed).toBe(false);
+    expect(manual.job.imported).toBe(0);
+    expect(manual.staged.length).toBe(manual.job.total_parsed);
+    // Bank feeds are clean — no duplicate flags either way.
+    expect(auto.job.duplicates_found).toBe(0);
+    expect(manual.job.duplicates_found).toBe(0);
+
+    // Manually confirming the staged sync keeps link provenance so
+    // unlink-with-purge can remove the rows (Codex round 3).
+    const confirmed = await confirmJob(
+      mockRequest(`/api/mock/import/${manual.jobId}/confirm`, {
+        method: "POST",
+      }),
+      { params: Promise.resolve({ jobId: manual.jobId }) },
+    );
+    expect(confirmed.status).toBe(200);
+    const gtbRows = getDb().transactions.filter(
+      (txn) => txn.source_link_id === "link-gtb",
+    );
+    expect(gtbRows.length).toBeGreaterThan(0);
+  });
+
+  it("purge grace keeps the ledger read-only: auto-confirm falls back to staging (Codex P1 regression)", async () => {
+    const db = getDb();
+    db.purgeRequest = {
+      id: "purge-test",
+      user_id: "user-ibukun",
+      status: "pending",
+      requested_at: new Date().toISOString(),
+      effective_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+    };
+    // The sync POST itself is write-blocked during grace.
+    const blocked = await syncNow(
+      mockRequest("/api/mock/bank-links/link-zenith/sync", { method: "POST" }),
+      params({ id: "link-zenith" }),
+    );
+    expect(blocked.status).toBe(409);
+
+    // A job already in flight when the purge lands must not commit on the
+    // async completion path either: simulate one mid-processing.
+    db.purgeRequest = null;
+    const started = await syncNow(
+      mockRequest("/api/mock/bank-links/link-zenith/sync", { method: "POST" }),
+      params({ id: "link-zenith" }),
+    );
+    const { job_id } = await json<{ job_id: string }>(started);
+    db.purgeRequest = {
+      id: "purge-test-2",
+      user_id: "user-ibukun",
+      status: "pending",
+      requested_at: new Date().toISOString(),
+      effective_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+    };
+    const before = db.transactions.length;
+    db.processingSince[job_id] = Date.now() - 5_000;
+    const polled = await json<{
+      job: { confirmed: boolean; imported: number };
+      staged: unknown[];
+    }>(
+      await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+        params: Promise.resolve({ jobId: job_id }),
+      }),
+    );
+    expect(db.transactions.length).toBe(before); // ledger untouched
+    expect(polled.job.confirmed).toBe(false);
+    expect(polled.job.imported).toBe(0);
+    expect(polled.staged.length).toBeGreaterThan(0); // parked for review
+    db.purgeRequest = null;
+  });
+
+  it("unlink with purge removes parked staged syncs — confirm cannot resurrect purged rows (Codex round 4)", async () => {
+    const db = getDb();
+    // Park a clean sync in staged review on the GTBank link.
+    const started = await syncNow(
+      mockRequest("/api/mock/bank-links/link-gtb/sync", { method: "POST" }),
+      params({ id: "link-gtb" }),
+    );
+    const { job_id } = await json<{ job_id: string }>(started);
+    db.processingSince[job_id] = Date.now() - 5_000;
+    await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+      params: Promise.resolve({ jobId: job_id }),
+    });
+    expect(db.stagedTxns.some((row) => row.job_id === job_id)).toBe(true);
+
+    // Unlink with purge: the parked job + staged rows go with the link.
+    const removed = await unlink(
+      mockRequest("/api/mock/bank-links/link-gtb?purge=true", {
+        method: "DELETE",
+      }),
+      params({ id: "link-gtb" }),
+    );
+    expect(removed.status).toBe(204);
+    expect(db.importJobs.some((job) => job.id === job_id)).toBe(false);
+    expect(db.stagedTxns.some((row) => row.job_id === job_id)).toBe(false);
+    expect(db.jobLinks[job_id]).toBeUndefined();
+
+    // Confirming the vanished job 404s instead of writing purged rows.
+    const confirmed = await confirmJob(
+      mockRequest(`/api/mock/import/${job_id}/confirm`, { method: "POST" }),
+      { params: Promise.resolve({ jobId: job_id }) },
+    );
+    expect(confirmed.status).toBe(404);
   });
 });

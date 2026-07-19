@@ -23,6 +23,13 @@ export interface StatCardProps {
   delta?: number;
   /** Comparison caption after the delta (Figma: "vs Jun"). */
   deltaCaption?: string;
+  /**
+   * Which way is good for this metric — expenses trending DOWN is good
+   * (income tint), up is bad (system QA 2026-07-19: a −68.6% expense
+   * delta rendered red). Icon + sign always encode the actual direction
+   * (design.md §5 — never color alone).
+   */
+  deltaDirection?: "up-good" | "down-good";
   /** Sparkline series (bespoke SVG; omit to hide). */
   sparkline?: number[];
   loading?: boolean;
@@ -101,6 +108,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   format = (val) => Math.round(val).toLocaleString("en-NG"),
   delta,
   deltaCaption,
+  deltaDirection = "up-good",
   sparkline,
   loading = false,
   className,
@@ -121,6 +129,8 @@ export const StatCard: React.FC<StatCardProps> = ({
   }
 
   const positive = (delta ?? 0) >= 0;
+  // Goodness drives color; the icon + sign keep the raw direction.
+  const improving = deltaDirection === "down-good" ? !positive : positive;
   return (
     <div className={cn(card, className)}>
       <div className="text-[13px] leading-4 text-text-2">{label}</div>
@@ -137,7 +147,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                 // Figma delta pill: 12% tint, no border, Table/13 Medium.
                 "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5",
                 "text-[13px] font-medium leading-4 tabular-nums",
-                positive
+                improving
                   ? "bg-income/[0.12] text-income"
                   : "bg-expense/[0.12] text-expense",
               )}
@@ -155,7 +165,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             <span />
           )}
           {sparkline && sparkline.length > 1 ? (
-            <Sparkline series={sparkline} positive={positive} />
+            <Sparkline series={sparkline} positive={improving} />
           ) : null}
         </div>
       ) : null}

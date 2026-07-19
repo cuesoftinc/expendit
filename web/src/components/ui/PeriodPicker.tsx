@@ -149,10 +149,15 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
           "disabled:cursor-not-allowed disabled:opacity-40",
         )}
       >
-        <span className="flex items-center gap-2">
-          <Calendar aria-hidden className="h-4 w-4 text-text-2" />
+        <span className="flex min-w-0 items-center gap-2">
+          <Calendar aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
+          {/* Single line always — the range placeholder wrapped to two
+              lines inside narrow filter pills (system QA 2026-07-19). */}
           <span
-            className={cn("tabular-nums", value ? "text-text" : "text-text-2")}
+            className={cn(
+              "truncate whitespace-nowrap tabular-nums",
+              value ? "text-text" : "text-text-2",
+            )}
           >
             {value ? formatPeriod(mode, value) : MODE_PLACEHOLDER[mode]}
           </span>

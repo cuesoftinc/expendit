@@ -90,7 +90,7 @@ export const OverviewView: React.FC = () => {
     return (
       <>
         <PageHeader title="Overview" />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
             <StatCard key={i} label="" value={0} loading />
           ))}
@@ -144,7 +144,7 @@ export const OverviewView: React.FC = () => {
             demoToggle={{ enabled: demoEnabled, onChange: setDemoEnabled }}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[demo.stats.net, demo.stats.income, demo.stats.expenses].map(
             (stat) => (
               <StatCard
@@ -289,7 +289,7 @@ export const OverviewView: React.FC = () => {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Net cash flow"
           value={current ? current.income - current.expense : 0}
@@ -315,6 +315,7 @@ export const OverviewView: React.FC = () => {
         />
         <StatCard
           label="Expenses"
+          deltaDirection="down-good"
           value={current?.expense ?? 0}
           format={(value) => formatMoney(value, currency)}
           delta={
@@ -430,9 +431,27 @@ export const OverviewView: React.FC = () => {
                   centerCaption="Expenses"
                   legend="none"
                 />
-                {/* Screen-level legend with values (Figma B1 template). */}
+                {/* Screen-level legend with values (Figma B1 template):
+                    top 5 slices + an aggregated Other row so the shares
+                    always sum to 100% (system QA 2026-07-19 — the tail
+                    was silently dropped and the legend read 95%). */}
                 <dl className="min-w-0 flex-1 space-y-1.5 text-[12px]">
-                  {donutSlices.slice(0, 5).map((slice) => (
+                  {[
+                    ...donutSlices.slice(0, 5),
+                    ...(donutSlices.length > 5
+                      ? [
+                          {
+                            id: "other",
+                            label: "Other",
+                            // Neutral secondary token color — data tail.
+                            color: "var(--text-2)",
+                            value: donutSlices
+                              .slice(5)
+                              .reduce((sum, slice) => sum + slice.value, 0),
+                          },
+                        ]
+                      : []),
+                  ].map((slice) => (
                     <div
                       key={slice.id}
                       className="flex items-center justify-between gap-2"

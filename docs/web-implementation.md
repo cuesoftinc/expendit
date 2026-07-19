@@ -1,6 +1,6 @@
 # Expendit — Web Implementation Standard
 
-> How `web/` gets rebuilt: the **CueLABS Web Implementation Standard**
+> How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
 > Expendit-specific addendum — stage plan, token mapping, route map,
 > TEST_MODE contract, mock server, test strategy, legacy quarantine plan.
@@ -181,6 +181,62 @@ design-phase QA loops, design.md §8).
   post-launch visual/semantic sweep of the marketing site against the
   design.md §2 container pin (PR #204), not a W3 scope item; W3's own
   Figma self-QA (Dashboard frames) is unaffected by it.
+
+**System-QA as-built notes (2026-07-19, `web/system-qa`):** the full-system
+usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
+
+- **Accuracy:** balance-sheet confirm treats a missing liabilities/equity
+  side as 0 in the identity check (an absent-equity sheet used to confirm
+  silently); `formatMoney` preserves the sign (a negative net month
+  rendered positive); ledger recategorize (row/bulk/manual form) offers
+  same-direction categories only; ratio traces resolve their `inputs` to
+  `{id, canonical_key, amount}` (ids stay the audit pointer); the hero/tax
+  marketing embeds and the A5 company donut now mirror seed.ts verbatim.
+- **Rights:** `GET /account/purge` (200 `null` when none) + a settings
+  mount probe — the grace banner/cancel now survive reloads.
+- **Usability:** BulkActionBar floats at the viewport bottom; import jobs
+  parked in staged review show a warn **Needs review** tag with staged
+  counts (`ImportJobRowStatus` gains `needs-review`); the filing wizard
+  defaults to PIT on personal orgs, surfaces the profile gate at data
+  review, and calls out all-zero drafts; the AppNav auto-collapses to the
+  64px rail below `md`; overview stat grids go 1-col at base; the hidden
+  row-actions cluster is pointer-events-gated (it swallowed clicks).
+- **MI fixes:** MI-14 NEW = `created_at ≥ now − 24h` (pure helper, the
+  clock-skew `|diff|` hack retired); StatCard gains `deltaDirection`
+  ("down-good" for expense-like metrics — color = goodness, sign/icon =
+  direction); the A2 hero chips join the ScaledEmbed composition (they
+  scaled independently and painted under the frame's stacking context).
+- **Parity canon (org SKILL.md 2026-07-19):** marketing nav = Features ·
+  Pricing · Docs · GitHub + ThemeToggle + Sign in CTA; footer = brand + 4
+  columns (Product/Docs/Community/Legal) + verbatim legal bar; the
+  apparule ThemeProvider contract ported (`expendit.theme`, pre-paint
+  init script, toggle in marketing nav + dashboard chrome; the B9 control
+  and `useThemeController` delegate to it). Playwright `parity.spec.ts`
+  pins the canonical hrefs and theme persistence.
+- **Polish:** token-true editorial 404 (both themes); pluralized count
+  captions; the overview donut legend aggregates the tail into "Other";
+  PeriodPicker triggers never wrap.
+- **Mobile nav canon (org SKILL.md follow-up):** below `md` the four nav
+  text links collapse into a hamburger disclosure (`aria-expanded`) whose
+  panel carries the same links + ThemeToggle + Sign in — never
+  display-none with no fallback; the 390w Playwright test walks every
+  canonical destination through the menu.
+- **Review-canon mock sweep:** (a) query/parse seams reject malformed
+  input per their documented grammar — the transactions list 422s bad
+  dates/amounts/enums/limits and unknown cursors (an `amount_min=abc`
+  used to NaN-filter every row away), the ratios endpoints enforce the
+  closed period grammar; (b) advertised controls observably change
+  results — the bank-link "Auto-confirm clean syncs" toggle now commits
+  clean syncs straight to the ledger vs staging them (it was never read),
+  and image uploads 403 `consent_required` without the `ai_processing`
+  consent record (flows/import.md §3; the Settings notification switches
+  remain explicitly backend-deferred by copy); (c) derived-metric
+  semantics under bucket changes were already correct (quarterly ×4
+  annualization, actual day counts) and are now pinned by a regression
+  test. The wizard's profile gate and the generate endpoint now share one
+  predicate (`missingTaxIdentifiers`, models/tax.ts), and PIT drafts pick
+  a plain calendar year (the FY#### year picker grammar stays
+  statement-only) — both from the PR #209 Codex review.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the

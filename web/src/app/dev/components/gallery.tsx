@@ -1535,11 +1535,11 @@ export const ComponentGallery: React.FC = () => {
             <div className="w-full space-y-3">
               <MarketingNav
                 variant="on-dark"
-                links={[{ label: "Docs", href: "#" }]}
-                solutions={[
-                  { label: "Freelancers", href: "#" },
-                  { label: "SMEs", href: "#" },
-                  { label: "Companies", href: "#" },
+                links={[
+                  { label: "Features", href: "#" },
+                  { label: "Pricing", href: "#" },
+                  { label: "Docs", href: "#" },
+                  { label: "GitHub", href: "#" },
                 ]}
               />
               <MarketingNav

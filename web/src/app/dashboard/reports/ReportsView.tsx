@@ -10,7 +10,6 @@
 
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import dayjs from "dayjs";
 import {
   useCategoriesController,
   useOrg,
@@ -24,6 +23,7 @@ import Radio from "@/components/ui/Radio";
 import ReportArtifactRow from "@/components/ui/ReportArtifactRow";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
+import { isArtifactNew } from "@/lib/artifact-new";
 import PageHeader from "../PageHeader";
 import ToastLayer from "../ToastLayer";
 
@@ -221,12 +221,12 @@ export const ReportsView: React.FC = () => {
               <ReportArtifactRow
                 key={artifact.id}
                 artifact={artifact}
-                // MI-14: NEW while ≤24h old (|diff| absorbs the seed's
-                // pinned mock clock vs the real clock).
+                // MI-14: NEW while ≤24h old (created ≥ now−24h — the
+                // pure rule in lib/artifact-new, unit-tested; system QA
+                // 2026-07-19 replaced the clock-skew |diff| hack).
                 isNew={
                   artifact.status === "ready" &&
-                  Math.abs(dayjs().diff(dayjs(artifact.created_at), "hour")) <=
-                    24
+                  isArtifactNew(artifact.created_at)
                 }
                 onDownload={() => download(artifact.signed_url)}
               />
