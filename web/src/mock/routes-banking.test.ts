@@ -90,6 +90,57 @@ describe("mock bank links (flows/bank-link.md)", () => {
     expect(invalid.status).toBe(422);
   });
 
+  it("auto-confirm trust gate: enabling needs ≥3 confirmed clean syncs (flows/import.md §5)", async () => {
+    // GTBank has ONE seeded confirmed clean sync — enabling is blocked.
+    const blocked = await patchLink(
+      mockRequest("/api/mock/bank-links/link-gtb", {
+        method: "PATCH",
+        body: { auto_confirm: true },
+      }),
+      params({ id: "link-gtb" }),
+    );
+    expect(blocked.status).toBe(422);
+    const body = await json<{
+      error: { code: string; details: { clean_syncs: number } };
+    }>(blocked);
+    expect(body.error.code).toBe("validation_failed");
+    expect(body.error.details.clean_syncs).toBe(1);
+
+    // Two more confirmed clean syncs establish trust — enabling passes.
+    const db = getDb();
+    for (const n of [1, 2]) {
+      const id = `job-test-clean-${n}`;
+      db.importJobs.push({
+        ...db.importJobs.find((job) => job.id === "job-sync-gtb-jul18")!,
+        id,
+      });
+      db.jobLinks[id] = "link-gtb";
+    }
+    const enabled = await json<BankLink>(
+      await patchLink(
+        mockRequest("/api/mock/bank-links/link-gtb", {
+          method: "PATCH",
+          body: { auto_confirm: true },
+        }),
+        params({ id: "link-gtb" }),
+      ),
+    );
+    expect(enabled.auto_confirm).toBe(true);
+
+    // Disabling is never gated (turning review back ON is always safe).
+    const disabled = await json<BankLink>(
+      await patchLink(
+        mockRequest("/api/mock/bank-links/link-zenith", {
+          method: "PATCH",
+          body: { auto_confirm: false },
+        }),
+        params({ id: "link-zenith" }),
+      ),
+    );
+    expect(disabled.auto_confirm).toBe(false);
+    resetDb();
+  });
+
   it("exchange: stale code → 422 link_expired; success activates", async () => {
     const expired = await exchange(
       mockRequest("/api/mock/bank-links/link-gtb/exchange", {

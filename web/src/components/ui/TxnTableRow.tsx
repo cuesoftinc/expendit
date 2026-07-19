@@ -3,8 +3,10 @@
 /**
  * TxnTableRow — design.md §8.2: default / hover (actions revealed) /
  * selected / editing / staged-duplicate · density ×2. MI-6: 60ms bg tint,
- * action icons fade in absolutely positioned — no layout shift. Row-level
- * keyboard: `e` opens category edit (design.md §5).
+ * action icons fade in absolutely positioned at the right edge of the
+ * DESCRIPTION cell — no layout shift, and the amount stays legible during
+ * hover (adjudicated 2026-07-19; the Figma hover variant follows).
+ * Row-level keyboard: `e` opens category edit (design.md §5).
  */
 
 import React from "react";
@@ -125,7 +127,53 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           className="h-3.5 w-3.5 shrink-0 text-text-2"
         />
       </td>
-      <td className="min-w-0 flex-1 truncate">{txn.description}</td>
+      {/* Description cell hosts the MI-6 hover actions at ITS right edge
+          (adjudicated 2026-07-19): they overlay only truncation
+          whitespace, so the amount stays legible during hover — the
+          Figma TxnTableRow hover variant follows this construction.
+          Truncation lives on an inner span: `truncate` on the cell
+          itself would overflow-hide the action cluster once the cell
+          squeezes below its ~80px width (PR #217 review). */}
+      <td className="relative min-w-0 flex-1">
+        <span className="block truncate">{txn.description}</span>
+        <span
+          data-testid="row-actions"
+          className={cn(
+            // pointer-events gating keeps the hidden cluster
+            // hit-transparent — without it the invisible strip swallowed
+            // clicks on cells beneath it (system QA 2026-07-19).
+            "absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1 bg-bg-elev pl-2",
+            "pointer-events-none opacity-0 transition-opacity duration-[60ms] ease-standard",
+            "group-hover:pointer-events-auto group-hover:opacity-100",
+            "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
+          )}
+        >
+          <button
+            type="button"
+            aria-label="Edit category"
+            onClick={onEdit}
+            className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            aria-label="Split"
+            onClick={onSplit}
+            className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <Split className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            aria-label="Exclude from reports"
+            onClick={onExclude}
+            className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <EyeOff className="h-3.5 w-3.5" />
+          </button>
+        </span>
+      </td>
       {stagedDuplicate ? (
         // Figma staged-duplicate: the inline Duplicate anomaly pill.
         <td className="flex shrink-0 items-center">
@@ -154,47 +202,6 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           direction={txn.direction}
           withIcon={false}
         />
-      </td>
-
-      {/* MI-6: absolutely positioned actions — hover reveal, no layout shift. */}
-      <td
-        data-testid="row-actions"
-        className={cn(
-          // Figma hover variant: bare icons right-aligned over the row's
-          // hover surface (they cover the amount only while this row is
-          // hovered/focused). pointer-events gating keeps the hidden
-          // cluster hit-transparent — without it the invisible strip
-          // swallowed clicks on cells beneath it (system QA 2026-07-19).
-          "absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 bg-bg-elev pl-2",
-          "pointer-events-none opacity-0 transition-opacity duration-[60ms] ease-standard",
-          "group-hover:pointer-events-auto group-hover:opacity-100",
-          "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
-        )}
-      >
-        <button
-          type="button"
-          aria-label="Edit category"
-          onClick={onEdit}
-          className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          aria-label="Split"
-          onClick={onSplit}
-          className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <Split className="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          aria-label="Exclude from reports"
-          onClick={onExclude}
-          className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <EyeOff className="h-3.5 w-3.5" />
-        </button>
       </td>
     </tr>
   );

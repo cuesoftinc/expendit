@@ -135,6 +135,11 @@ const COMPANY_ROUTES = [
 for (const viewport of [
   { width: 390, height: 844 },
   { width: 768, height: 1024 },
+  // ≥md the AppNav boots EXPANDED (240px) by default — these widths
+  // sweep the narrowest expanded-nav content columns (canon 2026-07-19:
+  // the content must reflow cleanly in both nav states).
+  { width: 1024, height: 900 },
+  { width: 1280, height: 900 },
 ]) {
   test.describe(`no horizontal overflow at ${viewport.width}`, () => {
     test.use({ viewport });
@@ -233,3 +238,72 @@ for (const viewport of [
     });
   });
 }
+
+test.describe("mobile nav drawer (390)", () => {
+  // Canon (2026-07-19): below md the AppNav rides the 64px rail;
+  // EXPANSION opens an overlay drawer over a scrim — the content column
+  // never reflows; the persisted expanded state applies only ≥md.
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("expanding overlays a drawer — content width unchanged; scrim and Escape dismiss", async ({
+    page,
+  }) => {
+    await signIn(page);
+    const main = page.locator("main");
+    const widthBefore = (await main.boundingBox())!.width;
+
+    await page.getByRole("button", { name: "Expand navigation" }).click();
+    const drawer = page.getByRole("dialog", { name: "Navigation drawer" });
+    await expect(drawer).toBeVisible();
+    // Overlay, not reflow: the content column keeps its width.
+    expect((await main.boundingBox())!.width).toBe(widthBefore);
+    const drawerBox = (await drawer.boundingBox())!;
+    expect(drawerBox.x).toBe(0);
+    expect(drawerBox.width).toBeLessThan(390);
+    // The drawer carries the labeled nav groups the rail hides.
+    await expect(
+      drawer.getByRole("link", { name: /^Transactions/ }),
+    ).toBeVisible();
+
+    // Escape closes and returns focus to the trigger.
+    await page.keyboard.press("Escape");
+    await expect(drawer).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Expand navigation" }),
+    ).toBeFocused();
+
+    // Scrim tap closes too (click far right of the 240px panel).
+    await page.getByRole("button", { name: "Expand navigation" }).click();
+    await expect(drawer).toBeVisible();
+    await page
+      .getByTestId("nav-drawer-scrim")
+      .click({ position: { x: 360, y: 420 } });
+    await expect(drawer).not.toBeVisible();
+  });
+
+  test("drawer links navigate and dismiss the drawer", async ({ page }) => {
+    await signIn(page);
+    await page.getByRole("button", { name: "Expand navigation" }).click();
+    const drawer = page.getByRole("dialog", { name: "Navigation drawer" });
+    await drawer.getByRole("link", { name: "Reports" }).click();
+    await page.waitForURL("**/dashboard/reports");
+    await expect(drawer).not.toBeVisible();
+  });
+
+  test("a persisted expanded state boots collapsed at 390", async ({
+    page,
+  }) => {
+    await signIn(page);
+    // Simulate a desktop session that persisted the EXPANDED state.
+    await page.evaluate(() =>
+      window.localStorage.setItem("expendit.nav-collapsed", "0"),
+    );
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    await expect(nav).toHaveAttribute("data-collapsed", "true");
+    await expect(
+      page.getByRole("dialog", { name: "Navigation drawer" }),
+    ).toHaveCount(0);
+  });
+});

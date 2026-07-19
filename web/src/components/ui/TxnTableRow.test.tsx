@@ -53,6 +53,11 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
     const actions = screen.getByTestId("row-actions");
     expect(actions).toHaveClass("absolute", "opacity-0");
     expect(actions).toHaveClass("group-hover:opacity-100");
+    // Adjudicated 2026-07-19: the cluster docks inside the DESCRIPTION
+    // cell (right edge), so it never covers the amount column.
+    const descriptionCell = screen.getByText(txn.description).closest("td");
+    expect(descriptionCell).toContainElement(actions);
+    expect(descriptionCell).toHaveClass("relative");
   });
 
   it("density switches row height 32/44", () => {
