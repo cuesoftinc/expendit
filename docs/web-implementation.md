@@ -87,8 +87,44 @@ design-phase QA loops, design.md §8).
 | --- | --- | --- |
 | **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test · **legacy step 1** (§8): password-auth quartet quarantined, `/signin` replaced Google-only | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed `/dashboard` against the mock server; every surviving legacy route still functions; CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → table chrome, charts, app chrome) and §8.2/§8.2b contract rows, MI specs MI-1…MI-16 (all web-applicable) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
-| **W2 Home** | Part A sections (§4): A1–A11 + iteration rows A4a/A5a/A8a/A10a/A10b · A5 interactive demo (tabs over the three §6 synthetic datasets, "This is demo data" badge) · analytics events to Upstat (D2: `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact`, `contribute_click`, `faq_open`) · runtime GitHub star count on A8 (the A1 nav badge stays neutral "Star" — as built, design.md §8.2b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the cross-page CTA handoff into `/signin` |
+| **W2 Home** **[Done 2026-07-19, PR #202]** | Part A sections (§4): A1–A11 + iteration rows A4a/A5a/A8a/A10a/A10b · A5 interactive demo (tabs over the three §6 synthetic datasets, "This is demo data" badge) · analytics events to Upstat (D2: `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact`, `contribute_click`, `faq_open`) · runtime GitHub star count on A8 (the A1 nav badge stays neutral "Star" — as built, design.md §8.2b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the cross-page CTA handoff into `/signin` |
 | **W3 Dashboards** | Part B routes (§4): B0–B9 + B6b/B7b · feature controllers · ⌘K palette (MI-1), Inspector pattern (MI-11), bank-link + filing wizards (MI-9/MI-10), rights flows (MI-15) · **legacy step 2** (§8): per-area replacement + quarantine of the MUI-era routes | QA vs the Stage-4 Figma templates + prototype flows; Playwright covers the "Core journey — sign in" §8.4 flow (§7) |
+
+**W2 as-built notes (2026-07-19, PR #202):**
+
+- The A5 interactive demo is Persona Tabs (pill) over the three §8.3
+  synthetic datasets (freelancer/SME/company), with CRUD-light inline
+  recategorize (MI-4) on the synthetic txn table and the cash-flow chart's
+  data-table parity toggle (§5) wired in.
+- The hero visual embeds the real B1 overview composition
+  (`DashboardEmbed`) through `ScaledEmbed`, reproducing the Figma
+  hero-visual scale exactly — 1037/1440 ≈ 0.72.
+- Analytics events land on an in-page queue (`window.__expenditEvents`) in
+  TEST_MODE for unit/e2e assertions; the Upstat network beacon is
+  env-gated behind `NEXT_PUBLIC_UPSTAT_EVENTS_URL` and fires only outside
+  TEST_MODE — the D2 ingestion contract is not yet ratified, so the
+  default build ships queue-only.
+- Orphaned legacy from the W2 swap is recorded for the W3 quarantine
+  tranche, not deleted now: `src/components/marketing/`,
+  `src/hooks/marketing/`, the marketing images under `src/assets/images/`,
+  and the old `web/__tests__/home.test.tsx` + `index.test.tsx` pair; the
+  `slick-carousel`/`react-slick` CSS imports and the extra Google Fonts
+  (AR One Sans, Barlow, Cabin, Poppins) retire with the W3 dashboard
+  tranche alongside the rest of the MUI-era app.
+- The `components/ui/*` registry gained additive extensions discovered in
+  the W2 QA loop: `Accordion` `mode="single"` (A10a FAQ, one item open at a
+  time), `MarketingFooter` slot prop (bottom-right, beside the security
+  CTA), `EditorialCard` `cta` prop, and `MarketingNav` collapse behavior
+  below the `md` breakpoint (375w floor keeps logo + CTAs).
+- `tokens.css` gained an explicit `[data-theme="light"]` re-declaration
+  (alongside `:root`) so theme scoping works when a dark-editorial section
+  sits inside a light-scoped subtree.
+- **Naming canon [carried to W3]:** the Part A section components
+  currently live in `web/src/components/landing/`; W3 renames this tree to
+  `web/src/components/home/` (the legacy dashboard-mini `components/home/`
+  — `ImportCard`, `LatestExpenses`, `LinearChart`, `TopBoard` — retires in
+  the same tranche, freeing the name). `components/home/` is the canonical
+  path going forward.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
