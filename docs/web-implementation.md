@@ -88,7 +88,7 @@ design-phase QA loops, design.md §8).
 | **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test · **legacy step 1** (§8): password-auth quartet quarantined, `/signin` replaced Google-only | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed `/dashboard` against the mock server; every surviving legacy route still functions; CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → table chrome, charts, app chrome) and §8.2/§8.2b contract rows, MI specs MI-1…MI-16 (all web-applicable) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
 | **W2 Home** **[Done 2026-07-19, PR #202]** | Part A sections (§4): A1–A11 + iteration rows A4a/A5a/A8a/A10a/A10b · A5 interactive demo (tabs over the three §6 synthetic datasets, "This is demo data" badge) · analytics events to Upstat (D2: `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact`, `contribute_click`, `faq_open`) · runtime GitHub star count on A8 (the A1 nav badge stays neutral "Star" — as built, design.md §8.2b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the cross-page CTA handoff into `/signin` |
-| **W3 Dashboards** | Part B routes (§4): B0–B9 + B6b/B7b · feature controllers · ⌘K palette (MI-1), Inspector pattern (MI-11), bank-link + filing wizards (MI-9/MI-10), rights flows (MI-15) · **legacy step 2** (§8): per-area replacement + quarantine of the MUI-era routes | QA vs the Stage-4 Figma templates + prototype flows; Playwright covers the "Core journey — sign in" §8.4 flow (§7) |
+| **W3 Dashboards** **[Done 2026-07-19, PR #206]** | Part B routes (§4): B0–B9 + B6b/B7b · feature controllers · ⌘K palette (MI-1), Inspector pattern (MI-11), bank-link + filing wizards (MI-9/MI-10), rights flows (MI-15) · **legacy step 2** (§8): per-area replacement + quarantine of the MUI-era routes | QA vs the Stage-4 Figma templates + prototype flows; Playwright covers the "Core journey — sign in" §8.4 flow (§7) |
 
 **W2 as-built notes (2026-07-19, PR #202):**
 
@@ -125,6 +125,62 @@ design-phase QA loops, design.md §8).
   — `ImportCard`, `LatestExpenses`, `LinearChart`, `TopBoard` — retires in
   the same tranche, freeing the name). `components/home/` is the canonical
   path going forward.
+
+**W3 as-built notes (2026-07-19, PR #206):**
+
+- The full authenticated app ships from the W1 registry over the mock CRUD
+  server, nested under `/dashboard/<area>` (§4) — B0 onboarding (org
+  create with the personal/company kind picker + AI-consent sheet) through
+  B9 settings, incl. the B2b anomaly-explain inspector variant, B3b staged
+  review (MI-3 counts, duplicate re-include, ✨ fixes) with the B3c
+  failure-taxonomy screen, the B4 MI-9 bank-link journey (connect →
+  consent → syncing with the live txn counter over a real `bank_sync`
+  mock job → done → staged-review handoff), the B6b ratio grid with the
+  MI-8 trace inspector, and the B7b filing wizard (traces → remittance
+  sheet → typed confirm → stamped, immutable filing history). B9 carries
+  the USR-001 export and USR-002 purge (MI-15 typed-confirm, 7-day grace,
+  cancel) rights flows.
+- **Legacy tranche step 2** (§8) `git mv`-ed the eight superseded area
+  routes (`dashboard`, `expense`, `income`, `history`, `import`, `reports`,
+  `categories`, `settings`) plus the W2 orphan marketing ledger
+  (`components/marketing/`, `hooks/marketing/`, legacy assets, the old home
+  test) and the now-orphaned shared chrome (`components/layouts`, `api`,
+  `utils`, `dummy`, `context`, `custom-styles`, signup inputs, the
+  `react-slick` decl, `global.d.ts`) into `src/legacy/` — quarantine only,
+  no deletions. The replaced flat routes redirect to their nested canon
+  (`/expense`/`/income`/`/history` → `/dashboard/transactions`, `/import` →
+  `/dashboard/imports`, `/reports`/`/categories`/`/settings` → the matching
+  `/dashboard/<area>`). Retirement-PR candidates are recorded on the
+  tranche commit, incl. the `@mui/material`/`@mui/x-data-grid` dependency
+  set, which drops only once every area's retirement PR has landed.
+- **Semantic registry refactor:** `TxnTableRow`/`TableHeader` compose a
+  real `<table>`/`<thead>`/`<tr>`/`<td>`/`<th scope="col">` ledger instead
+  of div grids; row components that carried a table-context `role=row`
+  outside any table (`ImportJobRow`, `MemberRow`, `ReportArtifactRow`,
+  `FilingHistoryRow`, `MappingReviewRow`, `TaxCalendarRow`) render as
+  `<li>` list rows instead; `WizardShell`'s nested `<main>` becomes a
+  `<section>` (one-`<main>`-per-page rule). A follow-up QA pass caught
+  every remaining composition site still nesting rows in plain divs (the
+  W2 home embeds, the A5 demo table, the DeepDives artifact card, the dev
+  gallery) — invalid nesting the HTML parser rearranges during SSR,
+  producing a client hydration mismatch; every site now wraps rows in a
+  real `<table>`/`<tbody>` or `<ul>`.
+- **Boundaries gate:** `scripts/check-boundaries.mjs` (MUI-outside-legacy,
+  live-code-importing-legacy, raw-hex-without-comment, and the MVC
+  fetch-only-in-repositories-client rule) is wired into `npm run lint`
+  alongside prettier/eslint — the CI build-and-test workflow needed no
+  changes.
+- **New mock endpoints:** `GET /api/mock/report/monthly` (12-month
+  income-vs-expense + runway snapshot) and `GET /api/mock/report/category`
+  (per-category donut totals) back the B1 aggregates; `POST
+  /api/mock/categories/{id}/merge` is the B8 merge tool (same-type only,
+  `422 merge_type_mismatch`/`merge_self`); `GET
+  /api/mock/reports/{id}/download` serves the signed-URL artifact body for
+  B5.
+- W2.1 live-site QA (PR #205) rides separately from this stage — it is a
+  post-launch visual/semantic sweep of the marketing site against the
+  design.md §2 container pin (PR #204), not a W3 scope item; W3's own
+  Figma self-QA (Dashboard frames) is unaffected by it.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
