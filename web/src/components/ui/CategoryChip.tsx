@@ -10,6 +10,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useViewportShiftX } from "@/lib/use-viewport-clamp";
 
 export interface CategoryOption {
   id: string;
@@ -38,6 +39,11 @@ export const CategoryChip: React.FC<CategoryChipProps> = ({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLSpanElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // The 180px menu is left-anchored to a chip that can sit near the
+  // right viewport edge in narrow ledgers — clamp keeps it fully in the
+  // viewport (floating-layer sweep 2026-07-19).
+  const shiftX = useViewportShiftX(open, menuRef);
   const editable = !disabled && options.length > 0 && !!onSelect;
 
   useEffect(() => {
@@ -115,7 +121,11 @@ export const CategoryChip: React.FC<CategoryChipProps> = ({
 
       {open ? (
         // Absolutely positioned: the open combobox never shifts row layout.
-        <div className="absolute left-0 top-8 z-dropdown w-[180px] rounded border border-border bg-bg py-1 shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]">
+        <div
+          ref={menuRef}
+          style={shiftX ? { transform: `translateX(${shiftX}px)` } : undefined}
+          className="absolute left-0 top-8 z-dropdown w-[180px] rounded border border-border bg-bg py-1 shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]"
+        >
           <ul
             id="category-chip-listbox"
             role="listbox"

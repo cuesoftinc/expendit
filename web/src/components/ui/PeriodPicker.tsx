@@ -10,6 +10,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Calendar, ChevronDown } from "lucide-react";
 import dayjs from "dayjs";
 import { cn } from "@/lib/cn";
+import { useViewportShiftX } from "@/lib/use-viewport-clamp";
 
 export type PeriodMode = "day" | "range" | "month" | "quarter" | "year";
 
@@ -89,6 +90,11 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
   const [draft, setDraft] = useState(value ?? "");
   const [draftError, setDraftError] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // The panel is min-w-56 while the trigger can be narrower (Overview
+  // header w-36) — left-anchored it overflowed the right viewport edge
+  // (system QA 2026-07-19). Clamp keeps it fully in the viewport.
+  const shiftX = useViewportShiftX(open, panelRef);
 
   // Track the controlled value — adjust-state-during-render, no effect.
   const [prevValue, setPrevValue] = useState(value);
@@ -167,8 +173,10 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
 
       {open ? (
         <div
+          ref={panelRef}
           role="dialog"
           aria-label={`Pick ${mode}`}
+          style={shiftX ? { transform: `translateX(${shiftX}px)` } : undefined}
           className="absolute left-0 top-full z-dropdown mt-1 w-full min-w-56 rounded border border-border bg-bg p-3 shadow-lg"
         >
           {presets.length > 0 ? (

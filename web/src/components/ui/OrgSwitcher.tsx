@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Building2, Check, ChevronsUpDown, Plus } from "lucide-react";
 import type { Org } from "@/models";
 import { cn } from "@/lib/cn";
+import { useViewportShiftX } from "@/lib/use-viewport-clamp";
 
 export interface OrgSwitcherProps {
   orgs: Org[];
@@ -67,6 +68,10 @@ export const OrgSwitcher: React.FC<OrgSwitcherProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
+  // w-56 menu vs the narrow compact trigger — clamp keeps it fully in
+  // the viewport at any anchor position (floating-layer sweep 2026-07-19).
+  const shiftX = useViewportShiftX(open, menuRef);
   const current = orgs.find((org) => org.id === currentOrgId) ?? orgs[0];
 
   useEffect(() => {
@@ -126,8 +131,10 @@ export const OrgSwitcher: React.FC<OrgSwitcherProps> = ({
 
       {open ? (
         <ul
+          ref={menuRef}
           role="listbox"
           aria-label="Organizations"
+          style={shiftX ? { transform: `translateX(${shiftX}px)` } : undefined}
           className="absolute left-0 top-full z-dropdown mt-1 w-56 rounded border border-border bg-bg py-1 shadow-lg"
         >
           {orgs.map((org) => (
