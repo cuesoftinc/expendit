@@ -17,6 +17,7 @@ export {
   type MappingPatch,
 } from "./statements";
 export { ratiosRepo } from "./ratios";
+export { aggregatesRepo } from "./aggregates";
 export { taxRepo } from "./tax";
 export { reportsRepo, type ReportRequest } from "./reports";
 export { orgsRepo, type OrgCreate, type OrgUpdate } from "./orgs";

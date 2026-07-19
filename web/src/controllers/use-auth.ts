@@ -59,3 +59,30 @@ export const useAuthController = (): AuthController => {
 
   return { user, loading, error, signInWithGoogle, signOut };
 };
+
+/**
+ * Session guard for authed surfaces (Part B): redirects to /signin when
+ * no session exists. `checked` distinguishes "still reading the session"
+ * from "signed out" so views can hold their loading state.
+ */
+export const useRequireAuth = (): { user: AuthUser | null; checked: boolean } => {
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const current = getAuthProvider().currentUser();
+      setUser(current);
+      setChecked(true);
+      if (!current) router.replace("/signin");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  return { user, checked };
+};
