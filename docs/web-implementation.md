@@ -279,12 +279,13 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | B8 | `/dashboard/categories` | Categories (CRUD, color, merge) |
 | B9 | `/dashboard/settings` | Settings incl. members/roles, org profile, rights & data screens (export-all, purge MI-15) |
 
-Part C (mobile) has no web routes — it is a later phase (§8). Flat-path
-redirects keep old links working: `/expense` · `/income` · `/history` →
-`/dashboard/transactions`; `/import` → `/dashboard/imports`; `/reports` ·
-`/categories` · `/settings` → the matching `/dashboard/<area>`; and the
-password-era auth paths (`/signup`, `/forgot-password[/new-password]`,
-`/change-password`) → `/signin` (X-1, flows/auth.md §1).
+Part C (mobile) has no web routes — it is a later phase (§8). Legacy
+flat paths (`/expense`, `/income`, `/history`, `/import`, `/reports`,
+`/categories`, `/settings`, and the password-era auth paths `/signup`,
+`/forgot-password[/new-password]`, `/change-password`) carry no redirect
+stubs — they 404 on the branded page (route canon, above): the only
+routes are `/`, `/signin`, `/onboarding`, and `/dashboard/<area>`
+(X-1, flows/auth.md §1).
 
 ## 5. TEST_MODE contract
 
@@ -395,8 +396,9 @@ in CI (`scripts/check-boundaries.mjs` + the eslint
 `no-restricted-imports` rules, both wired into `npm run lint`): **MUI
 imports are legal only under `src/legacy/`**, and live code never imports
 from it. `src/legacy/` is **currently empty** — the app runs entirely on
-the token-layer registry (§1), and retired paths stay reachable as
-redirects (§4). `@mui/material` + `@mui/x-data-grid` remain pinned in
+the token-layer registry (§1), and retired paths 404 on the branded page
+rather than carrying redirect stubs forward (§4). `@mui/material` +
+`@mui/x-data-grid` remain pinned in
 package.json; dropping them is the outstanding cleanup **[Proposed]**.
 
 The **mobile app is a later phase** (pages.md Part C): no `mobile/` tree

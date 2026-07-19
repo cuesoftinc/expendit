@@ -5,7 +5,8 @@ import { expect, test, type Page } from "@playwright/test";
  * web-implementation.md §7): signin → overview → transactions CRUD →
  * import journey → statements mapping → ratios → tax wizard → filing
  * history, plus the keyboard-first path (⌘K palette MI-1 + table nav
- * ↑↓/enter/`e`, design.md §5) and the legacy-route redirects (§8 step 2).
+ * ↑↓/enter/`e`, design.md §5) and the legacy flat-path 404s
+ * (web-implementation.md §4/§8: no redirect stubs, branded 404 page).
  *
  * Runs in TEST_MODE against the in-app mock server; the journey mutates
  * the shared seeded store, so the file runs serially and steps stay
@@ -282,23 +283,23 @@ test("keyboard-first path — ⌘K palette and ledger table nav", async ({
   await expect(page.getByRole("dialog", { name: "Transaction" })).toBeVisible();
 });
 
-test("legacy flat routes redirect to their nested replacements", async ({
-  page,
-}) => {
+test("legacy flat routes 404 on the branded page", async ({ page }) => {
   await signIn(page);
-  const redirects: Array<[string, string]> = [
-    ["/expense", "/dashboard/transactions"],
-    ["/income", "/dashboard/transactions"],
-    ["/history", "/dashboard/transactions"],
-    ["/import", "/dashboard/imports"],
-    ["/reports", "/dashboard/reports"],
-    ["/categories", "/dashboard/categories"],
-    ["/settings", "/dashboard/settings"],
+  const legacyPaths = [
+    "/expense",
+    "/income",
+    "/history",
+    "/import",
+    "/reports",
+    "/categories",
+    "/settings",
   ];
-  for (const [from, to] of redirects) {
-    await page.goto(from);
-    await page.waitForURL(`**${to}`);
-    expect(page.url()).toContain(to);
+  for (const path of legacyPaths) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    await expect(
+      page.getByRole("heading", { name: "This page doesn’t add up." }),
+    ).toBeVisible();
   }
 });
 

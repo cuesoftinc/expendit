@@ -90,10 +90,11 @@ preview), `/signin` (Google-only, X-1), `/onboarding`, and the nested app
 surface `/dashboard/<area>` — transactions, imports, accounts, reports,
 company (+ statements/ratios), taxes (+ filing wizard), categories, and
 settings incl. the USR-001/002 rights controls
-(web-implementation.md §4 route map). Flat-path redirects (`/expense`,
+(web-implementation.md §4 route map). Legacy flat paths (`/expense`,
 `/income`, `/history`, `/import`, `/reports`, `/categories`, `/settings`,
-`/signup`, `/forgot-password[/new-password]`, `/change-password`) point at
-the canonical routes. Target adds: `/privacy` (EXP-005).
+`/signup`, `/forgot-password[/new-password]`, `/change-password`) carry no
+redirect stubs — they 404 on the branded page. Target adds: `/privacy`
+(EXP-005).
 **[Proposed placement]**
 
 ## 4. The import pipeline (core asset) **[Current]**

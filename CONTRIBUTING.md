@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing! This guide applies across CueLABS
+Thanks for your interest in contributing! This guide applies across CueLABS™
 repositories, which share a common structure and conventions.
 
 ## Getting started
@@ -12,7 +12,7 @@ repositories, which share a common structure and conventions.
 
 ## Repository layout
 
-CueLABS repositories follow a shared standard:
+CueLABS™ repositories follow a shared standard:
 
 - `api/common` — Go backend (auth + core API)
 - `api/<service>` — additional services, named by function

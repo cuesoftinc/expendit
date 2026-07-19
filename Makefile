@@ -1,4 +1,4 @@
-# CueLABS standard Makefile — compose-driven local development + terraform deploy.
+# CueLABS™ standard Makefile — compose-driven local development + terraform deploy.
 # Run `make help` to list targets.
 .DEFAULT_GOAL := help
 .PHONY: help up down build rebuild logs ps restart clean tf-init tf-plan tf-apply tf-destroy
