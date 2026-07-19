@@ -29,7 +29,8 @@ const FOOTER_LINKS: Array<[string, string, string]> = [
   ["Product", "Self Host", "#self-host"],
   ["Docs", "Docs", DOCS],
   ["Docs", "Quickstart", `${DOCS}/setup`],
-  ["Docs", "API reference", `${DOCS}/system/api-surface`],
+  // In-product Scalar reference (X-2) — /docs/api renders the spec.
+  ["Docs", "API reference", "/docs/api"],
   ["Docs", "Self-host guide", `${DOCS}/system/deployment`],
   ["Community", "GitHub", GITHUB],
   ["Community", "Discord", "https://discord.gg/CDfZxxrxbb"],

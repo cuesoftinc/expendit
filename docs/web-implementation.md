@@ -235,6 +235,22 @@ usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
   a plain calendar year (the FY#### year picker grammar stays
   statement-only) — both from the PR #209 Codex review.
 
+**Public API reference as-built (2026-07-20, ratified).** `/docs/api` is
+the public Scalar reference (X-2): the `@scalar/api-reference-react`
+embed (`ScalarApiReference` inside `DocsApiView`) under the marketing
+nav with a minimal legal strip; nav wiring mirrors HomeView (canonical
+links with absolute home anchors, live star count, ThemeToggle,
+`github_click`/`try_cloud_click`, `page_view`). It renders
+`docs/api/openapi.yaml` — the single spec source — served by the
+`/docs/api/openapi.yaml` route handler from a build-time string asset
+(`npm run generate:openapi`, wired as `predev`/`prebuild`/
+`pretypecheck`; output gitignored under `src/generated/`). Theme follows
+ThemeProvider (Scalar `darkMode` config; its own toggle hidden); remote
+default fonts are disabled (self-host ethos). The footer Docs column's
+"API reference" (`API_REFERENCE_URL`) links `/docs/api`;
+`e2e/docs-api.spec.ts` pins route 200, a rendered operation from the
+spec, the served document, and the footer handoff.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
@@ -288,6 +304,7 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | --- | --- | --- |
 | Part A (A1–A11 + A4a/A5a/A8a/A10a/A10b) | `/` | Public home page (Brex-editorial) |
 | flows/auth.md §1 | `/signin` | Single auth screen — GoogleAuthButton + legal links (the one X-1 auth screen; Stage-4 `signin` template) |
+| X-2 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B0 | `/onboarding` | First-run: org create (personal/company kind picker) + AI-consent sheet |
 | B1 | `/dashboard` | Overview (StatCards, cash-flow chart, category donut, anomaly feed, latest txns) |
 | B2 | `/dashboard/transactions` | Ledger (full TxnTable, filters, saved views, inline edit, inspector) |

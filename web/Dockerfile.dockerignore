@@ -1,0 +1,19 @@
+# BuildKit per-Dockerfile ignore for the web image (repo-root context:
+# docker-compose `context: .` + `dockerfile: web/Dockerfile`). Only web/
+# and the canonical OpenAPI document ship into the context.
+*
+!web
+!docs/api/openapi.yaml
+
+# Never ship into the context even under web/ (mirrors web/.dockerignore).
+web/node_modules
+web/.next
+web/out
+web/test-results
+web/playwright-report
+web/src/generated
+web/.env
+web/.env.*
+!web/.env.example
+web/npm-debug.log*
+web/.DS_Store
