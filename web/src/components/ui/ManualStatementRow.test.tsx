@@ -68,4 +68,21 @@ describe("ManualStatementRow (design.md §8.2)", () => {
     await userEvent.click(screen.getByRole("button", { name: "Remove row" }));
     expect(onRemove).toHaveBeenCalled();
   });
+
+  it("disabled reaches EVERY child action — including the Remove button (composite-control canon)", () => {
+    render(
+      <ul>
+        <ManualStatementRow
+          keyOptions={["cash_and_equivalents", "payables"]}
+          canonicalKey={null}
+          amount=""
+          onRemove={() => {}}
+          disabled
+        />
+      </ul>,
+    );
+    expect(screen.getByRole("button", { name: "Remove row" })).toBeDisabled();
+    expect(screen.getByLabelText("Amount")).toBeDisabled();
+    expect(screen.getByRole("combobox")).toBeDisabled();
+  });
 });

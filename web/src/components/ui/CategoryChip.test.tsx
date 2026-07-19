@@ -65,4 +65,19 @@ describe("CategoryChip (design.md §8.2, MI-4)", () => {
     render(<CategoryChip category={groceries} />);
     expect(screen.getByRole("button")).toBeDisabled();
   });
+
+  it("disabled keeps the combobox closed — no live child actions (composite-control canon)", async () => {
+    render(
+      <CategoryChip
+        category={{ id: "c1", name: "Ops", color: "#0EA5E9" }}
+        options={[{ id: "c2", name: "Meals", color: "#F59E0B" }]}
+        onSelect={() => {}}
+        disabled
+      />,
+    );
+    const chip = screen.getByRole("button");
+    expect(chip).toBeDisabled();
+    await userEvent.click(chip);
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+  });
 });

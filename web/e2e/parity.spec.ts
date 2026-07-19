@@ -137,6 +137,14 @@ test("mobile (390w): the hamburger panel reaches every canonical nav destination
     nav.getByRole("link", { name: "Try Cloud" }).filter({ visible: true }),
   ).toHaveAttribute("href", "/signin");
 
+  // The panel's GitHub item is the SAME star badge as desktop (glyph +
+  // neutral "Star" in TEST_MODE — never a plain text link).
+  const panelStar = nav
+    .getByRole("link", { name: STAR_NAME })
+    .filter({ visible: true });
+  await expect(panelStar).toHaveText("Star");
+  await expect(panelStar.locator("svg")).toBeVisible();
+
   // Theme toggle works from the panel.
   await nav
     .getByRole("button", { name: "Switch to dark theme" })
