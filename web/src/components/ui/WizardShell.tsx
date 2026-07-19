@@ -29,7 +29,10 @@ export const WizardShell: React.FC<WizardShellProps> = ({
     >
       {steps}
     </nav>
-    <main className="min-w-0 flex-1">{children}</main>
+    {/* One <main> per page (W3 directive) — the shell owns it. */}
+    <section aria-label="Wizard content" className="min-w-0 flex-1">
+      {children}
+    </section>
     {summary ? (
       <aside aria-label="Summary" className="w-72 shrink-0">
         <div className="sticky top-4 rounded border border-border bg-bg-elev p-4">

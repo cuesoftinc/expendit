@@ -1,23 +1,10 @@
-import React from "react";
-import PageLayout from "@/components/layouts/PageLayout";
-import styles from "@/components/custom-styles";
-import ExpenseComparisonByCat from "@/components/reports/ExpenseComparisonByCat";
-import ExpenseCompositionByCat from "@/components/reports/ExpenseCompositionByCat";
-import ExpenseTrends from "@/components/reports/ExpenseTrends";
-import { ProtectedRoute } from "@/components/helpers/RouteProtection";
+import { redirect } from "next/navigation";
 
-const Reports = () => {
-  return (
-    <ProtectedRoute>
-      <PageLayout>
-        <main className={styles.pagePad}>
-          <ExpenseCompositionByCat />
-          <ExpenseTrends />
-          <ExpenseComparisonByCat />
-        </main>
-      </PageLayout>
-    </ProtectedRoute>
-  );
+// Route canon (web-implementation.md §4/§8): the legacy flat /reports
+// screen is superseded by the nested dashboard area; the quarantined
+// original lives in src/legacy/app/reports/ pending its retirement PR.
+const LegacyRedirect = () => {
+  redirect("/dashboard/reports");
 };
 
-export default Reports;
+export default LegacyRedirect;

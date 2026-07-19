@@ -15,7 +15,7 @@ const ACTIVE_ORG_KEY = "expendit.active-org";
 export const useOrgController = () => {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [activeOrgId, setActiveOrgId] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // orgs load on mount — guards must wait
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {

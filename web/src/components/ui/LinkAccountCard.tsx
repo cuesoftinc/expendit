@@ -8,6 +8,7 @@
  */
 
 import React from "react";
+import dayjs from "dayjs";
 import { Landmark } from "lucide-react";
 import type { BankLink, BankLinkStatus } from "@/models";
 import { cn } from "@/lib/cn";
@@ -44,15 +45,22 @@ const STATUS_META: Record<
   },
 };
 
+/** Short human date for sync captions (Figma: "2 min ago" / "12 Jul" —
+ * absolute short form keeps the pinned mock clock honest). */
+const syncedAt = (iso: string | null): string => {
+  if (!iso || !dayjs(iso).isValid()) return "—";
+  return dayjs(iso).format("D MMM, HH:mm");
+};
+
 /** Figma caption line per status (data-driven where the model allows). */
 const caption = (link: BankLink): string => {
   switch (link.status) {
     case "pending":
       return `Waiting for ${link.provider === "mono" ? "Mono" : link.provider} consent`;
     case "active":
-      return `Last synced ${link.last_synced_at ?? "—"} · ${link.imported_txn_count.toLocaleString("en-NG")} transactions`;
+      return `Last synced ${syncedAt(link.last_synced_at)} · ${link.imported_txn_count.toLocaleString("en-NG")} transactions`;
     case "reauth_required":
-      return `Sync paused since ${link.last_synced_at ?? "—"}`;
+      return `Sync paused since ${syncedAt(link.last_synced_at)}`;
     case "degraded":
       return "Failed syncs — retrying hourly";
     case "paused":
@@ -76,7 +84,8 @@ export const LinkAccountCard: React.FC<LinkAccountCardProps> = ({
 }) => {
   const meta = STATUS_META[link.status];
   return (
-    <div
+    // Semantic card (W3 directive): a self-contained <article>.
+    <article
       data-status={link.status}
       className={cn(
         "flex items-start gap-3 rounded border border-border bg-bg p-4",
@@ -121,7 +130,7 @@ export const LinkAccountCard: React.FC<LinkAccountCardProps> = ({
         </div>
         {action ? <div className="mt-2">{action}</div> : null}
       </div>
-    </div>
+    </article>
   );
 };
 

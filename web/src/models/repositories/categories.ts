@@ -21,4 +21,12 @@ export const categoriesRepo = {
 
   remove: (id: string, options?: RequestOptions) =>
     api.delete<void>(`/categories/${id}`, options),
+
+  /** Merge tool (pages.md B8): repoint ledger + staged rows, drop source. */
+  merge: (id: string, intoCategoryId: string, options?: RequestOptions) =>
+    api.post<{ category: Category; moved_transactions: number }>(
+      `/categories/${id}/merge`,
+      { into: intoCategoryId },
+      options,
+    ),
 };

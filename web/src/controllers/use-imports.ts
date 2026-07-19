@@ -136,6 +136,7 @@ export const useImportsController = (orgId?: string) => {
     error,
     refresh,
     openJob,
+    pollJob,
     upload,
     correctCategory,
     setIncludeDuplicate,

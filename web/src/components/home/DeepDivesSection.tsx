@@ -125,7 +125,7 @@ const DEEP_DIVES: DeepDive[] = [
     body: "Monthly summaries, cash-movement reports and category deep-dives as PDF or CSV — plus full financial statements. Generate on demand; regenerate any time.",
     copySide: "left",
     visual: (
-      <div className="w-full max-w-md rounded border border-border bg-bg">
+      <ul className="w-full max-w-md list-none rounded border border-border bg-bg">
         <ReportArtifactRow
           artifact={{
             id: "ra-monthly-2026-06",
@@ -141,7 +141,7 @@ const DEEP_DIVES: DeepDive[] = [
           }}
           isNew
         />
-      </div>
+      </ul>
     ),
   },
 ];

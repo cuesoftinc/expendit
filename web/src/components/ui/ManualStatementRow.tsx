@@ -43,9 +43,10 @@ export const ManualStatementRow: React.FC<ManualStatementRowProps> = ({
     mono: true,
   }));
   return (
-    <div
+    // Semantic list row (W3 directive): manual-entry rows compose <ul>.
+    <li
       data-state={error ? "error" : "default"}
-      className={cn("w-full", className)}
+      className={cn("w-full list-none", className)}
     >
       <div className="flex items-center gap-2">
         <div className="flex-1">
@@ -90,7 +91,7 @@ export const ManualStatementRow: React.FC<ManualStatementRowProps> = ({
           {error}
         </p>
       ) : null}
-    </div>
+    </li>
   );
 };
 

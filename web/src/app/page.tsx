@@ -1,6 +1,6 @@
 import React from "react";
 import type { Metadata } from "next";
-import HomeView from "@/components/landing/HomeView";
+import HomeView from "@/components/home/HomeView";
 
 /**
  * `/` — public home (pages.md Part A, Brex-editorial; W2). The legacy

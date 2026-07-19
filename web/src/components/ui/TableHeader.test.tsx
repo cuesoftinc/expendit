@@ -1,5 +1,6 @@
+import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render as rtlRender, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TableHeader, { type TableColumn } from "./TableHeader";
 
@@ -9,13 +10,18 @@ const columns: TableColumn[] = [
   { id: "amount", label: "Amount", numeric: true, sortable: true },
 ];
 
+// Real <thead> needs a table context (semantic-HTML directive).
+const InTable: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <table>{children}</table>
+);
+
+const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: InTable });
+
 describe("TableHeader (design.md §8.2b)", () => {
   it("renders columns; numeric columns right-align", () => {
     render(<TableHeader columns={columns} />);
     expect(screen.getByText("Description")).toBeInTheDocument();
-    expect(
-      screen.getByText("Amount").closest('[role="columnheader"]'),
-    ).toHaveClass("text-right");
+    expect(screen.getByText("Amount").closest("th")).toHaveClass("text-right");
   });
 
   it("sort cycles none → asc → desc → none", async () => {
@@ -32,9 +38,10 @@ describe("TableHeader (design.md §8.2b)", () => {
         onSortChange={onSortChange}
       />,
     );
-    expect(
-      screen.getByText("Date").closest('[role="columnheader"]'),
-    ).toHaveAttribute("aria-sort", "ascending");
+    expect(screen.getByText("Date").closest("th")).toHaveAttribute(
+      "aria-sort",
+      "ascending",
+    );
     await userEvent.click(screen.getByRole("button", { name: "Date" }));
     expect(onSortChange).toHaveBeenLastCalledWith("date", "desc");
     rerender(

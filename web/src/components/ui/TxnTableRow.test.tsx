@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render as rtlRender, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import React from "react";
 import type { TxnEntry } from "@/models";
 import TxnTableRow from "./TxnTableRow";
 
@@ -23,6 +24,15 @@ const txn: TxnEntry = {
 };
 
 const category = { id: "cat-1", name: "Transport", color: "#2456D6" };
+
+// Real <tr> rows need a table context (semantic-HTML directive).
+const InTable: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <table>
+    <tbody>{children}</tbody>
+  </table>
+);
+
+const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: InTable });
 
 describe("TxnTableRow (design.md §8.2, MI-6)", () => {
   it("renders date, description, chip, money, anomaly, and source", () => {

@@ -524,7 +524,7 @@ export const ComponentGallery: React.FC = () => {
 
         <Section title="TxnTableRow">
           <Variant label="default / selected / staged-duplicate · density ×2 (hover for MI-6 actions)">
-            <div className="w-full rounded border border-border">
+            <table className="w-full rounded border border-border">
               <TableHeader
                 columns={[
                   {
@@ -544,49 +544,51 @@ export const ComponentGallery: React.FC = () => {
                 ]}
                 sort={{ columnId: "date", direction: "desc" }}
               />
-              <TxnTableRow
-                txn={txn()}
-                category={categories[0]}
-                categoryOptions={categories}
-              />
-              <TxnTableRow
-                txn={txn({
-                  id: "txn-2",
-                  description: "Invoice #114 — Bellafricana",
-                  direction: "income",
-                  amount: 450000,
-                  source: "bank",
-                  ai_categorized: false,
-                  anomalies: [],
-                })}
-                category={categories[2]}
-                selected
-              />
-              <TxnTableRow
-                txn={txn({
-                  id: "txn-3",
-                  description: "POS duplicate — Shoprite",
-                  anomalies: [
-                    {
-                      rule_id: "duplicate_charge",
-                      severity: "info",
-                      note: "same amount 2min apart",
-                    },
-                  ],
-                })}
-                category={categories[1]}
-                stagedDuplicate
-              />
-              <TxnTableRow
-                txn={txn({
-                  id: "txn-4",
-                  description: "Compact density row",
-                  source: "receipt",
-                })}
-                category={categories[1]}
-                density="compact"
-              />
-            </div>
+              <tbody className="contents">
+                <TxnTableRow
+                  txn={txn()}
+                  category={categories[0]}
+                  categoryOptions={categories}
+                />
+                <TxnTableRow
+                  txn={txn({
+                    id: "txn-2",
+                    description: "Invoice #114 — Bellafricana",
+                    direction: "income",
+                    amount: 450000,
+                    source: "bank",
+                    ai_categorized: false,
+                    anomalies: [],
+                  })}
+                  category={categories[2]}
+                  selected
+                />
+                <TxnTableRow
+                  txn={txn({
+                    id: "txn-3",
+                    description: "POS duplicate — Shoprite",
+                    anomalies: [
+                      {
+                        rule_id: "duplicate_charge",
+                        severity: "info",
+                        note: "same amount 2min apart",
+                      },
+                    ],
+                  })}
+                  category={categories[1]}
+                  stagedDuplicate
+                />
+                <TxnTableRow
+                  txn={txn({
+                    id: "txn-4",
+                    description: "Compact density row",
+                    source: "receipt",
+                  })}
+                  category={categories[1]}
+                  density="compact"
+                />
+              </tbody>
+            </table>
           </Variant>
         </Section>
 
@@ -865,7 +867,7 @@ export const ComponentGallery: React.FC = () => {
 
         <Section title="ManualStatementRow">
           <Variant label="default / error (identity check)">
-            <div className="w-full max-w-xl space-y-3">
+            <ul className="w-full max-w-xl list-none space-y-3">
               <ManualStatementRow
                 keyOptions={BALANCE_SHEET_KEYS}
                 canonicalKey={comboValue as never}
@@ -879,7 +881,7 @@ export const ComponentGallery: React.FC = () => {
                 amount="5000000"
                 error="Assets must equal liabilities + equity"
               />
-            </div>
+            </ul>
           </Variant>
         </Section>
 
@@ -919,7 +921,7 @@ export const ComponentGallery: React.FC = () => {
 
         <Section title="TaxCalendarRow">
           <Variant label="none / T-30 / T-7 / T-1 escalation (MI-13)">
-            <div className="w-full space-y-2">
+            <ul className="w-full list-none space-y-2">
               {[60, 25, 6, 1].map((days) => (
                 <TaxCalendarRow
                   key={days}
@@ -936,7 +938,7 @@ export const ComponentGallery: React.FC = () => {
                   daysToDue={days}
                 />
               ))}
-            </div>
+            </ul>
           </Variant>
         </Section>
 
@@ -971,7 +973,7 @@ export const ComponentGallery: React.FC = () => {
 
         <Section title="MappingReviewRow">
           <Variant label="suggested (✨ n%) / confirmed / unmapped (<60%)">
-            <div className="w-full rounded border border-border">
+            <ul className="w-full list-none rounded border border-border">
               <MappingReviewRow
                 row={mappingRow("suggested")}
                 keyOptions={BALANCE_SHEET_KEYS}
@@ -985,7 +987,7 @@ export const ComponentGallery: React.FC = () => {
                 row={mappingRow("unmapped")}
                 keyOptions={BALANCE_SHEET_KEYS}
               />
-            </div>
+            </ul>
           </Variant>
         </Section>
 
@@ -1459,7 +1461,7 @@ export const ComponentGallery: React.FC = () => {
 
         <Section title="MemberRow / ImportJobRow / ReportArtifactRow / FilingHistoryRow">
           <Variant label="member: owner / default / pending-invite">
-            <div className="w-full rounded border border-border">
+            <ul className="w-full list-none rounded border border-border">
               {members.map((member) => (
                 <MemberRow
                   key={member.user_id}
@@ -1467,10 +1469,10 @@ export const ComponentGallery: React.FC = () => {
                   onRemove={() => undefined}
                 />
               ))}
-            </div>
+            </ul>
           </Variant>
           <Variant label="import jobs: five statuses">
-            <div className="w-full rounded border border-border">
+            <ul className="w-full list-none rounded border border-border">
               <ImportJobRow job={importJob({ status: "processing" })} />
               <ImportJobRow job={importJob()} />
               <ImportJobRow
@@ -1490,10 +1492,10 @@ export const ComponentGallery: React.FC = () => {
                   error_code: "unreadable_file",
                 })}
               />
-            </div>
+            </ul>
           </Variant>
           <Variant label="report artifacts: generating / ready / NEW / expired (MI-14)">
-            <div className="w-full rounded border border-border">
+            <ul className="w-full list-none rounded border border-border">
               <ReportArtifactRow
                 artifact={artifact({ status: "generating" })}
               />
@@ -1505,10 +1507,10 @@ export const ComponentGallery: React.FC = () => {
               <ReportArtifactRow
                 artifact={artifact({ status: "expired", kind: "full_export" })}
               />
-            </div>
+            </ul>
           </Variant>
           <Variant label="filing history: accepted (stamped ✓) / draft">
-            <div className="w-full rounded border border-border">
+            <ul className="w-full list-none rounded border border-border">
               <FilingHistoryRow filing={filing()} />
               <FilingHistoryRow
                 filing={filing({
@@ -1519,7 +1521,7 @@ export const ComponentGallery: React.FC = () => {
                   artifact_key: null,
                 })}
               />
-            </div>
+            </ul>
           </Variant>
         </Section>
 

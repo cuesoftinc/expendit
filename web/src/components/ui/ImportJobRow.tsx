@@ -87,38 +87,40 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
     ? dayjs(job.created_at).format("D MMM")
     : job.created_at;
   return (
-    <button
-      type="button"
-      role="row"
-      data-status={status}
-      onClick={onOpen}
-      className={cn(
-        "flex w-full items-center gap-3 border-b border-border px-3 py-2 text-left text-[13px] text-text",
-        "transition-colors duration-fast ease-standard hover:bg-bg-elev",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
-        className,
-      )}
-    >
-      <Icon aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-medium leading-4">
-          {job.file_name ??
-            (job.source === "bank_sync" ? "Bank sync" : "Upload")}
+    // Semantic list row (W3 directive): job history composes <ul>; the
+    // whole-row action is a real <button> inside the <li>.
+    <li className={cn("list-none", className)}>
+      <button
+        type="button"
+        data-status={status}
+        onClick={onOpen}
+        className={cn(
+          "flex w-full items-center gap-3 border-b border-border px-3 py-2 text-left text-[13px] text-text",
+          "transition-colors duration-fast ease-standard hover:bg-bg-elev",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
+        )}
+      >
+        <Icon aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium leading-4">
+            {job.file_name ??
+              (job.source === "bank_sync" ? "Bank sync" : "Upload")}
+          </span>
+          <span
+            className={cn(
+              "block truncate leading-4",
+              status === "failed" ? "font-mono text-expense" : "text-text-2",
+            )}
+          >
+            {caption(job, status)}
+          </span>
         </span>
-        <span
-          className={cn(
-            "block truncate leading-4",
-            status === "failed" ? "font-mono text-expense" : "text-text-2",
-          )}
-        >
-          {caption(job, status)}
+        <Tag tint={tag.tint}>{tag.label}</Tag>
+        <span className="w-14 shrink-0 text-right tabular-nums text-text-2">
+          {when}
         </span>
-      </span>
-      <Tag tint={tag.tint}>{tag.label}</Tag>
-      <span className="w-14 shrink-0 text-right tabular-nums text-text-2">
-        {when}
-      </span>
-    </button>
+      </button>
+    </li>
   );
 };
 

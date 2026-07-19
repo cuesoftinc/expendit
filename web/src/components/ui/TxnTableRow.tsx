@@ -81,8 +81,10 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   };
 
   return (
-    <div
-      role="row"
+    // Semantic table row (W3 directive): a real <tr> with <td> cells —
+    // the ledger composes <table>/<tbody>, not div grids. The flex layout
+    // classes override the UA table display, keeping the QA'd geometry.
+    <tr
       tabIndex={0}
       aria-selected={selected}
       data-state={
@@ -100,52 +102,62 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         stagedDuplicate && "bg-warn/[0.08]",
       )}
     >
-      <Checkbox
-        checked={selected}
-        onCheckedChange={
-          onSelectedChange
-            ? (next) => onSelectedChange(next === true)
-            : undefined
-        }
-      />
+      <td className="flex shrink-0 items-center">
+        <Checkbox
+          checked={selected}
+          onCheckedChange={
+            onSelectedChange
+              ? (next) => onSelectedChange(next === true)
+              : undefined
+          }
+        />
+      </td>
       {/* Figma date column: short date, Table/13, text-2 (e.g. "12 Jan"). */}
-      <span className="w-14 shrink-0 whitespace-nowrap tabular-nums text-text-2">
+      <td className="w-14 shrink-0 whitespace-nowrap tabular-nums text-text-2">
         {dayjs(txn.txn_date).isValid()
           ? dayjs(txn.txn_date).format("D MMM")
           : txn.txn_date}
-      </span>
+      </td>
       {/* Figma: source icon sits between date and description. */}
-      <SourceIcon
-        aria-label={sourceLabel}
-        className="h-3.5 w-3.5 shrink-0 text-text-2"
-      />
-      <span className="min-w-0 flex-1 truncate">{txn.description}</span>
+      <td className="flex shrink-0 items-center">
+        <SourceIcon
+          aria-label={sourceLabel}
+          className="h-3.5 w-3.5 shrink-0 text-text-2"
+        />
+      </td>
+      <td className="min-w-0 flex-1 truncate">{txn.description}</td>
       {stagedDuplicate ? (
         // Figma staged-duplicate: the inline Duplicate anomaly pill.
-        <AnomalyBadge type="duplicate_charge" severity="info" />
+        <td className="flex shrink-0 items-center">
+          <AnomalyBadge type="duplicate_charge" severity="info" />
+        </td>
       ) : anomaly ? (
-        <AnomalyBadge
-          type={anomaly.rule_id}
-          severity={anomaly.severity}
-          variant="inline"
-        />
+        <td className="flex shrink-0 items-center">
+          <AnomalyBadge
+            type={anomaly.rule_id}
+            severity={anomaly.severity}
+            variant="inline"
+          />
+        </td>
       ) : null}
-      <CategoryChip
-        category={category}
-        aiSuggested={txn.ai_categorized}
-        options={categoryOptions}
-        onSelect={onCategorySelect}
-      />
-      <span className="w-32 shrink-0 text-right">
+      <td className="flex shrink-0 items-center">
+        <CategoryChip
+          category={category}
+          aiSuggested={txn.ai_categorized}
+          options={categoryOptions}
+          onSelect={onCategorySelect}
+        />
+      </td>
+      <td className="w-32 shrink-0 text-right">
         <MoneyCell
           amount={txn.amount}
           direction={txn.direction}
           withIcon={false}
         />
-      </span>
+      </td>
 
       {/* MI-6: absolutely positioned actions — hover reveal, no layout shift. */}
-      <span
+      <td
         data-testid="row-actions"
         className={cn(
           // Figma hover: bare icons over the row's hover surface.
@@ -178,8 +190,8 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         >
           <EyeOff className="h-3.5 w-3.5" />
         </button>
-      </span>
-    </div>
+      </td>
+    </tr>
   );
 };
 

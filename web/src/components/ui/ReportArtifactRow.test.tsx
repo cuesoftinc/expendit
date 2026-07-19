@@ -29,13 +29,13 @@ describe("ReportArtifactRow (design.md §8.2b, MI-14)", () => {
       screen.getByRole("button", { name: "Download Monthly summary" }),
     );
     expect(onDownload).toHaveBeenCalled();
-    expect(screen.getByRole("row")).toHaveAttribute("data-state", "ready");
+    expect(screen.getByRole("listitem")).toHaveAttribute("data-state", "ready");
   });
 
   it("NEW tag renders for ≤24h artifacts (MI-14)", () => {
     render(<ReportArtifactRow artifact={artifact()} isNew />);
     expect(screen.getByText("NEW")).toHaveAttribute("data-tint", "new-accent");
-    expect(screen.getByRole("row")).toHaveAttribute("data-state", "new");
+    expect(screen.getByRole("listitem")).toHaveAttribute("data-state", "new");
   });
 
   it("generating shows inline progress, no download", () => {
@@ -47,6 +47,6 @@ describe("ReportArtifactRow (design.md §8.2b, MI-14)", () => {
   it("expired dims the row and drops the download", () => {
     render(<ReportArtifactRow artifact={artifact({ status: "expired" })} />);
     expect(screen.getByText("Expired")).toBeInTheDocument();
-    expect(screen.getByRole("row")).toHaveClass("opacity-60");
+    expect(screen.getByRole("listitem")).toHaveClass("opacity-60");
   });
 });

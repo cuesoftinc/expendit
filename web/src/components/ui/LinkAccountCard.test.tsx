@@ -23,7 +23,7 @@ describe("LinkAccountCard (design.md §8.2, MI-9)", () => {
     expect(screen.getByText("•••• 4521")).toBeInTheDocument();
     // Figma active caption: "Last synced … · n transactions".
     expect(
-      screen.getByText(/Last synced 2026-07-17 · 120 transactions/),
+      screen.getByText(/Last synced 17 Jul, 00:00 · 120 transactions/),
     ).toBeInTheDocument();
   });
 

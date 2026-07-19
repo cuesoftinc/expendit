@@ -8,3 +8,4 @@ export * from "./ratio";
 export * from "./tax";
 export * from "./report";
 export * from "./rights";
+export * from "./aggregates";

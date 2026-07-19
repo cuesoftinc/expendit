@@ -113,7 +113,11 @@ export const useStatementsController = (orgId?: string) => {
     async (statementId: string) => {
       const statement = await statementsRepo.confirm(statementId, { orgId });
       await refresh();
-      setActiveStatement(statement);
+      // Re-read the mapping: confirm runs derivations server-side, so the
+      // statement view needs the derived rows (line-items.md §4).
+      const detail = await statementsRepo.mapping(statementId, { orgId });
+      setActiveStatement(detail.statement);
+      setLineItems(detail.line_items);
       return statement;
     },
     [orgId, refresh],
@@ -127,6 +131,7 @@ export const useStatementsController = (orgId?: string) => {
     error,
     refresh,
     openMapping,
+    pollMapping,
     upload,
     enterManually,
     patchMapping,

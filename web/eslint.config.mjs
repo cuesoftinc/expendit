@@ -19,25 +19,30 @@ const eslintConfig = defineConfig([
     "playwright-report/**",
     "test-results/**",
   ]),
-  // Pre-redesign live trees (MUI-era, replaced at W2/W3 then quarantined):
-  // long-standing `any`s and effect patterns are debt scheduled for
-  // retirement, not for churn now — downgraded to warnings so new-system
-  // code stays strictly gated while the legacy surface remains visible.
+  // Boundary gates (web standard §8 + MVC, W3): live code never imports
+  // MUI or the quarantined src/legacy/ trees. The check:boundaries script
+  // adds the grep-level gates (raw hex, fetch outside the client).
   {
-    files: [
-      "src/api/**",
-      "src/components/**",
-      "src/context/**",
-      "src/hooks/**",
-      "src/utils/**",
-      "src/dummy/**",
-      "src/global.d.ts",
-    ],
-    ignores: ["src/components/ui/**"],
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/legacy/**"],
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/purity": "warn",
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@mui/*"],
+              message:
+                "MUI is legal only under src/legacy/ (web-implementation.md §8); new code builds from the token layer.",
+            },
+            {
+              group: ["@/legacy/*", "**/legacy/*"],
+              message:
+                "Quarantined legacy trees are dead code pending retirement PRs — do not import them.",
+            },
+          ],
+        },
+      ],
     },
   },
   // CommonJS config files legitimately use require().

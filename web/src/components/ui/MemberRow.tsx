@@ -39,8 +39,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   const isOwner = member.role === "owner";
   const pending = member.status === "pending";
   return (
-    <div
-      role="row"
+    // Semantic list row (W3 directive): members compose <ul>; the invalid
+    // table-context role="row" is gone.
+    <li
       data-state={pending ? "pending-invite" : isOwner ? "owner" : "default"}
       className={cn(
         "flex items-center gap-3 border-b border-border px-3 py-2",
@@ -84,7 +85,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
           <Trash2 className="h-4 w-4" />
         </button>
       ) : null}
-    </div>
+    </li>
   );
 };
 

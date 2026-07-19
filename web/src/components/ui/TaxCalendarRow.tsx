@@ -63,8 +63,8 @@ export const TaxCalendarRow: React.FC<TaxCalendarRowProps> = ({
     ? dayjs(entry.due_date).format("D MMM YYYY")
     : entry.due_date;
   return (
-    <div
-      role="row"
+    // Semantic list row (W3 directive): the tax calendar composes <ul>.
+    <li
       data-threshold={threshold}
       title={entry.authority.name}
       className={cn(
@@ -92,7 +92,7 @@ export const TaxCalendarRow: React.FC<TaxCalendarRowProps> = ({
           {CHIP_META[threshold].label}
         </span>
       ) : null}
-    </div>
+    </li>
   );
 };
 
