@@ -1,19 +1,10 @@
-import React from "react";
-import PageLayout from "@/components/layouts/PageLayout";
-import styles from "@/components/custom-styles";
-import Page from "@/components/history/History";
-import { ProtectedRoute } from "@/components/helpers/RouteProtection";
+import { redirect } from "next/navigation";
 
-const History = () => {
-  return (
-    <ProtectedRoute>
-      <PageLayout>
-        <main className={styles.pagePad}>
-          <Page />
-        </main>
-      </PageLayout>
-    </ProtectedRoute>
-  );
+// Route canon (web-implementation.md §4/§8): the legacy flat /history
+// screen is superseded by the nested dashboard area; the quarantined
+// original lives in src/legacy/app/history/ pending its retirement PR.
+const LegacyRedirect = () => {
+  redirect("/dashboard/transactions");
 };
 
-export default History;
+export default LegacyRedirect;

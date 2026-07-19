@@ -1,19 +1,10 @@
-import React from "react";
-import PageLayout from "@/components/layouts/PageLayout";
-import Page from "@/components/income/Income";
-import styles from "@/components/custom-styles";
-import { ProtectedRoute } from "@/components/helpers/RouteProtection";
+import { redirect } from "next/navigation";
 
-const Income = () => {
-  return (
-    <ProtectedRoute>
-      <PageLayout>
-        <main className={styles.pagePad}>
-          <Page />
-        </main>
-      </PageLayout>
-    </ProtectedRoute>
-  );
+// Route canon (web-implementation.md §4/§8): the legacy flat /income
+// screen is superseded by the nested dashboard area; the quarantined
+// original lives in src/legacy/app/income/ pending its retirement PR.
+const LegacyRedirect = () => {
+  redirect("/dashboard/transactions");
 };
 
-export default Income;
+export default LegacyRedirect;
