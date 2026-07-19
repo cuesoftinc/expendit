@@ -1,7 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ThemeProvider } from "@/design/ThemeProvider";
 import HomeView from "./HomeView";
+
+// The nav theme toggle reads the design-layer ThemeProvider (parity
+// canon, 2026-07-19) — render under it.
+const renderHome = () =>
+  render(
+    <ThemeProvider>
+      <HomeView />
+    </ThemeProvider>,
+  );
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -15,7 +25,7 @@ describe("public home `/` (pages.md Part A, A1–A11)", () => {
   });
 
   it("renders every Part A section", () => {
-    render(<HomeView />);
+    renderHome();
     // A2 hero
     expect(
       screen.getByRole("heading", {
@@ -54,18 +64,19 @@ describe("public home `/` (pages.md Part A, A1–A11)", () => {
   });
 
   it("emits page_view on mount", () => {
-    render(<HomeView />);
+    renderHome();
     expect(
       window.__expenditEvents?.some((record) => record.event === "page_view"),
     ).toBe(true);
   });
 
   it("hero Try Cloud emits try_cloud_click and routes to /signin", async () => {
-    render(<HomeView />);
-    // Order on the page: A1 nav CTA, then the A2 hero CTA.
+    renderHome();
+    // The nav Try Cloud retired with the parity canon (Sign in is the nav
+    // CTA) — the first Try Cloud button is now the A2 hero CTA.
     const heroTryCloud = screen.getAllByRole("button", {
       name: "Try Cloud",
-    })[1];
+    })[0];
     await userEvent.click(heroTryCloud);
     expect(push).toHaveBeenCalledWith("/signin");
     expect(window.__expenditEvents?.at(-1)).toMatchObject({
@@ -75,7 +86,7 @@ describe("public home `/` (pages.md Part A, A1–A11)", () => {
   });
 
   it("Self Host CTA emits self_host_click (scrolls to A8a)", async () => {
-    render(<HomeView />);
+    renderHome();
     const [heroSelfHost] = screen.getAllByRole("button", {
       name: "Self Host",
     });
@@ -89,7 +100,7 @@ describe("public home `/` (pages.md Part A, A1–A11)", () => {
   });
 
   it("A10b final CTA re-emits the A2 events (pages.md A10b)", async () => {
-    render(<HomeView />);
+    renderHome();
     const tryClouds = screen.getAllByRole("button", { name: "Try Cloud" });
     await userEvent.click(tryClouds[tryClouds.length - 1]);
     expect(window.__expenditEvents?.at(-1)).toMatchObject({
@@ -100,7 +111,7 @@ describe("public home `/` (pages.md Part A, A1–A11)", () => {
   });
 
   it("marketing accuracy: pricing is only the GA/self-host line", () => {
-    render(<HomeView />);
+    renderHome();
     expect(screen.getByText("Announced at GA")).toBeInTheDocument();
     expect(screen.getByText("Free forever")).toBeInTheDocument();
     // Star badge is neutral until a runtime count arrives (TEST_MODE: never).

@@ -23,6 +23,14 @@ export const rightsRepo = {
   requestPurge: (options?: RequestOptions) =>
     api.post<PurgeRequest>("/account/purge", undefined, options),
 
+  /**
+   * Read the open purge request (200 `null` when none) so the grace
+   * banner and cancel affordance survive reloads (flows/rights.md §2:
+   * cancel any time in grace).
+   */
+  purgeStatus: (options?: RequestOptions) =>
+    api.get<PurgeRequest | null>("/account/purge", options),
+
   cancelPurge: (options?: RequestOptions) =>
     api.delete<void>("/account/purge", options),
 

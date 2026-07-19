@@ -11,7 +11,7 @@
  * v1 scope: filing-ready documents + guided handoff.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOrg, useTaxController } from "@/controllers";
 import { ApiError } from "@/models/repositories";
@@ -38,6 +38,13 @@ const KIND_OPTIONS = [
 
 const STEP_LABELS = ["Period", "Data review", "Documents", "Submit"];
 
+/** Seeded complete periods per kind (mock period grammar). */
+const DEFAULT_PERIOD: Record<TaxKind, string> = {
+  vat: "2026-06",
+  pit: "2025",
+  cit: "FY2025",
+};
+
 const stepState = (
   index: number,
   current: Step,
@@ -57,12 +64,27 @@ export const FilingWizardView: React.FC = () => {
   const [step, setStep] = useState<Step>(1);
   const [kind, setKind] = useState<TaxKind>("vat");
   const [period, setPeriod] = useState<string | null>("2026-06");
+  const [kindTouched, setKindTouched] = useState(false);
   const [filing, setFiling] = useState<TaxFiling | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [identityBlocked, setIdentityBlocked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [done, setDone] = useState(false);
+
+  // Default the filing kind to the org's shape once it resolves — an
+  // individual workspace opened straight onto a VAT draft (system QA
+  // 2026-07-19); PIT is the personal default, VAT the company one.
+  useEffect(() => {
+    if (kindTouched || step !== 1 || filing) return;
+    if (activeOrg?.kind === "personal" && kind !== "pit") {
+      // Defer to a microtask — effects must not set state synchronously.
+      queueMicrotask(() => {
+        setKind("pit");
+        setPeriod(DEFAULT_PERIOD.pit);
+      });
+    }
+  }, [activeOrg?.kind, kind, kindTouched, step, filing]);
 
   const start = async () => {
     if (!period) return;
@@ -115,6 +137,19 @@ export const FilingWizardView: React.FC = () => {
       setBusy(false);
     }
   };
+
+  // Review-step guards (system QA 2026-07-19): surface the profile gate
+  // before the user walks three steps into a 422, and call out an
+  // all-zero draft (e.g. VAT on a ledger with no vatable activity).
+  const profileIncomplete = filing
+    ? !tax.profile?.tin ||
+      (filing.kind === "cit" && !tax.profile?.rc_number) ||
+      (filing.kind === "pit" && !tax.profile?.state_of_residence)
+    : false;
+  const zeroActivity = filing
+    ? filing.computed_fields.length > 0 &&
+      filing.computed_fields.every((field) => field.value === 0)
+    : false;
 
   const traceItems = (target: TaxFiling) =>
     target.computed_fields
@@ -238,8 +273,9 @@ export const FilingWizardView: React.FC = () => {
               options={KIND_OPTIONS}
               value={kind}
               onValueChange={(value) => {
+                setKindTouched(true);
                 setKind(value as TaxKind);
-                setPeriod(value === "vat" ? "2026-06" : "FY2025");
+                setPeriod(DEFAULT_PERIOD[value as TaxKind]);
               }}
             />
             <PeriodPicker
@@ -253,7 +289,9 @@ export const FilingWizardView: React.FC = () => {
                       { label: "June 2026", value: "2026-06" },
                       { label: "May 2026", value: "2026-05" },
                     ]
-                  : [{ label: "FY2025", value: "FY2025" }]
+                  : kind === "pit"
+                    ? [{ label: "2025", value: "2025" }]
+                    : [{ label: "FY2025", value: "FY2025" }]
               }
             />
             <Button
@@ -268,7 +306,7 @@ export const FilingWizardView: React.FC = () => {
 
         {step === 2 && filing ? (
           <section aria-label="Data review" className="space-y-4">
-            {identityBlocked ? (
+            {identityBlocked || profileIncomplete ? (
               <Banner
                 kind="warn"
                 action={
@@ -281,15 +319,23 @@ export const FilingWizardView: React.FC = () => {
                   </Button>
                 }
               >
-                Complete your tax profile — TIN
-                {filing.kind === "cit" ? " and RC number" : ""} are required
-                before documents can be generated (tax_identity_incomplete).
+                Complete your tax profile —{" "}
+                {filing.kind === "cit" ? "TIN and RC number are" : "TIN is"}{" "}
+                required before documents can be generated
+                (tax_identity_incomplete).
               </Banner>
             ) : null}
             <p className="text-[13px] text-text-2">
               Every computed field carries its “how we got this” trace — the
               exact formula and inputs behind the figure (MI-10).
             </p>
+            {zeroActivity ? (
+              <Banner kind="info">
+                No {filing.kind.toUpperCase()} activity found for{" "}
+                {filing.period} — every computed field is ₦0.00. Generating
+                would produce an empty filing.
+              </Banner>
+            ) : null}
             <Accordion items={traceItems(filing)} />
             <div className="flex gap-2">
               <Button kind="quiet" onClick={() => setStep(1)}>

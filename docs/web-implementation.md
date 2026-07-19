@@ -182,6 +182,41 @@ design-phase QA loops, design.md §8).
   design.md §2 container pin (PR #204), not a W3 scope item; W3's own
   Figma self-QA (Dashboard frames) is unaffected by it.
 
+**System-QA as-built notes (2026-07-19, `web/system-qa`):** the full-system
+usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
+
+- **Accuracy:** balance-sheet confirm treats a missing liabilities/equity
+  side as 0 in the identity check (an absent-equity sheet used to confirm
+  silently); `formatMoney` preserves the sign (a negative net month
+  rendered positive); ledger recategorize (row/bulk/manual form) offers
+  same-direction categories only; ratio traces resolve their `inputs` to
+  `{id, canonical_key, amount}` (ids stay the audit pointer); the hero/tax
+  marketing embeds and the A5 company donut now mirror seed.ts verbatim.
+- **Rights:** `GET /account/purge` (200 `null` when none) + a settings
+  mount probe — the grace banner/cancel now survive reloads.
+- **Usability:** BulkActionBar floats at the viewport bottom; import jobs
+  parked in staged review show a warn **Needs review** tag with staged
+  counts (`ImportJobRowStatus` gains `needs-review`); the filing wizard
+  defaults to PIT on personal orgs, surfaces the profile gate at data
+  review, and calls out all-zero drafts; the AppNav auto-collapses to the
+  64px rail below `md`; overview stat grids go 1-col at base; the hidden
+  row-actions cluster is pointer-events-gated (it swallowed clicks).
+- **MI fixes:** MI-14 NEW = `created_at ≥ now − 24h` (pure helper, the
+  clock-skew `|diff|` hack retired); StatCard gains `deltaDirection`
+  ("down-good" for expense-like metrics — color = goodness, sign/icon =
+  direction); the A2 hero chips join the ScaledEmbed composition (they
+  scaled independently and painted under the frame's stacking context).
+- **Parity canon (org SKILL.md 2026-07-19):** marketing nav = Features ·
+  Pricing · Docs · GitHub + ThemeToggle + Sign in CTA; footer = brand + 4
+  columns (Product/Docs/Community/Legal) + verbatim legal bar; the
+  apparule ThemeProvider contract ported (`expendit.theme`, pre-paint
+  init script, toggle in marketing nav + dashboard chrome; the B9 control
+  and `useThemeController` delegate to it). Playwright `parity.spec.ts`
+  pins the canonical hrefs and theme persistence.
+- **Polish:** token-true editorial 404 (both themes); pluralized count
+  captions; the overview donut legend aggregates the tail into "Other";
+  PeriodPicker triggers never wrap.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the

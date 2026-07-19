@@ -9,6 +9,21 @@ import { mockNow } from "@/mock/clock";
 import { fail, noContent, ok } from "@/mock/http";
 import { USER_IBUKUN } from "@/mock/seed";
 
+/**
+ * Read the purge state so the grace banner + cancel affordance survive a
+ * reload (system QA 2026-07-19: the pending state was client-session-only —
+ * after a refresh every write 409'd with no visible way to cancel).
+ * 200 `null` when none is on file — the read is a status probe on every
+ * settings mount, and a 404 would log console noise on the happy path.
+ */
+export async function GET() {
+  const db = getDb();
+  if (!db.purgeRequest || db.purgeRequest.status === "cancelled") {
+    return ok(null);
+  }
+  return ok(db.purgeRequest);
+}
+
 export async function POST() {
   const db = getDb();
   if (db.purgeRequest?.status === "pending") {

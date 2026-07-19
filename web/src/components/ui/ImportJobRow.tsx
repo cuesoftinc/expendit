@@ -19,14 +19,25 @@ import { cn } from "@/lib/cn";
 import Tag from "./Tag";
 
 export type ImportJobRowStatus =
-  "processing" | "completed" | "completed-empty" | "completed-bank" | "failed";
+  | "processing"
+  | "completed"
+  | "completed-empty"
+  | "completed-bank"
+  | "failed"
+  | "needs-review";
 
 /** Folded row status (design.md §8.2b as-built note). */
 export const rowStatus = (job: ImportJob): ImportJobRowStatus => {
   if (job.status === "processing") return "processing";
   if (job.status === "failed") return "failed";
-  if (job.source === "bank_sync") return "completed-bank";
-  return job.total_parsed === 0 ? "completed-empty" : "completed";
+  if (job.total_parsed === 0 && job.source !== "bank_sync")
+    return "completed-empty";
+  // Parked in staged review (parse done, nothing committed): the green
+  // "Completed · 0 transactions" read as an empty import (system QA
+  // 2026-07-19) — surface the review call-to-action instead. Applies to
+  // bank syncs too — they ride the same staged pipeline (pages.md B4).
+  if (!job.confirmed && job.total_parsed > 0) return "needs-review";
+  return job.source === "bank_sync" ? "completed-bank" : "completed";
 };
 
 const FILE_ICON = {
@@ -44,14 +55,32 @@ const caption = (job: ImportJob, status: ImportJobRowStatus): string => {
       return job.error_code ?? "failed";
     case "completed-empty":
       return "0 transactions found — check file contents";
+    case "needs-review": {
+      const staged = `${job.total_parsed} staged for review`;
+      return job.duplicates_found > 0
+        ? `${staged} · ${job.duplicates_found} ${
+            job.duplicates_found === 1 ? "duplicate" : "duplicates"
+          } flagged`
+        : staged;
+    }
     case "completed-bank":
       return `${job.imported} transactions${job.confirmed ? " · auto-confirmed" : ""}`;
     case "completed": {
-      const parts = [`${job.imported} transactions`];
+      const parts = [
+        `${job.imported} ${job.imported === 1 ? "transaction" : "transactions"}`,
+      ];
       if (job.duplicates_found > 0)
-        parts.push(`${job.duplicates_found} duplicates`);
+        parts.push(
+          `${job.duplicates_found} ${
+            job.duplicates_found === 1 ? "duplicate" : "duplicates"
+          }`,
+        );
       if (job.anomalies.length > 0)
-        parts.push(`${job.anomalies.length} anomalies found`);
+        parts.push(
+          `${job.anomalies.length} ${
+            job.anomalies.length === 1 ? "anomaly" : "anomalies"
+          } found`,
+        );
       return parts.join(" · ");
     }
   }
@@ -59,10 +88,11 @@ const caption = (job: ImportJob, status: ImportJobRowStatus): string => {
 
 const STATUS_TAG: Record<
   ImportJobRowStatus,
-  { label: string; tint: "info" | "success" | "neutral" | "error" }
+  { label: string; tint: "info" | "success" | "neutral" | "error" | "warn" }
 > = {
   processing: { label: "Processing", tint: "info" },
   completed: { label: "Completed", tint: "success" },
+  "needs-review": { label: "Needs review", tint: "warn" },
   "completed-bank": { label: "Completed", tint: "success" },
   "completed-empty": { label: "Empty", tint: "neutral" },
   failed: { label: "Failed", tint: "error" },
@@ -81,7 +111,7 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
 }) => {
   const status = rowStatus(job);
   const Icon =
-    status === "completed-bank" ? Landmark : FILE_ICON[job.file_type ?? "csv"];
+    job.source === "bank_sync" ? Landmark : FILE_ICON[job.file_type ?? "csv"];
   const tag = STATUS_TAG[status];
   const when = dayjs(job.created_at).isValid()
     ? dayjs(job.created_at).format("D MMM")

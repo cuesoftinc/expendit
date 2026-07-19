@@ -16,7 +16,8 @@ export interface FooterColumn {
 export interface MarketingFooterProps {
   columns: FooterColumn[];
   securityPolicyHref?: string;
-  note?: string;
+  /** Legal bar content (parity canon: verbatim string with inline links). */
+  note?: React.ReactNode;
   /** Brand block (logo + tagline) — leads the link columns (Figma A11). */
   brand?: React.ReactNode;
   /** Bottom-right slot beside the security CTA (e.g. language control). */
@@ -54,6 +55,9 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
                 <li key={link.label}>
                   <a
                     href={link.href}
+                    {...(/^https?:\/\//.test(link.href)
+                      ? { target: "_blank", rel: "noreferrer" }
+                      : {})}
                     className="rounded text-[13px] text-text transition-colors duration-fast ease-standard hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     {link.label}
@@ -70,6 +74,9 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
       <div className="flex items-center gap-4">
         <a
           href={securityPolicyHref}
+          {...(/^https?:\/\//.test(securityPolicyHref)
+            ? { target: "_blank", rel: "noreferrer" }
+            : {})}
           className={cn(
             "inline-flex items-center gap-1.5 rounded border border-border px-3 py-1.5 text-[13px] font-medium text-text",
             "transition-colors duration-fast ease-standard hover:bg-bg-elev",

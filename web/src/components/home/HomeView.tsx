@@ -25,29 +25,36 @@ import { AiSection, SecuritySection } from "./TrustSections";
 import ContributeSection from "./ContributeSection";
 import { CommunitySection, SelfHostSection } from "./SelfHostCommunity";
 import { CompareSection, FaqSection, FinalCtaSection } from "./CompareFaqCta";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import {
   ANCHORS,
   scrollToAnchor,
+  API_REFERENCE_URL,
+  CUELABS_URL,
+  CUESOFT_URL,
   DISCORD_URL,
   DOCS_URL,
   GITHUB_URL,
+  LICENSE_URL,
   PRIVACY_HUB_URL,
+  QUICKSTART_URL,
   ROADMAP_URL,
   SECURITY_POLICY_URL,
+  SELF_HOST_DOCS_URL,
+  STATUS_URL,
+  TERMS_URL,
 } from "./links";
 
+// A1 nav — the canonical 4 text links (nav/footer parity canon,
+// org SKILL.md 2026-07-19).
 const NAV_LINKS = [
-  { label: "Product", href: `#${ANCHORS.product}` },
+  { label: "Features", href: `#${ANCHORS.product}` },
+  { label: "Pricing", href: `#${ANCHORS.compare}` },
   { label: "Docs", href: DOCS_URL },
-  { label: "Community", href: `#${ANCHORS.community}` },
+  { label: "GitHub", href: GITHUB_URL },
 ];
 
-const SOLUTIONS = [
-  { label: "Individuals", href: `#${ANCHORS.demo}` },
-  { label: "SMEs", href: `#${ANCHORS.demo}` },
-  { label: "Companies", href: `#${ANCHORS.demo}` },
-];
-
+// A11 footer — brand block + 4 columns + legal bar (parity canon).
 const FOOTER_COLUMNS = [
   {
     heading: "Product",
@@ -59,20 +66,29 @@ const FOOTER_COLUMNS = [
     ],
   },
   {
-    heading: "Resources",
+    heading: "Docs",
     links: [
       { label: "Docs", href: DOCS_URL },
+      { label: "Quickstart", href: QUICKSTART_URL },
+      { label: "API reference", href: API_REFERENCE_URL },
+      { label: "Self-host guide", href: SELF_HOST_DOCS_URL },
+    ],
+  },
+  {
+    heading: "Community",
+    links: [
       { label: "GitHub", href: GITHUB_URL },
       { label: "Discord", href: DISCORD_URL },
       { label: "Roadmap", href: ROADMAP_URL },
+      { label: "CueLABS", href: CUELABS_URL },
     ],
   },
   {
     heading: "Legal",
     links: [
       { label: "Privacy", href: PRIVACY_HUB_URL },
-      { label: "Terms", href: PRIVACY_HUB_URL },
-      { label: "Data rights", href: PRIVACY_HUB_URL },
+      { label: "Terms", href: TERMS_URL },
+      { label: "Status", href: STATUS_URL },
     ],
   },
 ];
@@ -109,11 +125,10 @@ export const HomeView: React.FC = () => {
 
   const navProps = {
     links: NAV_LINKS,
-    solutions: SOLUTIONS,
-    githubHref: GITHUB_URL,
-    onGithubClick: () => track("github_click", { source: "nav" }),
-    onSignIn: () => router.push("/signin"),
-    onTryCloud: () => tryCloud("nav"),
+    trailing: <ThemeToggle />,
+    onLinkClick: (label: string) => {
+      if (label === "GitHub") track("github_click", { source: "nav" });
+    },
   };
 
   return (
@@ -159,7 +174,31 @@ export const HomeView: React.FC = () => {
       <MarketingFooter
         columns={FOOTER_COLUMNS}
         securityPolicyHref={SECURITY_POLICY_URL}
-        note="© 2026 Cuesoft Inc."
+        // Legal bar verbatim per the parity canon — Cuesoft Inc. and MIT
+        // License carry their canonical links.
+        note={
+          <>
+            ©{" "}
+            <a
+              href={CUESOFT_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded transition-colors duration-fast ease-standard hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Cuesoft Inc.
+            </a>{" "}
+            2026. Expendit. CueLABS™ Division.{" "}
+            <a
+              href={LICENSE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded transition-colors duration-fast ease-standard hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              MIT License
+            </a>
+            .
+          </>
+        }
         brand={
           <div>
             <div className="text-lg font-semibold tracking-tight text-text">
@@ -170,7 +209,19 @@ export const HomeView: React.FC = () => {
             </p>
           </div>
         }
-        meta={<span className="text-[13px] text-text-2">English</span>}
+        meta={
+          // The language selector is a real control (single locale in v1).
+          <label className="flex items-center gap-2 text-[13px] text-text-2">
+            <span className="sr-only">Language</span>
+            <select
+              aria-label="Language"
+              defaultValue="en"
+              className="rounded border border-border bg-bg px-2 py-1 text-[13px] text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <option value="en">English</option>
+            </select>
+          </label>
+        }
       />
     </div>
   );

@@ -1,5 +1,6 @@
 import React from "react";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
 import "./globals.css";
 
 // Design-system type (design.md §2): Inter for UI/display (Inter Display
@@ -25,9 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        {/* Pre-paint theme bootstrap: applies the persisted data-theme
+            override before first paint (ThemeProvider contract — a fully
+            static string, no runtime code construction). */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

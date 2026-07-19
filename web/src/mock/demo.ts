@@ -308,16 +308,25 @@ const COMPANY: DemoDataset = {
     xLabels: X_LABELS,
   },
   donut: {
+    // The seed.ts Cuesoft July breakdown (top 3 + aggregated tail) — the
+    // hero embed renders this donut as "the real B1 overview", so the
+    // slices mirror the app's (system QA 2026-07-19). Colors are the seed
+    // registry category colors (data, not styling).
     slices: [
+      { id: "payroll", label: "Payroll", value: 1_850_000, color: "#C6373C" },
       {
-        id: "inventory",
-        label: "Inventory",
-        value: 1_373_600,
+        id: "rent",
+        label: "Office rent",
+        value: 650_000,
+        color: "#B26A00",
+      },
+      {
+        id: "cloud",
+        label: "Cloud & software",
+        value: 603_000,
         color: "#F46A1F",
       },
-      { id: "rent", label: "Rent", value: 1_012_100, color: "#2456D6" },
-      { id: "utilities", label: "Utilities", value: 795_300, color: "#B26A00" },
-      { id: "other", label: "Other", value: 433_800, color: "#6E6E76" },
+      { id: "other", label: "Other", value: 511_800, color: "#6E6E76" },
     ],
     centerTotal: "₦3.61M",
   },

@@ -80,6 +80,24 @@ export const SettingsView: React.FC = () => {
     [],
   );
 
+  // Restore an open grace window on mount — the banner + cancel must
+  // survive reloads (flows/rights.md §2; system QA 2026-07-19).
+  const { purgeStatus } = settings;
+  useEffect(() => {
+    let cancelled = false;
+    void purgeStatus()
+      .then((request) => {
+        if (!cancelled && request?.status === "pending") setPurge(request);
+      })
+      .catch(() => {
+        // Read-only affordance restore — errors stay silent here; writes
+        // still surface purge_pending through their own toasts.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [purgeStatus]);
+
   const aiConsented = settings.consents.some(
     (record) => record.document === "ai_processing",
   );
@@ -149,6 +167,11 @@ export const SettingsView: React.FC = () => {
       if (err instanceof ApiError && err.code === "purge_pending") {
         setToast("A purge is already pending.");
         setPurgeOpen(false);
+        // Surface the existing window's banner + cancel affordance.
+        void purgeStatus().then(
+          (request) => request && setPurge(request),
+          () => {},
+        );
       } else {
         setToast(err instanceof Error ? err.message : "Request failed");
       }

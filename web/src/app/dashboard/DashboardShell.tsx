@@ -3,8 +3,9 @@
 /**
  * Dashboard shell — the Part B app chrome (pages.md Part B): left nav
  * (AppNav 240px ⇄ 64px rail) with the org switcher atop, MI-5 anomaly
- * badge on Transactions, the global ⌘K palette (MI-1), theme application,
- * and the auth + first-run guards. Views render inside; controllers own
+ * badge on Transactions, the global ⌘K palette (MI-1), the chrome theme
+ * toggle (parity canon), and the auth + first-run guards. The theme
+ * itself applies pre-paint via the root-layout ThemeProvider script. Views render inside; controllers own
  * every piece of state.
  */
 
@@ -29,10 +30,11 @@ import {
   useAuthController,
   useOrg,
   useRequireAuth,
-  useThemeController,
 } from "@/controllers";
 import AppNav, { NavGroupLabel, NavItem } from "@/components/ui/AppNav";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import Avatar from "@/components/ui/Avatar";
+import { cn } from "@/lib/cn";
 import CommandPalette, {
   type CommandItem,
 } from "@/components/ui/CommandPalette";
@@ -104,7 +106,21 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { orgs, activeOrg, activeOrgId, switchOrg, loading } = useOrg();
   const { count: anomalyCount } = useAnomalyBadgeController(activeOrgId);
   const [collapsed, setCollapsed] = useState(false);
+  // Below md the nav always rides the 64px icon rail — a fixed 240px
+  // column left ~150px of content at 390w (system QA 2026-07-19).
+  const [isMobile, setIsMobile] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const effectiveCollapsed = collapsed || isMobile;
 
   // First-run guard: a signed-in user with no org lands on B0.
   useEffect(() => {
@@ -191,8 +207,8 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex h-screen overflow-hidden bg-bg text-text">
       <AppNav
-        collapsed={collapsed}
-        onCollapsedChange={onCollapsedChange}
+        collapsed={effectiveCollapsed}
+        onCollapsedChange={isMobile ? undefined : onCollapsedChange}
         orgSwitcher={
           activeOrgId ? (
             <OrgSwitcher
@@ -200,13 +216,18 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               currentOrgId={activeOrgId}
               onSelect={switchOrg}
               onCreate={() => router.push("/onboarding?create=1")}
-              compact={collapsed}
+              compact={effectiveCollapsed}
             />
           ) : null
         }
         footer={
-          <div className="mb-1 flex items-center gap-2 px-2.5 py-1.5">
-            {!collapsed ? (
+          <div
+            className={cn(
+              "mb-1 flex items-center gap-2 px-2.5 py-1.5",
+              effectiveCollapsed && "flex-col",
+            )}
+          >
+            {!effectiveCollapsed ? (
               <>
                 <Avatar name={user?.name ?? "…"} size="sm" />
                 <span className="min-w-0 flex-1 truncate text-[13px] text-text-2">
@@ -214,6 +235,9 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </span>
               </>
             ) : null}
+            {/* Theme parity canon (2026-07-19): the toggle lives in the
+                dashboard chrome too, same ThemeProvider contract. */}
+            <ThemeToggle className="p-1" />
             <button
               type="button"
               aria-label="Sign out"
@@ -268,8 +292,6 @@ export const DashboardShell: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { user, checked } = useRequireAuth();
-  // Theme applies on every dashboard mount (B9 control sets it).
-  useThemeController();
 
   if (!checked || !user) return null;
 

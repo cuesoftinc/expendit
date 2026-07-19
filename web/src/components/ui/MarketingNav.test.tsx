@@ -3,15 +3,18 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MarketingNav from "./MarketingNav";
 
+// Canonical inventory (nav/footer parity canon, 2026-07-19): 4 text links
+// + trailing slot (theme toggle) + the Sign in CTA.
 const props = {
-  links: [{ label: "Docs", href: "/docs" }],
-  solutions: [
-    { label: "Freelancers", href: "/solutions/freelancers" },
-    { label: "SMEs", href: "/solutions/smes" },
+  links: [
+    { label: "Features", href: "#product" },
+    { label: "Pricing", href: "#compare" },
+    { label: "Docs", href: "https://cuesoft.gitbook.io/expendit" },
+    { label: "GitHub", href: "https://github.com/cuesoftinc/expendit" },
   ],
 };
 
-describe("MarketingNav (design.md §8.2b)", () => {
+describe("MarketingNav (design.md §8.2b + parity canon)", () => {
   it("on-dark variant scopes dark token mode over the hero", () => {
     render(<MarketingNav variant="on-dark" {...props} />);
     const nav = screen.getByRole("navigation", { name: "Marketing" });
@@ -27,43 +30,47 @@ describe("MarketingNav (design.md §8.2b)", () => {
     expect(nav).toHaveClass("sticky");
   });
 
-  it("Solutions dropdown opens with menu items", async () => {
+  it("renders the canonical links — external ones open in a new tab", () => {
     render(<MarketingNav {...props} />);
-    await userEvent.click(screen.getByRole("button", { name: /Solutions/ }));
-    expect(screen.getByRole("menu")).toBeInTheDocument();
-    expect(
-      screen.getByRole("menuitem", { name: "Freelancers" }),
-    ).toBeInTheDocument();
-  });
-
-  it("GitHub badge is the neutral Star (no count)", () => {
-    render(<MarketingNav {...props} />);
-    const badge = screen.getByRole("link", { name: /Star/ });
-    expect(badge).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Features" })).toHaveAttribute(
+      "href",
+      "#product",
+    );
+    expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute(
+      "href",
+      "#compare",
+    );
+    const docs = screen.getByRole("link", { name: "Docs" });
+    expect(docs).toHaveAttribute("href", "https://cuesoft.gitbook.io/expendit");
+    expect(docs).toHaveAttribute("target", "_blank");
+    const github = screen.getByRole("link", { name: "GitHub" });
+    expect(github).toHaveAttribute(
       "href",
       "https://github.com/cuesoftinc/expendit",
     );
-    expect(badge.textContent).toBe("Star");
+    expect(github).toHaveAttribute("target", "_blank");
   });
 
-  it("GitHub badge click reports for analytics (github_click)", async () => {
-    const onGithubClick = vi.fn();
-    render(<MarketingNav {...props} onGithubClick={onGithubClick} />);
-    const badge = screen.getByRole("link", { name: /Star/ });
-    badge.addEventListener("click", (event) => event.preventDefault());
-    await userEvent.click(badge);
-    expect(onGithubClick).toHaveBeenCalled();
+  it("Sign in is the CTA and links to /signin", () => {
+    render(<MarketingNav {...props} />);
+    const signIn = screen.getByRole("link", { name: "Sign in" });
+    expect(signIn).toHaveAttribute("href", "/signin");
+    expect(signIn).toHaveClass("bg-accent");
   });
 
-  it("Sign in + Try Cloud CTAs fire", async () => {
-    const onSignIn = vi.fn();
-    const onTryCloud = vi.fn();
+  it("link clicks report their label (github_click analytics hook)", async () => {
+    const onLinkClick = vi.fn();
+    render(<MarketingNav {...props} onLinkClick={onLinkClick} />);
+    const github = screen.getByRole("link", { name: "GitHub" });
+    github.addEventListener("click", (event) => event.preventDefault());
+    await userEvent.click(github);
+    expect(onLinkClick).toHaveBeenCalledWith("GitHub");
+  });
+
+  it("renders the trailing slot (theme toggle position)", () => {
     render(
-      <MarketingNav {...props} onSignIn={onSignIn} onTryCloud={onTryCloud} />,
+      <MarketingNav {...props} trailing={<span data-testid="slot">t</span>} />,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
-    await userEvent.click(screen.getByRole("button", { name: "Try Cloud" }));
-    expect(onSignIn).toHaveBeenCalled();
-    expect(onTryCloud).toHaveBeenCalled();
+    expect(screen.getByTestId("slot")).toBeInTheDocument();
   });
 });

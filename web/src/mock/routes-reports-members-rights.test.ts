@@ -16,6 +16,7 @@ import {
 } from "@/app/api/mock/orgs/[id]/members/[userId]/route";
 import {
   DELETE as cancelPurge,
+  GET as purgeStatus,
   POST as requestPurge,
 } from "@/app/api/mock/account/purge/route";
 import { POST as requestExport } from "@/app/api/mock/account/export/route";
@@ -167,6 +168,16 @@ describe("mock data rights (flows/rights.md)", () => {
     const duplicate = await requestPurge();
     expect(duplicate.status).toBe(409);
 
+    // The open window is readable, so the grace banner + cancel survive a
+    // reload (system QA regression — flows/rights.md §2).
+    const readBack = await purgeStatus();
+    expect(readBack.status).toBe(200);
+    const pending = await json<{ status: string; effective_at: string }>(
+      readBack,
+    );
+    expect(pending.status).toBe("pending");
+    expect(pending.effective_at).toBeTruthy();
+
     const cancelled = await cancelPurge();
     expect(cancelled.status).toBe(204);
     const writeAfter = await createTxn(
@@ -182,6 +193,11 @@ describe("mock data rights (flows/rights.md)", () => {
       }),
     );
     expect(writeAfter.status).toBe(201);
+
+    // Cancelled window reads as gone (200 null — probe endpoint).
+    const afterCancel = await purgeStatus();
+    expect(afterCancel.status).toBe(200);
+    expect(await json(afterCancel)).toBeNull();
   });
 
   it("export-all: 202 job → completed with a 7-day signed URL", async () => {

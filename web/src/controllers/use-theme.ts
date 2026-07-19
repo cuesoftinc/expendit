@@ -1,24 +1,25 @@
 "use client";
 
 /**
- * Theme controller — the B9 theme control sets `data-theme` on <html>
- * (web-implementation.md §3: light on :root, dark on [data-theme="dark"],
- * prefers-color-scheme honored with manual override — "system" removes
- * the attribute so the OS preference applies).
+ * Theme controller — the B9 theme control (and every other toggle) now
+ * delegates to the design-layer ThemeProvider, the single source of truth
+ * for the `data-theme` override (theme parity canon, 2026-07-19: one
+ * provider contract across the ecosystem — data-theme on <html>,
+ * localStorage `expendit.theme`, system default when unset). The
+ * controller API is kept so existing views stay unchanged.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useTheme,
+  type ThemePreference,
+  THEME_STORAGE_KEY,
+} from "@/design/ThemeProvider";
 
-export type ThemeSetting = "light" | "dark" | "system";
+export type ThemeSetting = ThemePreference;
 
-const THEME_KEY = "expendit.theme";
+export { THEME_STORAGE_KEY };
 
-const readStored = (): ThemeSetting => {
-  if (typeof window === "undefined") return "system";
-  const stored = window.localStorage.getItem(THEME_KEY);
-  return stored === "light" || stored === "dark" ? stored : "system";
-};
-
+/** Pure DOM seam kept for compatibility (mirrors the provider's apply). */
 export const applyTheme = (theme: ThemeSetting): void => {
   if (typeof document === "undefined") return;
   if (theme === "system") delete document.documentElement.dataset.theme;
@@ -26,25 +27,6 @@ export const applyTheme = (theme: ThemeSetting): void => {
 };
 
 export const useThemeController = () => {
-  const [theme, setThemeState] = useState<ThemeSetting>("system");
-
-  useEffect(() => {
-    // Apply the stored preference on mount (client-only).
-    queueMicrotask(() => {
-      const stored = readStored();
-      setThemeState(stored);
-      applyTheme(stored);
-    });
-  }, []);
-
-  const setTheme = useCallback((next: ThemeSetting) => {
-    setThemeState(next);
-    applyTheme(next);
-    if (typeof window !== "undefined") {
-      if (next === "system") window.localStorage.removeItem(THEME_KEY);
-      else window.localStorage.setItem(THEME_KEY, next);
-    }
-  }, []);
-
-  return { theme, setTheme };
+  const { preference, setPreference } = useTheme();
+  return { theme: preference, setTheme: setPreference };
 };

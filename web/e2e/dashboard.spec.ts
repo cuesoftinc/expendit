@@ -112,7 +112,10 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
     .poll(async () => jobRow.getAttribute("data-status"), {
       timeout: 20_000,
     })
-    .toMatch(/completed/);
+    // Parse-complete jobs park in staged review as "needs-review"
+    // (system QA 2026-07-19 — the green Completed tag hid the parked
+    // review); bank/auto-confirmed jobs stay "completed*".
+    .toMatch(/completed|needs-review/);
   await jobRow.click();
   await page.waitForURL("**/dashboard/imports/**");
 

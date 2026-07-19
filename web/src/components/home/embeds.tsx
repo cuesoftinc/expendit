@@ -110,28 +110,41 @@ const NAV = (
   </AppNav>
 );
 
-/** Latest-transactions rows in the hero embed (seed July narrative). */
+/**
+ * Latest-transactions rows in the hero embed — the seed.ts Cuesoft Ltd
+ * ledger's five most recent July rows, verbatim (system QA 2026-07-19:
+ * two invented rows diverged from the product the CTA leads to).
+ */
 const HERO_TXNS: DemoTxn[] = [
   {
     id: "hero-1",
-    date: "2026-07-16",
-    description: "MTN Business — data bundles",
-    amount: 120_000,
+    date: "2026-07-18",
+    description: "Payroll — July",
+    amount: 1_850_000,
     direction: "expense",
-    categoryId: "utilities",
+    categoryId: "payroll",
     source: "bank",
   },
   {
     id: "hero-2",
-    date: "2026-07-15",
-    description: "Paystack payout — web sales",
-    amount: 1_845_000,
+    date: "2026-07-18",
+    description: "Workshop facilitation — DataCamp Lagos",
+    amount: 800_000,
     direction: "income",
-    categoryId: "product",
-    source: "bank",
+    categoryId: "workshops",
+    source: "manual",
   },
   {
     id: "hero-3",
+    date: "2026-07-16",
+    description: "Team lunch — sprint close",
+    amount: 85_000,
+    direction: "expense",
+    categoryId: "meals",
+    source: "manual",
+  },
+  {
+    id: "hero-4",
     date: "2026-07-15",
     description: "Consulting — BlueRidge Capital",
     amount: 1_585_200,
@@ -140,32 +153,28 @@ const HERO_TXNS: DemoTxn[] = [
     source: "bank",
   },
   {
-    id: "hero-4",
-    date: "2026-07-06",
-    description: "AWS hosting",
-    amount: 438_700,
-    direction: "expense",
-    categoryId: "cloud",
-    source: "bank",
-    ai: true,
-  },
-  {
     id: "hero-5",
-    date: "2026-07-01",
-    description: "Office rent — July",
-    amount: 650_000,
+    date: "2026-07-14",
+    description: "Equipment repair — office AC",
+    amount: 95_300,
     direction: "expense",
-    categoryId: "rent",
-    source: "bank",
+    categoryId: "ops",
+    source: "receipt",
+    ai: true,
   },
 ];
 
+/** Seed registry categories (colors are data — the B8 registry). */
 const HERO_CATEGORIES = {
-  utilities: { id: "utilities", name: "Utilities", color: "#B26A00" },
-  product: { id: "product", name: "Sales", color: "#1B7F4B" },
-  consulting: { id: "consulting", name: "Consulting", color: "#1B7F4B" },
-  cloud: { id: "cloud", name: "Cloud & software", color: "#6E6E76" },
-  rent: { id: "rent", name: "Rent", color: "#2456D6" },
+  payroll: { id: "payroll", name: "Payroll", color: "#C6373C" },
+  workshops: {
+    id: "workshops",
+    name: "Workshops & training",
+    color: "#7DA2FF",
+  },
+  meals: { id: "meals", name: "Meals & team", color: "#F59E0B" },
+  consulting: { id: "consulting", name: "Consulting income", color: "#1B7F4B" },
+  ops: { id: "ops", name: "Ops & logistics", color: "#0EA5E9" },
 } as const;
 
 /*
@@ -211,27 +220,29 @@ export const DashboardEmbed: React.FC = () => {
           VAT return due tomorrow — 21 Jul 2026
         </Banner>
         <div className="grid grid-cols-4 gap-3">
+          {/* Deltas are the seed-computed July-vs-June values, matching
+              the TEST_MODE overview at boot (June net is negative, so the
+              net card carries no delta chip — the app's prev>0 rule). */}
           <StatCard
             label="Net cash flow"
             value={company.stats.net.value}
             format={(value) => formatMoney(value)}
-            delta={company.stats.net.delta}
-            deltaCaption="vs Jun"
             sparkline={company.stats.net.sparkline}
           />
           <StatCard
             label="Income"
             value={company.stats.income.value}
             format={(value) => formatMoney(value)}
-            delta={company.stats.income.delta}
+            delta={-0.075}
             deltaCaption="vs Jun"
             sparkline={company.stats.income.sparkline}
           />
           <StatCard
             label="Expenses"
+            deltaDirection="down-good"
             value={company.stats.expenses.value}
             format={(value) => formatMoney(value)}
-            delta={company.stats.expenses.delta}
+            delta={-0.686}
             deltaCaption="vs Jun"
             sparkline={company.stats.expenses.sparkline}
           />
@@ -286,18 +297,19 @@ export const DashboardEmbed: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <AnomalyBadge
+                  type="abnormal_category"
+                  severity="info"
+                  variant="feed"
+                  description="₦95,300 is 3.4× the trailing mean for Ops & logistics (₦28,000)."
+                  timestamp="14 Jul"
+                />
+                <AnomalyBadge
                   type="large_transaction"
                   severity="warn"
                   variant="feed"
-                  description="₦480,000.00 is 3.4× your median for Equipment"
-                  timestamp="6d"
-                />
-                <AnomalyBadge
-                  type="duplicate_charge"
-                  severity="info"
-                  variant="feed"
-                  description="Same amount & merchant as txn 2 minutes earlier"
-                  timestamp="12d"
+                  // "#2041" is an invoice number (seed data), not a hex color.
+                  description="Invoice #2041 — Nairaflow — ₦2,850,000.00"
+                  timestamp="8 Jul"
                 />
               </div>
               <div className="mt-2 text-[11px] font-medium text-accent">
@@ -398,12 +410,6 @@ const FIRS = {
   payment_channels: ["TaxPro-Max", "Remita"],
 };
 
-const LIRS = {
-  code: "LIRS",
-  name: "Lagos State Internal Revenue Service",
-  payment_channels: ["eTax portal"],
-};
-
 /** B7 tax-center mini (A5a step-3 thumb) — seed tax narrative. */
 export const TaxCenterEmbed: React.FC = () => (
   <div
@@ -432,7 +438,7 @@ export const TaxCenterEmbed: React.FC = () => (
         <RemitToCard
           kind="cit"
           authority={FIRS}
-          amountDue={6_214_900}
+          amountDue={5_474_000}
           dueDate="2027-06-30"
         />
       </div>
@@ -461,12 +467,12 @@ export const TaxCenterEmbed: React.FC = () => (
           />
           <TaxCalendarRow
             entry={{
-              kind: "pit",
+              kind: "cit",
               period: "FY2026",
-              due_date: "2027-03-31",
-              authority: LIRS,
+              due_date: "2027-06-30",
+              authority: FIRS,
             }}
-            daysToDue={254}
+            daysToDue={345}
           />
         </ul>
       </div>
@@ -482,29 +488,29 @@ export const TaxCenterEmbed: React.FC = () => (
               kind: "vat",
               period: "2026-05",
               status: "accepted",
-              amount_due: 421_300,
+              amount_due: 512_300,
               due_date: "2026-06-21",
               computed_fields: [],
               authority: FIRS,
               artifact_key: "receipts/tf-vat-2026-05.pdf",
-              filed_at: "2026-06-18T10:00:00.000Z",
+              filed_at: "2026-06-19T10:00:00.000Z",
               created_at: "2026-06-15T10:00:00.000Z",
             }}
           />
           <FilingHistoryRow
             filing={{
-              id: "tf-vat-2026-04",
+              id: "tf-cit-fy2025",
               org_id: "org-cuesoft",
-              kind: "vat",
-              period: "2026-04",
+              kind: "cit",
+              period: "FY2025",
               status: "accepted",
-              amount_due: 386_750,
-              due_date: "2026-05-21",
+              amount_due: 5_474_000,
+              due_date: "2026-06-30",
               computed_fields: [],
               authority: FIRS,
-              artifact_key: "receipts/tf-vat-2026-04.pdf",
-              filed_at: "2026-05-19T10:00:00.000Z",
-              created_at: "2026-05-15T10:00:00.000Z",
+              artifact_key: "receipts/tf-cit-fy2025.pdf",
+              filed_at: "2026-06-12T10:00:00.000Z",
+              created_at: "2026-06-10T10:00:00.000Z",
             }}
           />
         </ul>

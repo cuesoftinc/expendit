@@ -11,6 +11,13 @@ export type RatioStatus = "healthy" | "warning" | "critical" | "na";
 /** How the value renders (currency rows are StatCard/MoneyCell, not gauges). */
 export type RatioDisplay = "ratio" | "percent" | "currency" | "days" | "months";
 
+export interface RatioInput {
+  /** LINE_ITEM id (data-model.md §5) — the persisted audit pointer. */
+  id: string;
+  canonical_key: string;
+  amount: number;
+}
+
 export interface RatioResult {
   key: MetricKey;
   label: string;
@@ -25,8 +32,9 @@ export interface RatioResult {
   /** e.g. "negative equity" (shown as badge instead of a number). */
   badge: string | null;
   formula: string;
-  /** The exact LINE_ITEM ids used — the MI-8 trace. */
-  inputs: string[];
+  /** The exact LINE_ITEM inputs — id + resolved key/amount so the trace
+      is auditable on sight (system QA 2026-07-19; the raw ids stay). */
+  inputs: RatioInput[];
   /** Trace notes: annualization factors, burn source, EBIT basis, etc. */
   trace_notes: string[];
   benchmark_band: string | null;

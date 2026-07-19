@@ -352,9 +352,20 @@ export const RatiosView: React.FC = () => {
                 <h3 className="mb-1 uppercase tracking-wide text-text-2">
                   line-item inputs
                 </h3>
+                {/* Resolved inputs: key + amount readable at a glance, the
+                    LINE_ITEM id kept as the audit pointer (title). */}
                 <ul className="space-y-0.5">
                   {trace.inputs.map((input) => (
-                    <li key={input}>{input}</li>
+                    <li
+                      key={input.id}
+                      title={input.id}
+                      className="flex items-baseline justify-between gap-3"
+                    >
+                      <span>{input.canonical_key}</span>
+                      <span className="tabular-nums text-text">
+                        {formatMoney(input.amount, currency)}
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </section>

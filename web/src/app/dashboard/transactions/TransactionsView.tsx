@@ -151,10 +151,53 @@ export const TransactionsView: React.FC = () => {
     () => new Map(categoryOptions.map((cat) => [cat.id, cat])),
     [categoryOptions],
   );
+  const categoryTypeById = useMemo(
+    () => new Map(categories.map((cat) => [cat.id, cat.type])),
+    [categories],
+  );
   const categorySelectOptions = useMemo(
     () => categories.map((cat) => ({ value: cat.id, label: cat.name })),
     [categories],
   );
+  // Categories are typed income/expense (B8 registry) — recategorize can
+  // only land on a same-direction category (system QA 2026-07-19: an
+  // expense row could be filed under an income category, poisoning the
+  // donut and VAT treatment).
+  const categoryOptionsByDirection = useMemo(
+    () => ({
+      expense: categoryOptions.filter(
+        (option) => categoryTypeById.get(option.id) === "expense",
+      ),
+      income: categoryOptions.filter(
+        (option) => categoryTypeById.get(option.id) === "income",
+      ),
+    }),
+    [categoryOptions, categoryTypeById],
+  );
+  const categorySelectOptionsByDirection = useMemo(
+    () => ({
+      expense: categories
+        .filter((cat) => cat.type === "expense")
+        .map((cat) => ({ value: cat.id, label: cat.name })),
+      income: categories
+        .filter((cat) => cat.type === "income")
+        .map((cat) => ({ value: cat.id, label: cat.name })),
+    }),
+    [categories],
+  );
+  // Bulk re-categorize applies one category — the selection must share a
+  // direction for a typed category to fit every row.
+  const selectedDirection = useMemo<
+    "income" | "expense" | "mixed" | null
+  >(() => {
+    const directions = new Set(
+      txns.items
+        .filter((txn) => selected.has(txn.id))
+        .map((txn) => txn.direction),
+    );
+    if (directions.size === 0) return null;
+    return directions.size === 1 ? [...directions][0] : "mixed";
+  }, [txns.items, selected]);
 
   const openInspector = useCallback(
     (next: InspectorState) => {
@@ -610,7 +653,7 @@ export const TransactionsView: React.FC = () => {
                       color: FALLBACK_CATEGORY_COLOR,
                     }
                   }
-                  categoryOptions={categoryOptions}
+                  categoryOptions={categoryOptionsByDirection[txn.direction]}
                   selected={selected.has(txn.id)}
                   onSelectedChange={(isSelected) =>
                     setSelected((prev) => {
@@ -656,12 +699,22 @@ export const TransactionsView: React.FC = () => {
         </section>
       )}
 
-      <BulkActionBar
-        selectedCount={selected.size}
-        onRecategorize={() => setBulkOpen(true)}
-        onExport={exportSelection}
-        onClear={() => setSelected(new Set())}
-      />
+      {/* Floats over the ledger at the viewport bottom — selecting rows
+          anywhere in a long table keeps the bar visible (system QA
+          2026-07-19: in normal flow it rendered below the fold and a
+          selection showed no affordance at all). z-sticky per the §2
+          layer registry; the component's own slide-in animates entry. */}
+      {selected.size > 0 ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-sticky flex justify-center">
+          <BulkActionBar
+            className="pointer-events-auto"
+            selectedCount={selected.size}
+            onRecategorize={() => setBulkOpen(true)}
+            onExport={exportSelection}
+            onClear={() => setSelected(new Set())}
+          />
+        </div>
+      ) : null}
 
       {/* Bulk re-categorize (MI-4 at scale) */}
       <Modal
@@ -683,13 +736,24 @@ export const TransactionsView: React.FC = () => {
           </div>
         }
       >
-        <Select
-          label="Category"
-          options={categorySelectOptions}
-          value={bulkCategory}
-          onValueChange={setBulkCategory}
-          placeholder="Pick a category"
-        />
+        {selectedDirection === "mixed" ? (
+          <Banner kind="warn">
+            The selection mixes income and expense rows — categories are typed,
+            so pick rows of one direction to re-categorize together.
+          </Banner>
+        ) : (
+          <Select
+            label="Category"
+            options={
+              selectedDirection
+                ? categorySelectOptionsByDirection[selectedDirection]
+                : categorySelectOptions
+            }
+            value={bulkCategory}
+            onValueChange={setBulkCategory}
+            placeholder="Pick a category"
+          />
+        )}
       </Modal>
 
       {/* Save current filters as a view */}
@@ -812,6 +876,13 @@ export const TransactionsView: React.FC = () => {
                     setDraft((prev) => ({
                       ...prev,
                       direction: value as "income" | "expense",
+                      // Direction switch drops a now-mismatched category
+                      // (typed registry — same-direction only).
+                      category_id:
+                        prev.category_id &&
+                        categoryTypeById.get(prev.category_id) === value
+                          ? prev.category_id
+                          : null,
                     }))
                   }
                 />
@@ -821,7 +892,7 @@ export const TransactionsView: React.FC = () => {
           <FormRow label="Category" required>
             {() => (
               <Select
-                options={categorySelectOptions}
+                options={categorySelectOptionsByDirection[draft.direction]}
                 value={draft.category_id}
                 onValueChange={(value) =>
                   setDraft((prev) => ({ ...prev, category_id: value }))

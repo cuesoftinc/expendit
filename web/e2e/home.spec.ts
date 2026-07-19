@@ -43,7 +43,9 @@ test.describe("public home `/` (Part A)", () => {
     ).toBeVisible();
     // A9 community + A10 comparison + caption
     await expect(
-      page.getByRole("heading", { name: "Community", exact: true }),
+      // level pins the A9 section h2 (the footer's Community column
+      // heading arrived with the parity canon).
+      page.getByRole("heading", { name: "Community", exact: true, level: 2 }),
     ).toBeVisible();
     await expect(
       page.getByText("Cloud or self-host — same product"),
@@ -119,8 +121,9 @@ test.describe("public home `/` (Part A)", () => {
     page,
   }) => {
     await page.goto("/");
-    // Hero Try Cloud (the A2 CTA — second Try Cloud on the page).
-    await page.getByRole("button", { name: "Try Cloud" }).nth(1).click();
+    // Hero Try Cloud (the A2 CTA — first Try Cloud on the page; the nav
+    // CTA is "Sign in" under the parity canon).
+    await page.getByRole("button", { name: "Try Cloud" }).first().click();
     await page.waitForURL("**/signin");
     await expect(
       page.getByRole("button", { name: "Continue with Google" }),
@@ -131,9 +134,13 @@ test.describe("public home `/` (Part A)", () => {
     await page.getByRole("button", { name: "Try Cloud" }).last().click();
     await page.waitForURL("**/signin");
 
-    // Nav Sign in.
+    // Nav Sign in — a real link to /signin (parity canon).
     await page.goto("/");
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page
+      .getByRole("navigation", { name: "Marketing" })
+      .first()
+      .getByRole("link", { name: "Sign in" })
+      .click();
     await page.waitForURL("**/signin");
   });
 

@@ -38,14 +38,14 @@ export const StagedReviewHeader: React.FC<StagedReviewHeaderProps> = ({
     <div className="flex items-center gap-3">
       <p className="flex-1 text-sm text-text">
         <span className="font-semibold tabular-nums">{importCount}</span>{" "}
-        transactions staged
+        {importCount === 1 ? "transaction" : "transactions"} staged
         {duplicateCount > 0 ? (
           <span className="text-text-2">
             {" "}
             · <span className="tabular-nums text-warn">
               {duplicateCount}
             </span>{" "}
-            duplicates flagged
+            {duplicateCount === 1 ? "duplicate" : "duplicates"} flagged
           </span>
         ) : null}
       </p>
@@ -57,12 +57,16 @@ export const StagedReviewHeader: React.FC<StagedReviewHeaderProps> = ({
         size="sm"
         loading={state === "committing"}
         onClick={onCommit}
-        aria-label={`Import ${importCount}, discard ${duplicateCount} duplicates`}
+        aria-label={`Import ${importCount}, discard ${duplicateCount} ${
+          duplicateCount === 1 ? "duplicate" : "duplicates"
+        }`}
       >
         {state === "committing"
           ? "Committing…"
           : duplicateCount > 0
-            ? `Import ${importCount} / discard ${duplicateCount} duplicates`
+            ? `Import ${importCount} / discard ${duplicateCount} ${
+                duplicateCount === 1 ? "duplicate" : "duplicates"
+              }`
             : `Import ${importCount}`}
       </Button>
     </div>

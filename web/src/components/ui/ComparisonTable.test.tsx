@@ -59,4 +59,22 @@ describe("ComparisonTable (design.md §8.2b)", () => {
       screen.getByRole("button", { name: "Read the docs" }),
     ).toBeInTheDocument();
   });
+
+  it("text cells never wrap — the mobile price row keeps one line (system QA regression)", () => {
+    render(
+      <ComparisonTable
+        rows={[
+          {
+            feature: "Price",
+            cloud: { kind: "text", text: "Announced at GA" },
+            selfHost: { kind: "text", text: "Free forever" },
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Announced at GA")).toHaveClass(
+      "whitespace-nowrap",
+    );
+    expect(screen.getByText("Free forever")).toHaveClass("whitespace-nowrap");
+  });
 });

@@ -40,7 +40,7 @@ describe("ImportJobRow (design.md §8.2b)", () => {
   it("completed shows the Figma caption + status tag", () => {
     render(<ImportJobRow job={job()} />);
     expect(
-      screen.getByText("209 transactions · 5 duplicates · 1 anomalies found"),
+      screen.getByText("209 transactions · 5 duplicates · 1 anomaly found"),
     ).toBeInTheDocument();
     expect(screen.getByText("Completed")).toBeInTheDocument();
   });
