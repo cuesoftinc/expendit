@@ -50,7 +50,31 @@ export async function PATCH(request: Request, context: Context) {
     }
     link.status = body.status;
   }
-  if (body.auto_confirm !== undefined) link.auto_confirm = body.auto_confirm;
+  if (body.auto_confirm !== undefined) {
+    // Trust path (flows/import.md §5 [Decided default]): auto-confirm is
+    // opt-in only after ≥3 manually confirmed clean syncs on this link —
+    // enabling earlier bypasses review entirely (PR #217 review).
+    if (body.auto_confirm && !link.auto_confirm) {
+      const db = getDb();
+      const cleanSyncs = db.importJobs.filter(
+        (job) =>
+          db.jobLinks[job.id] === link.id &&
+          job.source === "bank_sync" &&
+          job.confirmed &&
+          job.duplicates_found === 0 &&
+          job.anomalies.length === 0,
+      ).length;
+      if (cleanSyncs < 3) {
+        return fail(
+          422,
+          "validation_failed",
+          `Auto-confirm opens after 3 manually confirmed clean syncs — this link has ${cleanSyncs}.`,
+          { clean_syncs: cleanSyncs, required: 3 },
+        );
+      }
+    }
+    link.auto_confirm = body.auto_confirm;
+  }
   return ok(link);
 }
 

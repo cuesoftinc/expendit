@@ -2692,7 +2692,13 @@ export const buildSeed = (): MockDb => ({
   purgeRequest: null,
   idempotency: {},
   lastManualSync: {},
-  jobLinks: {},
+  // Seeded bank-sync jobs attribute to their links — the auto-confirm
+  // trust gate counts confirmed clean syncs per link through this map.
+  jobLinks: {
+    "job-sync-zenith-jul19": "link-zenith",
+    "job-sync-gtb-jul18": "link-gtb",
+    "job-sync-access-jul08": "link-access",
+  },
   processingSince: {},
   seq: 1000,
 });

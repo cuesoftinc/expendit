@@ -130,9 +130,12 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       {/* Description cell hosts the MI-6 hover actions at ITS right edge
           (adjudicated 2026-07-19): they overlay only truncation
           whitespace, so the amount stays legible during hover — the
-          Figma TxnTableRow hover variant follows this construction. */}
-      <td className="relative min-w-0 flex-1 truncate">
-        {txn.description}
+          Figma TxnTableRow hover variant follows this construction.
+          Truncation lives on an inner span: `truncate` on the cell
+          itself would overflow-hide the action cluster once the cell
+          squeezes below its ~80px width (PR #217 review). */}
+      <td className="relative min-w-0 flex-1">
+        <span className="block truncate">{txn.description}</span>
         <span
           data-testid="row-actions"
           className={cn(
