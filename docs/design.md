@@ -56,6 +56,15 @@
 ### Layout
 
 - Marketing: 12-col, max 1200px; alternating light/dark full-bleed sections.
+  **Container pin [Decided 2026-07-19]:** every landing section lays its inner
+  content in the single centered 1200px container (x 120–1320 on the 1440
+  frame, min 24px gutters) — editorial bands stay full-bleed with their
+  content aligned to it, and narrower blocks center within it. *As built:*
+  the Figma `A — Home` frame was normalized to this rule on 2026-07-19 — the
+  pillar row, all five feature deep-dive splits, the demo stats/charts/table,
+  the how-it-works steps, the security columns, and the contribute dev-row
+  previously implied phantom containers (872–1128px wide); 3-up card rows now
+  share one 384px-card / 24px-gutter rhythm.
 - Dashboard: left nav 240px (collapsible to 64px icon rail) · content
   max 1440px · right inspector panel (400px) slides in for detail views —
   tables never navigate away for a single record. **[Proposed]**
