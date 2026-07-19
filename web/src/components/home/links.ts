@@ -1,7 +1,7 @@
 /**
  * Home-page link register — every external destination the Part A
  * sections reference, in one place (no fabricated URLs: GitHub/docs come
- * from the repo + overview.md; Discord is the CueLABS ecosystem invite;
+ * from the repo + overview.md; Discord is the CueLABS™ ecosystem invite;
  * the privacy hub is the D3 ecosystem surface, architecture.md §2).
  */
 

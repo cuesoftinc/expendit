@@ -11,7 +11,7 @@
 
 ## Part A — Public home page (expendit.cuesoft.io)
 
-Shared CueLABS open-source-site pattern: product presentation → developer
+Shared CueLABS™ open-source-site pattern: product presentation → developer
 setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTAs
 **[Directive]**. Brex-style editorial execution (design.md §1.2).
 

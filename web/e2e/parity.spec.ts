@@ -34,7 +34,7 @@ const FOOTER_LINKS: Array<[string, string, string]> = [
   ["Community", "GitHub", GITHUB],
   ["Community", "Discord", "https://discord.gg/CDfZxxrxbb"],
   ["Community", "Roadmap", `${DOCS}/product/roadmap`],
-  ["Community", "CueLABS", "https://cuelabs.cuesoft.io"],
+  ["Community", "CueLABS™", "https://cuelabs.cuesoft.io"],
   ["Legal", "Privacy", "https://privacy.cuesoft.io"],
   ["Legal", "Terms", "https://terms.cuesoft.io"],
   ["Legal", "Status", "https://status.cuesoft.io"],

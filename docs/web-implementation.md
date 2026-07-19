@@ -1,6 +1,6 @@
 # Expendit — Web Implementation Standard
 
-> How `web/` gets rebuilt: the **CueLABS Web Implementation Standard**
+> How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
 > Expendit-specific addendum — stage plan, token mapping, route map,
 > TEST_MODE contract, mock server, test strategy, legacy quarantine plan.

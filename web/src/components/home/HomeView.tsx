@@ -83,7 +83,7 @@ const FOOTER_COLUMNS = [
       { label: "GitHub", href: GITHUB_URL },
       { label: "Discord", href: DISCORD_URL },
       { label: "Roadmap", href: ROADMAP_URL },
-      { label: "CueLABS", href: CUELABS_URL },
+      { label: "CueLABS™", href: CUELABS_URL },
     ],
   },
   {
