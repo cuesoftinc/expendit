@@ -66,6 +66,7 @@ export async function POST(request: Request, context: Context) {
   };
   db.importJobs.unshift(job);
   db.processingSince[job.id] = Date.now();
+  db.jobLinks[job.id] = link.id;
   link.last_synced_at = mockNow().toISOString();
 
   return ok({ job_id: job.id }, 202);

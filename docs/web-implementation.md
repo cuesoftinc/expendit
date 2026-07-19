@@ -216,6 +216,27 @@ usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
 - **Polish:** token-true editorial 404 (both themes); pluralized count
   captions; the overview donut legend aggregates the tail into "Other";
   PeriodPicker triggers never wrap.
+- **Mobile nav canon (org SKILL.md follow-up):** below `md` the four nav
+  text links collapse into a hamburger disclosure (`aria-expanded`) whose
+  panel carries the same links + ThemeToggle + Sign in — never
+  display-none with no fallback; the 390w Playwright test walks every
+  canonical destination through the menu.
+- **Review-canon mock sweep:** (a) query/parse seams reject malformed
+  input per their documented grammar — the transactions list 422s bad
+  dates/amounts/enums/limits and unknown cursors (an `amount_min=abc`
+  used to NaN-filter every row away), the ratios endpoints enforce the
+  closed period grammar; (b) advertised controls observably change
+  results — the bank-link "Auto-confirm clean syncs" toggle now commits
+  clean syncs straight to the ledger vs staging them (it was never read),
+  and image uploads 403 `consent_required` without the `ai_processing`
+  consent record (flows/import.md §3; the Settings notification switches
+  remain explicitly backend-deferred by copy); (c) derived-metric
+  semantics under bucket changes were already correct (quarterly ×4
+  annualization, actual day counts) and are now pinned by a regression
+  test. The wizard's profile gate and the generate endpoint now share one
+  predicate (`missingTaxIdentifiers`, models/tax.ts), and PIT drafts pick
+  a plain calendar year (the FY#### year picker grammar stays
+  statement-only) — both from the PR #209 Codex review.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the

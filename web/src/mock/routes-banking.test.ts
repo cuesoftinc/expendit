@@ -8,6 +8,7 @@ import {
 } from "@/app/api/mock/bank-links/[id]/route";
 import { PUT as exchange } from "@/app/api/mock/bank-links/[id]/exchange/route";
 import { POST as syncNow } from "@/app/api/mock/bank-links/[id]/sync/route";
+import { GET as pollJob } from "@/app/api/mock/import/[jobId]/route";
 import type { BankLink } from "@/models";
 import { getDb, resetDb } from "./db";
 import { json, mockRequest, params } from "./test-helpers";
@@ -118,5 +119,55 @@ describe("mock bank links (flows/bank-link.md)", () => {
       params({ id: "link-zenith" }),
     );
     expect(getDb().transactions.length).toBe(before);
+  });
+
+  it("auto_confirm observably changes the sync outcome (review canon: no dead controls)", async () => {
+    const runSync = async (linkId: string) => {
+      const db = getDb();
+      const response = await syncNow(
+        mockRequest(`/api/mock/bank-links/${linkId}/sync`, { method: "POST" }),
+        params({ id: linkId }),
+      );
+      expect(response.status).toBe(202);
+      const { job_id } = await json<{ job_id: string }>(response);
+      // Fast-forward the async lifecycle, then poll to complete.
+      db.processingSince[job_id] = Date.now() - 5_000;
+      const polled = await json<{
+        job: {
+          confirmed: boolean;
+          imported: number;
+          total_parsed: number;
+          duplicates_found: number;
+        };
+        staged: unknown[];
+      }>(
+        await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+          params: Promise.resolve({ jobId: job_id }),
+        }),
+      );
+      return { job: polled.job, staged: polled.staged, jobId: job_id };
+    };
+
+    // Zenith (auto_confirm: true): the sync commits straight to the ledger.
+    const before = getDb().transactions.length;
+    const auto = await runSync("link-zenith");
+    expect(auto.job.confirmed).toBe(true);
+    expect(auto.job.imported).toBeGreaterThan(0);
+    expect(auto.staged.length).toBe(0);
+    const committed = getDb().transactions.length - before;
+    expect(committed).toBe(auto.job.imported);
+    expect(
+      getDb().transactions.filter((txn) => txn.source_link_id === "link-zenith")
+        .length,
+    ).toBeGreaterThanOrEqual(auto.job.imported);
+
+    // GTBank (auto_confirm: false): same feed parks in staged review.
+    const manual = await runSync("link-gtb");
+    expect(manual.job.confirmed).toBe(false);
+    expect(manual.job.imported).toBe(0);
+    expect(manual.staged.length).toBe(manual.job.total_parsed);
+    // Bank feeds are clean — no duplicate flags either way.
+    expect(auto.job.duplicates_found).toBe(0);
+    expect(manual.job.duplicates_found).toBe(0);
   });
 });

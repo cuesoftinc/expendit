@@ -5,6 +5,23 @@ import { getDb, nextId } from "@/mock/db";
 import { mockNow } from "@/mock/clock";
 import { fail, ok, paginate, resolveOrgId, writeBlocked } from "@/mock/http";
 
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const AMOUNT_PATTERN = /^\d+(\.\d+)?$/;
+const LIMIT_PATTERN = /^\d+$/;
+const SOURCES: readonly string[] = ["manual", "csv", "pdf", "receipt", "bank"];
+const DIRECTIONS: readonly string[] = ["income", "expense"];
+
+/**
+ * Query grammar is a boundary (review canon 2026-07-19): malformed values
+ * 422 with the offending param instead of silently filtering — a
+ * `amount_min=abc` used to NaN-compare every row away, reading like an
+ * empty ledger.
+ */
+const invalidParam = (name: string, value: string) =>
+  fail(422, "validation_failed", `Malformed ${name}: ${value}`, {
+    param: name,
+  });
+
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);
   if (!orgId) return fail(404, "not_found", "Unknown org");
@@ -21,7 +38,37 @@ export async function GET(request: Request) {
   const anomalyOnly = params.get("anomaly_only") === "true";
   const search = params.get("search")?.toLowerCase() ?? null;
   const cursor = params.get("cursor");
-  const limit = Math.min(Number(params.get("limit") ?? 50), 100);
+  const rawLimit = params.get("limit");
+
+  for (const [name, value] of [
+    ["date_from", dateFrom],
+    ["date_to", dateTo],
+  ] as const) {
+    if (value !== null && !DATE_PATTERN.test(value)) {
+      return invalidParam(name, value);
+    }
+  }
+  if (source !== null && !SOURCES.includes(source)) {
+    return invalidParam("source", source);
+  }
+  if (direction !== null && !DIRECTIONS.includes(direction)) {
+    return invalidParam("direction", direction);
+  }
+  for (const [name, value] of [
+    ["amount_min", amountMin],
+    ["amount_max", amountMax],
+  ] as const) {
+    if (value !== null && !AMOUNT_PATTERN.test(value)) {
+      return invalidParam(name, value);
+    }
+  }
+  if (
+    rawLimit !== null &&
+    (!LIMIT_PATTERN.test(rawLimit) || rawLimit === "0")
+  ) {
+    return invalidParam("limit", rawLimit);
+  }
+  const limit = Math.min(Number(rawLimit ?? 50), 100);
 
   const filtered = db.transactions
     .filter((txn) => txn.org_id === orgId)
@@ -38,7 +85,9 @@ export async function GET(request: Request) {
     )
     .sort((a, b) => (a.txn_date < b.txn_date ? 1 : -1));
 
-  return ok(paginate(filtered, cursor, limit));
+  const page = paginate(filtered, cursor, limit);
+  if (!page) return invalidParam("cursor", cursor ?? "");
+  return ok(page);
 }
 
 export async function POST(request: Request) {

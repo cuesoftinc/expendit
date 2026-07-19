@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { missingTaxIdentifiers } from "@/models/tax";
 import { beforeEach, describe, expect, it } from "vitest";
 import { getDb, resetDb } from "./db";
 import {
@@ -85,5 +86,49 @@ describe("tax engine (tax-engine.md)", () => {
     expect(identityIncomplete(personal!)).toEqual(["tin"]);
     const company = db.taxProfiles.find((p) => p.org_id === ORG_CUESOFT);
     expect(identityIncomplete(company!)).toEqual([]);
+  });
+
+  it("missingTaxIdentifiers: one predicate for both taxpayer kinds (wizard gate == generate endpoint)", () => {
+    // Company: TIN present but RC + registered address missing → both named.
+    expect(
+      missingTaxIdentifiers(
+        {
+          taxpayer_kind: "company",
+          tin: "TIN-1",
+          rc_number: null,
+          state_of_residence: null,
+        },
+        { registered_address: undefined },
+      ),
+    ).toEqual(["rc_number", "registered_address"]);
+    // Company complete.
+    expect(
+      missingTaxIdentifiers(
+        {
+          taxpayer_kind: "company",
+          tin: "TIN-1",
+          rc_number: "RC-1",
+          state_of_residence: null,
+        },
+        { registered_address: { line1: "1 Road" } },
+      ),
+    ).toEqual([]);
+    // Individual: no RC requirement, state of residence required.
+    expect(
+      missingTaxIdentifiers({
+        taxpayer_kind: "individual",
+        tin: null,
+        rc_number: null,
+        state_of_residence: null,
+      }),
+    ).toEqual(["tin", "state_of_residence"]);
+    expect(
+      missingTaxIdentifiers({
+        taxpayer_kind: "individual",
+        tin: "TIN-2",
+        rc_number: null,
+        state_of_residence: "NG-LA",
+      }),
+    ).toEqual([]);
   });
 });

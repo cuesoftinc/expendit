@@ -123,4 +123,41 @@ describe("mock /transactions (docs-coherent ledger)", () => {
     const body = await json<{ error: { code: string } }>(response);
     expect(body.error.code).toBe("not_found");
   });
+
+  it("query grammar is a boundary: malformed params 422 instead of silently filtering (review canon)", async () => {
+    const cases: Array<[string, string]> = [
+      ["amount_min", "abc"], // NaN-compared every row away before the fix
+      ["amount_max", "1,000"],
+      ["date_from", "yesterday"],
+      ["date_to", "2026-7-1"],
+      ["direction", "sideways"],
+      ["source", "carrier-pigeon"],
+      ["limit", "abc"],
+      ["limit", "0"],
+    ];
+    for (const [param, value] of cases) {
+      const response = await listTxns(
+        mockRequest(`/api/mock/transactions?${param}=${value}`),
+      );
+      expect(response.status, `${param}=${value}`).toBe(422);
+      const body = await json<{ error: { code: string; details: unknown } }>(
+        response,
+      );
+      expect(body.error.code).toBe("validation_failed");
+    }
+    // Well-formed values still work.
+    const good = await listTxns(
+      mockRequest(
+        "/api/mock/transactions?amount_min=100&date_from=2026-07-01&direction=expense&source=bank&limit=5",
+      ),
+    );
+    expect(good.status).toBe(200);
+  });
+
+  it("unknown cursors 422 instead of silently restarting from page one", async () => {
+    const response = await listTxns(
+      mockRequest("/api/mock/transactions?cursor=txn-nope"),
+    );
+    expect(response.status).toBe(422);
+  });
 });

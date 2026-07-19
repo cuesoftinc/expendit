@@ -73,4 +73,35 @@ describe("MarketingNav (design.md §8.2b + parity canon)", () => {
     );
     expect(screen.getByTestId("slot")).toBeInTheDocument();
   });
+
+  it("mobile: hamburger disclosure carries the 4 links + trailing + Sign in (parity canon)", async () => {
+    render(
+      <MarketingNav {...props} trailing={<span data-testid="slot">t</span>} />,
+    );
+    const menu = screen.getByRole("button", { name: "Menu" });
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+
+    await userEvent.click(menu);
+    expect(menu).toHaveAttribute("aria-expanded", "true");
+    const panel = document.getElementById(
+      menu.getAttribute("aria-controls") ?? "",
+    );
+    expect(panel).toBeTruthy();
+    // Same 4 canonical links (desktop set + panel set both render).
+    for (const [label, href] of [
+      ["Features", "#product"],
+      ["Pricing", "#compare"],
+      ["Docs", "https://cuesoft.gitbook.io/expendit"],
+      ["GitHub", "https://github.com/cuesoftinc/expendit"],
+    ] as const) {
+      const links = screen.getAllByRole("link", { name: label });
+      expect(links.length).toBeGreaterThanOrEqual(2);
+      for (const link of links) expect(link).toHaveAttribute("href", href);
+    }
+    expect(screen.getAllByRole("link", { name: "Sign in" }).length).toBe(2);
+    expect(screen.getAllByTestId("slot").length).toBe(2);
+
+    await userEvent.click(menu);
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+  });
 });

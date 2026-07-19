@@ -15,6 +15,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOrg, useTaxController } from "@/controllers";
 import { ApiError } from "@/models/repositories";
+import { missingTaxIdentifiers } from "@/models/tax";
 import type { TaxFiling, TaxKind } from "@/models";
 import { formatMoney } from "@/lib/format";
 import Accordion from "@/components/ui/Accordion";
@@ -37,6 +38,23 @@ const KIND_OPTIONS = [
 ];
 
 const STEP_LABELS = ["Period", "Data review", "Documents", "Submit"];
+
+/** Human labels for the shared missing-identifier keys. */
+const IDENTIFIER_LABELS: Record<string, string> = {
+  tin: "TIN",
+  rc_number: "RC number",
+  registered_address: "registered address",
+  state_of_residence: "state of residence",
+};
+
+const formatMissingIdentifiers = (missing: string[]): string => {
+  const labels = missing.map((key) => IDENTIFIER_LABELS[key] ?? key);
+  const joined =
+    labels.length > 1
+      ? `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`
+      : (labels[0] ?? "profile identifiers");
+  return `${joined} ${labels.length === 1 ? "is" : "are"}`;
+};
 
 /** Seeded complete periods per kind (mock period grammar). */
 const DEFAULT_PERIOD: Record<TaxKind, string> = {
@@ -141,11 +159,12 @@ export const FilingWizardView: React.FC = () => {
   // Review-step guards (system QA 2026-07-19): surface the profile gate
   // before the user walks three steps into a 422, and call out an
   // all-zero draft (e.g. VAT on a ledger with no vatable activity).
-  const profileIncomplete = filing
-    ? !tax.profile?.tin ||
-      (filing.kind === "cit" && !tax.profile?.rc_number) ||
-      (filing.kind === "pit" && !tax.profile?.state_of_residence)
-    : false;
+  // Same completeness predicate the generate endpoint enforces (Codex
+  // review on PR #209) — requirements follow the taxpayer, not the
+  // filing kind.
+  const missingIdentifiers =
+    filing && tax.profile ? missingTaxIdentifiers(tax.profile, activeOrg) : [];
+  const profileIncomplete = missingIdentifiers.length > 0;
   const zeroActivity = filing
     ? filing.computed_fields.length > 0 &&
       filing.computed_fields.every((field) => field.value === 0)
@@ -278,22 +297,36 @@ export const FilingWizardView: React.FC = () => {
                 setPeriod(DEFAULT_PERIOD[value as TaxKind]);
               }}
             />
-            <PeriodPicker
-              mode={kind === "vat" ? "month" : "year"}
-              label="Period"
-              value={period}
-              onValueChange={setPeriod}
-              presets={
-                kind === "vat"
-                  ? [
-                      { label: "June 2026", value: "2026-06" },
-                      { label: "May 2026", value: "2026-05" },
-                    ]
-                  : kind === "pit"
-                    ? [{ label: "2025", value: "2025" }]
+            {kind === "pit" ? (
+              // PIT files a plain calendar tax year ("2025") — the
+              // PeriodPicker year mode is the FY#### statement grammar,
+              // which rejects it (Codex review on PR #209), so PIT gets
+              // a year Select of ended years instead.
+              <Select
+                label="Period"
+                options={[
+                  { value: "2025", label: "2025" },
+                  { value: "2024", label: "2024" },
+                ]}
+                value={period}
+                onValueChange={setPeriod}
+              />
+            ) : (
+              <PeriodPicker
+                mode={kind === "vat" ? "month" : "year"}
+                label="Period"
+                value={period}
+                onValueChange={setPeriod}
+                presets={
+                  kind === "vat"
+                    ? [
+                        { label: "June 2026", value: "2026-06" },
+                        { label: "May 2026", value: "2026-05" },
+                      ]
                     : [{ label: "FY2025", value: "FY2025" }]
-              }
-            />
+                }
+              />
+            )}
             <Button
               loading={busy}
               disabled={!period}

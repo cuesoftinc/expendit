@@ -1262,6 +1262,7 @@ export const buildSeed = (): MockDb => ({
   purgeRequest: null,
   idempotency: {},
   lastManualSync: {},
+  jobLinks: {},
   processingSince: {},
   seq: 1000,
 });

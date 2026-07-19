@@ -82,6 +82,52 @@ test("footer carries the 4-column canonical inventory + legal bar", async ({
   );
 });
 
+test("mobile (390w): the hamburger panel reaches every canonical nav destination", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Marketing" }).first();
+
+  // Text links are collapsed, not lost: the disclosure carries them.
+  const menu = nav.getByRole("button", { name: "Menu" });
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await menu.click();
+  await expect(menu).toHaveAttribute("aria-expanded", "true");
+
+  // The desktop link set stays in the DOM (hidden below md) — scope the
+  // assertions to what is actually visible: the panel copies.
+  for (const [label, href] of NAV_LINKS) {
+    const link = nav
+      .getByRole("link", { name: label })
+      .filter({ visible: true });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute("href", href);
+  }
+  await expect(
+    nav.getByRole("link", { name: "Sign in" }).filter({ visible: true }),
+  ).toHaveAttribute("href", "/signin");
+
+  // Theme toggle works from the panel.
+  await nav
+    .getByRole("button", { name: "Switch to dark theme" })
+    .filter({ visible: true })
+    .click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.getAttribute("data-theme")),
+    )
+    .toBe("dark");
+
+  // In-page anchors navigate (menu closes, section scrolls into view).
+  await nav
+    .getByRole("link", { name: "Pricing" })
+    .filter({ visible: true })
+    .click();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator("#compare")).toBeInViewport();
+});
+
 const expectTheme = async (page: Page, theme: string | null) => {
   await expect
     .poll(() =>

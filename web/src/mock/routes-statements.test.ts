@@ -18,6 +18,16 @@ const manualBalanceSheet = (
   line_items: rows,
 });
 
+const manualIncomeStatement = (
+  period: string,
+  rows: Array<{ canonical_key: string; amount: number }>,
+) => ({
+  kind: "income_statement",
+  period,
+  currency: "NGN",
+  line_items: rows,
+});
+
 describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () => {
   beforeEach(() => {
     resetDb();
@@ -260,5 +270,76 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
     expect(response.status).toBe(422);
     const body = await json<{ error: { code: string } }>(response);
     expect(body.error.code).toBe("unmapped_threshold_exceeded");
+  });
+
+  it("quarterly bucket: annualized metrics ×4, pure margins raw, receivables days use the quarter's 90 days (derived-metric semantics)", async () => {
+    // Class-(c) regression (review canon 2026-07-19): derived metrics must
+    // compute what their names claim when the period bucket changes —
+    // quarterly flows annualize ×4 for flow/stock ratios, flow/flow
+    // margins stay raw, and receivables days use the actual day count.
+    const post = async (body: object) =>
+      json<{ statement_id: string }>(
+        await createStatement(
+          mockRequest("/api/mock/statements", { method: "POST", body }),
+        ),
+      );
+    const confirm = async (id: string) =>
+      confirmStatement(
+        mockRequest(`/api/mock/statements/${id}/confirm`, { method: "POST" }),
+        params({ id }),
+      );
+
+    const bs = await post(
+      manualBalanceSheet("2026-Q1", [
+        { canonical_key: "cash_and_equivalents", amount: 10_000_000 },
+        { canonical_key: "receivables", amount: 9_000_000 },
+        { canonical_key: "payables", amount: 4_000_000 },
+        { canonical_key: "retained_earnings", amount: 15_000_000 },
+      ]),
+    );
+    expect((await confirm(bs.statement_id)).status).toBe(200);
+
+    const is = await post(
+      manualIncomeStatement("2026-Q1", [
+        { canonical_key: "revenue", amount: 9_000_000 },
+        { canonical_key: "cogs", amount: 3_000_000 },
+        { canonical_key: "opex", amount: 3_000_000 },
+        { canonical_key: "interest_expense", amount: 500_000 },
+        { canonical_key: "tax_expense", amount: 500_000 },
+      ]),
+    );
+    expect((await confirm(is.statement_id)).status).toBe(200);
+
+    const { computeRatioReport } = await import("./ratio-engine");
+    const report = computeRatioReport("org-cuesoft", "2026-Q1");
+    const metric = (key: string) => {
+      const row = report.ratios.find((item) => item.key === key);
+      if (!row) throw new Error(`missing metric ${key}`);
+      return row;
+    };
+
+    // Flow/flow — raw quarter figures, no annualization:
+    // gross margin = (9m − 3m) / 9m.
+    expect(metric("gross_margin").value).toBeCloseTo(6 / 9, 10);
+    // net income = 3m op − 0.5m interest − 0.5m tax = 2m → 2/9.
+    expect(metric("net_margin").value).toBeCloseTo(2 / 9, 10);
+    // interest coverage = 3m / 0.5m — flow/flow, unannualized.
+    expect(metric("interest_coverage").value).toBeCloseTo(6, 10);
+
+    // Flow/stock — quarterly flows annualize ×4:
+    // total_assets = 19m; asset turnover = (9m × 4) / 19m.
+    expect(metric("asset_turnover").value).toBeCloseTo(36 / 19, 10);
+    expect(metric("asset_turnover").trace_notes.join(" ")).toContain(
+      "annualized ×4",
+    );
+    // ROA = (2m × 4) / 19m.
+    expect(metric("roa").value).toBeCloseTo(8 / 19, 10);
+
+    // Receivables days uses Q1 2026's actual 90 days (not 365):
+    // 9m / 9m × 90.
+    expect(metric("receivables_days").value).toBeCloseTo(90, 10);
+    expect(metric("receivables_days").trace_notes.join(" ")).toContain(
+      "90 days",
+    );
   });
 });

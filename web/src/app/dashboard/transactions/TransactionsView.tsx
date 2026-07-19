@@ -286,8 +286,17 @@ export const TransactionsView: React.FC = () => {
     setToast(`Exported ${rows.length} transactions`);
   };
 
+  // A stale pick (e.g. chosen, then cancelled, then the selection changed
+  // to mixed) must never apply — Codex review on PR #209: the hidden
+  // picker left Apply armed with the previous category.
+  const bulkCategoryApplies =
+    !!bulkCategory &&
+    selectedDirection !== "mixed" &&
+    selectedDirection !== null &&
+    categoryTypeById.get(bulkCategory) === selectedDirection;
+
   const bulkRecategorize = async () => {
-    if (!bulkCategory) return;
+    if (!bulkCategoryApplies || !bulkCategory) return;
     const ids = [...selected];
     await Promise.all(
       ids.map((id) => txns.update(id, { category_id: bulkCategory })),
@@ -709,7 +718,10 @@ export const TransactionsView: React.FC = () => {
           <BulkActionBar
             className="pointer-events-auto"
             selectedCount={selected.size}
-            onRecategorize={() => setBulkOpen(true)}
+            onRecategorize={() => {
+              if (!bulkCategoryApplies) setBulkCategory(null);
+              setBulkOpen(true);
+            }}
             onExport={exportSelection}
             onClear={() => setSelected(new Set())}
           />
@@ -728,7 +740,7 @@ export const TransactionsView: React.FC = () => {
               Cancel
             </Button>
             <Button
-              disabled={!bulkCategory}
+              disabled={!bulkCategoryApplies}
               onClick={() => void bulkRecategorize()}
             >
               Apply
