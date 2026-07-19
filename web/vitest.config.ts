@@ -1,23 +1,20 @@
+import react from "@vitejs/plugin-react";
+import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 /**
- * Vitest — the single unit/integration runner (components, controllers,
- * mock handlers); tests co-locate under src/**. src/legacy is excluded
- * per the quarantine policy.
- *
- * Environments: jsdom by default (components); the mock-server suites pin
- * `@vitest-environment node` per file so Request/FormData/File stay the
- * undici implementations end to end.
+ * Vitest — the single unit/integration runner; tests co-locate under src/**.
+ * jsdom by default (components); server-side suites pin
+ * `@vitest-environment node` per file. `globals` enables RTL auto-cleanup.
  */
 export default defineConfig({
-  resolve: {
-    tsconfigPaths: true,
-  },
+  plugins: [react(), tsconfigPaths()],
   test: {
     environment: "jsdom",
+    globals: true,
+    setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
-    exclude: ["src/legacy/**", "node_modules/**"],
-    setupFiles: ["src/vitest.setup.ts"],
+    exclude: ["node_modules/**", "src/legacy/**", "e2e/**"],
     env: {
       NEXT_PUBLIC_TEST_MODE: "1",
     },

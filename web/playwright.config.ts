@@ -1,35 +1,36 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Playwright e2e — TEST_MODE journeys against the in-app mock server
- * (design.md §8.4 prototype journeys; W0 ships the signin → dashboard
- * smoke). CI builds first, then runs against `next start`.
+ * E2E harness — runs in TEST_MODE against the in-app mock server (org web
+ * standard: Playwright journeys mirror design.md §8.4, TEST_MODE only).
  *
- * PW_PORT overrides the dev-server port (default 3100) so local runs can
- * dodge port collisions with sibling projects; CI stays on the default.
+ * PW_PORT overrides the server port; each repo reserves its own default
+ * lane so parallel local runs across sibling repos never collide. CI builds
+ * first and runs against `next start`; local runs use the dev server.
  */
-const PORT = process.env.PW_PORT ?? "3100";
+const PORT = Number(process.env.PW_PORT ?? 3100);
 
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   fullyParallel: true,
+  forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: `http://127.0.0.1:${PORT}`,
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: process.env.CI
-      ? `npm run start -- -p ${PORT}`
-      : `npm run dev -- -p ${PORT}`,
-    port: Number(PORT),
+      ? `npm run start -- -p ${PORT} --hostname 127.0.0.1`
+      : `npm run dev -- -p ${PORT} --hostname 127.0.0.1`,
+    url: `http://127.0.0.1:${PORT}/signin`,
     reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
     env: {
       NEXT_PUBLIC_TEST_MODE: "1",
     },
-    timeout: 120_000,
   },
 });
