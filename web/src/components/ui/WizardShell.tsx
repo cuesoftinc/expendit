@@ -22,10 +22,12 @@ export const WizardShell: React.FC<WizardShellProps> = ({
   children,
   className,
 }) => (
-  <div className={cn("flex w-full gap-6", className)}>
+  // Mobile canon: below lg the rail/content/summary columns stack — the
+  // three-column row otherwise forces the page past the viewport.
+  <div className={cn("flex w-full flex-col gap-6 lg:flex-row", className)}>
     <nav
       aria-label="Wizard steps"
-      className="w-56 shrink-0 space-y-4 border-r border-border pr-4"
+      className="shrink-0 space-y-4 lg:w-56 lg:border-r lg:border-border lg:pr-4"
     >
       {steps}
     </nav>
@@ -34,8 +36,8 @@ export const WizardShell: React.FC<WizardShellProps> = ({
       {children}
     </section>
     {summary ? (
-      <aside aria-label="Summary" className="w-72 shrink-0">
-        <div className="sticky top-4 rounded border border-border bg-bg-elev p-4">
+      <aside aria-label="Summary" className="shrink-0 lg:w-72">
+        <div className="rounded border border-border bg-bg-elev p-4 lg:sticky lg:top-4">
           {summary}
         </div>
       </aside>

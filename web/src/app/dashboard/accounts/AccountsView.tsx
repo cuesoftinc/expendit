@@ -209,7 +209,7 @@ export const AccountsView: React.FC = () => {
       ))}
 
       {accounts.loading && accounts.links.length === 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[...Array(3)].map((_, i) => (
             <Skeleton key={i} variant="stat" />
           ))}
@@ -224,7 +224,7 @@ export const AccountsView: React.FC = () => {
           className="mx-auto mt-16 max-w-md"
         />
       ) : (
-        <ul className="grid list-none gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid list-none grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {accounts.links.map((link) => (
             <li key={link.id}>
               <LinkAccountCard

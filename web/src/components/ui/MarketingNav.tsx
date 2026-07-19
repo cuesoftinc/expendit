@@ -6,8 +6,10 @@
  * parity canon (2026-07-19): 4 text links where the GitHub item renders
  * as a compact star badge (live count, neutral "Star" in TEST_MODE or on
  * fetch failure — never hardcoded) + theme toggle + "Sign in" text link +
- * the "Try Cloud" primary CTA (→ /signin). Below md everything collapses
- * into the hamburger disclosure panel.
+ * the "Try Cloud" primary CTA (→ /signin). Below md the bar keeps the
+ * Try Cloud CTA beside the hamburger; the disclosure panel carries the
+ * 4 links + ThemeToggle + Sign in (canon revision 2026-07-19 — the
+ * conversion CTA never hides behind the menu).
  *
  * Tokens only: the on-dark variant scopes `data-theme="dark"` on its own
  * subtree (editorial sections are #0C0C0E in both themes, design.md §2),
@@ -85,14 +87,19 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [menuOpen]);
 
+  // Mobile canon (revised 2026-07-19): the bar keeps logo · Try Cloud ·
+  // hamburger below md — the primary CTA stays visible; only the text
+  // links + ThemeToggle + Sign in collapse into the disclosure panel.
+
   const itemClass = cn(
     "rounded px-2.5 py-1.5 text-[13px] font-medium transition-colors duration-fast ease-standard",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
     "text-text-2 hover:bg-bg-elev hover:text-text",
   );
 
+  // Compact below md so logo · CTA · hamburger fit the 390 bar.
   const ctaClass = cn(
-    "rounded bg-accent px-3 py-1.5 text-[13px] font-medium text-on-accent",
+    "rounded bg-accent px-2.5 py-1.5 text-[13px] font-medium text-on-accent md:px-3",
     "transition-colors duration-fast ease-standard hover:opacity-90",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
   );
@@ -180,35 +187,42 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
           ),
         )}
 
-        <div className="ml-auto hidden items-center gap-2 md:flex">
-          {trailing}
-          <Link href={signInHref} className={itemClass}>
-            Sign in
-          </Link>
-          <Link href={tryCloudHref} className={ctaClass} onClick={onTryCloud}>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="hidden items-center gap-2 md:flex">
+            {trailing}
+            <Link href={signInHref} className={itemClass}>
+              Sign in
+            </Link>
+          </span>
+          {/* Always visible — compact padding keeps the 390 bar overflow-free. */}
+          <Link
+            href={tryCloudHref}
+            className={cn(ctaClass, "px-2.5 md:px-3")}
+            onClick={onTryCloud}
+          >
             Try Cloud
           </Link>
-        </div>
 
-        {/* Mobile disclosure trigger. */}
-        <button
-          type="button"
-          aria-label="Menu"
-          aria-expanded={menuOpen}
-          aria-controls={menuId}
-          onClick={() => setMenuOpen((open) => !open)}
-          className={cn(
-            "ml-auto rounded p-1.5 text-text-2 md:hidden",
-            "transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-          )}
-        >
-          {menuOpen ? (
-            <X aria-hidden className="h-5 w-5" />
-          ) : (
-            <Menu aria-hidden className="h-5 w-5" />
-          )}
-        </button>
+          {/* Mobile disclosure trigger. */}
+          <button
+            type="button"
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            onClick={() => setMenuOpen((open) => !open)}
+            className={cn(
+              "rounded p-1.5 text-text-2 md:hidden",
+              "transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+            )}
+          >
+            {menuOpen ? (
+              <X aria-hidden className="h-5 w-5" />
+            ) : (
+              <Menu aria-hidden className="h-5 w-5" />
+            )}
+          </button>
+        </div>
       </div>
 
       {menuOpen ? (
@@ -225,27 +239,17 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
                 setMenuOpen(false),
               ),
             )}
+            {/* No Try Cloud row — the bar CTA stays visible beside the
+                hamburger (canon revision 2026-07-19, no duplication). */}
             <div className="mt-2 flex items-center justify-between gap-2 border-t border-border pt-3">
               {trailing}
-              <span className="flex items-center gap-2">
-                <Link
-                  href={signInHref}
-                  className={itemClass}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href={tryCloudHref}
-                  className={ctaClass}
-                  onClick={() => {
-                    onTryCloud?.();
-                    setMenuOpen(false);
-                  }}
-                >
-                  Try Cloud
-                </Link>
-              </span>
+              <Link
+                href={signInHref}
+                className={itemClass}
+                onClick={() => setMenuOpen(false)}
+              >
+                Sign in
+              </Link>
             </div>
           </div>
         </div>

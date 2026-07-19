@@ -288,8 +288,10 @@ export const StatementDetailView: React.FC = () => {
         </div>
       ) : null}
 
-      <section aria-label="Mapping review">
-        <ul className="list-none rounded border border-border">
+      {/* Mobile canon: the mapping grid scrolls inside its container
+          below lg — the page itself never side-scrolls. */}
+      <section aria-label="Mapping review" className="max-lg:overflow-x-auto">
+        <ul className="min-w-[560px] list-none rounded border border-border">
           {mappingRows.map((row) => (
             <MappingReviewRow
               key={row.line_item_id}

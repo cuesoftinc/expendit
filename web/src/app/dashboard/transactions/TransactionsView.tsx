@@ -599,7 +599,10 @@ export const TransactionsView: React.FC = () => {
           className="mx-auto mt-16 max-w-md"
         />
       ) : (
-        <section aria-label="Ledger">
+        // Mobile canon: below lg the ledger scrolls horizontally inside
+        // this container — the page itself never side-scrolls; ≥lg keeps
+        // the sticky header against the main scroll.
+        <section aria-label="Ledger" className="max-lg:overflow-x-auto">
           <table className="w-full border-separate border-spacing-0">
             <TableHeader
               density={density}

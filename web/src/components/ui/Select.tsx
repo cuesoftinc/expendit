@@ -9,8 +9,10 @@
  */
 
 import React, { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAnchoredLayer } from "@/lib/use-anchored-layer";
 
 export interface SelectOption {
   value: string;
@@ -28,6 +30,15 @@ export interface SelectProps {
   size?: "md" | "sm";
   /** Searchable combobox variant (md-only as built). */
   searchable?: boolean;
+  /**
+   * Portal the open menu to <body> with viewport-fixed coordinates —
+   * required when the Select lives inside a horizontal scrollport
+   * (mobile canon's `max-lg:overflow-x-auto` wrappers), where the
+   * absolutely positioned menu clips at the container's bottom edge
+   * (PR #215 review). Off by default: Radix modals treat portaled
+   * layers as outside interactions.
+   */
+  portalMenu?: boolean;
   disabled?: boolean;
   error?: string | null;
   label?: string;
@@ -41,6 +52,7 @@ export const Select: React.FC<SelectProps> = ({
   placeholder = "Select…",
   size = "md",
   searchable = false,
+  portalMenu = false,
   disabled = false,
   error = null,
   label,
@@ -50,6 +62,16 @@ export const Select: React.FC<SelectProps> = ({
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const anchoredStyle = useAnchoredLayer(
+    open && portalMenu,
+    triggerRef,
+    panelRef,
+    {
+      matchWidth: true,
+    },
+  );
   const listboxId = useId();
   const selected = options.find((option) => option.value === value) ?? null;
 
@@ -62,7 +84,11 @@ export const Select: React.FC<SelectProps> = ({
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      // The portaled menu is outside the root subtree — check both.
+      if (rootRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
@@ -90,6 +116,12 @@ export const Select: React.FC<SelectProps> = ({
     onValueChange?.(option.value);
     setOpen(false);
   };
+
+  // portalMenu: the open menu escapes clipping scrollports via <body>.
+  const wrapMenu = (menu: React.ReactElement): React.ReactNode =>
+    portalMenu && typeof document !== "undefined"
+      ? createPortal(menu, document.body)
+      : menu;
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Escape") {
@@ -123,6 +155,7 @@ export const Select: React.FC<SelectProps> = ({
         </span>
       ) : null}
       <button
+        ref={triggerRef}
         type="button"
         role="combobox"
         aria-expanded={open}
@@ -156,59 +189,82 @@ export const Select: React.FC<SelectProps> = ({
         <ChevronDown aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
       </button>
 
-      {open ? (
-        <div className="absolute left-0 top-full z-dropdown mt-1 w-full rounded border border-border bg-bg shadow-lg">
-          {searchable ? (
-            <div className="flex items-center gap-2 border-b border-border px-3">
-              <Search aria-hidden className="h-3.5 w-3.5 text-text-2" />
-              <input
-                autoFocus
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                  setActiveIndex(0);
-                }}
-                onKeyDown={onKeyDown}
-                placeholder="Search"
-                className="w-full bg-transparent py-2 text-[13px] text-text placeholder:text-text-2 focus:outline-none"
-              />
-            </div>
-          ) : null}
-          <ul
-            id={listboxId}
-            role="listbox"
-            className="max-h-56 overflow-auto py-1"
-          >
-            {filtered.map((option, index) => (
-              <li key={option.value}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={option.value === value}
-                  disabled={option.disabled}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => commit(option)}
-                  className={cn(
-                    "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-[13px] text-text",
-                    "transition-colors duration-fast ease-standard",
-                    index === activeIndex && "bg-bg-elev",
-                    option.disabled && "cursor-not-allowed opacity-60",
-                    option.mono && "font-mono",
-                  )}
-                >
-                  <span>{option.label}</span>
-                  {option.value === value ? (
-                    <Check aria-hidden className="h-3.5 w-3.5 text-accent" />
-                  ) : null}
-                </button>
-              </li>
-            ))}
-            {filtered.length === 0 ? (
-              <li className="px-3 py-1.5 text-[13px] text-text-2">No match</li>
-            ) : null}
-          </ul>
-        </div>
-      ) : null}
+      {open
+        ? wrapMenu(
+            <div
+              ref={panelRef}
+              style={
+                portalMenu
+                  ? (anchoredStyle ?? {
+                      position: "fixed",
+                      visibility: "hidden",
+                    })
+                  : undefined
+              }
+              className={cn(
+                "rounded border border-border bg-bg shadow-lg",
+                portalMenu
+                  ? "z-modal"
+                  : "absolute left-0 top-full z-dropdown mt-1 w-full",
+              )}
+            >
+              {searchable ? (
+                <div className="flex items-center gap-2 border-b border-border px-3">
+                  <Search aria-hidden className="h-3.5 w-3.5 text-text-2" />
+                  <input
+                    autoFocus
+                    value={query}
+                    onChange={(event) => {
+                      setQuery(event.target.value);
+                      setActiveIndex(0);
+                    }}
+                    onKeyDown={onKeyDown}
+                    placeholder="Search"
+                    className="w-full bg-transparent py-2 text-[13px] text-text placeholder:text-text-2 focus:outline-none"
+                  />
+                </div>
+              ) : null}
+              <ul
+                id={listboxId}
+                role="listbox"
+                className="max-h-56 overflow-auto py-1"
+              >
+                {filtered.map((option, index) => (
+                  <li key={option.value}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={option.value === value}
+                      disabled={option.disabled}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => commit(option)}
+                      className={cn(
+                        "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-[13px] text-text",
+                        "transition-colors duration-fast ease-standard",
+                        index === activeIndex && "bg-bg-elev",
+                        option.disabled && "cursor-not-allowed opacity-60",
+                        option.mono && "font-mono",
+                      )}
+                    >
+                      <span>{option.label}</span>
+                      {option.value === value ? (
+                        <Check
+                          aria-hidden
+                          className="h-3.5 w-3.5 text-accent"
+                        />
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+                {filtered.length === 0 ? (
+                  <li className="px-3 py-1.5 text-[13px] text-text-2">
+                    No match
+                  </li>
+                ) : null}
+              </ul>
+            </div>,
+          )
+        : null}
       {error ? (
         <p role="alert" className="mt-1 text-[13px] text-expense">
           {error}

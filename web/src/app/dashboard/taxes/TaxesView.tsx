@@ -92,7 +92,7 @@ export const TaxesView: React.FC = () => {
     return (
       <>
         <PageHeader title="Taxes" />
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} variant="stat" />
           ))}
@@ -170,7 +170,7 @@ export const TaxesView: React.FC = () => {
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr,1.4fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr,1.4fr]">
         {/* Jurisdiction profile */}
         <section
           aria-label="Tax profile"
@@ -316,7 +316,7 @@ export const TaxesView: React.FC = () => {
           </p>
         ) : (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {tax.estimates.map((estimate) => (
                 <RemitToCard
                   key={estimate.id}

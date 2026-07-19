@@ -35,8 +35,10 @@ export const StagedReviewHeader: React.FC<StagedReviewHeaderProps> = ({
     className={cn("space-y-2 border-b border-border pb-3", className)}
   >
     {warnings}
-    <div className="flex items-center gap-3">
-      <p className="flex-1 text-sm text-text">
+    {/* flex-wrap: at narrow widths the MI-3 action pair wraps under the
+        counts line instead of pushing the page wide (mobile canon). */}
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <p className="min-w-0 flex-1 text-sm text-text">
         <span className="font-semibold tabular-nums">{importCount}</span>{" "}
         {importCount === 1 ? "transaction" : "transactions"} staged
         {duplicateCount > 0 ? (

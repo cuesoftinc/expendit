@@ -95,7 +95,7 @@ export const OverviewView: React.FC = () => {
             <StatCard key={i} label="" value={0} loading />
           ))}
         </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-[2fr,1fr]">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr,1fr]">
           <ChartLine state="loading" />
           <ChartDonut state="loading" />
         </div>
@@ -159,7 +159,7 @@ export const OverviewView: React.FC = () => {
             ),
           )}
         </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-[2fr,1fr]">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr,1fr]">
           <Card title="Cash flow — trailing 12 months">
             <ChartLine
               series={[
@@ -183,37 +183,41 @@ export const OverviewView: React.FC = () => {
           </Card>
         </div>
         <Card title="Latest transactions" className="mt-4">
-          <table className="w-full" aria-label="Demo transactions">
-            <tbody className="contents">
-              {demo.txns.slice(0, 5).map((txn) => (
-                <TxnTableRow
-                  key={txn.id}
-                  txn={{
-                    id: txn.id,
-                    org_id: "demo",
-                    description: txn.description,
-                    amount: txn.amount,
-                    direction: txn.direction,
-                    category_id: txn.categoryId,
-                    txn_date: txn.date,
-                    source: txn.source,
-                    source_link_id: null,
-                    ai_categorized: txn.ai ?? false,
-                    excluded_from_reports: false,
-                    anomalies: [],
-                    created_at: txn.date,
-                  }}
-                  category={
-                    demoCatById.get(txn.categoryId) ?? {
-                      id: txn.categoryId,
-                      name: txn.categoryId,
-                      color: FALLBACK_CATEGORY_COLOR,
+          {/* Mobile: the ledger table scrolls inside its container —
+              the page itself never side-scrolls (mobile canon). */}
+          <div className="max-lg:overflow-x-auto">
+            <table className="w-full" aria-label="Demo transactions">
+              <tbody className="contents">
+                {demo.txns.slice(0, 5).map((txn) => (
+                  <TxnTableRow
+                    key={txn.id}
+                    txn={{
+                      id: txn.id,
+                      org_id: "demo",
+                      description: txn.description,
+                      amount: txn.amount,
+                      direction: txn.direction,
+                      category_id: txn.categoryId,
+                      txn_date: txn.date,
+                      source: txn.source,
+                      source_link_id: null,
+                      ai_categorized: txn.ai ?? false,
+                      excluded_from_reports: false,
+                      anomalies: [],
+                      created_at: txn.date,
+                    }}
+                    category={
+                      demoCatById.get(txn.categoryId) ?? {
+                        id: txn.categoryId,
+                        name: txn.categoryId,
+                        color: FALLBACK_CATEGORY_COLOR,
+                      }
                     }
-                  }
-                />
-              ))}
-            </tbody>
-          </table>
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </>
     );
@@ -342,7 +346,7 @@ export const OverviewView: React.FC = () => {
       </div>
 
       {/* Figma 179:12: chart left (2/3), donut + anomalies right (1/3). */}
-      <div className="mt-4 grid items-start gap-4 lg:grid-cols-[2fr,1fr]">
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr,1fr]">
         <Card
           title="Cash flow — 12 months"
           action={
@@ -357,45 +361,50 @@ export const OverviewView: React.FC = () => {
           }
         >
           {showDataTable ? (
-            <table className="w-full text-[13px]" aria-label="Cash flow data">
-              <thead>
-                <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-text-2">
-                  <th scope="col" className="py-1.5 font-medium">
-                    Month
-                  </th>
-                  <th scope="col" className="py-1.5 text-right font-medium">
-                    Income
-                  </th>
-                  <th scope="col" className="py-1.5 text-right font-medium">
-                    Expenses
-                  </th>
-                  <th scope="col" className="py-1.5 text-right font-medium">
-                    Net
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {points.map((point) => (
-                  <tr
-                    key={point.month}
-                    className="border-b border-border last:border-b-0"
-                  >
-                    <td className="py-1.5">{monthLabel(point.month)}</td>
-                    <td className="py-1.5 text-right tabular-nums">
-                      {formatMoney(point.income, currency, { decimals: 0 })}
-                    </td>
-                    <td className="py-1.5 text-right tabular-nums">
-                      {formatMoney(point.expense, currency, { decimals: 0 })}
-                    </td>
-                    <td className="py-1.5 text-right tabular-nums">
-                      {formatMoney(point.income - point.expense, currency, {
-                        decimals: 0,
-                      })}
-                    </td>
+            <div className="max-lg:overflow-x-auto">
+              <table
+                className="w-full min-w-[420px] text-[13px]"
+                aria-label="Cash flow data"
+              >
+                <thead>
+                  <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-text-2">
+                    <th scope="col" className="py-1.5 font-medium">
+                      Month
+                    </th>
+                    <th scope="col" className="py-1.5 text-right font-medium">
+                      Income
+                    </th>
+                    <th scope="col" className="py-1.5 text-right font-medium">
+                      Expenses
+                    </th>
+                    <th scope="col" className="py-1.5 text-right font-medium">
+                      Net
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {points.map((point) => (
+                    <tr
+                      key={point.month}
+                      className="border-b border-border last:border-b-0"
+                    >
+                      <td className="py-1.5">{monthLabel(point.month)}</td>
+                      <td className="py-1.5 text-right tabular-nums">
+                        {formatMoney(point.income, currency, { decimals: 0 })}
+                      </td>
+                      <td className="py-1.5 text-right tabular-nums">
+                        {formatMoney(point.expense, currency, { decimals: 0 })}
+                      </td>
+                      <td className="py-1.5 text-right tabular-nums">
+                        {formatMoney(point.income - point.expense, currency, {
+                          decimals: 0,
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <ChartLine
               state={points.length === 0 ? "empty" : "data"}
@@ -532,43 +541,46 @@ export const OverviewView: React.FC = () => {
         {latest.length === 0 ? (
           <p className="text-[13px] text-text-2">No transactions yet.</p>
         ) : (
-          <table
-            className="w-full border-separate border-spacing-0"
-            aria-label="Latest transactions"
-          >
-            <TableHeader
-              columns={[
-                { id: "date", label: "Date", widthClass: "w-14" },
-                { id: "source", label: "Src", widthClass: "w-8" },
-                { id: "description", label: "Description" },
-                { id: "category", label: "Category", widthClass: "w-40" },
-                {
-                  id: "amount",
-                  label: "Amount",
-                  numeric: true,
-                  widthClass: "w-32",
-                },
-              ]}
-            />
-            <tbody className="contents">
-              {latest.map((txn) => (
-                <TxnTableRow
-                  key={txn.id}
-                  txn={txn}
-                  category={
-                    categoryById.get(txn.category_id) ?? {
-                      id: txn.category_id,
-                      name: txn.category_id,
-                      color: FALLBACK_CATEGORY_COLOR,
+          // Mobile canon: the ledger table scrolls inside its container.
+          <div className="max-lg:overflow-x-auto">
+            <table
+              className="w-full border-separate border-spacing-0"
+              aria-label="Latest transactions"
+            >
+              <TableHeader
+                columns={[
+                  { id: "date", label: "Date", widthClass: "w-14" },
+                  { id: "source", label: "Src", widthClass: "w-8" },
+                  { id: "description", label: "Description" },
+                  { id: "category", label: "Category", widthClass: "w-40" },
+                  {
+                    id: "amount",
+                    label: "Amount",
+                    numeric: true,
+                    widthClass: "w-32",
+                  },
+                ]}
+              />
+              <tbody className="contents">
+                {latest.map((txn) => (
+                  <TxnTableRow
+                    key={txn.id}
+                    txn={txn}
+                    category={
+                      categoryById.get(txn.category_id) ?? {
+                        id: txn.category_id,
+                        name: txn.category_id,
+                        color: FALLBACK_CATEGORY_COLOR,
+                      }
                     }
-                  }
-                  onOpen={() =>
-                    router.push(`/dashboard/transactions?record=${txn.id}`)
-                  }
-                />
-              ))}
-            </tbody>
-          </table>
+                    onOpen={() =>
+                      router.push(`/dashboard/transactions?record=${txn.id}`)
+                    }
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
     </>

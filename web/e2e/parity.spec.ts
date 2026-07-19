@@ -115,6 +115,14 @@ test("mobile (390w): the hamburger panel reaches every canonical nav destination
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "Marketing" }).first();
 
+  // Canon (revised 2026-07-19): below md the bar keeps the Try Cloud
+  // primary CTA visible BESIDE the hamburger — before the panel opens.
+  const barTryCloud = nav
+    .getByRole("link", { name: "Try Cloud" })
+    .filter({ visible: true });
+  await expect(barTryCloud).toHaveCount(1);
+  await expect(barTryCloud).toHaveAttribute("href", "/signin");
+
   // Text links are collapsed, not lost: the disclosure carries them.
   const menu = nav.getByRole("button", { name: "Menu" });
   await expect(menu).toHaveAttribute("aria-expanded", "false");
@@ -133,9 +141,11 @@ test("mobile (390w): the hamburger panel reaches every canonical nav destination
   await expect(
     nav.getByRole("link", { name: "Sign in" }).filter({ visible: true }),
   ).toHaveAttribute("href", "/signin");
+  // The panel adds NO duplicate Try Cloud — the bar CTA remains the one
+  // visible instance (canon revision 2026-07-19).
   await expect(
     nav.getByRole("link", { name: "Try Cloud" }).filter({ visible: true }),
-  ).toHaveAttribute("href", "/signin");
+  ).toHaveCount(1);
 
   // The panel's GitHub item is the SAME star badge as desktop (glyph +
   // neutral "Star" in TEST_MODE — never a plain text link).
