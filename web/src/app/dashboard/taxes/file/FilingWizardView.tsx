@@ -353,9 +353,8 @@ export const FilingWizardView: React.FC = () => {
                 }
               >
                 Complete your tax profile —{" "}
-                {filing.kind === "cit" ? "TIN and RC number are" : "TIN is"}{" "}
-                required before documents can be generated
-                (tax_identity_incomplete).
+                {formatMissingIdentifiers(missingIdentifiers)} required before
+                documents can be generated (tax_identity_incomplete).
               </Banner>
             ) : null}
             <p className="text-[13px] text-text-2">

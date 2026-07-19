@@ -66,6 +66,11 @@ export async function POST(request: Request, context: Context) {
 
   // Atomic: all-or-error (single synchronous store mutation).
   db.transactions.unshift(...entries);
+  if (job.source === "bank_sync") {
+    // The LinkAccountCard total tracks committed rows (Codex P2 class).
+    const link = db.bankLinks.find((item) => item.id === db.jobLinks[job.id]);
+    if (link) link.imported_txn_count += entries.length;
+  }
   db.stagedTxns = db.stagedTxns.filter((row) => row.job_id !== jobId);
   job.confirmed = true;
   job.imported = entries.length;

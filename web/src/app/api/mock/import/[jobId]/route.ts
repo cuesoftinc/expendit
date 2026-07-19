@@ -93,7 +93,12 @@ export async function GET(request: Request, context: Context) {
         job.duplicates_found = 0;
         job.ai_summary = `${rows.length} transactions synced.`;
         job.completed_at = mockNow().toISOString();
-        if (link?.auto_confirm) {
+        // Purge grace keeps the ledger read-only (flows/rights.md §2) —
+        // the async completion path must not commit what the sync POST
+        // could no longer write (Codex P1 on PR #209): fall back to
+        // staging; confirm-after-cancel goes through the guarded POST.
+        const purgePending = db.purgeRequest?.status === "pending";
+        if (link?.auto_confirm && !purgePending) {
           const entries: TxnEntry[] = rows.map((row) => ({
             id: nextId("txn"),
             org_id: job.org_id,
@@ -112,6 +117,8 @@ export async function GET(request: Request, context: Context) {
           db.transactions.unshift(...entries);
           job.imported = entries.length;
           job.confirmed = true;
+          // The LinkAccountCard total tracks committed rows (Codex P2).
+          link.imported_txn_count += entries.length;
         } else {
           db.stagedTxns.push(...rows);
         }

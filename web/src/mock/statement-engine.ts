@@ -105,14 +105,18 @@ export const validateConfirm = (statement: FinStatement): ConfirmCheck => {
     const liabilities = value("total_liabilities");
     const equity = value("equity");
     // A missing side counts as 0 — a sheet with assets but no mapped
-    // liability/equity rows VIOLATES the identity rather than skipping it
-    // (system QA 2026-07-19: the absent-equity case confirmed silently,
-    // letting an unbalanced sheet through; line-items.md §4 requires the
-    // identity to hold before `confirmed`).
-    if (assets !== null) {
-      const basis = Math.max(Math.abs(assets), 1);
+    // liability/equity rows (or vice versa: liabilities/equity but no
+    // asset side, Codex review on PR #209) VIOLATES the identity rather
+    // than skipping it; line-items.md §4 requires the identity to hold
+    // before `confirmed`.
+    if (assets !== null || liabilities !== null || equity !== null) {
+      const basis = Math.max(
+        Math.abs(assets ?? 0),
+        Math.abs((liabilities ?? 0) + (equity ?? 0)),
+        1,
+      );
       if (
-        Math.abs(assets - ((liabilities ?? 0) + (equity ?? 0))) / basis >
+        Math.abs((assets ?? 0) - ((liabilities ?? 0) + (equity ?? 0))) / basis >
         IDENTITY_TOLERANCE
       ) {
         return {
@@ -121,7 +125,7 @@ export const validateConfirm = (statement: FinStatement): ConfirmCheck => {
           message:
             "total_assets must equal total_liabilities + equity within ±1%",
           details: {
-            total_assets: assets,
+            total_assets: assets ?? 0,
             total_liabilities: liabilities ?? 0,
             equity: equity ?? 0,
           },

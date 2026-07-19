@@ -150,12 +150,20 @@ describe("mock bank links (flows/bank-link.md)", () => {
 
     // Zenith (auto_confirm: true): the sync commits straight to the ledger.
     const before = getDb().transactions.length;
+    const countBefore = getDb().bankLinks.find(
+      (link) => link.id === "link-zenith",
+    )!.imported_txn_count;
     const auto = await runSync("link-zenith");
     expect(auto.job.confirmed).toBe(true);
     expect(auto.job.imported).toBeGreaterThan(0);
     expect(auto.staged.length).toBe(0);
     const committed = getDb().transactions.length - before;
     expect(committed).toBe(auto.job.imported);
+    // The LinkAccountCard total tracks the commit (Codex P2).
+    expect(
+      getDb().bankLinks.find((link) => link.id === "link-zenith")!
+        .imported_txn_count,
+    ).toBe(countBefore + auto.job.imported);
     expect(
       getDb().transactions.filter((txn) => txn.source_link_id === "link-zenith")
         .length,
@@ -169,5 +177,53 @@ describe("mock bank links (flows/bank-link.md)", () => {
     // Bank feeds are clean — no duplicate flags either way.
     expect(auto.job.duplicates_found).toBe(0);
     expect(manual.job.duplicates_found).toBe(0);
+  });
+
+  it("purge grace keeps the ledger read-only: auto-confirm falls back to staging (Codex P1 regression)", async () => {
+    const db = getDb();
+    db.purgeRequest = {
+      id: "purge-test",
+      user_id: "user-ibukun",
+      status: "pending",
+      requested_at: new Date().toISOString(),
+      effective_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+    };
+    // The sync POST itself is write-blocked during grace.
+    const blocked = await syncNow(
+      mockRequest("/api/mock/bank-links/link-zenith/sync", { method: "POST" }),
+      params({ id: "link-zenith" }),
+    );
+    expect(blocked.status).toBe(409);
+
+    // A job already in flight when the purge lands must not commit on the
+    // async completion path either: simulate one mid-processing.
+    db.purgeRequest = null;
+    const started = await syncNow(
+      mockRequest("/api/mock/bank-links/link-zenith/sync", { method: "POST" }),
+      params({ id: "link-zenith" }),
+    );
+    const { job_id } = await json<{ job_id: string }>(started);
+    db.purgeRequest = {
+      id: "purge-test-2",
+      user_id: "user-ibukun",
+      status: "pending",
+      requested_at: new Date().toISOString(),
+      effective_at: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+    };
+    const before = db.transactions.length;
+    db.processingSince[job_id] = Date.now() - 5_000;
+    const polled = await json<{
+      job: { confirmed: boolean; imported: number };
+      staged: unknown[];
+    }>(
+      await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+        params: Promise.resolve({ jobId: job_id }),
+      }),
+    );
+    expect(db.transactions.length).toBe(before); // ledger untouched
+    expect(polled.job.confirmed).toBe(false);
+    expect(polled.job.imported).toBe(0);
+    expect(polled.staged.length).toBeGreaterThan(0); // parked for review
+    db.purgeRequest = null;
   });
 });

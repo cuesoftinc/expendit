@@ -128,6 +128,29 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
     expect(body.error.code).toBe("mapping_identity_violation");
   });
 
+  it("confirm: missing ASSET side counts as 0 too — liabilities+equity alone cannot confirm (Codex review regression)", async () => {
+    const created = await json<{ statement_id: string }>(
+      await createStatement(
+        mockRequest("/api/mock/statements", {
+          method: "POST",
+          body: manualBalanceSheet("2026-Q1", [
+            { canonical_key: "payables", amount: 1_000_000 },
+            { canonical_key: "share_capital", amount: 1_000_000 },
+          ]),
+        }),
+      ),
+    );
+    const response = await confirmStatement(
+      mockRequest(`/api/mock/statements/${created.statement_id}/confirm`, {
+        method: "POST",
+      }),
+      params({ id: created.statement_id }),
+    );
+    expect(response.status).toBe(422);
+    const body = await json<{ error: { code: string } }>(response);
+    expect(body.error.code).toBe("mapping_identity_violation");
+  });
+
   it("confirm: missing equity side counts as 0 — unbalanced sheet cannot confirm (system QA regression)", async () => {
     // Assets mapped, liabilities mapped, NO equity rows at all: the
     // identity must be treated as violated, not skipped (line-items.md §4).
