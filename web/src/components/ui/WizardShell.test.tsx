@@ -22,7 +22,10 @@ describe("WizardShell (design.md §8.1 chrome)", () => {
       screen.getByRole("navigation", { name: "Wizard steps" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Step content")).toBeInTheDocument();
-    expect(screen.getByText("PIT · 2026").closest(".sticky")).not.toBeNull();
+    // Sticky applies ≥lg only — the columns stack below lg (mobile canon).
+    expect(
+      screen.getByText("PIT · 2026").closest(".lg\\:sticky"),
+    ).not.toBeNull();
   });
 
   it("summary panel is optional", () => {

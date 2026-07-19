@@ -23,7 +23,12 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   className,
 }) => (
   <header
-    className={cn("mb-6 flex items-start justify-between gap-4", className)}
+    className={cn(
+      // flex-wrap: at narrow viewports the actions cluster wraps under
+      // the title instead of pushing the page wide (mobile canon).
+      "mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-3",
+      className,
+    )}
   >
     <div>
       <h1 className="font-display text-xl font-semibold tracking-tight text-text">
@@ -34,7 +39,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       ) : null}
     </div>
     {actions ? (
-      <div className="flex shrink-0 items-center gap-2">{actions}</div>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>
     ) : null}
   </header>
 );

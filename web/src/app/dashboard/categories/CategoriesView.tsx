@@ -70,7 +70,9 @@ const CategoryList: React.FC<CategoryListProps> = ({
         {items.map((category) => (
           <li
             key={category.id}
-            className="flex items-center gap-3 border-b border-border px-4 py-2 last:border-b-0"
+            // flex-wrap: at narrow widths the action cluster wraps under
+            // the chip instead of pushing the page wide (mobile canon).
+            className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-border px-4 py-2 last:border-b-0"
           >
             <CategoryChip
               category={{
@@ -80,19 +82,21 @@ const CategoryList: React.FC<CategoryListProps> = ({
               }}
             />
             <span className="min-w-0 flex-1" />
-            <Button kind="quiet" size="sm" onClick={() => onEdit(category)}>
-              Edit
-            </Button>
-            <Button kind="quiet" size="sm" onClick={() => onMerge(category)}>
-              Merge
-            </Button>
-            <Button
-              kind="destructive"
-              size="sm"
-              onClick={() => onDelete(category)}
-            >
-              Delete
-            </Button>
+            <span className="flex shrink-0 items-center gap-3">
+              <Button kind="quiet" size="sm" onClick={() => onEdit(category)}>
+                Edit
+              </Button>
+              <Button kind="quiet" size="sm" onClick={() => onMerge(category)}>
+                Merge
+              </Button>
+              <Button
+                kind="destructive"
+                size="sm"
+                onClick={() => onDelete(category)}
+              >
+                Delete
+              </Button>
+            </span>
           </li>
         ))}
       </ul>
@@ -228,13 +232,13 @@ export const CategoriesView: React.FC = () => {
       </div>
 
       {categories.loading && categories.items.length === 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {[...Array(2)].map((_, i) => (
             <Skeleton key={i} variant="chart" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <CategoryList
             title="Expense categories"
             items={expenseCategories}

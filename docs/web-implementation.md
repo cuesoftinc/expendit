@@ -56,6 +56,21 @@
   `chore(web): retire legacy <area>` PR. No dead code outside `src/legacy/`,
   ever; `src/legacy/` itself trends to empty. Expendit's application of the
   policy: §8.
+- **Mobile responsiveness canon [Directive 2026-07-19]**: the home page and
+  every dashboard route are fully responsive at 390 (768 sanity) — the
+  document NEVER side-scrolls. Wide data surfaces (the ledger table,
+  staged-review table, statement grids, mapping review) live in
+  horizontal-scroll containers (`max-lg:overflow-x-auto`) that scroll
+  WITHIN the fixed viewport; ≥lg keeps sticky table headers against the
+  main scroll. Grids that collapse to one column declare an explicit base
+  `grid-cols-1` (Tailwind's `minmax(0,1fr)` floors the track — implicit
+  auto tracks blow out to item min-content and push the page wide); header
+  action clusters and row action clusters `flex-wrap` under their titles
+  instead of forcing width; the wizard's rail/content/summary columns
+  stack below lg. A Playwright sweep (`e2e/mobile-responsive.spec.ts`)
+  asserts per route at 390 + 768: document fits the viewport, `<main>`
+  never side-scrolls, and any element past the viewport sits inside a
+  contained scroll container.
 - **Process**: stages W0 → W3 (§2), PR per stage; conventional commits; QA
   loops evaluate the implementation against the Figma file (tokens,
   geometry, states, interactions) before a stage closes; docs + the org
@@ -375,7 +390,7 @@ boot looks like the designs:
 | --- | --- | --- |
 | Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks — count-ups render final values, gauges jump-cut, design.md §5); model/repository parsing incl. error-envelope handling; controller hooks |
 | Integration | Vitest | mock handlers (envelope, pagination, enum taxonomies, 202-job lifecycles, mapping state machine — flows/statement-mapping.md §4 — and BANK_LINK transitions — data-model.md §6.2); controller ↔ mock-server flows (optimistic MI-11 inspector saves roll back on scripted failures) |
-| E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys: **Core journey — sign in** (`/signin` → B0 → AI-consent → B1 → the navigation mesh + drill-ins: import review MI-2/3, bank-link stepper MI-9, statement mapping, ratio traces, filing wizard MI-10, rights MI-15) and **Marketing site** (Part A scroll + CTA handoff into `/signin`); plus the keyboard-first path — ⌘K palette (MI-1) and table keyboard nav (↑↓/enter/`e`, design.md §5) asserted explicitly (design principle 3) |
+| E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys: **Core journey — sign in** (`/signin` → B0 → AI-consent → B1 → the navigation mesh + drill-ins: import review MI-2/3, bank-link stepper MI-9, statement mapping, ratio traces, filing wizard MI-10, rights MI-15) and **Marketing site** (Part A scroll + CTA handoff into `/signin`); plus the keyboard-first path — ⌘K palette (MI-1) and table keyboard nav (↑↓/enter/`e`, design.md §5) asserted explicitly (design principle 3); plus the §1 mobile-responsiveness sweep (390 + 768 across home and every dashboard route) and the floating-layer viewport clamps |
 | CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: merge-to-main never deploys |
 
 The §8.4 rule that empty/loading/QA frames stay out of the prototype maps

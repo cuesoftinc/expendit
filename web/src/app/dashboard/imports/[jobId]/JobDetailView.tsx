@@ -261,7 +261,12 @@ export const JobDetailView: React.FC = () => {
         }
       />
 
-      <section aria-label="Staged transactions" className="mt-3">
+      {/* Mobile canon: below lg the staged table scrolls horizontally
+          inside this container — the page never side-scrolls. */}
+      <section
+        aria-label="Staged transactions"
+        className="mt-3 max-lg:overflow-x-auto"
+      >
         <table className="w-full border-separate border-spacing-0">
           <TableHeader
             sticky

@@ -69,45 +69,49 @@ export const StatementView: React.FC<StatementViewProps> = ({
       </div>
     ) : null}
 
-    <table className="w-full text-[13px]">
-      <tbody>
-        {lineItems.map((item) => (
-          <tr
-            key={item.id}
-            data-derived={item.derived || undefined}
-            className="border-b border-border last:border-b-0"
-          >
-            <td className="px-4 py-2 text-text">
-              <span className="flex items-center gap-1.5">
-                <span className="font-mono text-[12px]">
-                  {item.canonical_key ?? item.source_label}
-                </span>
-                {item.derived ? (
-                  <Tooltip
-                    kind="formula"
-                    content={
-                      formulaNotes[item.canonical_key ?? ""] ??
-                      "Derived by identity, not present in the source"
-                    }
-                  >
-                    <button
-                      type="button"
-                      aria-label="Derived — how we got this"
-                      className="rounded p-0.5 text-info focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    {/* Mobile canon: the statement grid scrolls inside its container
+        below lg — the page itself never side-scrolls. */}
+    <div className="max-lg:overflow-x-auto">
+      <table className="w-full text-[13px]">
+        <tbody>
+          {lineItems.map((item) => (
+            <tr
+              key={item.id}
+              data-derived={item.derived || undefined}
+              className="border-b border-border last:border-b-0"
+            >
+              <td className="px-4 py-2 text-text">
+                <span className="flex items-center gap-1.5">
+                  <span className="font-mono text-[12px]">
+                    {item.canonical_key ?? item.source_label}
+                  </span>
+                  {item.derived ? (
+                    <Tooltip
+                      kind="formula"
+                      content={
+                        formulaNotes[item.canonical_key ?? ""] ??
+                        "Derived by identity, not present in the source"
+                      }
                     >
-                      <Calculator className="h-3.5 w-3.5" />
-                    </button>
-                  </Tooltip>
-                ) : null}
-              </span>
-            </td>
-            <td className="px-4 py-2 text-right tabular-nums text-text">
-              {formatMoney(item.amount, currency)}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                      <button
+                        type="button"
+                        aria-label="Derived — how we got this"
+                        className="rounded p-0.5 text-info focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      >
+                        <Calculator className="h-3.5 w-3.5" />
+                      </button>
+                    </Tooltip>
+                  ) : null}
+                </span>
+              </td>
+              <td className="px-4 py-2 text-right tabular-nums text-text">
+                {formatMoney(item.amount, currency)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </section>
 );
 

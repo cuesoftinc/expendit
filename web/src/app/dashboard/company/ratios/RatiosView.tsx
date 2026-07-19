@@ -197,7 +197,7 @@ export const RatiosView: React.FC = () => {
           />
         </>
       ) : ratios.loading && !ratios.report ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <Skeleton key={i} variant="chart" />
           ))}
@@ -216,7 +216,7 @@ export const RatiosView: React.FC = () => {
                 <h2 className="mb-2 text-[13px] font-medium uppercase tracking-wide text-text-2">
                   {METRIC_GROUP_LABELS[group]}
                 </h2>
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {results.map((result) => {
                     const def = RATIO_REGISTRY.find(
                       (metric) => metric.key === result.key,
