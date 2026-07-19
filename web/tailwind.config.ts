@@ -3,8 +3,7 @@ import type { Config } from "tailwindcss";
 /**
  * Tailwind maps to the token CSS variables in src/design/tokens.css
  * (docs/design.md §2) — components style through these utilities, never
- * raw hex. Legacy color names (secondary/purpleTheme/grayTheme) remain
- * only for the pre-redesign pages still live outside src/legacy/.
+ * raw hex.
  */
 /**
  * Token colors support Tailwind alpha modifiers (bg-info/10, border-warn/40)
@@ -32,10 +31,6 @@ const config: Config = {
         expense: token("expense"),
         warn: token("warn"),
         info: token("info"),
-        // Legacy palette (MUI-era pages; retired with them at W3).
-        secondary: "#121212",
-        purpleTheme: "#A259FF",
-        grayTheme: "#F7F7F7",
       },
       borderRadius: {
         DEFAULT: "var(--radius)", // product radii: 6px

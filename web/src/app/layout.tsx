@@ -6,9 +6,6 @@ import "./globals.css";
 // Design-system type (design.md §2): Inter for UI/display (Inter Display
 // lands at the brand pass), JetBrains Mono for account numbers/statement
 // IDs/code. Exposed as CSS variables consumed by Tailwind font-sans/mono.
-// The legacy provider stack (Session/Home/Nav), slick-carousel CSS, and
-// the legacy Google-fonts links retired with the W3 quarantine tranche —
-// the quarantined trees under src/legacy/ keep their own copies.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],

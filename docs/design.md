@@ -141,14 +141,14 @@ ecosystem change, PR'd to all three design.md files together.
 
 | Surface | Now | Target |
 | --- | --- | --- |
-| Home (public) | full marketing page (needs Brex-style redesign) | pages.md Part A |
-| Dashboard | full suite on MUI-era components | progressive restyle to this system, pages.md Part B |
+| Home (public) | pages.md Part A Brex-editorial home, built on this system (W2) | shipped |
+| Dashboard | pages.md Part B suite, built on this system (W3) | shipped |
 | Mobile | — | later phase; ledger + receipt-capture first (pages.md Part C sketch) — ecosystem parity **[Directive]** |
 
 ## 7. Figma Style Guide (source of truth for tokens)
 
 The design system lives in the product's Figma file on a dedicated **Style
-Guide** page, backed by a variable collection **`expendit/tokens`** with **true Light and Dark modes** (migrated 2026-07-16 after the pro upgrade; the earlier light/dark-group workaround is retired — components bind one token and switch by mode). The collection also carries the foundations as variables: spacing scale, radii, durations, z-index. Every color token in §2 exists as a Figma
+Guide** page, backed by a variable collection **`expendit/tokens`** with **true Light and Dark modes** (components bind one token and switch by mode). The collection also carries the foundations as variables: spacing scale, radii, durations, z-index. Every color token in §2 exists as a Figma
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
@@ -350,7 +350,7 @@ never on screens.
 | Component | Variants × states |
 | --- | --- |
 | MarketingNav | **blocking** · on-dark (over hero) / dark-on-light (post-hero scroll, sticky) · 4 text links pinned to the cross-product canon: Features · Pricing · Docs (GitBook root) · GitHub — the GitHub item renders as a compact star badge (star glyph + neutral "Star" label; no count on canvas — the live star count is runtime behavior) · ThemeToggle instance · "Sign in" text link (`/signin`) + "Try Cloud" accent primary CTA · no Solutions dropdown [Revised 2026-07-19] |
-| MarketingFooter | **blocking** · brand block (wordmark + tagline) + 4 link columns pinned to the cross-product canon — Product (Features · Pricing · Try Cloud · Self Host) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS) · Legal (Privacy · Terms · Status) — legal bar verbatim "© Cuesoft Inc. 2026. Expendit. CueLABS™ Division. MIT License." ("Cuesoft Inc." → cuesoft.io, "CueLABS™ Division" → cuelabs.cuesoft.io, "MIT License" → repo LICENSE) · "View Security Policy" CTA (repo SECURITY.md) · English language selector · dark editorial band in both themes [Directive 2026-07-19] |
+| MarketingFooter | **blocking** · brand block (wordmark + tagline) + 4 link columns pinned to the cross-product canon — Product (Features · Pricing · Try Cloud · Self Host) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status) — legal bar verbatim "© Cuesoft Inc. 2026. Expendit. CueLABS™ Division. MIT License." ("Cuesoft Inc." → cuesoft.io, "CueLABS™ Division" → cuelabs.cuesoft.io, "MIT License" → repo LICENSE) · "View Security Policy" CTA (repo SECURITY.md) · English language selector · dark editorial band in both themes [Directive 2026-07-19] |
 | EditorialCard | **important** · pillar (A4) / community (A9) · default / hover (2px lift + accent underline draw) · light/dark section |
 | CodeSnippet | **important** · Mono/13 block on dark · copy: idle / copied (✓ morph) |
 | ComparisonTable | **important** · 2 columns (Cloud vs Self-host) · cell: check / x / text · per-column CTA footer row — as built 2026-07-18: the price row reads "Announced at GA" / "Free forever", captioned "Cloud pricing is announced at GA — self-hosting is free forever" |

@@ -48,9 +48,3 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
-
-/*
- * The pre-redesign global classes (.header, .spin*, marketing .*-bg,
- * glassmorphism, tab fades) retired with the W3 quarantine tranche —
- * they served only the trees now under src/legacy/.
- */

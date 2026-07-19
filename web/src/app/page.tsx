@@ -3,9 +3,7 @@ import type { Metadata } from "next";
 import HomeView from "@/components/home/HomeView";
 
 /**
- * `/` — public home (pages.md Part A, Brex-editorial; W2). The legacy
- * marketing page's section components remain under
- * src/components/marketing/ until their W3 quarantine tranche.
+ * `/` — public home (pages.md Part A, Brex-editorial; W2).
  */
 
 export const metadata: Metadata = {
