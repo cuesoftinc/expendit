@@ -11,6 +11,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   ArrowLeftRight,
   Building2,
@@ -108,7 +109,18 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   // Below md the nav always rides the 64px icon rail — a fixed 240px
   // column left ~150px of content at 390w (system QA 2026-07-19).
-  const [isMobile, setIsMobile] = useState(false);
+  // Expansion at <md opens an OVERLAY DRAWER instead (canon 2026-07-19):
+  // the content keeps its full width beneath a scrim; the persisted
+  // expanded state applies only ≥md, so mobile always boots collapsed.
+  // Initialized synchronously — a false initial value painted the 240px
+  // nav for the first frames at 390 (mobile-boot FOUC, e2e-caught); the
+  // shell only renders client-side post-auth, so this is hydration-safe.
+  const [isMobile, setIsMobile] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 767px)").matches,
+  );
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
@@ -121,6 +133,11 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, []);
 
   const effectiveCollapsed = collapsed || isMobile;
+
+  // Crossing up to ≥md dismisses the drawer — the in-flow nav takes over.
+  useEffect(() => {
+    if (!isMobile) setDrawerOpen(false);
+  }, [isMobile]);
 
   // First-run guard: a signed-in user with no org lands on B0.
   useEffect(() => {
@@ -204,11 +221,43 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return [...actions, ...navigation];
   }, [router]);
 
+  // Shared by the in-flow rail and the mobile drawer (drawer clicks
+  // dismiss it before navigating).
+  const renderNavItems = (onNavigate?: () => void) =>
+    NAV_ROUTES.map((route, index) => {
+      const groupLabel =
+        route.group && route.group !== NAV_ROUTES[index - 1]?.group
+          ? route.group
+          : null;
+      return (
+        <React.Fragment key={route.href}>
+          {groupLabel ? <NavGroupLabel>{groupLabel}</NavGroupLabel> : null}
+          <NavItem
+            icon={route.icon}
+            label={route.label}
+            href={route.href}
+            active={isActive(pathname, route)}
+            badgeCount={
+              route.href === "/dashboard/transactions"
+                ? anomalyCount
+                : undefined
+            }
+            onClick={onNavigate}
+          />
+        </React.Fragment>
+      );
+    });
+
   return (
     <div className="flex h-screen overflow-hidden bg-bg text-text">
       <AppNav
         collapsed={effectiveCollapsed}
-        onCollapsedChange={isMobile ? undefined : onCollapsedChange}
+        // <md: the rail's expand affordance opens the overlay drawer —
+        // the in-flow column never widens, so content keeps its width
+        // (canon 2026-07-19); ≥md it toggles + persists as before.
+        onCollapsedChange={
+          isMobile ? () => setDrawerOpen(true) : onCollapsedChange
+        }
         orgSwitcher={
           activeOrgId ? (
             <OrgSwitcher
@@ -249,29 +298,73 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         }
       >
-        {NAV_ROUTES.map((route, index) => {
-          const groupLabel =
-            route.group && route.group !== NAV_ROUTES[index - 1]?.group
-              ? route.group
-              : null;
-          return (
-            <React.Fragment key={route.href}>
-              {groupLabel ? <NavGroupLabel>{groupLabel}</NavGroupLabel> : null}
-              <NavItem
-                icon={route.icon}
-                label={route.label}
-                href={route.href}
-                active={isActive(pathname, route)}
-                badgeCount={
-                  route.href === "/dashboard/transactions"
-                    ? anomalyCount
-                    : undefined
-                }
-              />
-            </React.Fragment>
-          );
-        })}
+        {renderNavItems()}
       </AppNav>
+
+      {/* Mobile overlay drawer (canon 2026-07-19): expansion below md
+          paints the 240px nav OVER the content behind a scrim — the
+          content column never reflows. Radix supplies the focus trap,
+          Escape and scrim-tap dismissal; the expanded state is never
+          persisted from here, so mobile always boots on the rail. */}
+      {isMobile ? (
+        <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <Dialog.Portal>
+            <Dialog.Overlay
+              data-testid="nav-drawer-scrim"
+              className="fixed inset-0 z-overlay bg-bg-editorial/40 animate-fade-in motion-reduce:animate-none"
+            />
+            <Dialog.Content
+              aria-label="Navigation drawer"
+              // The drawer opens programmatically (no Dialog.Trigger), so
+              // closing must hand focus back to the rail's expand button
+              // explicitly (a11y contract: focus returns to the opener).
+              onCloseAutoFocus={(event) => {
+                event.preventDefault();
+                document
+                  .querySelector<HTMLButtonElement>(
+                    'button[aria-label="Expand navigation"]',
+                  )
+                  ?.focus();
+              }}
+              className="fixed inset-y-0 left-0 z-modal flex w-60 flex-col border-r border-border bg-bg font-sans shadow-lg focus:outline-none"
+            >
+              {activeOrgId ? (
+                <div className="border-b border-border p-2">
+                  <OrgSwitcher
+                    orgs={orgs}
+                    currentOrgId={activeOrgId}
+                    onSelect={switchOrg}
+                    onCreate={() => {
+                      setDrawerOpen(false);
+                      router.push("/onboarding?create=1");
+                    }}
+                  />
+                </div>
+              ) : null}
+              <div className="flex-1 space-y-0.5 overflow-y-auto p-2">
+                {renderNavItems(() => setDrawerOpen(false))}
+              </div>
+              <div className="border-t border-border p-2">
+                <div className="mb-1 flex items-center gap-2 px-2.5 py-1.5">
+                  <Avatar name={user?.name ?? "…"} size="sm" />
+                  <span className="min-w-0 flex-1 truncate text-[13px] text-text-2">
+                    {user?.name}
+                  </span>
+                  <ThemeToggle className="p-1" />
+                  <button
+                    type="button"
+                    aria-label="Sign out"
+                    onClick={() => void signOut()}
+                    className="rounded p-1 text-text-2 transition-colors duration-fast ease-standard hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      ) : null}
 
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1440px] px-6 py-6">
