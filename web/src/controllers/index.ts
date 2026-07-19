@@ -7,6 +7,7 @@ export { useThemeController, applyTheme } from "./use-theme";
 export { useAnomalyBadgeController } from "./use-anomaly-badge";
 export { useOnboardingController } from "./use-onboarding";
 export { useSavedViewsController, type SavedView } from "./use-saved-views";
+export { useTrendsController } from "./use-trends";
 export { useTransactionsController } from "./use-transactions";
 export { useImportsController } from "./use-imports";
 export { useAccountsController } from "./use-accounts";

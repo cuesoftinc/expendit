@@ -127,6 +127,7 @@ export const useStatementsController = (orgId?: string) => {
     error,
     refresh,
     openMapping,
+    pollMapping,
     upload,
     enterManually,
     patchMapping,
