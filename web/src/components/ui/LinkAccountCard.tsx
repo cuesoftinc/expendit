@@ -8,7 +8,7 @@
  */
 
 import React from "react";
-import dayjs from "dayjs";
+import { formatIso, isValidIso } from "@/lib/dates";
 import { Landmark } from "lucide-react";
 import type { BankLink, BankLinkStatus } from "@/models";
 import { cn } from "@/lib/cn";
@@ -48,8 +48,8 @@ const STATUS_META: Record<
 /** Short human date for sync captions (Figma: "2 min ago" / "12 Jul" —
  * absolute short form keeps the pinned mock clock honest). */
 const syncedAt = (iso: string | null): string => {
-  if (!iso || !dayjs(iso).isValid()) return "—";
-  return dayjs(iso).format("D MMM, HH:mm");
+  if (!iso || !isValidIso(iso)) return "—";
+  return formatIso(iso, "d MMM, HH:mm");
 };
 
 /** Figma caption line per status (data-driven where the model allows). */

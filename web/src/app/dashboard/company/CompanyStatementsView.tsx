@@ -12,7 +12,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import { FileSpreadsheet, Plus } from "lucide-react";
 import { useOrg, useStatementsController } from "@/controllers";
 import { KEYS_BY_KIND, type CanonicalKey } from "@/models/registry/line-items";
@@ -288,8 +288,8 @@ export const CompanyStatementsView: React.FC = () => {
                   </Tag>
                   <span className="w-20 shrink-0 text-right tabular-nums text-text-2">
                     {statement.confirmed_at
-                      ? dayjs(statement.confirmed_at).format("D MMM")
-                      : dayjs(statement.created_at).format("D MMM")}
+                      ? formatIso(statement.confirmed_at, "d MMM")
+                      : formatIso(statement.created_at, "d MMM")}
                   </span>
                 </button>
               </li>

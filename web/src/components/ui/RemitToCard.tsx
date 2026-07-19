@@ -10,7 +10,7 @@ import { Calendar, Landmark } from "lucide-react";
 import type { Authority, TaxKind } from "@/models";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import { thresholdFor } from "./TaxCalendarRow";
 
 const TAX_LABEL: Record<TaxKind, string> = {
@@ -40,9 +40,7 @@ export const RemitToCard: React.FC<RemitToCardProps> = ({
   daysToDue,
   className,
 }) => {
-  const due = dayjs(dueDate).isValid()
-    ? dayjs(dueDate).format("D MMM YYYY")
-    : dueDate;
+  const due = formatIso(dueDate, "d MMM yyyy");
   const threshold = daysToDue === undefined ? "none" : thresholdFor(daysToDue);
   return (
     <div

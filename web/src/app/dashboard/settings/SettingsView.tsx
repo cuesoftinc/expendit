@@ -11,7 +11,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import { Download } from "lucide-react";
 import {
   useOrg,
@@ -208,7 +208,7 @@ export const SettingsView: React.FC = () => {
             }
           >
             Account deletion is pending — everything is read-only until{" "}
-            {dayjs(purge.effective_at).format("D MMM YYYY")} (7-day grace).
+            {formatIso(purge.effective_at, "d MMM yyyy")} (7-day grace).
           </Banner>
         </div>
       ) : null}

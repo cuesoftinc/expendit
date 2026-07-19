@@ -161,9 +161,10 @@ design-phase QA loops, design.md §8).
   gallery) — invalid nesting the HTML parser rearranges during SSR,
   producing a client hydration mismatch; every site now wraps rows in a
   real `<table>`/`<tbody>` or `<ul>`.
-- **Boundaries gate:** `scripts/check-boundaries.mjs` (MUI-outside-legacy,
-  live-code-importing-legacy, raw-hex-without-comment, and the MVC
-  fetch-only-in-repositories-client rule) is wired into `npm run lint`
+- **Boundaries gate:** `scripts/check-boundaries.mjs` (no styled-kit
+  imports anywhere, live-code-importing-legacy, raw-hex-without-comment,
+  and the MVC fetch-only-in-repositories-client rule) is wired into
+  `npm run lint`
   alongside prettier/eslint — the CI build-and-test workflow needed no
   changes.
 - **New mock endpoints:** `GET /api/mock/report/monthly` (12-month
@@ -436,13 +437,12 @@ The §1 policy, applied: **live paths carry zero dead code**, and
 and both test runners, and unrouted by construction (App Router is
 filesystem-based; nothing under `src/legacy/` is a route). The gates hold
 in CI (`scripts/check-boundaries.mjs` + the eslint
-`no-restricted-imports` rules, both wired into `npm run lint`): **MUI
-imports are legal only under `src/legacy/`**, and live code never imports
-from it. `src/legacy/` is **currently empty** — the app runs entirely on
-the token-layer registry (§1), and retired paths 404 on the branded page
-rather than carrying redirect stubs forward (§4). `@mui/material` +
-`@mui/x-data-grid` remain pinned in
-package.json; dropping them is the outstanding cleanup **[Proposed]**.
+`no-restricted-imports` rules, both wired into `npm run lint`):
+**styled-kit imports (`@mui/*`, `@emotion/*`) fail repo-wide** — the
+packages left package.json with the MUI retirement — and live code never
+imports from `src/legacy/`. `src/legacy/` is **currently empty** — the
+app runs entirely on the token-layer registry (§1), and retired paths 404
+on the branded page rather than carrying redirect stubs forward (§4).
 
 The **mobile app is a later phase** (pages.md Part C): no `mobile/` tree
 exists yet, and that phase gets its own implementation standard —
@@ -461,8 +461,7 @@ including its own application of the quarantine policy — when it opens.
       fixtures; contract types shared with models
 - [ ] Views contain no fetch calls (MVC boundary enforced by review + lint
       rule)
-- [ ] MUI imports absent outside `src/legacy/` (CI grep-gated);
-      `src/legacy/` stays empty — removing `@mui/*` from package.json
-      closes the migration **[Proposed]**
+- [x] Styled-kit packages pruned from package.json; imports CI-gated
+      repo-wide; `src/legacy/` stays empty
 - [ ] Playwright §8.4 journeys green in CI, incl. the keyboard-first path
       (⌘K + table nav); merge-to-main never deploys (X-6)

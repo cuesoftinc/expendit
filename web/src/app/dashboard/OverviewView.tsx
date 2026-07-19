@@ -11,7 +11,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import dayjs from "dayjs";
+import { formatIso, daysUntil } from "@/lib/dates";
 import { useOrg, useOverviewController } from "@/controllers";
 import { useCategoriesController } from "@/controllers/use-categories";
 import { formatMoney } from "@/lib/format";
@@ -49,8 +49,7 @@ const Card: React.FC<{
 // exception per the token rule; mirrors the mock categories default).
 const FALLBACK_CATEGORY_COLOR = "#6E6E76";
 
-const monthLabel = (month: string): string =>
-  dayjs(`${month}-01`).format("MMM");
+const monthLabel = (month: string): string => formatIso(`${month}-01`, "MMM");
 
 export const OverviewView: React.FC = () => {
   const router = useRouter();
@@ -235,14 +234,14 @@ export const OverviewView: React.FC = () => {
     }) ?? [];
   const donutTotal = donutSlices.reduce((sum, slice) => sum + slice.value, 0);
   const donutMonthLabel = categoryTotals
-    ? dayjs(`${categoryTotals.month}-01`).format("MMM YYYY")
+    ? formatIso(`${categoryTotals.month}-01`, "MMM yyyy")
     : "";
 
   // MI-13: the nearest tax deadline (≤30 days out) banners the overview.
   const nearestDeadline = estimates
     .map((estimate) => ({
       ...estimate,
-      daysToDue: dayjs(estimate.due_date).diff(dayjs(), "day"),
+      daysToDue: daysUntil(estimate.due_date),
     }))
     .filter((estimate) => estimate.daysToDue >= 0 && estimate.daysToDue <= 30)
     .sort((a, b) => a.daysToDue - b.daysToDue)[0];
@@ -288,7 +287,7 @@ export const OverviewView: React.FC = () => {
               : nearestDeadline.daysToDue === 1
                 ? "tomorrow"
                 : `in ${nearestDeadline.daysToDue} days`}{" "}
-            — {dayjs(nearestDeadline.due_date).format("D MMM YYYY")}
+            — {formatIso(nearestDeadline.due_date, "d MMM yyyy")}
           </Banner>
         </div>
       ) : null}
@@ -504,7 +503,7 @@ export const OverviewView: React.FC = () => {
                         severity={txn.anomalies[0].severity}
                         variant="feed"
                         description={`${txn.description} — ${formatMoney(txn.amount, currency)}`}
-                        timestamp={dayjs(txn.txn_date).format("D MMM")}
+                        timestamp={formatIso(txn.txn_date, "d MMM")}
                         onClick={() =>
                           router.push(
                             `/dashboard/transactions?record=${txn.id}&explain=1`,

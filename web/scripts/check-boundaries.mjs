@@ -2,7 +2,10 @@
 /**
  * Boundary gates (web-implementation.md §8 + §9 acceptance):
  *
- *   1. MUI imports are legal only under src/legacy/ (quarantine gate).
+ *   1. No styled-kit imports (@mui/@emotion) anywhere — the packages
+ *      were pruned with the MUI retirement (2026-07-19); the gate stays
+ *      so a reintroduction fails fast. src/legacy/ (empty) remains the
+ *      quarantine mechanism for future replacements.
  *   2. Live code never imports from src/legacy/ (dead-code gate).
  *   3. No raw hex in components outside the token layer — documented
  *      data-value exceptions carry a code comment on the line or the
@@ -44,9 +47,9 @@ for (const file of files) {
   const text = readFileSync(file, "utf8");
   const lines = text.split("\n");
 
-  // 1. MUI outside src/legacy/.
-  if (!inLegacy(file) && /from ["']@mui\//.test(text)) {
-    failures.push(`${path}: @mui/* import outside src/legacy/`);
+  // 1. Styled-kit imports — forbidden repo-wide since the MUI prune.
+  if (/from ["']@(mui|emotion)\//.test(text)) {
+    failures.push(`${path}: @mui/@emotion import (pruned styled kits)`);
   }
 
   // 2. Live code importing quarantined trees.

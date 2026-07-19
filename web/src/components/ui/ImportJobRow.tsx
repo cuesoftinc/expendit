@@ -13,7 +13,7 @@ import {
   Image as ImageIcon,
   Landmark,
 } from "lucide-react";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import type { ImportJob } from "@/models";
 import { cn } from "@/lib/cn";
 import Tag from "./Tag";
@@ -115,9 +115,7 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
   const Icon =
     job.source === "bank_sync" ? Landmark : FILE_ICON[job.file_type ?? "csv"];
   const tag = STATUS_TAG[status];
-  const when = dayjs(job.created_at).isValid()
-    ? dayjs(job.created_at).format("D MMM")
-    : job.created_at;
+  const when = formatIso(job.created_at, "d MMM");
   return (
     // Semantic list row (W3 directive): job history composes <ul>; the
     // whole-row action is a real <button> inside the <li>.

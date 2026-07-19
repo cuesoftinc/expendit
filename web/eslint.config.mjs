@@ -31,9 +31,14 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@mui/*"],
+              group: ["@mui/*", "@emotion/*"],
               message:
-                "MUI is legal only under src/legacy/ (web-implementation.md §8); new code builds from the token layer.",
+                "Styled kits were pruned with the MUI retirement (web-implementation.md §8); build from the token layer.",
+            },
+            {
+              group: ["dayjs", "moment"],
+              message:
+                "date-fns is the canonical date library (org SKILL) — use @/lib/dates helpers.",
             },
             {
               group: ["@/legacy/*", "**/legacy/*"],
@@ -43,13 +48,6 @@ const eslintConfig = defineConfig([
           ],
         },
       ],
-    },
-  },
-  // CommonJS config files legitimately use require().
-  {
-    files: ["jest.config.js"],
-    rules: {
-      "@typescript-eslint/no-require-imports": "off",
     },
   },
 ]);

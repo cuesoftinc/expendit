@@ -1,10 +1,9 @@
 import { defineConfig } from "vitest/config";
 
 /**
- * Vitest — unit/integration for the new system (components, controllers,
- * mock handlers). The legacy Jest suite (__tests__/) runs alongside via
- * `npm run test:jest`; Vitest owns src/**. src/legacy is excluded per the
- * quarantine policy.
+ * Vitest — the single unit/integration runner (components, controllers,
+ * mock handlers); tests co-locate under src/**. src/legacy is excluded
+ * per the quarantine policy.
  *
  * Environments: jsdom by default (components); the mock-server suites pin
  * `@vitest-environment node` per file so Request/FormData/File stay the

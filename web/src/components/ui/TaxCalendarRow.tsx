@@ -7,7 +7,7 @@
 
 import React from "react";
 import { Calendar } from "lucide-react";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import type { TaxCalendarEntry } from "@/models";
 import { cn } from "@/lib/cn";
 
@@ -59,9 +59,7 @@ export const TaxCalendarRow: React.FC<TaxCalendarRowProps> = ({
   className,
 }) => {
   const threshold = thresholdFor(daysToDue);
-  const due = dayjs(entry.due_date).isValid()
-    ? dayjs(entry.due_date).format("D MMM YYYY")
-    : entry.due_date;
+  const due = formatIso(entry.due_date, "d MMM yyyy");
   return (
     // Semantic list row (W3 directive): the tax calendar composes <ul>.
     <li

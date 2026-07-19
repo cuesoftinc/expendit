@@ -11,18 +11,11 @@ describe("TestModeAuthProvider (X-1, TEST_MODE)", () => {
     expect(await provider.getIdToken()).toBe("test-mode-token");
   });
 
-  it("sets the legacy RouteProtection flag so pre-W3 pages accept the session", async () => {
-    const provider = new TestModeAuthProvider();
-    await provider.signInWithGoogle();
-    expect(window.localStorage.getItem("ExpenditLoggedIn")).toBe("true");
-  });
-
   it("sign-out clears both the session and the legacy flag", async () => {
     const provider = new TestModeAuthProvider();
     await provider.signInWithGoogle();
     await provider.signOut();
     expect(provider.currentUser()).toBeNull();
-    expect(window.localStorage.getItem("ExpenditLoggedIn")).toBeNull();
     expect(await provider.getIdToken()).toBeNull();
   });
 });

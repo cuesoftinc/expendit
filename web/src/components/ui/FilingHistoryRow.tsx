@@ -7,7 +7,7 @@
 
 import React from "react";
 import { Download, FileText } from "lucide-react";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import type { TaxFiling } from "@/models";
 import { cn } from "@/lib/cn";
 import { formatMoney } from "@/lib/format";
@@ -29,10 +29,7 @@ export const FilingHistoryRow: React.FC<FilingHistoryRowProps> = ({
 }) => {
   const accepted =
     filing.status === "accepted" || filing.status === "submitted";
-  const filedAt =
-    filing.filed_at && dayjs(filing.filed_at).isValid()
-      ? dayjs(filing.filed_at).format("D MMM YYYY")
-      : null;
+  const filedAt = filing.filed_at && formatIso(filing.filed_at, "d MMM yyyy");
   return (
     // Semantic list row (W3 directive): filing history composes <ul>; the
     // invalid table-context role="row" is gone.

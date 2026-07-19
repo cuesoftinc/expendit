@@ -2,16 +2,11 @@
  * TestModeAuthProvider — NEXT_PUBLIC_TEST_MODE=1: no Firebase, sign-in
  * resolves instantly with the seeded test user and the app goes straight
  * to /dashboard (web standard — TEST_MODE).
- *
- * It also sets the legacy `ExpenditLoggedIn` flag so the pre-redesign
- * protected routes (live until W3) accept the session.
  */
 
 import type { AuthProvider, AuthUser } from "./types";
 
 const SESSION_KEY = "expendit.test-session";
-/** Legacy RouteProtection flag (src/components/helpers/RouteProtection). */
-const LEGACY_LOGGED_IN_KEY = "ExpenditLoggedIn";
 
 export const TEST_USER: AuthUser = {
   uid: "user-ibukun",
@@ -35,7 +30,6 @@ export class TestModeAuthProvider implements AuthProvider {
   async signInWithGoogle(): Promise<AuthUser> {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SESSION_KEY, JSON.stringify(TEST_USER));
-      window.localStorage.setItem(LEGACY_LOGGED_IN_KEY, JSON.stringify(true));
     }
     return TEST_USER;
   }
@@ -43,7 +37,6 @@ export class TestModeAuthProvider implements AuthProvider {
   async signOut(): Promise<void> {
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(SESSION_KEY);
-      window.localStorage.removeItem(LEGACY_LOGGED_IN_KEY);
     }
   }
 

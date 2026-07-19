@@ -11,7 +11,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import dayjs from "dayjs";
+import { formatIso, daysUntil } from "@/lib/dates";
 import { useOrg, useTaxController } from "@/controllers";
 import type { TaxCalendarEntry, TaxProfile } from "@/models";
 import Banner from "@/components/ui/Banner";
@@ -63,7 +63,7 @@ export const TaxesView: React.FC = () => {
           period: estimate.period,
           due_date: estimate.due_date,
           authority: estimate.authority,
-          daysToDue: dayjs(estimate.due_date).diff(dayjs(), "day"),
+          daysToDue: daysUntil(estimate.due_date),
         }))
         .sort((a, b) => a.due_date.localeCompare(b.due_date)),
     [tax.estimates],
@@ -154,7 +154,7 @@ export const TaxesView: React.FC = () => {
             }
           >
             {nearest.kind.toUpperCase()} {nearest.period} is due{" "}
-            {dayjs(nearest.due_date).format("D MMM")} (T-
+            {formatIso(nearest.due_date, "d MMM")} (T-
             {nearest.daysToDue}) — remit to {nearest.authority.code}.
           </Banner>
         </div>
@@ -325,7 +325,7 @@ export const TaxesView: React.FC = () => {
                   amountDue={estimate.amount_due}
                   currency={currency}
                   dueDate={estimate.due_date}
-                  daysToDue={dayjs(estimate.due_date).diff(dayjs(), "day")}
+                  daysToDue={daysUntil(estimate.due_date)}
                 />
               ))}
             </div>
