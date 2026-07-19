@@ -361,29 +361,51 @@ design.md §8.3 synthetic demo datasets (freelancer / SME / company — the
 same pool the Figma screens and the A5 demo strip render), so a TEST_MODE
 boot looks like the designs:
 
+- **Seven months of simulated usage** ("today" is pinned to 20 Jul 2026):
+  the company ledger runs Jan–Jul 2026 with realistic Nigerian-business
+  merchants and a coherent arc — revenue grows every month while an April
+  staff-up and the June GA launch push Apr–Jun into a deliberate burn
+  (runway 7.2 months by the ledger-burn rule). The verified math is
+  invariant: July MTD sums, the Apr–Jun nets, VAT 2026-06 net ₦550,600
+  (due 21 Jul, T-1) computed from the June ledger, and the FY2025
+  statement identities (the invariant table lives at the top of
+  `src/mock/seed.ts`).
 - The signed-in test user owns a **personal org** (the freelancer dataset:
   a categorized NGN ledger with ✨ AI-suggested and confirmed CategoryChips,
   anomaly-flagged rows covering all four AnomalyBadge types, sources spread
-  across csv/pdf/receipt/bank) and a **company org** (the SME/company
-  datasets: members in every role, mapped statements across ≥2 periods so
-  trends render).
+  across csv/receipt/bank/manual) and a **company org** (members in every
+  role, mapped statements across ≥2 periods so trends render). Anomaly
+  notes are computed from the seeded data, never invented.
 - Import jobs in every ImportJobRow status (processing / completed /
-  completed-empty / completed-bank / failed), plus one job parked in staged
-  review with duplicates pre-flagged — the MI-3 counts ("Import 209 /
-  discard 5 duplicates") render from seed.
+  completed-empty / completed-bank / failed) telling one arc — the June
+  GTB feed outage → an image-only PDF that parsed 0 rows → the CSV parked
+  in staged review with the MI-3 counts ("Import 209 / discard 5
+  duplicates"), whose 5 duplicates mirror the five June GTB ledger rows
+  that synced before the outage; Access expired 12 Jul → a
+  password-protected failure → a retry processing "now".
 - Bank links covering all five BANK_LINK states (pending / active /
   reauth_required / degraded / paused, data-model.md §6.2) — the re-auth
-  Banner renders from seed.
-- Statements: one confirmed per kind (balance_sheet / income_statement /
-  cash_flow) and one staged mid-review with low-confidence unmapped rows
-  plus a parser-missed row to add; ratio reports exercising every RatioGauge
-  state (healthy / warning / critical / n-a) with benchmark bands and
-  auditable traces (MI-8).
-- Tax: the personal org's profile complete (`state_of_residence` resolving
-  a State IRS, e.g. LIRS); the company org missing TIN/RC so the
-  `422 tax_identity_incomplete` wizard block is demonstrable; calendar rows
-  at T-30/T-7/T-1 escalation tints (MI-13); estimates with remit-to
-  authority blocks; immutable filing history with stamped receipts.
+  Banner renders from seed; the personal org carries its own active link.
+- Statements: FY2025 confirmed in all three kinds (balance_sheet /
+  income_statement / cash_flow — cash continuity ties the two balance
+  sheets through the cash-flow statement) plus a confirmed FY2024 pair
+  telling the turnaround story (strained ratios, small net loss), so the
+  RatioGauge grid exercises healthy / warning / critical / n-a states,
+  growth rows render — including the documented sign-change suppression —
+  and one statement sits staged mid-review with a low-confidence unmapped
+  row plus a parser-missed row to add.
+- Tax: the company profile complete (TIN + RC — its CIT FY2025 + monthly
+  VAT filing history could not exist otherwise); the personal org missing
+  its TIN so the `422 tax_identity_incomplete` wizard block is
+  demonstrable (its `state_of_residence` still resolves LIRS). The filing
+  calendar shows the monthly VAT cadence (June due 21 Jul at the T-1
+  tint + July in progress due 21 Aug) and the CIT horizon; under the
+  pinned clock and the ratified NG filing calendar no deadline can sit at
+  T-7/T-30 simultaneously with the T-1 hero — those escalation tints are
+  covered by TaxCalendarRow unit tests and the Figma state frames.
+  Estimates carry remit-to authority blocks; filing history is immutable
+  with stamped receipts, its VAT nets rising with revenue month over
+  month.
 - Report artifacts in every ReportArtifactRow state (generating / ready /
   NEW ≤24h / expired).
 - A second, **fresh test identity** (no org, no consent) so the B0

@@ -87,12 +87,19 @@ export const RatiosView: React.FC = () => {
   const statements = useStatementsController(activeOrgId);
 
   const confirmedPeriods = useMemo(() => {
-    const set = new Set(
-      statements.statements
-        .filter((statement) => statement.mapping_status === "confirmed")
-        .map((statement) => statement.period),
-    );
-    return [...set];
+    // Most-recently-confirmed first — the default period below picks the
+    // period the org last worked on (FY2025, not the FY2024 history row;
+    // UX walk 2026-07-19: the API lists newest uploads first, which put
+    // the oldest period "last" and defaulted the grid to FY2024).
+    const ordered = statements.statements
+      .filter((statement) => statement.mapping_status === "confirmed")
+      .sort((a, b) =>
+        (b.confirmed_at ?? b.created_at).localeCompare(
+          a.confirmed_at ?? a.created_at,
+        ),
+      )
+      .map((statement) => statement.period);
+    return [...new Set(ordered)];
   }, [statements.statements]);
 
   const [period, setPeriod] = useState<string | null>(null);
@@ -105,7 +112,7 @@ export const RatiosView: React.FC = () => {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
-      const next = confirmedPeriods[confirmedPeriods.length - 1];
+      const next = confirmedPeriods[0];
       setPeriod(next);
       void ratios.load(next);
     });

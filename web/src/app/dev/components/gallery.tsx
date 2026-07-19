@@ -1606,7 +1606,7 @@ export const ComponentGallery: React.FC = () => {
               />
               <EditorialCard
                 kind="community"
-                eyebrow="Open source"
+                eyebrow="Open-source"
                 title="Contribute"
                 body="Good-first-issues across the Go API and the Next.js web app."
                 icon={Users}

@@ -108,6 +108,50 @@ test("footer carries the 4-column canonical inventory + legal bar", async ({
   );
 });
 
+test("mobile (390w): the footer stacks brand → 2-col link grid → legal bar with grouped utilities", async ({
+  page,
+}) => {
+  // Footer mobile-structure canon (org SKILL.md, 2026-07-19): brand block
+  // full-width first · link columns in a 2-col grid · divider · legal bar
+  // with © first and the utilities as one grouped wrapping cluster.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const footer = page.locator("footer");
+  await footer.scrollIntoViewIfNeeded();
+
+  const brand = footer.getByText("Financial intelligence for modern growth.");
+  const firstColumn = footer.getByRole("navigation", { name: "Product" });
+  const brandBox = (await brand.boundingBox())!;
+  const columnBox = (await firstColumn.boundingBox())!;
+  expect(brandBox.y).toBeLessThan(columnBox.y);
+
+  // The 4 canonical columns render as an orderly 2-col grid below md.
+  const gridTracks = await firstColumn.evaluate(
+    (nav) =>
+      getComputedStyle(nav.parentElement!).gridTemplateColumns.split(" ")
+        .length,
+  );
+  expect(gridTracks).toBe(2);
+
+  // Legal bar: © first; the utilities (security CTA · language) follow
+  // as one grouped cluster on their own wrapped row.
+  const legal = footer.getByText(/© Cuesoft Inc\. 2026\. Expendit\./);
+  const security = footer.getByRole("link", { name: "View Security Policy" });
+  const language = footer.getByRole("combobox", { name: "Language" });
+  const legalBox = (await legal.boundingBox())!;
+  const securityBox = (await security.boundingBox())!;
+  const languageBox = (await language.boundingBox())!;
+  expect(legalBox.y).toBeLessThan(securityBox.y);
+  // Security CTA and language selector share the cluster row.
+  expect(
+    Math.abs(
+      securityBox.y +
+        securityBox.height / 2 -
+        (languageBox.y + languageBox.height / 2),
+    ),
+  ).toBeLessThan(securityBox.height);
+});
+
 test("mobile (390w): the hamburger panel reaches every canonical nav destination", async ({
   page,
 }) => {

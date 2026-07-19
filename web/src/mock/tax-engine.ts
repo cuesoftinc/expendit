@@ -178,7 +178,11 @@ export const computeVatEstimate = (
     computed_fields: fields,
     authority: resolveAuthority("vat", profile.taxpayer_kind, null),
     ruleset_id: resolveRuleset("vat", month),
-    banners: [],
+    // Estimate mode is always available (tax-engine.md §5): an
+    // in-progress month carries the gap banner.
+    banners: periodComplete(month)
+      ? []
+      : [`${month} is in progress — the estimate updates as the ledger fills`],
     computed_at: mockNow().toISOString(),
   };
 };
@@ -412,7 +416,11 @@ export const computeEstimates = (orgId: string): TaxEstimate[] => {
   if (!profile) return [];
   if (profile.taxpayer_kind === "company") {
     return [
+      // The completed month (due 21 Jul — the T-1 banner) plus the
+      // in-progress month (due 21 Aug) — the calendar shows the monthly
+      // VAT cadence, not just the imminent deadline.
       computeVatEstimate(db, profile, "2026-06"),
+      computeVatEstimate(db, profile, "2026-07"),
       computeCitEstimate(db, profile, "FY2026", "FY2025"),
     ];
   }
