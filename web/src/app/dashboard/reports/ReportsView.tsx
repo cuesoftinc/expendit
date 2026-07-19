@@ -24,8 +24,8 @@ import Radio from "@/components/ui/Radio";
 import ReportArtifactRow from "@/components/ui/ReportArtifactRow";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
-import Toast from "@/components/ui/Toast";
 import PageHeader from "../PageHeader";
+import ToastLayer from "../ToastLayer";
 
 const KIND_OPTIONS = [
   { value: "monthly_summary", label: "Monthly summary" },
@@ -119,56 +119,63 @@ export const ReportsView: React.FC = () => {
       >
         <h2 className="mb-3 text-[13px] font-medium text-text">Generate</h2>
         <div className="flex flex-wrap items-end gap-3">
-          <Select
-            label="Report"
-            options={KIND_OPTIONS}
-            value={kind}
-            onValueChange={(value) => setKind(value as ReportKind)}
-            className="w-52"
-          />
-          {kind === "category_deep_dive" ? (
+          <div className="w-52">
             <Select
-              label="Category"
-              options={categoryOptions}
-              value={category}
-              onValueChange={setCategory}
-              placeholder="Pick a category"
-              className="w-44"
+              label="Report"
+              options={KIND_OPTIONS}
+              value={kind}
+              onValueChange={(value) => setKind(value as ReportKind)}
             />
+          </div>
+          {kind === "category_deep_dive" ? (
+            <div className="w-44">
+              <Select
+                label="Category"
+                options={categoryOptions}
+                value={category}
+                onValueChange={setCategory}
+                placeholder="Pick a category"
+              />
+            </div>
           ) : null}
           {kind === "financial_statement" ? (
             <>
-              <Select
-                label="Statement"
-                options={STATEMENT_KIND_OPTIONS}
-                value={statementKind}
-                onValueChange={(value) =>
-                  setStatementKind(value as StatementKind)
-                }
-                className="w-44"
-              />
-              <PeriodPicker
-                mode="year"
-                label="Period"
-                value={statementPeriod}
-                onValueChange={setStatementPeriod}
-                presets={[
-                  { label: "FY2025", value: "FY2025" },
-                  { label: "FY2024", value: "FY2024" },
-                ]}
-              />
+              <div className="w-44">
+                <Select
+                  label="Statement"
+                  options={STATEMENT_KIND_OPTIONS}
+                  value={statementKind}
+                  onValueChange={(value) =>
+                    setStatementKind(value as StatementKind)
+                  }
+                />
+              </div>
+              <div className="w-40">
+                <PeriodPicker
+                  mode="year"
+                  label="Period"
+                  value={statementPeriod}
+                  onValueChange={setStatementPeriod}
+                  presets={[
+                    { label: "FY2025", value: "FY2025" },
+                    { label: "FY2024", value: "FY2024" },
+                  ]}
+                />
+              </div>
             </>
           ) : (
-            <PeriodPicker
-              mode="month"
-              label="Period"
-              value={period}
-              onValueChange={setPeriod}
-              presets={[
-                { label: "June 2026", value: "2026-06" },
-                { label: "May 2026", value: "2026-05" },
-              ]}
-            />
+            <div className="w-40">
+              <PeriodPicker
+                mode="month"
+                label="Period"
+                value={period}
+                onValueChange={setPeriod}
+                presets={[
+                  { label: "June 2026", value: "2026-06" },
+                  { label: "May 2026", value: "2026-05" },
+                ]}
+              />
+            </div>
           )}
           <fieldset>
             <legend className="mb-1 block text-[13px] font-medium text-text">
@@ -228,13 +235,7 @@ export const ReportsView: React.FC = () => {
         )}
       </section>
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast kind="info" onDismiss={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+      <ToastLayer message={toast} onDismiss={() => setToast(null)} />
     </>
   );
 };

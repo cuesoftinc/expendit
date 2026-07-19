@@ -33,8 +33,8 @@ import ManualStatementRow from "@/components/ui/ManualStatementRow";
 import MappingReviewRow from "@/components/ui/MappingReviewRow";
 import Skeleton from "@/components/ui/Skeleton";
 import StatementView from "@/components/ui/StatementView";
-import Toast from "@/components/ui/Toast";
 import PageHeader from "../../../PageHeader";
+import ToastLayer from "../../../ToastLayer";
 
 const KIND_LABEL = {
   balance_sheet: "Balance sheet",
@@ -227,13 +227,7 @@ export const StatementDetailView: React.FC = () => {
           mappingWarnings={statement.mapping_warnings}
           formulaNotes={FORMULA_NOTES}
         />
-        {toast ? (
-          <div className="fixed bottom-4 right-4 z-toast">
-            <Toast kind="info" onDismiss={() => setToast(null)}>
-              {toast}
-            </Toast>
-          </div>
-        ) : null}
+        <ToastLayer message={toast} onDismiss={() => setToast(null)} />
       </>
     );
   }
@@ -325,7 +319,7 @@ export const StatementDetailView: React.FC = () => {
       </section>
 
       {/* Parser-missed rows are addable in review (MI-2/3 reuse) */}
-      <section aria-label="Add missed row" className="mt-3">
+      <section aria-label="Add missing rows" className="mt-3">
         {addRow ? (
           <div className="flex items-end gap-2">
             <ul className="min-w-0 flex-1 list-none">
@@ -356,10 +350,13 @@ export const StatementDetailView: React.FC = () => {
                       },
                     ],
                   })
-                  .then(() => setAddRow(null));
+                  .then(() => {
+                    setAddRow(null);
+                    setToast("Row added — counts toward the identity check.");
+                  });
               }}
             >
-              Add
+              Stage added rows
             </Button>
           </div>
         ) : (
@@ -369,30 +366,24 @@ export const StatementDetailView: React.FC = () => {
             onClick={() => setAddRow({ key: null, amount: "" })}
           >
             <Plus aria-hidden className="mr-1 inline h-3.5 w-3.5" />
-            Add a parser-missed row
+            Add row
           </Button>
         )}
       </section>
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast
-            kind="info"
-            action={
-              <button
-                type="button"
-                className="font-medium text-accent"
-                onClick={() => router.push("/dashboard/company/ratios")}
-              >
-                View ratios
-              </button>
-            }
-            onDismiss={() => setToast(null)}
+      <ToastLayer
+        message={toast}
+        action={
+          <button
+            type="button"
+            className="font-medium text-accent"
+            onClick={() => router.push("/dashboard/company/ratios")}
           >
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+            View ratios
+          </button>
+        }
+        onDismiss={() => setToast(null)}
+      />
     </>
   );
 };

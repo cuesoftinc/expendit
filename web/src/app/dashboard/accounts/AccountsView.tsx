@@ -25,9 +25,9 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import Radio from "@/components/ui/Radio";
 import Skeleton from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
-import Toast from "@/components/ui/Toast";
 import WizardStep, { type WizardStepState } from "@/components/ui/WizardStep";
 import PageHeader from "../PageHeader";
+import ToastLayer from "../ToastLayer";
 
 type JourneyStep = "connect" | "consent" | "syncing" | "done";
 
@@ -478,13 +478,7 @@ export const AccountsView: React.FC = () => {
         />
       </Modal>
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast kind="info" onDismiss={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+      <ToastLayer message={toast} onDismiss={() => setToast(null)} />
     </>
   );
 };

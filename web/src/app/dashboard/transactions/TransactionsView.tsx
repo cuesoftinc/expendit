@@ -11,7 +11,13 @@
  * `e`, design.md §5). Render-only; controllers own the state.
  */
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import dayjs from "dayjs";
@@ -40,8 +46,8 @@ import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import TableHeader, { type SortDirection } from "@/components/ui/TableHeader";
 import TxnTableRow from "@/components/ui/TxnTableRow";
-import Toast from "@/components/ui/Toast";
 import PageHeader from "../PageHeader";
+import ToastLayer from "../ToastLayer";
 
 // Registry default category color — data, not styling (documented raw-hex
 // exception; mirrors the mock categories default).
@@ -106,7 +112,21 @@ export const TransactionsView: React.FC = () => {
   const [splitAmount, setSplitAmount] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [moreFilters, setMoreFilters] = useState(false);
   const tableRef = useRef<HTMLTableSectionElement>(null);
+
+  // ?anomalies=1 (B1 anomaly feed handoff) pre-applies the filter once.
+  const anomaliesParam = searchParams.get("anomalies") === "1";
+  const [anomalyParamApplied, setAnomalyParamApplied] = useState(false);
+  useEffect(() => {
+    if (!anomaliesParam || anomalyParamApplied || !activeOrgId) return;
+    // Defer to a microtask — effects must not set state synchronously.
+    queueMicrotask(() => {
+      setAnomalyParamApplied(true);
+      void txns.applyFilters({ anomaly_only: true });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anomaliesParam, anomalyParamApplied, activeOrgId]);
 
   // Deep-linkable inspector (MI-11): ?record= / ?explain= / ?new=.
   const recordId = searchParams.get("record");
@@ -352,142 +372,165 @@ export const TransactionsView: React.FC = () => {
         </div>
       ) : null}
 
-      {/* Filter bar */}
-      <section
-        aria-label="Filters"
-        className="mb-4 flex flex-wrap items-end gap-2"
-      >
-        <form
-          role="search"
-          className="w-56"
-          onSubmit={(event) => {
-            event.preventDefault();
-            applyFilterPatch({ search: search || undefined });
-          }}
-        >
-          <Input
-            type="search"
-            aria-label="Search transactions"
-            placeholder="Search descriptions…"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            kbdHint="↵"
-          />
-        </form>
-        <PeriodPicker
-          mode="range"
-          value={
-            txns.filters.date_from && txns.filters.date_to
-              ? `${txns.filters.date_from}..${txns.filters.date_to}`
-              : null
-          }
-          onValueChange={(value) => {
-            const [from, to] = value.split("..");
-            applyFilterPatch({ date_from: from, date_to: to });
-          }}
-          className="w-64"
-        />
-        <Select
-          aria-label="Category"
-          options={[
-            { value: "all", label: "All categories" },
-            ...categorySelectOptions,
-          ]}
-          value={txns.filters.category_id ?? "all"}
-          onValueChange={(value) =>
-            applyFilterPatch({
-              category_id: value === "all" ? undefined : value,
-            })
-          }
-          size="sm"
-          className="w-40"
-        />
-        <Select
-          aria-label="Source"
-          options={SOURCE_OPTIONS}
-          value={txns.filters.source ?? "all"}
-          onValueChange={(value) =>
-            applyFilterPatch({
-              source:
-                value === "all" ? undefined : (value as TxnFilters["source"]),
-            })
-          }
-          size="sm"
-          className="w-36"
-        />
-        <SegmentedControl
-          aria-label="Direction"
-          options={[
-            { value: "all", label: "All" },
-            { value: "income", label: "Income" },
-            { value: "expense", label: "Expense" },
-          ]}
-          value={txns.filters.direction ?? "all"}
-          onValueChange={(value) =>
-            applyFilterPatch({
-              direction:
-                value === "all"
-                  ? undefined
-                  : (value as TxnFilters["direction"]),
-            })
-          }
-        />
-        <Input
-          aria-label="Minimum amount"
-          placeholder="Min ₦"
-          className="w-24"
-          value={txns.filters.amount_min?.toString() ?? ""}
-          onChange={(event) =>
-            applyFilterPatch({
-              amount_min: event.target.value
-                ? Number(event.target.value)
-                : undefined,
-            })
-          }
-        />
-        <Input
-          aria-label="Maximum amount"
-          placeholder="Max ₦"
-          className="w-24"
-          value={txns.filters.amount_max?.toString() ?? ""}
-          onChange={(event) =>
-            applyFilterPatch({
-              amount_max: event.target.value
-                ? Number(event.target.value)
-                : undefined,
-            })
-          }
-        />
-        <Checkbox
-          label="Anomalies only"
-          checked={txns.filters.anomaly_only ?? false}
-          onCheckedChange={(checked) =>
-            applyFilterPatch({ anomaly_only: checked === true || undefined })
-          }
-        />
-        <Select
-          aria-label="Saved views"
-          options={[
-            { value: "none", label: "Saved views…" },
-            ...savedViews.views.map((view) => ({
-              value: view.id,
-              label: view.name,
-            })),
-          ]}
-          value="none"
-          onValueChange={(value) => {
-            const view = savedViews.views.find((item) => item.id === value);
-            if (view) {
-              setSearch(view.filters.search ?? "");
-              void txns.applyFilters(view.filters);
-            }
-          }}
-          size="sm"
-          className="w-36"
-        />
-        <Button kind="quiet" size="sm" onClick={() => setSaveViewOpen(true)}>
-          Save view
-        </Button>
+      {/* Filter bar (Figma 182:455: primary row + More filters) */}
+      <section aria-label="Filters" className="mb-4 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-44">
+            <Select
+              aria-label="Category"
+              options={[
+                { value: "all", label: "All categories" },
+                ...categorySelectOptions,
+              ]}
+              value={txns.filters.category_id ?? "all"}
+              onValueChange={(value) =>
+                applyFilterPatch({
+                  category_id: value === "all" ? undefined : value,
+                })
+              }
+              size="sm"
+            />
+          </div>
+          <div className="w-36">
+            <Select
+              aria-label="Source"
+              options={SOURCE_OPTIONS}
+              value={txns.filters.source ?? "all"}
+              onValueChange={(value) =>
+                applyFilterPatch({
+                  source:
+                    value === "all"
+                      ? undefined
+                      : (value as TxnFilters["source"]),
+                })
+              }
+              size="sm"
+            />
+          </div>
+          <div className="w-64">
+            <PeriodPicker
+              mode="range"
+              value={
+                txns.filters.date_from && txns.filters.date_to
+                  ? `${txns.filters.date_from}..${txns.filters.date_to}`
+                  : null
+              }
+              onValueChange={(value) => {
+                const [from, to] = value.split("..");
+                applyFilterPatch({ date_from: from, date_to: to });
+              }}
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <form
+            role="search"
+            className="w-56"
+            onSubmit={(event) => {
+              event.preventDefault();
+              applyFilterPatch({ search: search || undefined });
+            }}
+          >
+            <Input
+              type="search"
+              aria-label="Search transactions"
+              placeholder="Search transactions…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              kbdHint="↵"
+            />
+          </form>
+          <div className="w-40">
+            <Select
+              aria-label="Saved views"
+              options={[
+                { value: "none", label: "Saved views…" },
+                ...savedViews.views.map((view) => ({
+                  value: view.id,
+                  label: view.name,
+                })),
+              ]}
+              value="none"
+              onValueChange={(value) => {
+                const view = savedViews.views.find((item) => item.id === value);
+                if (view) {
+                  setSearch(view.filters.search ?? "");
+                  void txns.applyFilters(view.filters);
+                }
+              }}
+              size="sm"
+            />
+          </div>
+          <Button kind="quiet" size="sm" onClick={() => setSaveViewOpen(true)}>
+            Save view
+          </Button>
+          <Button
+            kind="quiet"
+            size="sm"
+            aria-expanded={moreFilters}
+            onClick={() => setMoreFilters((prev) => !prev)}
+          >
+            More filters
+          </Button>
+        </div>
+        {moreFilters ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl
+              aria-label="Direction"
+              options={[
+                { value: "all", label: "All" },
+                { value: "income", label: "Income" },
+                { value: "expense", label: "Expense" },
+              ]}
+              value={txns.filters.direction ?? "all"}
+              onValueChange={(value) =>
+                applyFilterPatch({
+                  direction:
+                    value === "all"
+                      ? undefined
+                      : (value as TxnFilters["direction"]),
+                })
+              }
+            />
+            <div className="w-24">
+              <Input
+                aria-label="Minimum amount"
+                placeholder="Min ₦"
+                value={txns.filters.amount_min?.toString() ?? ""}
+                onChange={(event) =>
+                  applyFilterPatch({
+                    amount_min: event.target.value
+                      ? Number(event.target.value)
+                      : undefined,
+                  })
+                }
+              />
+            </div>
+            <div className="w-24">
+              <Input
+                aria-label="Maximum amount"
+                placeholder="Max ₦"
+                value={txns.filters.amount_max?.toString() ?? ""}
+                onChange={(event) =>
+                  applyFilterPatch({
+                    amount_max: event.target.value
+                      ? Number(event.target.value)
+                      : undefined,
+                  })
+                }
+              />
+            </div>
+            <Checkbox
+              label="Anomalies only"
+              checked={txns.filters.anomaly_only ?? false}
+              onCheckedChange={(checked) =>
+                applyFilterPatch({
+                  anomaly_only: checked === true || undefined,
+                })
+              }
+            />
+          </div>
+        ) : null}
       </section>
 
       {/* Ledger table (semantic <table>, design directive) */}
@@ -679,6 +722,7 @@ export const TransactionsView: React.FC = () => {
       >
         <Input
           label="View name"
+          name="view-name"
           value={viewName}
           onChange={(event) => setViewName(event.target.value)}
           placeholder="e.g. June bank expenses"
@@ -827,6 +871,7 @@ export const TransactionsView: React.FC = () => {
                 <div className="flex items-end gap-2">
                   <Input
                     label={`Split off (of ${formatMoney(activeTxn.amount, currency)})`}
+                    name="split-amount"
                     value={splitAmount}
                     onChange={(event) => setSplitAmount(event.target.value)}
                     placeholder="0.00"
@@ -938,13 +983,7 @@ export const TransactionsView: React.FC = () => {
         )}
       </Inspector>
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast kind="info" onDismiss={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+      <ToastLayer message={toast} onDismiss={() => setToast(null)} />
     </>
   );
 };

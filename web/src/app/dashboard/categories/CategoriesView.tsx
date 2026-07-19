@@ -22,8 +22,8 @@ import Modal from "@/components/ui/Modal";
 import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
-import Toast from "@/components/ui/Toast";
 import PageHeader from "../PageHeader";
+import ToastLayer from "../ToastLayer";
 
 // Registry preset palette (data, not styling — B8 ColorSwatchPicker).
 const PRESET_COLORS = [
@@ -289,6 +289,7 @@ export const CategoriesView: React.FC = () => {
           <div className="space-y-4">
             <Input
               label="Name"
+              name="category-name"
               value={draft.name}
               onChange={(event) =>
                 setDraft(
@@ -377,13 +378,7 @@ export const CategoriesView: React.FC = () => {
         />
       </Modal>
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast kind="info" onDismiss={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+      <ToastLayer message={toast} onDismiss={() => setToast(null)} />
     </>
   );
 };

@@ -147,18 +147,20 @@ export const RatiosView: React.FC = () => {
         description='Benchmark bands are static v1 constants — "general guidance", not industry-specific.'
         actions={
           <>
-            <PeriodPicker
-              mode="year"
-              value={period}
-              onValueChange={(next) => {
-                setPeriod(next);
-                void ratios.load(next);
-              }}
-              presets={confirmedPeriods.map((value) => ({
-                label: value,
-                value,
-              }))}
-            />
+            <div className="w-40">
+              <PeriodPicker
+                mode="year"
+                value={period}
+                onValueChange={(next) => {
+                  setPeriod(next);
+                  void ratios.load(next);
+                }}
+                presets={confirmedPeriods.map((value) => ({
+                  label: value,
+                  value,
+                }))}
+              />
+            </div>
             <Button
               size="sm"
               kind="quiet"
@@ -226,7 +228,7 @@ export const RatiosView: React.FC = () => {
                       // (MI-8) — the trace opens from a sibling button, not
                       // a nested-interactive wrapper (semantic directive).
                       return (
-                        <div key={result.key} className="relative">
+                        <div key={result.key} className="relative w-fit">
                           <RatioGauge
                             label={result.label}
                             value={result.value}

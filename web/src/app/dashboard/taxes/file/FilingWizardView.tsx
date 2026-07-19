@@ -355,6 +355,7 @@ export const FilingWizardView: React.FC = () => {
             </p>
             <Input
               label="Confirm period"
+              name="confirm-period"
               value={confirmText}
               onChange={(event) => setConfirmText(event.target.value)}
               placeholder={filing.period}

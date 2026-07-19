@@ -30,8 +30,8 @@ import ProgressBar from "@/components/ui/ProgressBar";
 import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Switch from "@/components/ui/Switch";
-import Toast from "@/components/ui/Toast";
 import PageHeader from "../PageHeader";
+import ToastLayer from "../ToastLayer";
 
 const Section: React.FC<{
   title: string;
@@ -275,20 +275,22 @@ export const SettingsView: React.FC = () => {
               >
                 <Input
                   label="Invite by email"
+                  name="invite-email"
                   value={inviteEmail}
                   onChange={(event) => setInviteEmail(event.target.value)}
                   placeholder="finance@company.com"
                 />
-                <Select
-                  options={[
-                    { value: "admin", label: "Admin" },
-                    { value: "member", label: "Member" },
-                  ]}
-                  value={inviteRole}
-                  onValueChange={(value) => setInviteRole(value as OrgRole)}
-                  size="sm"
-                  className="w-28"
-                />
+                <div className="w-28 shrink-0">
+                  <Select
+                    options={[
+                      { value: "admin", label: "Admin" },
+                      { value: "member", label: "Member" },
+                    ]}
+                    value={inviteRole}
+                    onValueChange={(value) => setInviteRole(value as OrgRole)}
+                    size="sm"
+                  />
+                </div>
                 <Button size="sm" type="submit" loading={inviting}>
                   Invite
                 </Button>
@@ -455,13 +457,7 @@ export const SettingsView: React.FC = () => {
         onConfirm={() => void startPurge()}
       />
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast kind="info" onDismiss={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+      <ToastLayer message={toast} onDismiss={() => setToast(null)} />
     </>
   );
 };

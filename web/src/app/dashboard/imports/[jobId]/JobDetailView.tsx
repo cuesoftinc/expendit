@@ -24,10 +24,10 @@ import Skeleton from "@/components/ui/Skeleton";
 import StagedReviewHeader from "@/components/ui/StagedReviewHeader";
 import TableHeader from "@/components/ui/TableHeader";
 import Tag from "@/components/ui/Tag";
-import Toast from "@/components/ui/Toast";
 import TxnTableRow from "@/components/ui/TxnTableRow";
 import { failureMessage } from "../ImportsView";
 import PageHeader from "../../PageHeader";
+import ToastLayer from "../../ToastLayer";
 
 // Registry default category color — data, not styling.
 const FALLBACK_CATEGORY_COLOR = "#6E6E76";
@@ -296,8 +296,9 @@ export const JobDetailView: React.FC = () => {
                   categoryOptions={categoryOptions}
                   stagedDuplicate={excludedDuplicate}
                   // Duplicates: the row checkbox re-includes false positives
-                  // (flows/import.md §4); non-duplicates always import.
-                  selected={!excludedDuplicate}
+                  // (flows/import.md §4); non-duplicates always import and
+                  // stay visually default (Figma staged-review frame).
+                  selected={row.is_duplicate && row.include_duplicate}
                   onSelectedChange={
                     row.is_duplicate
                       ? (next) => void imports.setIncludeDuplicate(row.id, next)
@@ -313,13 +314,11 @@ export const JobDetailView: React.FC = () => {
         </table>
       </section>
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast kind="error" onDismiss={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+      <ToastLayer
+        message={toast}
+        kind="error"
+        onDismiss={() => setToast(null)}
+      />
     </>
   );
 };

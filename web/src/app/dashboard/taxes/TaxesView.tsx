@@ -24,8 +24,8 @@ import RemitToCard from "@/components/ui/RemitToCard";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import TaxCalendarRow from "@/components/ui/TaxCalendarRow";
-import Toast from "@/components/ui/Toast";
 import PageHeader from "../PageHeader";
+import ToastLayer from "../ToastLayer";
 
 const NG_STATES = [
   { value: "NG-LA", label: "Lagos (LIRS)" },
@@ -387,13 +387,7 @@ export const TaxesView: React.FC = () => {
         )}
       </section>
 
-      {toast ? (
-        <div className="fixed bottom-4 right-4 z-toast">
-          <Toast kind="info" onDismiss={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      ) : null}
+      <ToastLayer message={toast} onDismiss={() => setToast(null)} />
     </>
   );
 };

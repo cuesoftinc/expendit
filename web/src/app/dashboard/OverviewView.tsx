@@ -22,6 +22,8 @@ import Banner from "@/components/ui/Banner";
 import ChartDonut from "@/components/ui/ChartDonut";
 import ChartLine from "@/components/ui/ChartLine";
 import EmptyState from "@/components/ui/EmptyState";
+import PeriodPicker from "@/components/ui/PeriodPicker";
+import TableHeader from "@/components/ui/TableHeader";
 import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
 import Tag from "@/components/ui/Tag";
@@ -53,10 +55,20 @@ const monthLabel = (month: string): string =>
 export const OverviewView: React.FC = () => {
   const router = useRouter();
   const { activeOrg, activeOrgId } = useOrg();
-  const { flows, categoryTotals, anomalies, latest, loading, error } =
-    useOverviewController(activeOrgId);
+  const {
+    flows,
+    categoryTotals,
+    anomalies,
+    latest,
+    estimates,
+    loading,
+    error,
+    loadCategoryTotals,
+  } = useOverviewController(activeOrgId);
   const { items: categories } = useCategoriesController(activeOrgId);
   const [demoEnabled, setDemoEnabled] = useState(false);
+  const [showDataTable, setShowDataTable] = useState(false);
+  const [deadlineDismissed, setDeadlineDismissed] = useState(false);
 
   const currency = activeOrg?.currency ?? "NGN";
   const categoryById = useMemo(
@@ -218,14 +230,62 @@ export const OverviewView: React.FC = () => {
       };
     }) ?? [];
   const donutTotal = donutSlices.reduce((sum, slice) => sum + slice.value, 0);
+  const donutMonthLabel = categoryTotals
+    ? dayjs(`${categoryTotals.month}-01`).format("MMM YYYY")
+    : "";
+
+  // MI-13: the nearest tax deadline (≤30 days out) banners the overview.
+  const nearestDeadline = estimates
+    .map((estimate) => ({
+      ...estimate,
+      daysToDue: dayjs(estimate.due_date).diff(dayjs(), "day"),
+    }))
+    .filter((estimate) => estimate.daysToDue >= 0 && estimate.daysToDue <= 30)
+    .sort((a, b) => a.daysToDue - b.daysToDue)[0];
 
   return (
     <>
-      <PageHeader title="Overview" />
+      <PageHeader
+        title="Overview"
+        actions={
+          <div className="w-36">
+            <PeriodPicker
+              mode="month"
+              value={categoryTotals?.month ?? null}
+              onValueChange={(month) => void loadCategoryTotals(month)}
+            />
+          </div>
+        }
+      />
 
       {error ? (
         <div className="mb-4">
           <Banner kind="error">{error}</Banner>
+        </div>
+      ) : null}
+
+      {nearestDeadline && !deadlineDismissed ? (
+        <div className="mb-4">
+          <Banner
+            kind={nearestDeadline.daysToDue <= 7 ? "warn" : "info"}
+            onDismiss={() => setDeadlineDismissed(true)}
+            action={
+              <Link
+                href="/dashboard/taxes/file"
+                className="text-[13px] font-medium text-accent hover:underline"
+              >
+                Prepare filing
+              </Link>
+            }
+          >
+            {nearestDeadline.kind.toUpperCase()} return due{" "}
+            {nearestDeadline.daysToDue === 0
+              ? "today"
+              : nearestDeadline.daysToDue === 1
+                ? "tomorrow"
+                : `in ${nearestDeadline.daysToDue} days`}{" "}
+            — {dayjs(nearestDeadline.due_date).format("D MMM YYYY")}
+          </Banner>
         </div>
       ) : null}
 
@@ -267,7 +327,7 @@ export const OverviewView: React.FC = () => {
           <StatCard
             label="Runway"
             value={flows.runway.months}
-            format={(value) => `${value.toFixed(1)} mo`}
+            format={(value) => `${value.toFixed(1)} months`}
           />
         ) : (
           <div className="flex flex-col justify-between rounded border border-border bg-bg p-4">
@@ -280,109 +340,218 @@ export const OverviewView: React.FC = () => {
         )}
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[2fr,1fr]">
-        <Card title="Cash flow — trailing 12 months">
-          <ChartLine
-            state={points.length === 0 ? "empty" : "data"}
-            emptyKind="transactions"
-            series={[
-              {
-                id: "income",
-                label: "Income",
-                color: "income",
-                points: points.map((p) => p.income),
-              },
-              {
-                id: "expense",
-                label: "Expenses",
-                color: "expense",
-                points: points.map((p) => p.expense),
-              },
-            ]}
-            xLabels={points
-              .filter((_, index) => index % 2 === 0)
-              .map((p) => monthLabel(p.month))}
-          />
-        </Card>
-        <Card title="Spending by category">
-          <ChartDonut
-            state={donutSlices.length === 0 ? "empty" : "data"}
-            emptyKind="transactions"
-            slices={donutSlices}
-            centerTotal={formatMoney(donutTotal, currency, { decimals: 0 })}
-            centerCaption="this month"
-            legend="bottom"
-          />
-        </Card>
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr,2fr]">
+      {/* Figma 179:12: chart left (2/3), donut + anomalies right (1/3). */}
+      <div className="mt-4 grid items-start gap-4 lg:grid-cols-[2fr,1fr]">
         <Card
-          title="Anomalies"
-          action={<Tag tint="warn" count={anomalies.length} />}
-        >
-          {anomalies.length === 0 ? (
-            <p className="text-[13px] text-text-2">
-              Nothing unusual in your ledger.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {anomalies.map((txn: TxnEntry) => (
-                <li key={txn.id}>
-                  <AnomalyBadge
-                    type={txn.anomalies[0].rule_id}
-                    severity={txn.anomalies[0].severity}
-                    variant="feed"
-                    description={`${txn.description} — ${formatMoney(txn.amount, currency)}`}
-                    timestamp={dayjs(txn.txn_date).format("D MMM")}
-                    onClick={() =>
-                      router.push(
-                        `/dashboard/transactions?record=${txn.id}&explain=1`,
-                      )
-                    }
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-        <Card
-          title="Latest transactions"
+          title="Cash flow — 12 months"
           action={
-            <Link
-              href="/dashboard/transactions"
-              className="text-[13px] font-medium text-accent hover:underline"
+            // Chart data-table toggle (design.md §5 — screen assembly).
+            <button
+              type="button"
+              onClick={() => setShowDataTable((prev) => !prev)}
+              className="rounded border border-border bg-bg-elev px-2 py-0.5 text-[12px] font-medium text-text-2 transition-colors duration-fast ease-standard hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              View all
-            </Link>
+              {showDataTable ? "Chart" : "Data table"}
+            </button>
           }
         >
-          {latest.length === 0 ? (
-            <p className="text-[13px] text-text-2">No transactions yet.</p>
-          ) : (
-            <table className="w-full" aria-label="Latest transactions">
-              <tbody className="contents">
-                {latest.map((txn) => (
-                  <TxnTableRow
-                    key={txn.id}
-                    txn={txn}
-                    category={
-                      categoryById.get(txn.category_id) ?? {
-                        id: txn.category_id,
-                        name: txn.category_id,
-                        color: FALLBACK_CATEGORY_COLOR,
-                      }
-                    }
-                    onOpen={() =>
-                      router.push(`/dashboard/transactions?record=${txn.id}`)
-                    }
-                  />
+          {showDataTable ? (
+            <table className="w-full text-[13px]" aria-label="Cash flow data">
+              <thead>
+                <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-text-2">
+                  <th scope="col" className="py-1.5 font-medium">
+                    Month
+                  </th>
+                  <th scope="col" className="py-1.5 text-right font-medium">
+                    Income
+                  </th>
+                  <th scope="col" className="py-1.5 text-right font-medium">
+                    Expenses
+                  </th>
+                  <th scope="col" className="py-1.5 text-right font-medium">
+                    Net
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {points.map((point) => (
+                  <tr
+                    key={point.month}
+                    className="border-b border-border last:border-b-0"
+                  >
+                    <td className="py-1.5">{monthLabel(point.month)}</td>
+                    <td className="py-1.5 text-right tabular-nums">
+                      {formatMoney(point.income, currency, { decimals: 0 })}
+                    </td>
+                    <td className="py-1.5 text-right tabular-nums">
+                      {formatMoney(point.expense, currency, { decimals: 0 })}
+                    </td>
+                    <td className="py-1.5 text-right tabular-nums">
+                      {formatMoney(point.income - point.expense, currency, {
+                        decimals: 0,
+                      })}
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
+          ) : (
+            <ChartLine
+              state={points.length === 0 ? "empty" : "data"}
+              emptyKind="transactions"
+              series={[
+                {
+                  id: "net",
+                  label: "Net cash flow",
+                  color: "accent",
+                  points: points.map((p) => p.income - p.expense),
+                },
+              ]}
+              xLabels={points
+                .filter((_, index) => index % 2 === 0)
+                .map((p) => monthLabel(p.month))}
+            />
           )}
         </Card>
+
+        <div className="space-y-4">
+          <Card title={`Expenses by category — ${donutMonthLabel}`}>
+            {donutSlices.length === 0 ? (
+              <p className="text-[13px] text-text-2">
+                No expenses recorded for {donutMonthLabel}.
+              </p>
+            ) : (
+              <div className="flex items-center gap-4">
+                <ChartDonut
+                  slices={donutSlices}
+                  centerTotal={formatMoney(donutTotal, currency, {
+                    decimals: 0,
+                  })}
+                  centerCaption="Expenses"
+                  legend="none"
+                />
+                {/* Screen-level legend with values (Figma B1 template). */}
+                <dl className="min-w-0 flex-1 space-y-1.5 text-[12px]">
+                  {donutSlices.slice(0, 5).map((slice) => (
+                    <div
+                      key={slice.id}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <dt className="flex min-w-0 items-center gap-1.5 text-text-2">
+                        <span
+                          aria-hidden
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: slice.color }}
+                        />
+                        <span className="truncate">{slice.label}</span>
+                      </dt>
+                      <dd className="whitespace-nowrap tabular-nums text-text">
+                        {donutTotal > 0
+                          ? `${Math.round((slice.value / donutTotal) * 100)}%`
+                          : "—"}{" "}
+                        {formatMoney(slice.value, currency, { decimals: 0 })}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+          </Card>
+
+          <Card
+            title="Anomalies"
+            action={<Tag tint="warn" count={anomalies.length} />}
+          >
+            {anomalies.length === 0 ? (
+              <p className="text-[13px] text-text-2">
+                Nothing unusual in your ledger.
+              </p>
+            ) : (
+              <>
+                <ul className="space-y-3">
+                  {anomalies.slice(0, 3).map((txn: TxnEntry) => (
+                    <li key={txn.id}>
+                      <AnomalyBadge
+                        type={txn.anomalies[0].rule_id}
+                        severity={txn.anomalies[0].severity}
+                        variant="feed"
+                        description={`${txn.description} — ${formatMoney(txn.amount, currency)}`}
+                        timestamp={dayjs(txn.txn_date).format("D MMM")}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/transactions?record=${txn.id}&explain=1`,
+                          )
+                        }
+                      />
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/dashboard/transactions?anomalies=1"
+                  className="mt-3 inline-block text-[13px] font-medium text-accent hover:underline"
+                >
+                  Explain in ledger →
+                </Link>
+              </>
+            )}
+          </Card>
+        </div>
       </div>
+
+      <Card
+        title="Latest transactions"
+        className="mt-4"
+        action={
+          <Link
+            href="/dashboard/transactions"
+            className="text-[13px] font-medium text-accent hover:underline"
+          >
+            View all →
+          </Link>
+        }
+      >
+        {latest.length === 0 ? (
+          <p className="text-[13px] text-text-2">No transactions yet.</p>
+        ) : (
+          <table
+            className="w-full border-separate border-spacing-0"
+            aria-label="Latest transactions"
+          >
+            <TableHeader
+              columns={[
+                { id: "date", label: "Date", widthClass: "w-14" },
+                { id: "source", label: "Src", widthClass: "w-8" },
+                { id: "description", label: "Description" },
+                { id: "category", label: "Category", widthClass: "w-40" },
+                {
+                  id: "amount",
+                  label: "Amount",
+                  numeric: true,
+                  widthClass: "w-32",
+                },
+              ]}
+            />
+            <tbody className="contents">
+              {latest.map((txn) => (
+                <TxnTableRow
+                  key={txn.id}
+                  txn={txn}
+                  category={
+                    categoryById.get(txn.category_id) ?? {
+                      id: txn.category_id,
+                      name: txn.category_id,
+                      color: FALLBACK_CATEGORY_COLOR,
+                    }
+                  }
+                  onOpen={() =>
+                    router.push(`/dashboard/transactions?record=${txn.id}`)
+                  }
+                />
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
     </>
   );
 };

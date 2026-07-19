@@ -190,24 +190,27 @@ export const CompanyStatementsView: React.FC = () => {
         className={`rounded border border-border bg-bg p-4 ${highlightUpload ? "ring-2 ring-accent ring-offset-2" : ""}`}
       >
         <div className="mb-3 flex flex-wrap items-end gap-3">
-          <Select
-            label="Statement kind"
-            options={KIND_OPTIONS}
-            value={kind}
-            onValueChange={(value) => setKind(value as StatementKind)}
-            className="w-48"
-          />
-          <PeriodPicker
-            mode="quarter"
-            label="Period"
-            value={period}
-            onValueChange={setPeriod}
-            presets={[
-              { label: "Q2 2026", value: "2026-Q2" },
-              { label: "Q1 2026", value: "2026-Q1" },
-              { label: "FY2025", value: "FY2025" },
-            ]}
-          />
+          <div className="w-48">
+            <Select
+              label="Statement kind"
+              options={KIND_OPTIONS}
+              value={kind}
+              onValueChange={(value) => setKind(value as StatementKind)}
+            />
+          </div>
+          <div className="w-40">
+            <PeriodPicker
+              mode="quarter"
+              label="Period"
+              value={period}
+              onValueChange={setPeriod}
+              presets={[
+                { label: "Q2 2026", value: "2026-Q2" },
+                { label: "Q1 2026", value: "2026-Q1" },
+                { label: "FY2025", value: "FY2025" },
+              ]}
+            />
+          </div>
           <Button
             kind="quiet"
             size="sm"

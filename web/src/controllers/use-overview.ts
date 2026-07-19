@@ -11,9 +11,14 @@ import { useCallback, useEffect, useState } from "react";
 import type {
   CategoryTotalsReport,
   MonthlyFlowReport,
+  TaxEstimate,
   TxnEntry,
 } from "@/models";
-import { aggregatesRepo, transactionsRepo } from "@/models/repositories";
+import {
+  aggregatesRepo,
+  taxRepo,
+  transactionsRepo,
+} from "@/models/repositories";
 
 export const useOverviewController = (orgId?: string) => {
   const [flows, setFlows] = useState<MonthlyFlowReport | null>(null);
@@ -21,6 +26,7 @@ export const useOverviewController = (orgId?: string) => {
     useState<CategoryTotalsReport | null>(null);
   const [anomalies, setAnomalies] = useState<TxnEntry[]>([]);
   const [latest, setLatest] = useState<TxnEntry[]>([]);
+  const [estimates, setEstimates] = useState<TaxEstimate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,17 +34,20 @@ export const useOverviewController = (orgId?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const [flowsData, totalsData, anomalyPage, latestPage] =
+      const [flowsData, totalsData, anomalyPage, latestPage, estimatesData] =
         await Promise.all([
           aggregatesRepo.monthly({ orgId }),
           aggregatesRepo.categoryTotals(undefined, { orgId }),
           transactionsRepo.list({ anomaly_only: true, limit: 6 }, { orgId }),
           transactionsRepo.list({ limit: 5 }, { orgId }),
+          // MI-13 deadline banner data (nearest due date ≤30d).
+          taxRepo.estimates({ orgId }).catch(() => ({ items: [] })),
         ]);
       setFlows(flowsData);
       setCategoryTotals(totalsData);
       setAnomalies(anomalyPage.items);
       setLatest(latestPage.items);
+      setEstimates(estimatesData.items);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load overview");
     } finally {
@@ -51,5 +60,23 @@ export const useOverviewController = (orgId?: string) => {
     if (orgId) queueMicrotask(() => void refresh());
   }, [orgId, refresh]);
 
-  return { flows, categoryTotals, anomalies, latest, loading, error, refresh };
+  /** Donut month selector (the B1 "Jul 2026" period control). */
+  const loadCategoryTotals = useCallback(
+    async (month: string) => {
+      setCategoryTotals(await aggregatesRepo.categoryTotals(month, { orgId }));
+    },
+    [orgId],
+  );
+
+  return {
+    flows,
+    categoryTotals,
+    anomalies,
+    latest,
+    estimates,
+    loading,
+    error,
+    refresh,
+    loadCategoryTotals,
+  };
 };

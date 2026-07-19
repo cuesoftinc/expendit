@@ -74,23 +74,13 @@ const NAV_ROUTES: NavRoute[] = [
   },
   {
     href: "/dashboard/taxes",
-    label: "Taxes",
+    label: "Tax center",
     icon: Calculator,
     nested: true,
-    group: "Company",
+    group: "Taxes",
   },
-  {
-    href: "/dashboard/categories",
-    label: "Categories",
-    icon: TagIcon,
-    group: "Workspace",
-  },
-  {
-    href: "/dashboard/settings",
-    label: "Settings",
-    icon: SettingsIcon,
-    group: "Workspace",
-  },
+  { href: "/dashboard/categories", label: "Categories", icon: TagIcon },
+  { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 const isActive = (pathname: string, route: NavRoute): boolean => {
@@ -189,7 +179,7 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const navigation: CommandItem[] = NAV_ROUTES.map((route) => ({
       id: `nav-${route.href}`,
       label:
-        route.group === "Company" && route.label !== "Taxes"
+        route.group === "Company"
           ? `Company ${route.label.toLowerCase()}`
           : route.label,
       group: "navigate",
