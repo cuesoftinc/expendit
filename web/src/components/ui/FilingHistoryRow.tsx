@@ -34,8 +34,9 @@ export const FilingHistoryRow: React.FC<FilingHistoryRowProps> = ({
       ? dayjs(filing.filed_at).format("D MMM YYYY")
       : null;
   return (
-    <div
-      role="row"
+    // Semantic list row (W3 directive): filing history composes <ul>; the
+    // invalid table-context role="row" is gone.
+    <li
       data-status={filing.status}
       className={cn(
         "flex items-center gap-3 border-b border-border px-3 py-2 text-[13px] text-text",
@@ -81,7 +82,7 @@ export const FilingHistoryRow: React.FC<FilingHistoryRowProps> = ({
       ) : !accepted ? (
         <Tag tint="neutral">{filing.status}</Tag>
       ) : null}
-    </div>
+    </li>
   );
 };
 

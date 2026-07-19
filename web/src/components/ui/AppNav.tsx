@@ -7,6 +7,7 @@
  */
 
 import React, { createContext, useContext } from "react";
+import Link from "next/link";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/cn";
 import Tag from "./Tag";
@@ -56,7 +57,9 @@ export const NavItem: React.FC<NavItemProps> = ({
     </>
   );
   return href ? (
-    <a
+    // next/link keeps navigation client-side (App Router); rendering is
+    // identical to the plain anchor the kit was QA'd with.
+    <Link
       href={href}
       aria-current={active ? "page" : undefined}
       aria-label={collapsed ? label : undefined}
@@ -64,7 +67,7 @@ export const NavItem: React.FC<NavItemProps> = ({
       className={className}
     >
       {content}
-    </a>
+    </Link>
   ) : (
     <button
       type="button"

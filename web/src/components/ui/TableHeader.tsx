@@ -49,22 +49,27 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
   sticky = false,
   className,
 }) => (
-  <div
-    role="row"
-    data-density={density}
-    className={cn(
-      "flex w-full items-center gap-3 border-b border-border bg-bg-elev px-3",
-      density === "compact" ? "h-[32px]" : "h-[44px]",
-      sticky && "sticky top-0 z-sticky",
-      className,
-    )}
-  >
-    {selectAll ? (
-      <Checkbox
-        checked={selectAll.checked}
-        onCheckedChange={selectAll.onCheckedChange}
-      />
-    ) : null}
+  // Semantic table chrome (W3 directive): a real <thead>/<tr>/<th scope>
+  // structure — tables compose <table>, not div grids. Flex classes keep
+  // the QA'd geometry over the UA table display.
+  <thead className="contents">
+    <tr
+      data-density={density}
+      className={cn(
+        "flex w-full items-center gap-3 border-b border-border bg-bg-elev px-3",
+        density === "compact" ? "h-[32px]" : "h-[44px]",
+        sticky && "sticky top-0 z-sticky",
+        className,
+      )}
+    >
+      {selectAll ? (
+        <th scope="col" className="flex shrink-0 items-center">
+          <Checkbox
+            checked={selectAll.checked}
+            onCheckedChange={selectAll.onCheckedChange}
+          />
+        </th>
+      ) : null}
     {columns.map((column) => {
       const direction: SortDirection =
         sort?.columnId === column.id ? sort.direction : "none";
@@ -79,9 +84,9 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
         </span>
       );
       return (
-        <div
+        <th
           key={column.id}
-          role="columnheader"
+          scope="col"
           aria-sort={
             direction === "none"
               ? undefined
@@ -91,7 +96,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
           }
           className={cn(
             column.widthClass ?? "flex-1",
-            "min-w-0",
+            "min-w-0 font-normal",
             column.numeric && "text-right",
           )}
         >
@@ -119,10 +124,11 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
           ) : (
             label
           )}
-        </div>
+        </th>
       );
     })}
-  </div>
+    </tr>
+  </thead>
 );
 
 export default TableHeader;

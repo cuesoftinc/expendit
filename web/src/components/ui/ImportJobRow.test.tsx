@@ -73,7 +73,7 @@ describe("ImportJobRow (design.md §8.2b)", () => {
     rerender(
       <ImportJobRow job={job({ source: "bank_sync", file_name: null })} />,
     );
-    expect(screen.getByRole("row")).toHaveAttribute(
+    expect(screen.getByRole("button")).toHaveAttribute(
       "data-status",
       "completed-bank",
     );

@@ -41,8 +41,8 @@ export const MappingReviewRow: React.FC<MappingReviewRowProps> = ({
   }));
 
   return (
-    <div
-      role="row"
+    // Semantic list row (W3 directive): mapping review composes <ul>.
+    <li
       data-state={row.state}
       className={cn(
         "flex items-center gap-3 border-b border-border px-3 py-2 text-[13px]",
@@ -92,7 +92,7 @@ export const MappingReviewRow: React.FC<MappingReviewRowProps> = ({
           Confirm
         </button>
       ) : null}
-    </div>
+    </li>
   );
 };
 

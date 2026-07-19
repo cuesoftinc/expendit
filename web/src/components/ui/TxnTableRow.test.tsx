@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render as rtlRender, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import React from "react";
 import type { TxnEntry } from "@/models";
 import TxnTableRow from "./TxnTableRow";
 
@@ -24,6 +25,15 @@ const txn: TxnEntry = {
 
 const category = { id: "cat-1", name: "Transport", color: "#2456D6" };
 
+// Real <tr> rows need a table context (semantic-HTML directive).
+const InTable: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <table>
+    <tbody>{children}</tbody>
+  </table>
+);
+
+const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: InTable });
+
 describe("TxnTableRow (design.md §8.2, MI-6)", () => {
   it("renders date, description, chip, money, anomaly, and source", () => {
     render(<TxnTableRow txn={txn} category={category} />);
@@ -46,19 +56,16 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
   });
 
   it("density switches row height 32/44", () => {
-    const { rerender } = render(
-      <TxnTableRow txn={txn} category={category} density="compact" />,
+    const { rerender } = render(<TxnTableRow txn={txn} category={category} density="compact" />,
     );
     expect(screen.getByRole("row")).toHaveClass("h-[32px]");
-    rerender(
-      <TxnTableRow txn={txn} category={category} density="comfortable" />,
+    rerender(<TxnTableRow txn={txn} category={category} density="comfortable" />,
     );
     expect(screen.getByRole("row")).toHaveClass("h-[44px]");
   });
 
   it("selected and staged-duplicate states", () => {
-    const { rerender } = render(
-      <TxnTableRow txn={txn} category={category} selected />,
+    const { rerender } = render(<TxnTableRow txn={txn} category={category} selected />,
     );
     expect(screen.getByRole("row")).toHaveAttribute("data-state", "selected");
     rerender(<TxnTableRow txn={txn} category={category} stagedDuplicate />);
@@ -74,8 +81,7 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
   it("keyboard: Enter opens, `e` edits (design.md §5)", async () => {
     const onOpen = vi.fn();
     const onEdit = vi.fn();
-    render(
-      <TxnTableRow
+    render(<TxnTableRow
         txn={txn}
         category={category}
         onOpen={onOpen}
@@ -93,8 +99,7 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
   it("row action buttons fire their handlers", async () => {
     const onSplit = vi.fn();
     const onExclude = vi.fn();
-    render(
-      <TxnTableRow
+    render(<TxnTableRow
         txn={txn}
         category={category}
         onSplit={onSplit}

@@ -53,8 +53,8 @@ export const ReportArtifactRow: React.FC<ReportArtifactRowProps> = ({
           ? "new"
           : "ready";
   return (
-    <div
-      role="row"
+    // Semantic list row (W3 directive): the artifact history composes <ul>.
+    <li
       data-state={state}
       className={cn(
         "flex items-center gap-3 border-b border-border px-3 py-2 text-[13px] text-text",
@@ -89,7 +89,7 @@ export const ReportArtifactRow: React.FC<ReportArtifactRowProps> = ({
           </button>
         </>
       )}
-    </div>
+    </li>
   );
 };
 

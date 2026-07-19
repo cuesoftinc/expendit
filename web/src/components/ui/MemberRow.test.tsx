@@ -21,7 +21,7 @@ describe("MemberRow (design.md §8.2b)", () => {
     expect(screen.getByText("Ada Obi")).toBeInTheDocument();
     expect(screen.getByText("ada@bellafricana.ng")).toBeInTheDocument();
     expect(screen.getByRole("combobox")).toBeInTheDocument();
-    expect(screen.getByRole("row")).toHaveAttribute("data-state", "default");
+    expect(screen.getByRole("listitem")).toHaveAttribute("data-state", "default");
   });
 
   it("role change goes through the select", async () => {
@@ -36,7 +36,7 @@ describe("MemberRow (design.md §8.2b)", () => {
     render(
       <MemberRow member={member({ status: "pending", joined_at: null })} />,
     );
-    expect(screen.getByRole("row")).toHaveAttribute(
+    expect(screen.getByRole("listitem")).toHaveAttribute(
       "data-state",
       "pending-invite",
     );
@@ -50,7 +50,7 @@ describe("MemberRow (design.md §8.2b)", () => {
         onRemove={() => undefined}
       />,
     );
-    expect(screen.getByRole("row")).toHaveAttribute("data-state", "owner");
+    expect(screen.getByRole("listitem")).toHaveAttribute("data-state", "owner");
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Remove/ }),

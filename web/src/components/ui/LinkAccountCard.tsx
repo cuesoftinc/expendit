@@ -76,7 +76,8 @@ export const LinkAccountCard: React.FC<LinkAccountCardProps> = ({
 }) => {
   const meta = STATUS_META[link.status];
   return (
-    <div
+    // Semantic card (W3 directive): a self-contained <article>.
+    <article
       data-status={link.status}
       className={cn(
         "flex items-start gap-3 rounded border border-border bg-bg p-4",
@@ -121,7 +122,7 @@ export const LinkAccountCard: React.FC<LinkAccountCardProps> = ({
         </div>
         {action ? <div className="mt-2">{action}</div> : null}
       </div>
-    </div>
+    </article>
   );
 };
 
