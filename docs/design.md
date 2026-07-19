@@ -117,7 +117,7 @@ ecosystem change, PR'd to all three design.md files together.
 | MI-3 | **Staged-review commit** | confirm button shows count ("Import 209 / discard 5 duplicates"); on commit, staged rows cascade-collapse into the ledger toast (240ms stagger ≤10 rows, then batch) |
 | MI-4 | **Inline category edit** | click chip → combobox in-cell; enter commits with 80ms chip color crossfade; AI ✨ mark clears on human confirm; `e` on focused row opens it |
 | MI-5 | **Anomaly pulse** | new anomalies pulse twice on first render, then rest; count in nav badge |
-| MI-6 | **Row hover** | 60ms bg tint + action icons fade-in right-aligned; no layout shift (icons absolutely positioned) |
+| MI-6 | **Row hover** | 60ms bg tint + action icons fade-in right-aligned; no layout shift (icons absolutely positioned). Actions dock at the right edge of the DESCRIPTION cell, overlaying only truncation whitespace — the amount column stays legible during hover [Decided 2026-07-19] |
 | MI-7 | **Number tick** | stat cards animate value changes with 300ms count-up (once per data refresh, not on scroll) |
 | MI-8 | **Ratio gauge** | needle eases to value 600ms cubic; benchmark band fades in after; hover shows formula tooltip ("Current ratio = current assets ÷ current liabilities") |
 | MI-9 | **Bank link flow** | provider modal (Mono/Plaid-style) inside `WizardShell`; status stepper: connect → consent → syncing (progress with live txn counter) → done; sync dot breathes while syncing |

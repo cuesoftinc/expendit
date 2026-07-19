@@ -237,6 +237,10 @@ export const AccountsView: React.FC = () => {
                     </dl>
                     <Switch
                       label="Auto-confirm clean syncs"
+                      // Trust path (flows/import.md §5): opt-in once ≥3
+                      // clean syncs were manually confirmed; anomalies or
+                      // duplicates always force review regardless.
+                      helper="Opens up after 3 manually confirmed clean syncs — anomalies and duplicates still go to review."
                       checked={link.auto_confirm}
                       onCheckedChange={(next) =>
                         void accounts.setAutoConfirm(link.id, next)
