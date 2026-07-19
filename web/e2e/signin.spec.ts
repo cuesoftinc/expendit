@@ -26,10 +26,12 @@ test("TEST_MODE: Continue with Google goes straight to /dashboard", async ({
   await expect(page).toHaveURL(/\/dashboard$/);
 });
 
-test("retired password routes redirect to /signin", async ({ page }) => {
+test("retired password routes 404 on the branded page", async ({ page }) => {
   for (const path of ["/signup", "/forgot-password", "/change-password"]) {
-    await page.goto(path);
-    await page.waitForURL("**/signin");
-    await expect(page).toHaveURL(/\/signin$/);
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    await expect(
+      page.getByRole("heading", { name: "This page doesn’t add up." }),
+    ).toBeVisible();
   }
 });
