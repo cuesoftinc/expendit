@@ -2,15 +2,17 @@
 
 /**
  * CategoryChip — design.md §3/§8.2: color-dot + label; AI-assigned carry
- * a ✨ until confirmed; editing opens an in-cell combobox (MI-4) that is
- * absolutely positioned so the open menu never inflates the row (QA loop
- * 2026-07-18); menu carries registry categories only.
+ * a ✨ until confirmed; editing opens an in-cell combobox (MI-4) whose
+ * menu portals to <body> so it never inflates the row (QA loop
+ * 2026-07-18) nor clips inside the mobile table scrollports (PR #215
+ * review); menu carries registry categories only.
  */
 
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { useViewportShiftX } from "@/lib/use-viewport-clamp";
+import { useAnchoredLayer } from "@/lib/use-anchored-layer";
 
 export interface CategoryOption {
   id: string;
@@ -40,16 +42,22 @@ export const CategoryChip: React.FC<CategoryChipProps> = ({
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  // The 180px menu is left-anchored to a chip that can sit near the
-  // right viewport edge in narrow ledgers — clamp keeps it fully in the
-  // viewport (floating-layer sweep 2026-07-19).
-  const shiftX = useViewportShiftX(open, menuRef);
+  // The menu portals to <body> with viewport-fixed coordinates: the
+  // ledger rows live inside `max-lg:overflow-x-auto` scrollports, where
+  // an absolutely positioned menu clips at the container's bottom edge
+  // (PR #215 review). The anchored layer clamps into the viewport at
+  // every anchor position (floating-layer sweep 2026-07-19).
+  const menuStyle = useAnchoredLayer(open, rootRef, menuRef);
   const editable = !disabled && options.length > 0 && !!onSelect;
 
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      // The portaled menu is outside the root subtree — check both.
+      if (rootRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -119,55 +127,61 @@ export const CategoryChip: React.FC<CategoryChipProps> = ({
         </button>
       )}
 
-      {open ? (
-        // Absolutely positioned: the open combobox never shifts row layout.
-        <div
-          ref={menuRef}
-          style={shiftX ? { transform: `translateX(${shiftX}px)` } : undefined}
-          className="absolute left-0 top-8 z-dropdown w-[180px] rounded border border-border bg-bg py-1 shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]"
-        >
-          <ul
-            id="category-chip-listbox"
-            role="listbox"
-            className="max-h-56 overflow-auto"
-          >
-            {filtered.map((option) => (
-              <li key={option.id}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={option.id === category.id}
-                  onClick={() => {
-                    onSelect?.(option.id);
-                    setOpen(false);
-                    setQuery("");
-                  }}
-                  className={cn(
-                    "flex w-full items-center gap-1.5 px-2 py-1.5 text-left text-[13px] leading-4 text-text",
-                    "hover:bg-bg-elev transition-colors duration-fast ease-standard",
-                    option.id === category.id && "bg-bg-elev",
-                  )}
-                >
-                  <span
-                    aria-hidden
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: option.color }}
-                  />
-                  <span className="min-w-0 flex-1 truncate">{option.name}</span>
-                  {option.id === category.id ? (
-                    <Check aria-hidden className="h-3 w-3 text-accent" />
-                  ) : null}
-                </button>
-              </li>
-            ))}
-            {filtered.length === 0 ? (
-              <li className="px-2 py-1.5 text-[13px] text-text-2">
-                No matching category
-              </li>
-            ) : null}
-          </ul>
-        </div>
-      ) : null}
+      {open && typeof document !== "undefined"
+        ? // Portaled + viewport-fixed: never shifts row layout, never
+          // clips inside the mobile table scrollports.
+          createPortal(
+            <div
+              ref={menuRef}
+              style={menuStyle ?? { position: "fixed", visibility: "hidden" }}
+              className="z-modal w-[180px] rounded border border-border bg-bg py-1 shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]"
+            >
+              <ul
+                id="category-chip-listbox"
+                role="listbox"
+                className="max-h-56 overflow-auto"
+              >
+                {filtered.map((option) => (
+                  <li key={option.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={option.id === category.id}
+                      onClick={() => {
+                        onSelect?.(option.id);
+                        setOpen(false);
+                        setQuery("");
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-1.5 px-2 py-1.5 text-left text-[13px] leading-4 text-text",
+                        "hover:bg-bg-elev transition-colors duration-fast ease-standard",
+                        option.id === category.id && "bg-bg-elev",
+                      )}
+                    >
+                      <span
+                        aria-hidden
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: option.color }}
+                      />
+                      <span className="min-w-0 flex-1 truncate">
+                        {option.name}
+                      </span>
+                      {option.id === category.id ? (
+                        <Check aria-hidden className="h-3 w-3 text-accent" />
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+                {filtered.length === 0 ? (
+                  <li className="px-2 py-1.5 text-[13px] text-text-2">
+                    No matching category
+                  </li>
+                ) : null}
+              </ul>
+            </div>,
+            document.body,
+          )
+        : null}
     </span>
   );
 };

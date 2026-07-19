@@ -62,6 +62,9 @@ export const MappingReviewRow: React.FC<MappingReviewRowProps> = ({
           searchable
           size="md"
           placeholder="unmapped"
+          // The review list rides a mobile scrollport — the menu portals
+          // out so it never clips at the container edge (PR #215 review).
+          portalMenu
         />
       </span>
       <span className="w-28 shrink-0">

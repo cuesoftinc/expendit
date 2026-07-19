@@ -95,7 +95,7 @@ describe("MarketingNav (design.md §8.2b + parity canon)", () => {
     expect(screen.getByTestId("slot")).toBeInTheDocument();
   });
 
-  it("mobile: hamburger disclosure carries the 4 links + trailing + Sign in + Try Cloud (parity canon)", async () => {
+  it("mobile: the bar keeps the Try Cloud CTA beside the hamburger; the panel carries the 4 links + trailing + Sign in (parity canon, revised 2026-07-19)", async () => {
     render(
       <MarketingNav {...props} trailing={<span data-testid="slot">t</span>} />,
     );
@@ -120,7 +120,11 @@ describe("MarketingNav (design.md §8.2b + parity canon)", () => {
       for (const link of links) expect(link).toHaveAttribute("href", href);
     }
     expect(screen.getAllByRole("link", { name: "Sign in" }).length).toBe(2);
-    expect(screen.getAllByRole("link", { name: "Try Cloud" }).length).toBe(2);
+    // Try Cloud renders ONCE — the always-visible bar CTA; the panel
+    // carries no duplicate row (canon revision 2026-07-19).
+    const tryCloud = screen.getAllByRole("link", { name: "Try Cloud" });
+    expect(tryCloud.length).toBe(1);
+    expect(panel?.contains(tryCloud[0])).toBe(false);
     expect(screen.getAllByTestId("slot").length).toBe(2);
 
     await userEvent.click(menu);

@@ -67,7 +67,13 @@
   auto tracks blow out to item min-content and push the page wide); header
   action clusters and row action clusters `flex-wrap` under their titles
   instead of forcing width; the wizard's rail/content/summary columns
-  stack below lg. A Playwright sweep (`e2e/mobile-responsive.spec.ts`)
+  stack below lg. Floating pickers that live inside the scrollports
+  (CategoryChip's combobox; Select with `portalMenu`) portal to `<body>`
+  with viewport-fixed anchoring (`src/lib/use-anchored-layer.ts`) so the
+  scroll container never clips their menus. The marketing nav below md
+  keeps the Try Cloud CTA beside the hamburger; the panel carries the 4
+  links + ThemeToggle + Sign in [Revised 2026-07-19]. A Playwright sweep
+  (`e2e/mobile-responsive.spec.ts`)
   asserts per route at 390 + 768: document fits the viewport, `<main>`
   never side-scrolls, and any element past the viewport sits inside a
   contained scroll container.

@@ -81,21 +81,23 @@ const DEEP_DIVES: DeepDive[] = [
     body: "Map statements to a canonical line-item model and get 22 ratios and metrics across liquidity, solvency, profitability, efficiency and cash flow. Every figure is traceable to its source lines, with benchmark bands for context.",
     copySide: "left",
     visual: (
-      <div className="w-full max-w-[260px] rounded border border-border bg-bg p-4">
-        <RatioGauge
-          label="Current ratio"
-          value={1.82}
-          display="1.82"
-          min={0}
-          max={3.5}
-          status="healthy"
-          band={{ from: 1.5, to: 3.0 }}
-          delta={0.21}
-          deltaCaption="vs Q1"
-          caption="Benchmark 1.5–3.0 · general guidance"
-          formula="Current ratio = current assets ÷ current liabilities"
-        />
-      </div>
+      // RatioGauge is its own card (border + bg + p-4, fixed 240px) —
+      // no outer chrome: a second bordered wrapper double-boxed it and
+      // its 228px content box clipped the gauge asymmetrically
+      // (user-reported 2026-07-19).
+      <RatioGauge
+        label="Current ratio"
+        value={1.82}
+        display="1.82"
+        min={0}
+        max={3.5}
+        status="healthy"
+        band={{ from: 1.5, to: 3.0 }}
+        delta={0.21}
+        deltaCaption="vs Q1"
+        caption="Benchmark 1.5–3.0 · general guidance"
+        formula="Current ratio = current assets ÷ current liabilities"
+      />
     ),
   },
   {
