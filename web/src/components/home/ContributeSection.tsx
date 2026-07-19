@@ -49,30 +49,44 @@ const GitHubMark: React.FC<{ className?: string }> = ({ className }) => (
 
 /** A8 architecture mini-diagram — web → api → mongo/redis (tokens only). */
 const ArchDiagram: React.FC = () => {
+  // shrink-0: the fixed 160px boxes must never squeeze (their labels
+  // spilled through the borders at 390w — live QA 2026-07-19); below sm
+  // the whole diagram stacks vertically instead (fork flattens to a
+  // chain, connectors turn vertical).
   const box =
-    "flex h-11 w-40 items-center justify-center rounded border border-border bg-bg-elev font-mono text-[13px] text-text";
+    "flex h-11 w-40 shrink-0 items-center justify-center rounded border border-border bg-bg-elev font-mono text-[13px] text-text";
   const connector = "bg-border";
   return (
     <figure
       aria-label="Architecture: web (Next.js) talks to api (Go/Gin), which uses Mongo and Redis"
       className="mx-auto mt-8 w-full max-w-[720px] rounded border border-border p-8"
     >
-      <div className="flex items-center justify-center">
+      <div className="flex flex-col items-center justify-center sm:flex-row">
         <div className={box}>web · Next.js</div>
-        <div aria-hidden className={`h-px w-8 sm:w-16 ${connector}`} />
+        <div aria-hidden className={`h-6 w-px sm:h-px sm:w-16 ${connector}`} />
         <div className={box}>api · Go/Gin</div>
-        <div aria-hidden className={`h-px w-4 sm:w-8 ${connector}`} />
-        <div aria-hidden className="flex flex-col items-start self-stretch">
+        <div aria-hidden className={`h-6 w-px sm:h-px sm:w-8 ${connector}`} />
+        {/* Fork column — desktop only; the mobile chain runs straight. */}
+        <div
+          aria-hidden
+          className="hidden flex-col items-start self-stretch sm:flex"
+        >
           <div className={`w-px flex-1 ${connector}`} />
           <div className={`w-px flex-1 ${connector}`} />
         </div>
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center">
-            <div aria-hidden className={`h-px w-4 sm:w-8 ${connector}`} />
+        <div className="flex flex-col items-center gap-0 sm:items-stretch sm:gap-6">
+          <div className="flex flex-col items-center sm:flex-row">
+            <div
+              aria-hidden
+              className={`hidden h-px w-4 sm:block sm:w-8 ${connector}`}
+            />
             <div className={box}>mongo</div>
           </div>
-          <div className="flex items-center">
-            <div aria-hidden className={`h-px w-4 sm:w-8 ${connector}`} />
+          <div className="flex flex-col items-center sm:flex-row">
+            <div
+              aria-hidden
+              className={`h-6 w-px sm:h-px sm:w-8 ${connector}`}
+            />
             <div className={box}>redis</div>
           </div>
         </div>
@@ -86,7 +100,7 @@ export const ContributeSection: React.FC = () => {
   const { track } = useAnalyticsController();
 
   return (
-    <section id={ANCHORS.contribute} className="bg-bg py-20">
+    <section id={ANCHORS.contribute} className="scroll-mt-16 bg-bg py-20">
       <SectionInner>
         <SectionHeading>
           For developers — come build the hard parts
@@ -97,7 +111,9 @@ export const ContributeSection: React.FC = () => {
 
         <ArchDiagram />
 
-        <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-10 md:grid-cols-2">
+        {/* Dev-row spans the full 1200px container (§2 pin) — the old
+            max-w-4xl was one of the phantom containers. */}
+        <div className="mt-12 grid grid-cols-1 gap-10 md:grid-cols-2 md:gap-6">
           <div>
             <h3 className="text-base font-semibold text-text">
               Problems worth your weekend

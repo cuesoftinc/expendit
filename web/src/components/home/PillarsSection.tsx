@@ -62,7 +62,7 @@ const PILLARS = [
 ];
 
 export const PillarsSection: React.FC = () => (
-  <section id={ANCHORS.product} className="bg-bg pb-20 pt-10">
+  <section id={ANCHORS.product} className="scroll-mt-16 bg-bg pb-20 pt-10">
     <SectionInner>
       <SectionHeading>One ledger. Three superpowers.</SectionHeading>
       <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">

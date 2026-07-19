@@ -143,6 +143,119 @@ test.describe("public home `/` (Part A)", () => {
     await expect(page.locator("#self-host")).toBeInViewport();
   });
 
+  test("one centered 1200px container aligns every band (1440 + 2400)", async ({
+    page,
+  }) => {
+    // design.md §2 container pin [Decided 2026-07-19]: content x 120–1320
+    // on the 1440 frame; the wide viewport is where drift shows clearest.
+    for (const width of [1440, 2400]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/");
+      const edges = await page.evaluate(() => {
+        const boxes: { name: string; left: number; right: number }[] = [];
+        for (const el of document.querySelectorAll("[data-section-inner]")) {
+          const rect = el.getBoundingClientRect();
+          const style = getComputedStyle(el);
+          boxes.push({
+            name: `section-inner:${el.closest("section")?.id || "band"}`,
+            left: rect.left + parseFloat(style.paddingLeft),
+            right: rect.right - parseFloat(style.paddingRight),
+          });
+        }
+        const navInner = document.querySelector(
+          'nav[aria-label="Marketing"] > div',
+        );
+        const footerInner = document.querySelector("footer > div");
+        for (const [name, el] of [
+          ["nav", navInner],
+          ["footer", footerInner],
+        ] as const) {
+          if (!el) continue;
+          const rect = el.getBoundingClientRect();
+          boxes.push({ name, left: rect.left, right: rect.right });
+        }
+        return boxes;
+      });
+      expect(edges.length).toBeGreaterThanOrEqual(15);
+      const expectedLeft = (width - 1200) / 2;
+      for (const box of edges) {
+        expect
+          .soft(Math.abs(box.left - expectedLeft), `${box.name} left @${width}`)
+          .toBeLessThanOrEqual(1);
+        expect
+          .soft(
+            Math.abs(box.right - (width - expectedLeft)),
+            `${box.name} right @${width}`,
+          )
+          .toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  test("3-up card rows share the 384px/24px rhythm at 1440", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    // Pillars (A4) and demo stat cards (A5) — 384px cards, 24px gutters.
+    const widths = await page.evaluate(() => {
+      const rows = [
+        document.querySelector("#product [data-section-inner] > div.grid"),
+        document.querySelector("#demo .grid.sm\\:grid-cols-3"),
+      ];
+      return rows.flatMap((row) =>
+        row
+          ? [...row.children].map((card) =>
+              Math.round(card.getBoundingClientRect().width),
+            )
+          : [],
+      );
+    });
+    expect(widths.length).toBe(6);
+    for (const width of widths) {
+      expect(Math.abs(width - 384)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test("landmarks + demo table semantics", async ({ page }) => {
+    await page.goto("/");
+    // Exactly one main and one h1; footer is the contentinfo.
+    await expect(page.locator("main")).toHaveCount(1);
+    await expect(page.locator("h1")).toHaveCount(1);
+    await expect(page.getByRole("contentinfo")).toHaveCount(1);
+
+    // Demo table: a real <table> (W3 semantic refactor) whose rows
+    // contain only cells / columnheaders — native or ARIA (live QA
+    // 2026-07-19: rows were orphaned, cells bare).
+    const table = page.getByRole("table", { name: "Demo transactions" });
+    await expect(table).toBeVisible();
+    expect(
+      await table.getByRole("columnheader").count(),
+    ).toBeGreaterThanOrEqual(4);
+    expect(await table.getByRole("row").count()).toBeGreaterThanOrEqual(5);
+    const orphanChildren = await table.evaluate(
+      (node) =>
+        [...node.querySelectorAll("tr,[role=row]")].filter((row) =>
+          [...row.children].some(
+            (cell) => !cell.matches("td,th,[role=cell],[role=columnheader]"),
+          ),
+        ).length,
+    );
+    expect(orphanChildren).toBe(0);
+
+    // No row (native or ARIA) outside a table/grid context anywhere
+    // non-decorative.
+    const orphanRows = await page.evaluate(
+      () =>
+        [...document.querySelectorAll("tr,[role=row]")].filter(
+          (row) =>
+            !row.closest("[role=table],[role=grid],table") &&
+            !row.closest("[inert]"),
+        ).length,
+    );
+    expect(orphanRows).toBe(0);
+  });
+
   test("renders at 375w (responsive floor)", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/");

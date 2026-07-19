@@ -114,7 +114,12 @@ const Variant: React.FC<{ label: string; children: React.ReactNode }> = ({
     <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-text-2">
       {label}
     </div>
-    <div className="flex flex-wrap items-start gap-3">{children}</div>
+    {/* overflow-x-auto: fixed-width previews (rows, wizard, tables)
+        scroll inside the variant instead of pushing the page wide on
+        mobile (390w overflowed by ~245px — live QA 2026-07-19). */}
+    <div className="flex flex-wrap items-start gap-3 overflow-x-auto">
+      {children}
+    </div>
   </div>
 );
 
