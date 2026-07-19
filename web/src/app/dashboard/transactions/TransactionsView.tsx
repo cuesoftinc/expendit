@@ -20,7 +20,7 @@ import React, {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
-import dayjs from "dayjs";
+import { formatIso, todayIso } from "@/lib/dates";
 import {
   useCategoriesController,
   useOrg,
@@ -82,7 +82,7 @@ const draftFrom = (txn?: TxnEntry): TxnDraft => ({
   amount: txn ? String(txn.amount) : "",
   direction: txn?.direction ?? "expense",
   category_id: txn?.category_id ?? null,
-  txn_date: txn?.txn_date ?? dayjs().format("YYYY-MM-DD"),
+  txn_date: txn?.txn_date ?? todayIso(),
 });
 
 export const TransactionsView: React.FC = () => {
@@ -280,7 +280,7 @@ export const TransactionsView: React.FC = () => {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = `transactions-${dayjs().format("YYYY-MM-DD")}.csv`;
+    link.download = `transactions-${todayIso()}.csv`;
     link.click();
     URL.revokeObjectURL(url);
     setToast(`Exported ${rows.length} transactions`);
@@ -1048,8 +1048,7 @@ export const TransactionsView: React.FC = () => {
                   {comparableTxns.map((txn) => (
                     <li key={txn.id} className="flex justify-between gap-2">
                       <span className="truncate text-text-2">
-                        {dayjs(txn.txn_date).format("D MMM")} ·{" "}
-                        {txn.description}
+                        {formatIso(txn.txn_date, "d MMM")} · {txn.description}
                       </span>
                       <MoneyCell
                         amount={txn.amount}

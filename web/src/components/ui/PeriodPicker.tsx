@@ -8,7 +8,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Calendar, ChevronDown } from "lucide-react";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import { cn } from "@/lib/cn";
 import { useViewportShiftX } from "@/lib/use-viewport-clamp";
 
@@ -60,13 +60,13 @@ export const formatPeriod = (mode: PeriodMode, value: string): string => {
   if (!isValidPeriod(mode, value)) return value;
   switch (mode) {
     case "day":
-      return dayjs(value).format("D MMM YYYY");
+      return formatIso(value, "d MMM yyyy");
     case "range": {
       const [from, to] = value.split("..");
-      return `${dayjs(from).format("D MMM")} – ${dayjs(to).format("D MMM YYYY")}`;
+      return `${formatIso(from, "d MMM")} – ${formatIso(to, "d MMM yyyy")}`;
     }
     case "month":
-      return dayjs(`${value}-01`).format("MMM YYYY");
+      return formatIso(`${value}-01`, "MMM yyyy");
     case "quarter": {
       const [year, quarter] = value.split("-");
       return `${quarter} ${year}`;

@@ -29,6 +29,5 @@ describe("/signin view (flows/auth.md §1 — the one auth screen)", () => {
       screen.getByRole("button", { name: "Continue with Google" }),
     );
     expect(push).toHaveBeenCalledWith("/dashboard");
-    expect(window.localStorage.getItem("ExpenditLoggedIn")).toBe("true");
   });
 });

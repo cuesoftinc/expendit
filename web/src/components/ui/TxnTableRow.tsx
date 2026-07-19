@@ -19,7 +19,7 @@ import {
   Pencil,
   Split,
 } from "lucide-react";
-import dayjs from "dayjs";
+import { formatIso } from "@/lib/dates";
 import type { TxnEntry, TxnSource } from "@/models";
 import { cn } from "@/lib/cn";
 import AnomalyBadge from "./AnomalyBadge";
@@ -116,9 +116,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       </td>
       {/* Figma date column: short date, Table/13, text-2 (e.g. "12 Jan"). */}
       <td className="w-14 shrink-0 whitespace-nowrap tabular-nums text-text-2">
-        {dayjs(txn.txn_date).isValid()
-          ? dayjs(txn.txn_date).format("D MMM")
-          : txn.txn_date}
+        {formatIso(txn.txn_date, "d MMM")}
       </td>
       {/* Figma: source icon sits between date and description. */}
       <td className="flex shrink-0 items-center">
