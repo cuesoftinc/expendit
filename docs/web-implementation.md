@@ -3,7 +3,7 @@
 > How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
 > Expendit-specific addendum — stage plan, token mapping, route map,
-> TEST_MODE contract, mock server, test strategy, legacy quarantine plan.
+> TEST_MODE contract, mock server, test strategy, legacy/dead-code policy.
 > Markers as in [design.md](design.md): **[Directive]** = user-stated
 > direction, **[Proposed]** = ratifiable decision, **[Decided <date>]** =
 > ratified. Companion contracts: [engineering.md](engineering.md) (errors,
@@ -13,9 +13,8 @@
 ## 1. The standard (ecosystem, shared across the three products)
 
 - **Stack**: Next.js 16 App Router + React 19 + TypeScript; Tailwind maps to
-  the token CSS variables (§3). Expendit migrates **progressively off MUI**
-  — new-system components are token/Tailwind-based; MUI survives only
-  inside `web/src/legacy/` until retired (§8).
+  the token CSS variables (§3). Components are token/Tailwind-based — the
+  live tree carries no MUI (§8 boundary gates).
 - **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
   mirroring design.md §2 exactly (light on `:root`, dark on
   `[data-theme="dark"]`, honoring `prefers-color-scheme` with manual
@@ -85,10 +84,10 @@ design-phase QA loops, design.md §8).
 
 | Stage | Scope | Closes when |
 | --- | --- | --- |
-| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test · **legacy step 1** (§8): password-auth quartet quarantined, `/signin` replaced Google-only | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed `/dashboard` against the mock server; every surviving legacy route still functions; CI green |
+| **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test · `/signin` Google-only (X-1) | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed `/dashboard` against the mock server; CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → table chrome, charts, app chrome) and §8.2/§8.2b contract rows, MI specs MI-1…MI-16 (all web-applicable) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
 | **W2 Home** **[Done 2026-07-19, PR #202]** | Part A sections (§4): A1–A11 + iteration rows A4a/A5a/A8a/A10a/A10b · A5 interactive demo (tabs over the three §6 synthetic datasets, "This is demo data" badge) · analytics events to Upstat (D2: `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact`, `contribute_click`, `faq_open`) · runtime GitHub star count on A8 (the A1 nav badge stays neutral "Star" — as built, design.md §8.2b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the cross-page CTA handoff into `/signin` |
-| **W3 Dashboards** **[Done 2026-07-19, PR #206]** | Part B routes (§4): B0–B9 + B6b/B7b · feature controllers · ⌘K palette (MI-1), Inspector pattern (MI-11), bank-link + filing wizards (MI-9/MI-10), rights flows (MI-15) · **legacy step 2** (§8): per-area replacement + quarantine of the MUI-era routes | QA vs the Stage-4 Figma templates + prototype flows; Playwright covers the "Core journey — sign in" §8.4 flow (§7) |
+| **W3 Dashboards** **[Done 2026-07-19, PR #206]** | Part B routes (§4): B0–B9 + B6b/B7b · feature controllers · ⌘K palette (MI-1), Inspector pattern (MI-11), bank-link + filing wizards (MI-9/MI-10), rights flows (MI-15) | QA vs the Stage-4 Figma templates + prototype flows; Playwright covers the "Core journey — sign in" §8.4 flow (§7) |
 
 **W2 as-built notes (2026-07-19, PR #202):**
 
@@ -104,13 +103,6 @@ design-phase QA loops, design.md §8).
   env-gated behind `NEXT_PUBLIC_UPSTAT_EVENTS_URL` and fires only outside
   TEST_MODE — the D2 ingestion contract is not yet ratified, so the
   default build ships queue-only.
-- Orphaned legacy from the W2 swap is recorded for the W3 quarantine
-  tranche, not deleted now: `src/components/marketing/`,
-  `src/hooks/marketing/`, the marketing images under `src/assets/images/`,
-  and the old `web/__tests__/home.test.tsx` + `index.test.tsx` pair; the
-  `slick-carousel`/`react-slick` CSS imports and the extra Google Fonts
-  (AR One Sans, Barlow, Cabin, Poppins) retire with the W3 dashboard
-  tranche alongside the rest of the MUI-era app.
 - The `components/ui/*` registry gained additive extensions discovered in
   the W2 QA loop: `Accordion` `mode="single"` (A10a FAQ, one item open at a
   time), `MarketingFooter` slot prop (bottom-right, beside the security
@@ -119,12 +111,8 @@ design-phase QA loops, design.md §8).
 - `tokens.css` gained an explicit `[data-theme="light"]` re-declaration
   (alongside `:root`) so theme scoping works when a dark-editorial section
   sits inside a light-scoped subtree.
-- **Naming canon [carried to W3]:** the Part A section components
-  currently live in `web/src/components/landing/`; W3 renames this tree to
-  `web/src/components/home/` (the legacy dashboard-mini `components/home/`
-  — `ImportCard`, `LatestExpenses`, `LinearChart`, `TopBoard` — retires in
-  the same tranche, freeing the name). `components/home/` is the canonical
-  path going forward.
+- **Naming canon:** the Part A section components live in
+  `web/src/components/home/` — the canonical path.
 
 **W3 as-built notes (2026-07-19, PR #206):**
 
@@ -140,19 +128,6 @@ design-phase QA loops, design.md §8).
   sheet → typed confirm → stamped, immutable filing history). B9 carries
   the USR-001 export and USR-002 purge (MI-15 typed-confirm, 7-day grace,
   cancel) rights flows.
-- **Legacy tranche step 2** (§8) `git mv`-ed the eight superseded area
-  routes (`dashboard`, `expense`, `income`, `history`, `import`, `reports`,
-  `categories`, `settings`) plus the W2 orphan marketing ledger
-  (`components/marketing/`, `hooks/marketing/`, legacy assets, the old home
-  test) and the now-orphaned shared chrome (`components/layouts`, `api`,
-  `utils`, `dummy`, `context`, `custom-styles`, signup inputs, the
-  `react-slick` decl, `global.d.ts`) into `src/legacy/` — quarantine only,
-  no deletions. The replaced flat routes redirect to their nested canon
-  (`/expense`/`/income`/`/history` → `/dashboard/transactions`, `/import` →
-  `/dashboard/imports`, `/reports`/`/categories`/`/settings` → the matching
-  `/dashboard/<area>`). Retirement-PR candidates are recorded on the
-  tranche commit, incl. the `@mui/material`/`@mui/x-data-grid` dependency
-  set, which drops only once every area's retirement PR has landed.
 - **Semantic registry refactor:** `TxnTableRow`/`TableHeader` compose a
   real `<table>`/`<thead>`/`<tr>`/`<td>`/`<th scope="col">` ledger instead
   of div grids; row components that carried a table-context `role=row`
@@ -282,10 +257,7 @@ pages.md names the Part B routes directly in its screen headers — the map
 below restates them and resolves the drill-ins. Route shape
 **[Decided 2026-07-18, route canon]** (user directive, canonical across the
 ecosystem): `/` is the public home, `/signin` is the only auth route, and
-**every app surface nests under `/dashboard/<area>`** — the earlier flat
-proposals (`/transactions`, `/imports`, …) are superseded by the nested
-rows below. Legacy flat routes stay untouched until their §8 quarantine
-step. Detail views
+**every app surface nests under `/dashboard/<area>`**. Detail views
 open in the Inspector (deep-linkable `?record=`, MI-11), not routes —
 tables never navigate away for a single record (design.md §2 layout rule);
 the ⌘K palette (MI-1) is a global overlay, not a route.
@@ -307,11 +279,12 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | B8 | `/dashboard/categories` | Categories (CRUD, color, merge) |
 | B9 | `/dashboard/settings` | Settings incl. members/roles, org profile, rights & data screens (export-all, purge MI-15) |
 
-Part C (mobile) has no web routes — it is a later phase (§8). Legacy route
-folds and renames (`/history`+`/expense`+`/income` →
-`/dashboard/transactions`, `/import` → `/dashboard/imports`) are handled
-in §8; under the route canon only `/` , `/signin`, and `/dashboard` itself
-collide with legacy paths.
+Part C (mobile) has no web routes — it is a later phase (§8). Flat-path
+redirects keep old links working: `/expense` · `/income` · `/history` →
+`/dashboard/transactions`; `/import` → `/dashboard/imports`; `/reports` ·
+`/categories` · `/settings` → the matching `/dashboard/<area>`; and the
+password-era auth paths (`/signup`, `/forgot-password[/new-password]`,
+`/change-password`) → `/signin` (X-1, flows/auth.md §1).
 
 ## 5. TEST_MODE contract
 
@@ -333,9 +306,8 @@ on it:
    both modes except for the base URL.
 
 Unset (or `0`) → real `FirebaseAuthProvider` + `NEXT_PUBLIC_BASE_URL`
-(api/common). TEST_MODE is how Playwright runs in CI and how the new system
-is developed before the v1 backend consolidation lands. Quarantined legacy
-routes (§8) never read TEST_MODE — they retire, not adapt.
+(api/common). TEST_MODE is how Playwright runs in CI and how the app is
+developed before the v1 backend consolidation lands.
 
 ## 6. Mock server & seed narrative
 
@@ -412,57 +384,24 @@ extend the engineering.md §4 table web-side; the release-tag E2E smoke
 (signin → upload → review → confirm → report download, against sandbox in
 release.yml) reuses the same Playwright journeys **[Proposed]**.
 
-## 8. Legacy quarantine plan
+## 8. Legacy quarantine (dead-code policy)
 
-Unlike apparule's greenfield `web/`, Expendit's `web/` is a **live MUI-era
-system** (design.md §6: "full suite on MUI-era components") — the §1 policy
-applies in full, in two steps:
+The §1 policy, applied: **live paths carry zero dead code**, and
+`web/src/legacy/` + the boundary gates are the standing mechanism.
+`src/legacy/` is the quarantine tree — excluded from the TS build, lint,
+and both test runners, and unrouted by construction (App Router is
+filesystem-based; nothing under `src/legacy/` is a route). The gates hold
+in CI (`scripts/check-boundaries.mjs` + the eslint
+`no-restricted-imports` rules, both wired into `npm run lint`): **MUI
+imports are legal only under `src/legacy/`**, and live code never imports
+from it. `src/legacy/` is **currently empty** — the app runs entirely on
+the token-layer registry (§1), and retired paths stay reachable as
+redirects (§4). `@mui/material` + `@mui/x-data-grid` remain pinned in
+package.json; dropping them is the outstanding cleanup **[Proposed]**.
 
-**Step 1 — W0, the password-auth quartet.** `signin`, `signup`,
-`forgot-password`, and `change-password` (route dirs + their companion
-`src/components`/`src/hooks`/`src/api` trees) are `git mv`-ed into
-`web/src/legacy/` in the W0 PR — X-1 Google-only replaces the entire
-credential system (flows/auth.md). `/signin` is replaced in place by the
-single Google-only auth screen (built to the Stage-4 `signin` template;
-trued up in the W1 QA loop when GoogleAuthButton lands as a QA'd
-component); `/signup` and `/forgot-password` become redirects to `/signin`
-(flows/auth.md §5 acceptance); `/change-password` retires outright. The new
-`/signin` carries the switch-to-Google migration messaging (flows/auth.md
-§3) in place of a surviving password form.
-
-**Step 2 — W3, the MUI-era app, per area.** The remaining legacy routes
-stay **live and untouched** through W0–W2; W3 replaces each area, moves the
-replaced tree to `src/legacy/`, and — after the replacement passes QA +
-Playwright — deletes it in a dedicated `chore(web): retire legacy <area>`
-PR:
-
-| Legacy tree (`web/src/app/…`) | Replaced by | Stage |
-| --- | --- | --- |
-| `signin` · `signup` · `forgot-password` · `change-password` | `/signin` Google-only + redirects (above) | W0 |
-| `/` (current marketing home) | Part A Brex-editorial home | W2 |
-| `dashboard` | B1 `/dashboard` | W3 |
-| `expense` · `income` · `history` | B2 `/dashboard/transactions` — three legacy screens fold into one ledger | W3 |
-| `import` | B3 `/dashboard/imports` (route renamed + nested) | W3 |
-| `reports` | B5 `/dashboard/reports` (nested — route canon, §4) | W3 |
-| `categories` | B8 `/dashboard/categories` (nested — route canon, §4) | W3 |
-| `settings` | B9 `/dashboard/settings` (nested — route canon, §4) | W3 |
-
-New routes with no legacy predecessor (`/onboarding`,
-`/dashboard/accounts`, `/dashboard/company`, `/dashboard/taxes`) land
-greenfield at W3. Under the §4 route canon only `/signin` and `/dashboard`
-itself are replaced in place (the nested areas no longer collide with the
-legacy flat paths) — quarantine and replacement land in the same stage PR;
-retirement PRs are always separate.
-
-Mechanics: moving out of `src/app/` removes routing by construction (App
-Router is filesystem-based); `src/legacy/` is excluded from the TS build
-and lint surface. **MUI imports are legal only under `src/legacy/`**
-(CI grep-gated, same mechanism as the no-raw-hex gate); the final
-retirement PR drops `@mui/material` + `@mui/x-data-grid` from package.json.
-`src/legacy/` empty = the migration is done. The **mobile app is a later
-phase** (pages.md Part C): no `mobile/` tree exists yet, and that phase
-gets its own implementation standard — including its own application of the
-quarantine policy — when it opens.
+The **mobile app is a later phase** (pages.md Part C): no `mobile/` tree
+exists yet, and that phase gets its own implementation standard —
+including its own application of the quarantine policy — when it opens.
 
 ## 9. Acceptance
 
@@ -477,8 +416,8 @@ quarantine policy — when it opens.
       fixtures; contract types shared with models
 - [ ] Views contain no fetch calls (MVC boundary enforced by review + lint
       rule)
-- [ ] MUI imports absent outside `src/legacy/` (CI grep-gated); each
-      retirement lands as its own `chore(web): retire legacy <area>` PR
-      after QA; the last one removes `@mui/*` from package.json
+- [ ] MUI imports absent outside `src/legacy/` (CI grep-gated);
+      `src/legacy/` stays empty — removing `@mui/*` from package.json
+      closes the migration **[Proposed]**
 - [ ] Playwright §8.4 journeys green in CI, incl. the keyboard-first path
       (⌘K + table nav); merge-to-main never deploys (X-6)
