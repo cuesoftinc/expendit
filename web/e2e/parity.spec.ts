@@ -325,8 +325,9 @@ test("theme toggle lives in the dashboard chrome and persists", async ({
 
   // The B9 settings control reads the same store (one source of truth) —
   // its three-way segmented control moves the preference to system,
-  // stored explicitly (not key-absent).
-  await page.goto("/dashboard/settings");
+  // stored explicitly (not key-absent). Appearance rides the tail of the
+  // Organization tab (routed tabs, user-ratified 2026-07-20).
+  await page.goto("/dashboard/settings/organization");
   await expect(page.getByRole("heading", { name: "Appearance" })).toBeVisible();
   await page
     .getByRole("radiogroup", { name: "Theme" })

@@ -450,7 +450,11 @@ test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)
 }) => {
   await signIn(page);
   await openNav(page, "Settings").click();
-  await page.waitForURL("**/dashboard/settings");
+  // routed tabs (2026-07-20): bare settings lands on the first tab; the
+  // purge flow lives in the Data & privacy pane.
+  await page.waitForURL("**/dashboard/settings/organization");
+  await page.getByRole("tab", { name: "Data & privacy" }).click();
+  await page.waitForURL("**/dashboard/settings/data-privacy");
 
   await page.getByRole("button", { name: "Delete everything…" }).click();
   const modal = page.getByRole("dialog", { name: "Delete account & all data" });
@@ -480,7 +484,9 @@ test("settings — editable address (B9) + determinate export strip (B9b)", asyn
   await signIn(page);
   await switchToCompanyOrg(page);
   await openNav(page, "Settings").click();
-  await page.waitForURL("**/dashboard/settings");
+  // routed tabs (2026-07-20): the address lives on the Organization tab
+  // (the redirect target), the export strip on Data & privacy.
+  await page.waitForURL("**/dashboard/settings/organization");
 
   // Registered address is editable per the B9 frame (street/city/state).
   await expect(page.getByLabel("Address line")).toBeVisible();
@@ -489,6 +495,8 @@ test("settings — editable address (B9) + determinate export strip (B9b)", asyn
 
   // Export strip: determinate % + record count + rate-limit microcopy,
   // resolving to the archive download.
+  await page.getByRole("tab", { name: "Data & privacy" }).click();
+  await page.waitForURL("**/dashboard/settings/data-privacy");
   await page.getByRole("button", { name: "Request export" }).click();
   await expect(
     page.getByText(/Preparing export — [\d,]+ records/),

@@ -150,6 +150,16 @@ design-phase QA loops, design.md §8).
   sheet → typed confirm → stamped, immutable filing history). B9 carries
   the USR-001 export and USR-002 purge (MI-15 typed-confirm, 7-day grace,
   cancel) rights flows.
+- **B9 routed settings tabs [User-ratified 2026-07-20]:** settings is a
+  layout (title + underline tab bar) over four REAL sub-routes —
+  Organization (`/organization`, org profile + Appearance tail), Members
+  (`/members`), Data & privacy (`/data-privacy`, AI consent + bank-link
+  permissions, export card above the bordered danger card), Notifications
+  (`/notifications`). The bare route `redirect()`s to the first tab; the
+  tab bar is `RouteTabs` — a `role=tablist` of links with `aria-selected`
+  + `aria-current="page"` and roving-tabindex arrow-key focus (manual
+  activation), h-scrolling inside the viewport below `md`; AppNav's
+  Settings entry matches nested sub-routes.
 - **Semantic registry refactor:** `TxnTableRow`/`TableHeader` compose a
   real `<table>`/`<thead>`/`<tr>`/`<td>`/`<th scope="col">` ledger instead
   of div grids; row components that carried a table-context `role=row`
@@ -500,7 +510,11 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | B7 | `/dashboard/taxes` | Tax center (profile, calendar, estimates with RemitToCard, filing history) |
 | B7b | `/dashboard/taxes/file` | Filing wizard (MI-10) |
 | B8 | `/dashboard/categories` | Categories (CRUD, color, merge) |
-| B9 | `/dashboard/settings` | Settings incl. members/roles, org profile, rights & data screens (export-all, purge MI-15) |
+| B9 | `/dashboard/settings` → `/dashboard/settings/organization` | Settings shell — page title + routed tab bar (underline grammar, tablist-of-links with `aria-current`); the bare route redirects to the first tab (live IA, **[User-ratified 2026-07-20]**) |
+| B9 | `/dashboard/settings/organization` | Organization tab — org profile (name, registered address, fiscal year end) + Appearance card tail (theme control) |
+| B9 | `/dashboard/settings/members` | Members tab — members & roles (invite → pending until first sign-in) |
+| B9/B9b | `/dashboard/settings/data-privacy` | Data & privacy tab — AI consent + bank-link permissions; USR-001 export card (determinate strip) above the bordered danger card (USR-002 purge, MI-15 typed confirm + 7-day grace) |
+| B9 | `/dashboard/settings/notifications` | Notifications tab — deadline reminders + import summaries |
 
 Part C (mobile) has no web routes — it is a later phase (§8). Legacy
 flat paths (`/expense`, `/income`, `/history`, `/import`, `/reports`,
