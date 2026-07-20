@@ -34,9 +34,7 @@ describe("formatMoneyCompact (chart y ticks — Figma Chart/Line master)", () =>
       "₦3.61M",
     );
     // Trailing zeros are trimmed — never ₦2.50M.
-    expect(formatMoneyCompact(2_500_000, "NGN", { decimals: 2 })).toBe(
-      "₦2.5M",
-    );
+    expect(formatMoneyCompact(2_500_000, "NGN", { decimals: 2 })).toBe("₦2.5M");
   });
 
   it("preserves the sign on negative ticks (dipping cash-flow domains)", () => {

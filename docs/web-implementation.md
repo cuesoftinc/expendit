@@ -327,7 +327,8 @@ adjudicated audit ledger):**
   "1 anomaly", humanized fiscal-year-end select, Light | Dark | System
   order.
 - **/docs/api**: Scalar's dev toolbar is disabled via configuration
-  (`showToolbar: "never"`), never a fork.
+  (`showDeveloperTools: "never"` — `showToolbar` is its deprecated
+  alias), never a fork.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
