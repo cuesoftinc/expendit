@@ -278,6 +278,20 @@ const categories: Category[] = [
     vat_treatment: "exempt",
     vat_basis: "inclusive",
   },
+  // AI-proposed category awaiting confirmation (B8 frame row state):
+  // courier/dispatch vendors clustered out of Ops & logistics.
+  {
+    id: "cat-ai-logistics",
+    org_id: ORG_CUESOFT,
+    name: "Logistics",
+    type: "expense",
+    color: "#6E6E76",
+    tax_treatment: "ignore",
+    vat_treatment: "exempt",
+    vat_basis: "inclusive",
+    ai_proposed: true,
+    ai_note: "AI proposed from 3 vendors",
+  },
   // Personal org — the freelancer dataset
   {
     id: "cat-personal-income",

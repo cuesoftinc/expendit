@@ -42,6 +42,11 @@ export async function PUT(request: Request, context: Context) {
   if (body.vat_treatment !== undefined)
     category.vat_treatment = body.vat_treatment;
   if (body.vat_basis !== undefined) category.vat_basis = body.vat_basis;
+  // A human edit confirms an AI-proposed registry entry (B8 row state).
+  if (category.ai_proposed) {
+    category.ai_proposed = false;
+    category.ai_note = null;
+  }
   return ok(category);
 }
 
