@@ -37,7 +37,13 @@ const KIND_OPTIONS = [
   { value: "cit", label: "Company income tax (CIT)" },
 ];
 
-const STEP_LABELS = ["Period", "Data review", "Documents", "Submit"];
+/** Rail steps with sub-captions (Figma B7b 188:3855); step 3 = "Forms". */
+const STEP_META = [
+  { label: "Period", caption: "Choose what to file" },
+  { label: "Data review", caption: "Traceable computed fields" },
+  { label: "Forms", caption: "Generated filing forms" },
+  { label: "Submit", caption: "Typed confirmation locks it" },
+];
 
 /** Human labels for the shared missing-identifier keys. */
 const IDENTIFIER_LABELS: Record<string, string> = {
@@ -226,13 +232,19 @@ export const FilingWizardView: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  /** Reviewable computed lines (remittance sheet is a document, not a line). */
+  const reviewFields = filing
+    ? filing.computed_fields.filter((field) => field.key !== "remittance_sheet")
+    : [];
+
   const steps = (
     <>
-      {STEP_LABELS.map((label, index) => (
+      {STEP_META.map((meta, index) => (
         <WizardStep
-          key={label}
+          key={meta.label}
           state={stepState(index, step, index === 1 && identityBlocked)}
-          label={label}
+          label={meta.label}
+          caption={meta.caption}
           index={index + 1}
           orientation="vertical"
         />
@@ -240,31 +252,33 @@ export const FilingWizardView: React.FC = () => {
     </>
   );
 
+  // Running summary (Figma B7b): Period + the computed lines
+  // (Output/Input/Net for VAT) with the estimates footnote.
   const summary = filing ? (
-    <dl className="space-y-2 text-[13px]">
-      <div className="flex justify-between gap-2">
-        <dt className="text-text-2">Filing</dt>
-        <dd className="font-medium uppercase">{filing.kind}</dd>
-      </div>
-      <div className="flex justify-between gap-2">
-        <dt className="text-text-2">Period</dt>
-        <dd className="tabular-nums">{filing.period}</dd>
-      </div>
-      <div className="flex justify-between gap-2">
-        <dt className="text-text-2">Amount due</dt>
-        <dd className="tabular-nums">
-          {formatMoney(filing.amount_due, currency)}
-        </dd>
-      </div>
-      <div className="flex justify-between gap-2">
-        <dt className="text-text-2">Authority</dt>
-        <dd>{filing.authority.code}</dd>
-      </div>
-      <div className="flex justify-between gap-2">
-        <dt className="text-text-2">Deadline</dt>
-        <dd className="tabular-nums">{filing.due_date}</dd>
-      </div>
-    </dl>
+    <>
+      <dl className="space-y-2 text-[13px]">
+        <div className="flex justify-between gap-2">
+          <dt className="text-text-2">Period</dt>
+          <dd className="tabular-nums">
+            <span className="font-medium uppercase">{filing.kind}</span>{" "}
+            {filing.period}
+          </dd>
+        </div>
+        {reviewFields.map((field) => (
+          <div key={field.key} className="flex justify-between gap-2">
+            <dt className="min-w-0 truncate text-text-2">
+              {field.label.split(" — ")[0]}
+            </dt>
+            <dd className="tabular-nums">
+              {formatMoney(field.value, currency)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-3 border-t border-border pt-2 text-[12px] leading-4 text-text-2">
+        Estimates update as you review line items.
+      </p>
+    </>
   ) : (
     <p className="text-[13px] text-text-2">
       Draft a period to see the running summary.
@@ -339,6 +353,8 @@ export const FilingWizardView: React.FC = () => {
 
         {step === 2 && filing ? (
           <section aria-label="Data review" className="space-y-4">
+            {/* Step anatomy (Figma B7b): H2 + intro. */}
+            <h2 className="text-sm font-semibold text-text">Data review</h2>
             {identityBlocked || profileIncomplete ? (
               <Banner
                 kind="warn"
@@ -359,7 +375,7 @@ export const FilingWizardView: React.FC = () => {
             ) : null}
             <p className="text-[13px] text-text-2">
               Every computed field carries its “how we got this” trace — the
-              exact formula and inputs behind the figure (MI-10).
+              exact formula and inputs behind the figure.
             </p>
             {zeroActivity ? (
               <Banner kind="info">
@@ -368,18 +384,25 @@ export const FilingWizardView: React.FC = () => {
                 would produce an empty filing.
               </Banner>
             ) : null}
-            <Accordion items={traceItems(filing)} />
+            {/* Figma B7b: FIRST accordion expanded, chevrons LEFT,
+                amounts as a right-aligned column. */}
+            <Accordion
+              items={traceItems(filing)}
+              chevron="left"
+              defaultOpen={reviewFields[0] ? [reviewFields[0].key] : []}
+            />
             <div className="flex gap-2">
               <Button kind="quiet" onClick={() => setStep(1)}>
                 Back
               </Button>
-              <Button onClick={() => setStep(3)}>Looks right — continue</Button>
+              <Button onClick={() => setStep(3)}>Continue to forms</Button>
             </div>
           </section>
         ) : null}
 
         {step === 3 && filing ? (
-          <section aria-label="Documents" className="space-y-4">
+          <section aria-label="Forms" className="space-y-4">
+            <h2 className="text-sm font-semibold text-text">Forms</h2>
             <p className="text-[13px] text-text-2">
               Generating produces the filing forms and the remittance sheet —
               the authority is named before anything is final.

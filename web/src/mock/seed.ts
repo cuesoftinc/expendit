@@ -2678,7 +2678,7 @@ const taxProfiles: TaxProfile[] = [
 const vatFields = (output: number, input: number) => [
   {
     key: "output_vat",
-    label: "Output VAT",
+    label: "Output VAT — collected on sales",
     value: output,
     formula: "Σ vatable income × 7.5/107.5 (inclusive)",
     inputs: [],
@@ -2686,7 +2686,7 @@ const vatFields = (output: number, input: number) => [
   },
   {
     key: "input_vat",
-    label: "Recoverable input VAT",
+    label: "Input VAT — paid on purchases",
     value: input,
     formula: "Σ vatable expenses × 7.5/107.5 (inclusive)",
     inputs: [],
@@ -2694,7 +2694,7 @@ const vatFields = (output: number, input: number) => [
   },
   {
     key: "net_vat",
-    label: "Net VAT position",
+    label: "Net VAT payable",
     value: output - input,
     formula: "output − recoverable input",
     inputs: [],

@@ -320,13 +320,27 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   // Step 1 — period (VAT · 2026-06 is the seeded complete period).
   await page.getByRole("button", { name: "Draft filing" }).click();
 
-  // Step 2 — data review: traceable computed fields (MI-10).
+  // Step 2 — data review (Figma B7b anatomy): H2 + frame line names,
+  // FIRST trace accordion expanded, summary footnote, CTA to forms.
   await expect(page.getByText("Output VAT").first()).toBeVisible({
     timeout: 15_000,
   });
-  await page.getByRole("button", { name: "Looks right — continue" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Data review" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Input VAT — paid on purchases").first(),
+  ).toBeVisible();
+  await expect(page.getByText("Net VAT payable").first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /Output VAT — collected on sales/ }),
+  ).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    page.getByText("Estimates update as you review line items."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Continue to forms" }).click();
 
-  // Step 3 — documents: the remittance sheet names the authority.
+  // Step 3 — forms: the remittance sheet names the authority.
   await expect(page.getByText("Remittance sheet (preview)")).toBeVisible();
   await expect(
     page.getByText("Federal Inland Revenue Service (FIRS)"),

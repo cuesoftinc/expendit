@@ -55,9 +55,13 @@ export const RemitToCard: React.FC<RemitToCardProps> = ({
           <div className="text-sm font-medium leading-5 text-text">
             {TAX_LABEL[kind]}
           </div>
-          <div className="truncate text-[13px] leading-4 text-text-2">
-            Remit to {authority.name}{" "}
-            <span className="font-mono">({authority.code})</span>
+          <div
+            className="truncate text-[13px] leading-4 text-text-2"
+            // Short authority name in the subtitle (Figma 96:658) — the
+            // full name rides the tooltip instead of truncating.
+            title={authority.name}
+          >
+            Remit to <span className="font-mono">{authority.code}</span>
           </div>
         </div>
       </div>

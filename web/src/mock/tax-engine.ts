@@ -143,7 +143,7 @@ export const computeVatEstimate = (
   const fields: ComputedField[] = [
     {
       key: "output_vat",
-      label: "Output VAT",
+      label: "Output VAT — collected on sales",
       value: outputRounded,
       formula: "Σ vatable income × 7.5/107.5 (inclusive basis)",
       inputs: outputIds,
@@ -151,7 +151,7 @@ export const computeVatEstimate = (
     },
     {
       key: "input_vat",
-      label: "Recoverable input VAT",
+      label: "Input VAT — paid on purchases",
       value: inputRounded,
       formula: "Σ vatable expenses × 7.5/107.5 (inclusive basis)",
       inputs: inputIds,
@@ -159,7 +159,7 @@ export const computeVatEstimate = (
     },
     {
       key: "net_vat",
-      label: "Net VAT position",
+      label: "Net VAT payable",
       value: net,
       formula: "output − recoverable input",
       inputs: [],

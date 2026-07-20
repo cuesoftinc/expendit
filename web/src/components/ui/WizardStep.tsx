@@ -35,7 +35,9 @@ const Marker: React.FC<{
     className={cn(
       "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium tabular-nums",
       "transition-colors duration-base ease-standard",
-      state === "done" && "border-accent bg-accent text-on-accent",
+      // Completed check is GREEN (Figma B7b — success semantics, not
+      // accent; on-accent ink is white in both modes).
+      state === "done" && "border-income bg-income text-on-accent",
       state === "current" && "border-accent text-accent",
       state === "todo" && "border-border text-text-2",
       state === "error" && "border-expense bg-expense/10 text-expense",

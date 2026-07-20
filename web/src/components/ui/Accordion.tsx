@@ -29,6 +29,8 @@ export interface AccordionProps {
   mode?: "multiple" | "single";
   /** Fires with the currently-open item ids on every toggle. */
   onOpenChange?: (openIds: string[]) => void;
+  /** Chevron side — B7b data-review rows dock it LEFT (Figma 188:3855). */
+  chevron?: "left" | "right";
   className?: string;
 }
 
@@ -37,6 +39,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   defaultOpen = [],
   mode = "multiple",
   onOpenChange,
+  chevron = "right",
   className,
 }) => (
   <RadixAccordion.Root
@@ -68,11 +71,20 @@ export const Accordion: React.FC<AccordionProps> = ({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset",
             )}
           >
-            <span className="font-medium">{item.title}</span>
-            <ChevronDown
-              aria-hidden
-              className="h-4 w-4 shrink-0 text-text-2 transition-transform duration-base ease-standard group-data-[state=open]:rotate-180 motion-reduce:transition-none"
-            />
+            {chevron === "left" ? (
+              // Left chevron: points right closed, down open (Figma B7b).
+              <ChevronDown
+                aria-hidden
+                className="h-4 w-4 shrink-0 -rotate-90 text-text-2 transition-transform duration-base ease-standard group-data-[state=open]:rotate-0 motion-reduce:transition-none"
+              />
+            ) : null}
+            <span className="min-w-0 flex-1 font-medium">{item.title}</span>
+            {chevron === "right" ? (
+              <ChevronDown
+                aria-hidden
+                className="h-4 w-4 shrink-0 text-text-2 transition-transform duration-base ease-standard group-data-[state=open]:rotate-180 motion-reduce:transition-none"
+              />
+            ) : null}
           </RadixAccordion.Trigger>
         </RadixAccordion.Header>
         <RadixAccordion.Content
