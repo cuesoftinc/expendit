@@ -382,3 +382,87 @@ test.describe("public home `/` (Part A)", () => {
     expect(mobileOverflow).toBeLessThanOrEqual(1);
   });
 });
+
+// Type contract — the landing's key roles render the Figma Home frame's
+// (193:14) bound type styles, computed: Hero/88 Bold (88/92, −2.5% =
+// −2.2px), Display/32 Bold section headings (32/38, −1% = −0.32px — the
+// same metrics StatCard pins), Title/20 Semi Bold pillar titles (20/26,
+// −0.05px) and Body/14 Regular captions (14/20). Regression lock from the
+// fleet font-weight audit (2026-07-20).
+test.describe("type contract — Figma Home frame roles", () => {
+  test("per-role computed weight/size/line-height/tracking match the styles", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 1200 });
+    await page.goto("/");
+
+    const roles = [
+      {
+        role: "hero H1 (Hero/88 Bold)",
+        locator: page.getByRole("heading", {
+          name: "See every naira. File every tax.",
+        }),
+        weight: "700",
+        size: "88px",
+        lineHeight: "92px",
+        letterSpacing: "-2.2px",
+      },
+      {
+        role: "pillars heading (Display/32 Bold)",
+        locator: page.getByRole("heading", {
+          name: "One ledger. Three superpowers.",
+        }),
+        weight: "700",
+        size: "32px",
+        lineHeight: "38px",
+        letterSpacing: "-0.32px",
+      },
+      {
+        role: "how-it-works heading (Display/32 Bold)",
+        locator: page.getByRole("heading", { name: "How it works" }),
+        weight: "700",
+        size: "32px",
+        lineHeight: "38px",
+        letterSpacing: "-0.32px",
+      },
+      {
+        role: "pillar title (Title/20 Semi Bold)",
+        locator: page.getByRole("heading", {
+          name: "Statements → intelligence",
+        }),
+        weight: "600",
+        size: "20px",
+        lineHeight: "26px",
+        letterSpacing: "-0.05px",
+      },
+      {
+        role: "pillar caption (Body/14 Regular)",
+        locator: page.getByText("Upload or link. AI categorizes every"),
+        weight: "400",
+        size: "14px",
+        lineHeight: "20px",
+        letterSpacing: "normal",
+      },
+    ] as const;
+
+    for (const r of roles) {
+      const cs = await r.locator.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return {
+          fontFamily: s.fontFamily,
+          fontWeight: s.fontWeight,
+          fontSize: s.fontSize,
+          lineHeight: s.lineHeight,
+          letterSpacing: s.letterSpacing,
+        };
+      });
+      expect.soft(cs.fontFamily, `${r.role} family`).toMatch(/^Inter\b/);
+      expect.soft(cs.fontWeight, `${r.role} weight`).toBe(r.weight);
+      expect.soft(cs.fontSize, `${r.role} size`).toBe(r.size);
+      expect.soft(cs.lineHeight, `${r.role} line-height`).toBe(r.lineHeight);
+      expect
+        .soft(cs.letterSpacing, `${r.role} letter-spacing`)
+        .toBe(r.letterSpacing);
+    }
+  });
+});
