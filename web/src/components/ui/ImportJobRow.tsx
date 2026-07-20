@@ -13,7 +13,8 @@ import {
   Image as ImageIcon,
   Landmark,
 } from "lucide-react";
-import { formatIso } from "@/lib/dates";
+import { formatRelativeAge } from "@/lib/dates";
+import { failureMessage } from "@/lib/import-failures";
 import type { ImportJob } from "@/models";
 import { cn } from "@/lib/cn";
 import Tag from "./Tag";
@@ -52,7 +53,8 @@ const caption = (job: ImportJob, status: ImportJobRowStatus): string => {
     case "processing":
       return "Parsing…";
     case "failed":
-      return job.error_code ?? "failed";
+      // Human line (Figma B3) — the raw code rides the title tooltip.
+      return failureMessage(job.error_code);
     case "completed-empty":
       return "0 transactions found — check file contents";
     case "needs-review": {
@@ -94,7 +96,8 @@ const STATUS_TAG: Record<
 > = {
   processing: { label: "Processing", tint: "info" },
   completed: { label: "Completed", tint: "success" },
-  "needs-review": { label: "Needs review", tint: "warn" },
+  // Figma ImportJobRow 127:1238: blue "Ready for review".
+  "needs-review": { label: "Ready for review", tint: "info" },
   "completed-bank": { label: "Completed", tint: "success" },
   "completed-empty": { label: "Empty", tint: "neutral" },
   failed: { label: "Failed", tint: "error" },
@@ -115,7 +118,8 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
   const Icon =
     job.source === "bank_sync" ? Landmark : FILE_ICON[job.file_type ?? "csv"];
   const tag = STATUS_TAG[status];
-  const when = formatIso(job.created_at, "d MMM");
+  // Relative age ("2h ago") — systemic adjudication 2026-07-20.
+  const when = formatRelativeAge(job.created_at);
   return (
     // Semantic list row (W3 directive): job history composes <ul>; the
     // whole-row action is a real <button> inside the <li>.
@@ -139,14 +143,19 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
           <span
             className={cn(
               "block truncate leading-4",
-              status === "failed" ? "font-mono text-expense" : "text-text-2",
+              status === "failed" ? "text-expense" : "text-text-2",
             )}
+            title={
+              status === "failed" && job.error_code
+                ? job.error_code
+                : undefined
+            }
           >
             {caption(job, status)}
           </span>
         </span>
         <Tag tint={tag.tint}>{tag.label}</Tag>
-        <span className="w-14 shrink-0 text-right tabular-nums text-text-2">
+        <span className="w-16 shrink-0 text-right tabular-nums text-text-2">
           {when}
         </span>
       </button>

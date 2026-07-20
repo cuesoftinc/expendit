@@ -7,12 +7,15 @@
  * found). Jobs open the staged-review detail (B3b). Render-only.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Check, Upload } from "lucide-react";
 import { useImportsController, useOrg } from "@/controllers";
 import { ApiError } from "@/models/repositories";
+import { failureMessage } from "@/lib/import-failures";
 import type { ImportFileType } from "@/models";
 import Banner from "@/components/ui/Banner";
+import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import ImportJobRow from "@/components/ui/ImportJobRow";
 import Skeleton from "@/components/ui/Skeleton";
@@ -34,23 +37,6 @@ const EXT_TO_TYPE: Record<string, ImportFileType> = {
   webp: "image",
   heic: "image",
 };
-
-/** Failure-taxonomy copy (flows/import.md §3) — every code, distinct UX. */
-export const FAILURE_COPY: Record<string, string> = {
-  file_too_large: "Files must be 15 MB or smaller.",
-  unsupported_type: "Upload a CSV, PDF, or receipt image.",
-  no_transactions_found:
-    "No transactions found — try a CSV export from your bank.",
-  password_protected_pdf: "Remove the password and re-upload.",
-  ai_unavailable:
-    "AI processing is temporarily unavailable — try again later. CSV imports are unaffected.",
-  consent_required:
-    "AI processing consent is needed for images — review it in Settings → Data & privacy.",
-};
-
-export const failureMessage = (code: string | null): string =>
-  (code && FAILURE_COPY[code]) ??
-  "Something went wrong — nothing was imported.";
 
 export const ImportsView: React.FC = () => {
   const router = useRouter();
@@ -151,11 +137,35 @@ export const ImportsView: React.FC = () => {
     [imports.jobs],
   );
 
+  // Post-parse summary card (Figma B3 183:855): the freshest parsed job
+  // still parked in staged review sits beside the dropzone with its
+  // counts and the "Review import" hand-off.
+  const reviewableJob = useMemo(
+    () =>
+      sortedJobs.find(
+        (job) =>
+          job.status === "completed" && !job.confirmed && job.total_parsed > 0,
+      ),
+    [sortedJobs],
+  );
+
+  const uploadInputId = useId();
+
   return (
     <>
       <PageHeader
         title="Imports"
         description="Drop statements or receipts — AI stages every row for your review before anything lands in the ledger."
+        actions={
+          // Header primary (Figma B3 frame) — opens the file picker.
+          <Button
+            size="sm"
+            onClick={() => document.getElementById(uploadInputId)?.click()}
+          >
+            <Upload aria-hidden className="mr-1 inline h-3.5 w-3.5" />
+            Upload statement
+          </Button>
+        }
       />
 
       {imports.error ? (
@@ -164,19 +174,66 @@ export const ImportsView: React.FC = () => {
         </div>
       ) : null}
 
-      <section aria-label="Upload">
-        <UploadDropzone
-          files={uploads}
-          onFiles={onFiles}
-          accept={ACCEPT}
-          className={
-            highlightUpload ? "ring-2 ring-accent ring-offset-2" : undefined
-          }
-        />
-      </section>
+      {/* Top band (Figma B3): dropzone + post-parse summary side by side. */}
+      <div
+        className={
+          reviewableJob ? "grid grid-cols-1 gap-4 lg:grid-cols-2" : undefined
+        }
+      >
+        <section aria-label="Upload">
+          <UploadDropzone
+            files={uploads}
+            onFiles={onFiles}
+            accept={ACCEPT}
+            inputId={uploadInputId}
+            className={
+              highlightUpload ? "ring-2 ring-accent ring-offset-2" : undefined
+            }
+          />
+        </section>
+
+        {reviewableJob ? (
+          <section
+            aria-label="Parsed statement summary"
+            className="flex flex-col items-start justify-center gap-2 rounded border border-border bg-bg px-6 py-6"
+          >
+            <span className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-income/10"
+              >
+                <Check className="h-4 w-4 text-income" />
+              </span>
+              <span className="text-sm font-medium text-text">
+                {reviewableJob.total_parsed} transaction
+                {reviewableJob.total_parsed === 1 ? "" : "s"} found
+              </span>
+            </span>
+            <p className="text-[13px] leading-4 text-text-2">
+              {reviewableJob.total_parsed - reviewableJob.duplicates_found}{" "}
+              ready
+              {reviewableJob.duplicates_found > 0
+                ? ` · ${reviewableJob.duplicates_found} possible duplicate${
+                    reviewableJob.duplicates_found === 1 ? "" : "s"
+                  } flagged`
+                : ""}
+            </p>
+            <Button
+              size="sm"
+              onClick={() =>
+                router.push(`/dashboard/imports/${reviewableJob.id}`)
+              }
+            >
+              Review import
+            </Button>
+          </section>
+        ) : null}
+      </div>
 
       <section aria-label="Import history" className="mt-6">
-        <h2 className="mb-2 text-[13px] font-medium text-text">History</h2>
+        <h2 className="mb-2 text-[13px] font-medium text-text">
+          Import history
+        </h2>
         {imports.loading && sortedJobs.length === 0 ? (
           <div>
             {[...Array(4)].map((_, i) => (

@@ -151,6 +151,14 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   // --- B3 import journey: upload → 202 job → staged review → commit -----
   await openNav(page, "Imports").click();
   await page.waitForURL("**/dashboard/imports");
+  // B3 (Figma 183:855): header "Upload statement" primary + the
+  // "Import history" heading.
+  await expect(
+    page.getByRole("button", { name: "Upload statement" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Import history" }),
+  ).toBeVisible();
   const csv = [
     "date,description,amount,direction",
     "2026-07-02,POS — Shoprite Lekki,12000,expense",
@@ -175,13 +183,26 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
     // (system QA 2026-07-19 — the green Completed tag hid the parked
     // review); bank/auto-confirmed jobs stay "completed*".
     .toMatch(/completed|needs-review/);
+  // Relative ages (systemic adjudication): history rows say "…ago".
+  await expect(jobRow.getByText(/just now|\d+m ago/)).toBeVisible();
+  // Post-parse summary card beside the dropzone (Figma B3): green check,
+  // counts, and the "Review import" hand-off.
+  const summaryCard = page.getByRole("region", {
+    name: "Parsed statement summary",
+  });
+  await expect(summaryCard).toBeVisible();
+  await expect(summaryCard.getByText(/transactions? found/)).toBeVisible();
+  await expect(
+    summaryCard.getByRole("button", { name: "Review import" }),
+  ).toBeVisible();
   await jobRow.click();
   await page.waitForURL("**/dashboard/imports/**");
 
-  // Staged review (B3b): counts + MI-3 commit.
+  // Staged review (B3b): counts + reassurance footer + MI-3 commit.
   await expect(page.getByText(/transactions staged/)).toBeVisible({
     timeout: 20_000,
   });
+  await expect(page.getByText(/rows? will join your ledger/)).toBeVisible();
   await page.getByRole("button", { name: /^Import \d+/ }).click();
   await page.waitForURL(/\/dashboard\/transactions\?imported=\d+/);
 

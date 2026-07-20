@@ -25,7 +25,7 @@ import StagedReviewHeader from "@/components/ui/StagedReviewHeader";
 import TableHeader from "@/components/ui/TableHeader";
 import Tag from "@/components/ui/Tag";
 import TxnTableRow from "@/components/ui/TxnTableRow";
-import { failureMessage } from "../ImportsView";
+import { failureMessage } from "@/lib/import-failures";
 import PageHeader from "../../PageHeader";
 import ToastLayer from "../../ToastLayer";
 
@@ -242,7 +242,8 @@ export const JobDetailView: React.FC = () => {
         actions={
           job.anomalies.length > 0 ? (
             <Tag tint="warn" size="md">
-              {job.anomalies.length} anomalies found
+              {job.anomalies.length}{" "}
+              {job.anomalies.length === 1 ? "anomaly" : "anomalies"} found
             </Tag>
           ) : undefined
         }
@@ -317,6 +318,15 @@ export const JobDetailView: React.FC = () => {
             })}
           </tbody>
         </table>
+        {/* Reassurance footer (Figma B3b 183:2437) — the 30-day
+            recoverability line is a trust promise (flows/import.md §4). */}
+        <p className="mt-3 text-[12px] leading-4 text-text-2">
+          {importCount} row{importCount === 1 ? "" : "s"} will join your
+          ledger.
+          {duplicateCount > 0
+            ? " Discarded duplicates stay recoverable for 30 days."
+            : ""}
+        </p>
       </section>
 
       <ToastLayer

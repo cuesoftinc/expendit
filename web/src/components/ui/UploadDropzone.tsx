@@ -37,6 +37,8 @@ export interface UploadDropzoneProps {
   onFiles?: (files: File[]) => void;
   accept?: string;
   disabled?: boolean;
+  /** Id on the hidden file input — external triggers (header button). */
+  inputId?: string;
   className?: string;
 }
 
@@ -125,6 +127,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
   onFiles,
   accept,
   disabled = false,
+  inputId,
   className,
 }) => {
   const [dragOver, setDragOver] = useState(false);
@@ -175,6 +178,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         </p>
         <input
           ref={inputRef}
+          id={inputId}
           type="file"
           multiple
           accept={accept}

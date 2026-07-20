@@ -51,13 +51,33 @@ describe("ImportJobRow (design.md §8.2b)", () => {
     expect(screen.getByText("Processing")).toBeInTheDocument();
   });
 
-  it("failed renders the taxonomy code", () => {
+  it("failed renders the human taxonomy line; the raw code rides the tooltip", () => {
     render(
       <ImportJobRow
-        job={job({ status: "failed", error_code: "unreadable_file" })}
+        job={job({ status: "failed", error_code: "password_protected_pdf" })}
       />,
     );
-    expect(screen.getByText("unreadable_file")).toBeInTheDocument();
+    const line = screen.getByText("Remove the password and re-upload.");
+    expect(line).toBeInTheDocument();
+    expect(line).toHaveAttribute("title", "password_protected_pdf");
+    expect(screen.queryByText("password_protected_pdf")).toBeNull();
+  });
+
+  it("parked staged jobs tag blue 'Ready for review' with a relative age", () => {
+    render(
+      <ImportJobRow
+        job={job({
+          confirmed: false,
+          imported: 0,
+          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        })}
+      />,
+    );
+    expect(screen.getByText("Ready for review")).toBeInTheDocument();
+    expect(
+      screen.getByText("214 staged for review · 5 duplicates flagged"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2h ago")).toBeInTheDocument();
   });
 
   it("completed-empty and completed-bank variants", () => {

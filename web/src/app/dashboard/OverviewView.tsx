@@ -11,7 +11,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatIso, daysUntil } from "@/lib/dates";
+import { formatIso, formatRelativeAge, daysUntil } from "@/lib/dates";
 import { useOrg, useOverviewController } from "@/controllers";
 import { useCategoriesController } from "@/controllers/use-categories";
 import { formatMoney, formatMoneyCompact } from "@/lib/format";
@@ -513,7 +513,8 @@ export const OverviewView: React.FC = () => {
                         severity={txn.anomalies[0].severity}
                         variant="feed"
                         description={`${txn.description} — ${formatMoney(txn.amount, currency)}`}
-                        timestamp={formatIso(txn.txn_date, "d MMM")}
+                        // Relative ages (systemic adjudication 2026-07-20).
+                        timestamp={formatRelativeAge(txn.txn_date)}
                         onClick={() =>
                           router.push(
                             `/dashboard/transactions?record=${txn.id}&explain=1`,
