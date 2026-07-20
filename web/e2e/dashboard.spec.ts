@@ -62,6 +62,22 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await expect(personalYAxis.getByText("₦0", { exact: true })).toBeVisible();
   await expect(personalYAxis.getByText("−₦1M", { exact: true })).toBeVisible();
   await expect(personalYAxis.getByText("₦2M", { exact: true })).toBeVisible();
+  // B1 mid-band (Figma 179:12): chart card + right rail render as TWO
+  // columns at lg — locks the `lg:grid-cols-[2fr_1fr]` arbitrary value
+  // (the comma form is invalid CSS and silently stacked the band).
+  const chartCard = page.locator("section", {
+    has: page.getByRole("heading", { name: /^Cash flow — / }),
+  });
+  const donutCard = page.locator("section", {
+    has: page.getByRole("heading", { name: /^Expenses by category/ }),
+  });
+  const chartBox = await chartCard.boundingBox();
+  const donutBox = await donutCard.boundingBox();
+  expect(chartBox).not.toBeNull();
+  expect(donutBox).not.toBeNull();
+  expect(donutBox!.x).toBeGreaterThanOrEqual(chartBox!.x + chartBox!.width);
+  expect(Math.abs(donutBox!.y - chartBox!.y)).toBeLessThan(8);
+
   await switchToCompanyOrg(page);
   await expect(page.getByText("Net cash flow").first()).toBeVisible();
   // Company ledger onset is Jan 2026 — the chart starts there and says so.
