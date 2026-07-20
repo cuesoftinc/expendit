@@ -47,12 +47,18 @@ const FILE_ICON = {
 } as const;
 
 /** Figma caption line per status. */
-const caption = (job: ImportJob, status: ImportJobRowStatus): string => {
+const caption = (
+  job: ImportJob,
+  status: ImportJobRowStatus,
+  failureMessage?: string,
+): string => {
   switch (status) {
     case "processing":
       return "Parsing…";
     case "failed":
-      return job.error_code ?? "failed";
+      // Human sentence (B3 frame tone); the raw taxonomy code moves to
+      // the details disclosure under the row.
+      return failureMessage ?? "Import failed — nothing was imported.";
     case "completed-empty":
       return "0 transactions found — check file contents";
     case "needs-review": {
@@ -94,7 +100,9 @@ const STATUS_TAG: Record<
 > = {
   processing: { label: "Processing", tint: "info" },
   completed: { label: "Completed", tint: "success" },
-  "needs-review": { label: "Needs review", tint: "warn" },
+  // B3 frame (ImportJobRow 127:1238): blue "Ready for review" — an
+  // invitation, not a warning.
+  "needs-review": { label: "Ready for review", tint: "info" },
   "completed-bank": { label: "Completed", tint: "success" },
   "completed-empty": { label: "Empty", tint: "neutral" },
   failed: { label: "Failed", tint: "error" },
@@ -102,12 +110,15 @@ const STATUS_TAG: Record<
 
 export interface ImportJobRowProps {
   job: ImportJob;
+  /** Human failure sentence (flows/import.md §3 taxonomy copy). */
+  failureMessage?: string;
   onOpen?: () => void;
   className?: string;
 }
 
 export const ImportJobRow: React.FC<ImportJobRowProps> = ({
   job,
+  failureMessage,
   onOpen,
   className,
 }) => {
@@ -139,10 +150,10 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
           <span
             className={cn(
               "block truncate leading-4",
-              status === "failed" ? "font-mono text-expense" : "text-text-2",
+              status === "failed" ? "text-expense" : "text-text-2",
             )}
           >
-            {caption(job, status)}
+            {caption(job, status, failureMessage)}
           </span>
         </span>
         <Tag tint={tag.tint}>{tag.label}</Tag>
@@ -150,6 +161,16 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
           {when}
         </span>
       </button>
+      {status === "failed" && job.error_code ? (
+        // Raw taxonomy code demoted to a disclosure (B3 frame: failed
+        // meta reads human; the code stays reachable for support).
+        <details className="border-b border-border px-3 py-1.5 text-[11px] text-text-2">
+          <summary className="cursor-pointer select-none">Details</summary>
+          <code className="mt-1 block font-mono text-expense">
+            {job.error_code}
+          </code>
+        </details>
+      ) : null}
     </li>
   );
 };

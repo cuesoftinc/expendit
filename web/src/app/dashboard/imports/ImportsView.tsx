@@ -176,7 +176,9 @@ export const ImportsView: React.FC = () => {
       </section>
 
       <section aria-label="Import history" className="mt-6">
-        <h2 className="mb-2 text-[13px] font-medium text-text">History</h2>
+        <h2 className="mb-2 text-[13px] font-medium text-text">
+          Import history
+        </h2>
         {imports.loading && sortedJobs.length === 0 ? (
           <div>
             {[...Array(4)].map((_, i) => (
@@ -191,6 +193,11 @@ export const ImportsView: React.FC = () => {
               <ImportJobRow
                 key={job.id}
                 job={job}
+                failureMessage={
+                  job.status === "failed"
+                    ? failureMessage(job.error_code)
+                    : undefined
+                }
                 onOpen={() => router.push(`/dashboard/imports/${job.id}`)}
               />
             ))}
