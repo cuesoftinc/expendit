@@ -418,7 +418,11 @@ rail (±2px e2e on personal and company orgs) through `ChartLine`'s
 floored at `lg:min-h-[176px]` so short rails never squash it
 (absolutely-filled SVG, `preserveAspectRatio="none"`, non-scaling
 strokes; the %-positioned tick ladder tracks any height); below lg the
-stacked aspect construction is unchanged.
+stacked aspect construction is unchanged. Fill-mode series fade in
+rather than dash-draw-in: `non-scaling-stroke` computes dash metrics in
+screen space, so the `pathLength`-normalized dash no longer spans the
+stretched path and the line renders as literal dashes with gaps (unit +
+e2e pin the fill-mode polyline dash-free).
 
 **Self-host tabbed snippet as-built (2026-07-20, PR #239).** The A8a
 compose one-liner is now the user-approved Docker Compose | Helm tab pair

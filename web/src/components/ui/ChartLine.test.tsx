@@ -42,6 +42,15 @@ describe("Chart/Line (design.md §8.2b, MI-12)", () => {
     );
   });
 
+  it("fill mode drops the dash draw-in — non-scaling-stroke dashes in screen space, so pathLength dashing gaps the stretched line (user report)", () => {
+    render(<ChartLine fill series={series} />);
+    const line = screen.getByTestId("chart-line-income");
+    expect(line).not.toHaveAttribute("stroke-dasharray");
+    expect(line).not.toHaveAttribute("pathLength");
+    expect(line).toHaveClass("animate-fade-in");
+    expect(line).not.toHaveClass("animate-draw-in");
+  });
+
   it("pointMarkers renders one circle per datum (B6b discrete FY reading)", () => {
     const { container } = render(
       <ChartLine
