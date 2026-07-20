@@ -35,8 +35,8 @@ describe("Chart/Donut (design.md §8.2b)", () => {
     );
     const caption = screen.getByText("Total");
     const value = screen.getByText("₦3.61M");
-    expect(caption).toHaveClass("text-[13px]");
-    expect(value).toHaveClass("text-[20px]");
+    expect(caption).toHaveClass("fill-text-2");
+    expect(value).toHaveClass("font-semibold");
     // SVG text y: caption sits above the value.
     expect(Number(caption.getAttribute("y"))).toBeLessThan(
       Number(value.getAttribute("y")),

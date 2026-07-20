@@ -364,6 +364,7 @@ export const SettingsView: React.FC = () => {
                         ];
                     return (
                       <Select
+                        aria-label="Fiscal year end"
                         options={options}
                         value={fyeValue}
                         onValueChange={setFiscalYearEnd}
