@@ -402,6 +402,43 @@ test("reports — inline toolbar, generating strip, artifact meta, expiry captio
   ).toBeVisible();
 });
 
+test("categories — usage meta, AI-proposed row, quiet delete + typed confirm (B8)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await switchToCompanyOrg(page);
+  await openNav(page, "Categories").click();
+  await page.waitForURL("**/dashboard/categories");
+
+  // Usage meta from the ledger (merge-safety context).
+  await expect(
+    page.getByText(/\d+ transactions this year/).first(),
+  ).toBeVisible();
+
+  // AI-proposed row: ✨ provenance line (Figma 190:2836).
+  const logisticsRow = page
+    .locator("li")
+    .filter({ has: page.getByText("Logistics", { exact: true }) })
+    .first();
+  await expect(
+    logisticsRow.getByText("AI proposed from 3 vendors"),
+  ).toBeVisible();
+
+  // Danger ladder: Delete is a quiet text link; the weight lives in the
+  // typed-confirm danger modal (MI-15). Cancel keeps the registry intact.
+  await logisticsRow.getByRole("button", { name: "Delete" }).click();
+  const deleteModal = page.getByRole("dialog", {
+    name: 'Delete "Logistics"?',
+  });
+  await expect(deleteModal).toBeVisible();
+  await expect(
+    deleteModal.getByLabel('Type "Logistics" to confirm'),
+  ).toBeVisible();
+  await deleteModal.getByRole("button", { name: "Cancel" }).click();
+  await expect(deleteModal).toHaveCount(0);
+  await expect(logisticsRow).toBeVisible();
+});
+
 test("bank-link journey — tile tray, consent deck, determinate sync, stamped done (MI-9)", async ({
   page,
 }) => {

@@ -26,4 +26,10 @@ export interface Category {
   tax_treatment: TaxTreatment;
   vat_treatment: VatTreatment;
   vat_basis: VatBasis;
+  /** Ledger usage this calendar year (B8 merge-safety context — GET enrich). */
+  txn_count_year?: number;
+  /** AI proposed from imports, not yet human-confirmed (B8 ✨ row). */
+  ai_proposed?: boolean;
+  /** Distinct vendors behind the proposal ("AI proposed from N vendors"). */
+  ai_vendor_count?: number;
 }

@@ -2,12 +2,27 @@
 
 import type { Category } from "@/models";
 import { getDb, nextId } from "@/mock/db";
+import { mockNow } from "@/mock/clock";
 import { fail, ok, resolveOrgId, writeBlocked } from "@/mock/http";
 
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);
   if (!orgId) return fail(404, "not_found", "Unknown org");
-  const items = getDb().categories.filter((cat) => cat.org_id === orgId);
+  const db = getDb();
+  const year = `${mockNow().getFullYear()}-`;
+  // Usage meta ("N transactions this year") — merge-safety context
+  // computed from the ledger on read (Figma B8 190:2836).
+  const items = db.categories
+    .filter((cat) => cat.org_id === orgId)
+    .map((cat) => ({
+      ...cat,
+      txn_count_year: db.transactions.filter(
+        (txn) =>
+          txn.org_id === orgId &&
+          txn.category_id === cat.id &&
+          txn.txn_date.startsWith(year),
+      ).length,
+    }));
   return ok({ items });
 }
 

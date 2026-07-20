@@ -74,13 +74,34 @@ const CategoryList: React.FC<CategoryListProps> = ({
             // the chip instead of pushing the page wide (mobile canon).
             className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-border px-4 py-2 last:border-b-0"
           >
-            <CategoryChip
-              category={{
-                id: category.id,
-                name: category.name,
-                color: category.color,
-              }}
-            />
+            <span className="min-w-0">
+              <CategoryChip
+                category={{
+                  id: category.id,
+                  name: category.name,
+                  color: category.color,
+                }}
+              />
+              {/* Usage meta (Figma 190:2836) — merge-safety context;
+                  AI-proposed rows carry the ✨ provenance line. */}
+              <span className="mt-0.5 block text-[12px] leading-4 text-text-2">
+                {category.ai_proposed ? (
+                  <span className="inline-flex items-center gap-1 text-info">
+                    <Sparkles aria-hidden className="h-3 w-3" />
+                    AI proposed
+                    {category.ai_vendor_count
+                      ? ` from ${category.ai_vendor_count} vendor${
+                          category.ai_vendor_count === 1 ? "" : "s"
+                        }`
+                      : ""}
+                  </span>
+                ) : (
+                  `${category.txn_count_year ?? 0} transaction${
+                    (category.txn_count_year ?? 0) === 1 ? "" : "s"
+                  } this year`
+                )}
+              </span>
+            </span>
             <span className="min-w-0 flex-1" />
             <span className="flex shrink-0 items-center gap-3">
               <Button kind="quiet" size="sm" onClick={() => onEdit(category)}>
@@ -89,13 +110,15 @@ const CategoryList: React.FC<CategoryListProps> = ({
               <Button kind="quiet" size="sm" onClick={() => onMerge(category)}>
                 Merge
               </Button>
-              <Button
-                kind="destructive"
-                size="sm"
+              {/* Danger ladder: per-row delete is a QUIET danger text
+                  link — the typed-confirm modal carries the weight. */}
+              <button
+                type="button"
                 onClick={() => onDelete(category)}
+                className="rounded text-[13px] font-medium text-expense underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 Delete
-              </Button>
+              </button>
             </span>
           </li>
         ))}
@@ -118,6 +141,7 @@ export const CategoriesView: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [mergeSource, setMergeSource] = useState<Category | null>(null);
   const [mergeTarget, setMergeTarget] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const expenseCategories = useMemo(
@@ -169,6 +193,7 @@ export const CategoriesView: React.FC = () => {
   };
 
   const removeCategory = async (category: Category) => {
+    setDeleteTarget(null);
     try {
       await categories.remove(category.id);
       setToast("Category deleted");
@@ -224,8 +249,9 @@ export const CategoriesView: React.FC = () => {
       ) : null}
 
       <div className="mb-4">
+        {/* Banner kind="info" supplies its own leading icon — a manual
+            <Sparkles> here doubled it (audit B8). */}
         <Banner kind="info">
-          <Sparkles aria-hidden className="mr-1 inline h-3.5 w-3.5" />
           Your category corrections train the AI — re-categorized imports
           improve future suggestions for this workspace.
         </Banner>
@@ -251,7 +277,7 @@ export const CategoriesView: React.FC = () => {
               })
             }
             onMerge={setMergeSource}
-            onDelete={(category) => void removeCategory(category)}
+            onDelete={setDeleteTarget}
           />
           <CategoryList
             title="Income categories"
@@ -265,7 +291,7 @@ export const CategoriesView: React.FC = () => {
               })
             }
             onMerge={setMergeSource}
-            onDelete={(category) => void removeCategory(category)}
+            onDelete={setDeleteTarget}
           />
         </div>
       )}
@@ -333,6 +359,21 @@ export const CategoriesView: React.FC = () => {
           </div>
         ) : null}
       </Modal>
+
+      {/* Delete — typed-confirm danger modal (danger ladder, MI-15) */}
+      <Modal
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        variant="danger"
+        title={`Delete "${deleteTarget?.name ?? ""}"?`}
+        description="The category is removed from the registry. Categories still in use pivot to the merge tool instead — ledger history is never orphaned."
+        size="sm"
+        confirmPhrase={deleteTarget?.name ?? ""}
+        confirmLabel="Delete category"
+        onConfirm={() => deleteTarget && void removeCategory(deleteTarget)}
+      />
 
       {/* Merge tool */}
       <Modal

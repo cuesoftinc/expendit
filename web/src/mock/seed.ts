@@ -279,6 +279,22 @@ const categories: Category[] = [
     vat_treatment: "exempt",
     vat_basis: "inclusive",
   },
+  {
+    // AI-proposed, not yet human-confirmed (B8 ✨ row, Figma 190:2836):
+    // the categorizer noticed courier/dispatch vendors that fit neither
+    // Fuel & transport nor Ops & logistics. No ledger rows until a human
+    // confirms it — proposals never move money on their own.
+    id: "cat-logistics",
+    org_id: ORG_CUESOFT,
+    name: "Logistics",
+    type: "expense",
+    color: "#6E6E76",
+    tax_treatment: "ignore",
+    vat_treatment: "exempt",
+    vat_basis: "inclusive",
+    ai_proposed: true,
+    ai_vendor_count: 3,
+  },
   // Personal org — the freelancer dataset
   {
     id: "cat-personal-income",
