@@ -4,6 +4,7 @@ import {
   VIEWPORT_GUTTER,
   clampShiftX,
   useViewportShiftX,
+  useViewportShiftXY,
 } from "./use-viewport-clamp";
 
 describe("clampShiftX (floating-layer viewport clamp)", () => {
@@ -79,5 +80,45 @@ describe("useViewportShiftX", () => {
       window.dispatchEvent(new Event("resize"));
     });
     expect(result.current).toBe(0);
+  });
+});
+
+describe("useViewportShiftXY (two-axis clamp for the calendar panels)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const panelAt = (rect: Partial<DOMRect>) =>
+    ({
+      getBoundingClientRect: () => rect as DOMRect,
+    }) as HTMLElement;
+
+  it("clamps both axes independently", () => {
+    vi.stubGlobal("innerWidth", 1440);
+    vi.stubGlobal("innerHeight", 900);
+    const ref = {
+      current: panelAt({ left: 1272, right: 1496, top: 700, bottom: 1020 }),
+    };
+    const { result } = renderHook(() => useViewportShiftXY(true, ref));
+    expect(result.current).toEqual({
+      x: 1440 - VIEWPORT_GUTTER - 1496,
+      y: 900 - VIEWPORT_GUTTER - 1020,
+    });
+  });
+
+  it("returns zero shift for an in-viewport panel and resets on close", () => {
+    vi.stubGlobal("innerWidth", 1440);
+    vi.stubGlobal("innerHeight", 900);
+    const ref = {
+      current: panelAt({ left: 400, right: 624, top: 100, bottom: 420 }),
+    };
+    const { result, rerender } = renderHook(
+      ({ open }: { open: boolean }) => useViewportShiftXY(open, ref),
+      { initialProps: { open: true } },
+    );
+    expect(result.current).toEqual({ x: 0, y: 0 });
+    ref.current = panelAt({ left: 1272, right: 1496, top: 700, bottom: 1020 });
+    rerender({ open: false });
+    expect(result.current).toEqual({ x: 0, y: 0 });
   });
 });

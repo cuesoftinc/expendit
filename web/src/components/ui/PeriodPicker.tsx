@@ -3,14 +3,25 @@
 /**
  * DatePicker/PeriodPicker — design.md §8.2b: modes day / range / month /
  * quarter / year (the closed period grammar, line-items.md §6) ·
- * open/closed · error · presets.
+ * open/closed · error · presets. Every mode is pick-or-type: the panel
+ * embeds the mode's grid (DatePicker calendar, MonthPicker,
+ * QuarterPicker, FY YearPicker) above the grammar input — the input
+ * stays editable (the a11y path) and a valid typed draft drives the
+ * grid's selection and visible month/year.
  */
 
 import React, { useEffect, useRef, useState } from "react";
 import { Calendar, ChevronDown } from "lucide-react";
+import { format, isBefore, isValid, parseISO } from "date-fns";
 import { formatIso } from "@/lib/dates";
 import { cn } from "@/lib/cn";
-import { useViewportShiftX } from "@/lib/use-viewport-clamp";
+import { useViewportShiftXY } from "@/lib/use-viewport-clamp";
+import {
+  DatePicker,
+  MonthPicker,
+  QuarterPicker,
+  YearPicker,
+} from "./DatePicker";
 
 export type PeriodMode = "day" | "range" | "month" | "quarter" | "year";
 
@@ -63,6 +74,67 @@ const MODE_PATTERN: Record<PeriodMode, RegExp> = {
 export const isValidPeriod = (mode: PeriodMode, value: string): boolean =>
   MODE_PATTERN[mode].test(value);
 
+/** yyyy-MM-dd → Date (null when grammar- or calendar-invalid). */
+const parseDay = (value: string): Date | null => {
+  if (!MODE_PATTERN.day.test(value)) return null;
+  const day = parseISO(value);
+  return isValid(day) ? day : null;
+};
+
+/** Grid selection the current draft (or committed value) describes. */
+const parseDraft = (
+  mode: PeriodMode,
+  draft: string,
+): {
+  day: Date | null;
+  from: Date | null;
+  to: Date | null;
+  month: Date | null;
+  quarter: { year: number; quarter: number } | null;
+  year: number | null;
+} => {
+  const none = {
+    day: null,
+    from: null,
+    to: null,
+    month: null,
+    quarter: null,
+    year: null,
+  };
+  switch (mode) {
+    case "day":
+      return { ...none, day: parseDay(draft) };
+    case "range": {
+      // A lone start ("2026-06-01..") keeps the calendar anchored while
+      // the second click is pending.
+      const [from, to] = draft.split("..");
+      return {
+        ...none,
+        from: from ? parseDay(from) : null,
+        to: to ? parseDay(to) : null,
+      };
+    }
+    case "month":
+      return {
+        ...none,
+        month: MODE_PATTERN.month.test(draft) ? parseISO(`${draft}-01`) : null,
+      };
+    case "quarter": {
+      const match = /^(\d{4})-Q([1-4])$/.exec(draft);
+      return match
+        ? {
+            ...none,
+            quarter: { year: Number(match[1]), quarter: Number(match[2]) },
+          }
+        : none;
+    }
+    case "year": {
+      const match = /^FY(\d{4})$/.exec(draft);
+      return match ? { ...none, year: Number(match[1]) } : none;
+    }
+  }
+};
+
 /**
  * Figma trigger copy is humanized ("12 Jan 2026", "1 Apr – 30 Jun 2026",
  * "Jun 2026", "Q2 2026", "FY2025") while the value keeps the period
@@ -101,12 +173,18 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value ?? "");
   const [draftError, setDraftError] = useState<string | null>(null);
+  // Range picking is two clicks — the pending start lives here until
+  // the end click commits (or the panel closes).
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  // The panel is min-w-56 while the trigger can be narrower (Overview
+  // The panel is min-w-56+ while the trigger can be narrower (Overview
   // header w-36) — left-anchored it overflowed the right viewport edge
-  // (system QA 2026-07-19). Clamp keeps it fully in the viewport.
-  const shiftX = useViewportShiftX(open, panelRef);
+  // (system QA 2026-07-19); the embedded grids are tall enough to clip
+  // the bottom edge on low anchors. The two-axis clamp keeps the panel
+  // fully in the viewport.
+  const shift = useViewportShiftXY(open, panelRef);
 
   // Track the controlled value — adjust-state-during-render, no effect.
   const [prevValue, setPrevValue] = useState(value);
@@ -115,13 +193,25 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
     setDraft(value ?? "");
   }
 
+  // Abandoned half-picked ranges reset when the panel opens or closes.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    setRangeStart(null);
+  }
+
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        // Focus management: Escape hands focus back to the trigger
+        // (outside clicks leave focus where the user put it).
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -137,8 +227,33 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
       return;
     }
     setDraftError(null);
+    setDraft(next);
     onValueChange?.(next);
     setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  // Grid selection follows the live draft, so a valid typed value moves
+  // the calendar before it is applied (picker ↔ input sync).
+  const parsed = parseDraft(mode, draft);
+
+  /** Calendar day click — commits directly (range: start, then end). */
+  const pickDay = (day: Date) => {
+    const iso = format(day, "yyyy-MM-dd");
+    if (mode === "day") {
+      commit(iso);
+      return;
+    }
+    if (rangeStart === null) {
+      setRangeStart(day);
+      setDraft(`${iso}..`);
+      setDraftError(null);
+      return;
+    }
+    const [from, to] = isBefore(day, rangeStart)
+      ? [day, rangeStart]
+      : [rangeStart, day];
+    commit(`${format(from, "yyyy-MM-dd")}..${format(to, "yyyy-MM-dd")}`);
   };
 
   const shownError = error ?? draftError;
@@ -151,6 +266,7 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
         </span>
       ) : null}
       <button
+        ref={triggerRef}
         type="button"
         aria-expanded={open}
         aria-haspopup="dialog"
@@ -188,8 +304,16 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
           ref={panelRef}
           role="dialog"
           aria-label={`Pick ${mode}`}
-          style={shiftX ? { transform: `translateX(${shiftX}px)` } : undefined}
-          className="absolute left-0 top-full z-dropdown mt-1 w-full min-w-56 rounded border border-border bg-bg p-3 shadow-lg"
+          style={
+            shift.x || shift.y
+              ? { transform: `translate(${shift.x}px, ${shift.y}px)` }
+              : undefined
+          }
+          className={cn(
+            "absolute left-0 top-full z-dropdown mt-1 w-full rounded border border-border bg-bg p-3 shadow-lg",
+            // The 7-column calendar needs the wider floor (7×32px cells).
+            mode === "day" || mode === "range" ? "min-w-64" : "min-w-56",
+          )}
         >
           {presets.length > 0 ? (
             <div className="mb-2 flex flex-wrap gap-1.5">
@@ -209,7 +333,32 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
               ))}
             </div>
           ) : null}
-          <label className="block text-[11px] font-medium uppercase tracking-wide text-text-2">
+          {mode === "day" ? (
+            <DatePicker value={parsed.day} onSelect={pickDay} />
+          ) : mode === "range" ? (
+            <DatePicker
+              value={rangeStart ?? parsed.from}
+              rangeEnd={rangeStart ? null : parsed.to}
+              onSelect={pickDay}
+            />
+          ) : mode === "month" ? (
+            <MonthPicker
+              value={parsed.month}
+              onSelect={(monthStart) => commit(format(monthStart, "yyyy-MM"))}
+            />
+          ) : mode === "quarter" ? (
+            <QuarterPicker
+              value={parsed.quarter}
+              onSelect={(next) => commit(`${next.year}-Q${next.quarter}`)}
+            />
+          ) : (
+            <YearPicker
+              value={parsed.year}
+              formatLabel={(year) => `FY${year}`}
+              onSelect={(year) => commit(`FY${year}`)}
+            />
+          )}
+          <label className="mt-2 block border-t border-border pt-2 text-[11px] font-medium uppercase tracking-wide text-text-2">
             {mode}
             <input
               autoFocus

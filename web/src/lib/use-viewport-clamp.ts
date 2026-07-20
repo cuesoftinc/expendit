@@ -77,3 +77,63 @@ export const useViewportShiftX = (
 
   return shift;
 };
+
+export interface ViewportShift {
+  x: number;
+  y: number;
+}
+
+const NO_SHIFT: ViewportShift = { x: 0, y: 0 };
+
+/**
+ * Two-axis variant of useViewportShiftX — the calendar grids made the
+ * PeriodPicker panel tall enough to clip the bottom viewport edge on
+ * low anchors (390 canon viewport), so the same 1-D clamp runs on Y
+ * too. clampShiftX is axis-agnostic: pass top/bottom + innerHeight.
+ */
+export const useViewportShiftXY = (
+  open: boolean,
+  panelRef: RefObject<HTMLElement | null>,
+): ViewportShift => {
+  const [shift, setShift] = useState(NO_SHIFT);
+
+  // Reset when the layer closes — adjust-state-during-render, no effect.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (!open) setShift(NO_SHIFT);
+  }
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    // Mirrors the shift already painted so resize re-measures can
+    // recover the unshifted anchor geometry from the live rect.
+    let applied = NO_SHIFT;
+    const measure = () => {
+      const panel = panelRef.current;
+      if (!panel || typeof window === "undefined") return;
+      const rect = panel.getBoundingClientRect();
+      const next = {
+        x: clampShiftX(
+          rect.left - applied.x,
+          rect.right - applied.x,
+          window.innerWidth,
+        ),
+        y: clampShiftX(
+          rect.top - applied.y,
+          rect.bottom - applied.y,
+          window.innerHeight,
+        ),
+      };
+      applied = next;
+      setShift((current) =>
+        current.x === next.x && current.y === next.y ? current : next,
+      );
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [open, panelRef]);
+
+  return shift;
+};
