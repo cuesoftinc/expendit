@@ -23,11 +23,13 @@ describe("useThemeController (B9 theme control)", () => {
     await waitFor(() => expect(result.current.theme).toBe("dark"));
   });
 
-  it("system removes the attribute (OS preference applies)", () => {
+  it("system removes the stored key; data-theme carries the resolved OS theme", () => {
     const { result } = renderHook(() => useThemeController(), { wrapper });
     act(() => result.current.setTheme("dark"));
     act(() => result.current.setTheme("system"));
-    expect(document.documentElement.dataset.theme).toBeUndefined();
+    // Contract 2026-07-20: data-theme always carries the RESOLVED theme
+    // (light here — no matchMedia dark in jsdom); key absent = system.
+    expect(document.documentElement.dataset.theme).toBe("light");
     expect(localStorage.getItem("expendit.theme")).toBeNull();
   });
 
@@ -37,10 +39,10 @@ describe("useThemeController (B9 theme control)", () => {
     await waitFor(() => expect(result.current.theme).toBe("light"));
   });
 
-  it("applyTheme is a pure DOM seam", () => {
+  it("applyTheme is a pure DOM seam (applies the resolved theme)", () => {
     applyTheme("dark");
     expect(document.documentElement.dataset.theme).toBe("dark");
     applyTheme("system");
-    expect(document.documentElement.dataset.theme).toBeUndefined();
+    expect(document.documentElement.dataset.theme).toBe("light");
   });
 });

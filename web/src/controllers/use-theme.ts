@@ -10,6 +10,7 @@
  */
 
 import {
+  resolveTheme,
   useTheme,
   type ThemePreference,
   THEME_STORAGE_KEY,
@@ -19,11 +20,11 @@ export type ThemeSetting = ThemePreference;
 
 export { THEME_STORAGE_KEY };
 
-/** Pure DOM seam kept for compatibility (mirrors the provider's apply). */
+/** Pure DOM seam kept for compatibility (mirrors the provider's apply):
+ * data-theme always carries the RESOLVED theme (contract 2026-07-20). */
 export const applyTheme = (theme: ThemeSetting): void => {
   if (typeof document === "undefined") return;
-  if (theme === "system") delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.theme = resolveTheme(theme);
 };
 
 export const useThemeController = () => {
