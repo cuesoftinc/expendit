@@ -302,7 +302,7 @@ never on screens.
 | Component | Variants × states |
 | --- | --- |
 | Select / Menu | **blocking** · trigger: default / focus / open / disabled / error · option: default / hover / selected · md/sm · searchable-combobox variant (MI-4, canonical-key mapping — as built: combobox md-only) |
-| DatePicker / PeriodPicker | **blocking** · modes: day / range / month / quarter / year (closed grammar) · open/closed · error · presets |
+| DatePicker / PeriodPicker | **blocking** · pick-or-type: every mode pairs the grammar input (`2026-06-01` · `2026-06-01..2026-06-30` · `2026-06` · `2026-Q2` · `FY2026`) with a picker panel — the input stays editable while the panel is open; Enter commits, Esc keeps the typed value · modes: day / range → day grid (Sunday-first, muted adjacent days, accent-ring today, accent-fill selected, range tint) · month → year nav + 12-month grid · quarter → year nav + Q1–Q4 row · year → FY#### list, newest first, no nav · trigger: closed / open (accent focus stroke) / error · preset chips: wrapped row above the panel (bg-elev fill + border stroke; selected = accent border + accent label) · panel: Cancel / Apply confirm row, collision-clamped — flips above when room below runs out, clamps at viewport edges, never covers the input **[Reconciled 2026-07-20]** |
 | Modal / Dialog chrome | **blocking** · sm/md/lg · header/body/footer slots · danger variant (type-to-confirm, MI-15) · sheet variant · overlay (z 40) |
 | Tooltip | **blocking** · placement: top / bottom / left / right · text / formula (mono body, MI-8) |
 | Tag / Badge | **blocking** · tint: neutral / info / warn / error / success / NEW-accent (MI-14) · text / count (9+ cap) · sm/md |
