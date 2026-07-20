@@ -56,6 +56,12 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
     .getByTestId("chart-line-net")
     .getAttribute("points");
   expect(personalPoints?.trim().split(/\s+/).length).toBeGreaterThanOrEqual(12);
+  // Y-axis construction (Figma Chart/Line master): ₦-compact nice ticks
+  // left of the plot + a gridline each; the personal domain dips negative.
+  const personalYAxis = page.getByTestId("chart-y-axis");
+  await expect(personalYAxis.getByText("₦0", { exact: true })).toBeVisible();
+  await expect(personalYAxis.getByText("−₦1M", { exact: true })).toBeVisible();
+  await expect(personalYAxis.getByText("₦2M", { exact: true })).toBeVisible();
   await switchToCompanyOrg(page);
   await expect(page.getByText("Net cash flow").first()).toBeVisible();
   // Company ledger onset is Jan 2026 — the chart starts there and says so.
@@ -64,6 +70,9 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
     .getByTestId("chart-line-net")
     .getAttribute("points");
   expect(companyPoints?.trim().split(/\s+/).length).toBe(7);
+  const companyYAxis = page.getByTestId("chart-y-axis");
+  await expect(companyYAxis.getByText("−₦2.5M", { exact: true })).toBeVisible();
+  await expect(companyYAxis.getByText("₦5M", { exact: true })).toBeVisible();
 
   // --- B2 transactions CRUD (manual path, MI-11 inspector) --------------
   await openNav(page, "Transactions").click();
@@ -213,6 +222,14 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
       trends.getByTestId(`chart-markers-${seriesId}`).locator("circle"),
     ).toHaveCount(2);
   }
+  // The trend chart carries the same y-axis construction, ₦-compact:
+  // revenue tops FY2025 turnover ₦128.4M → ticks ₦0 / ₦50M / ₦100M / ₦150M.
+  await expect(
+    trends.getByTestId("chart-y-axis").getByText("₦100M", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    trends.getByTestId("chart-y-axis").getByText("₦0", { exact: true }),
+  ).toBeVisible();
 
   // --- B7 tax center → B7b filing wizard → filing history ----------------
   await openNav(page, "Tax center").click();

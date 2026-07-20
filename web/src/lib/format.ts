@@ -32,6 +32,30 @@ export const formatMoney = (
   return `${sign}${currencySymbol(currency)}${formatted}`;
 };
 
+/**
+ * Compact axis money — the chart y-tick format from the Figma Chart/Line
+ * master (₦0 / ₦2M / ₦4M / ₦6M): abbreviated magnitude, at most one
+ * decimal, sign preserved (−₦2.5M) for negative-dipping domains.
+ */
+export const formatMoneyCompact = (
+  amount: number,
+  currency = "NGN",
+): string => {
+  const sign = amount < 0 ? "−" : "";
+  const abs = Math.abs(amount);
+  const [suffix, divisor] =
+    abs >= 1e9
+      ? ["B", 1e9]
+      : abs >= 1e6
+        ? ["M", 1e6]
+        : abs >= 1e3
+          ? ["K", 1e3]
+          : ["", 1];
+  const value = Math.round((abs / divisor) * 10) / 10;
+  const text = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+  return `${sign}${currencySymbol(currency)}${text}${suffix}`;
+};
+
 export const formatPercent = (value: number, decimals = 1): string =>
   `${(value * 100).toFixed(decimals)}%`;
 

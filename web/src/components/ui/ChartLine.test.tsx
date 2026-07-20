@@ -75,10 +75,90 @@ describe("Chart/Line (design.md §8.2b, MI-12)", () => {
         xLabelIndices={[0, 2]}
       />,
     );
-    // 4 points across 480 wide → datum 2 sits at x = 320, not the even
-    // two-label spread (0 / 480).
-    expect(Number(screen.getByText("Mar").getAttribute("x"))).toBe(320);
-    expect(Number(screen.getByText("Jan").getAttribute("x"))).toBe(0);
+    // 4 points → datum 2 sits at 2/3 of the plot width, not the even
+    // two-label spread (0% / 100%).
+    expect(parseFloat(screen.getByText("Mar").style.left)).toBeCloseTo(
+      66.667,
+      2,
+    );
+    expect(parseFloat(screen.getByText("Jan").style.left)).toBe(0);
+  });
+
+  it("y axis renders by default: nice ₦-compact ticks + a gridline each (Figma master)", () => {
+    const { container } = render(
+      <ChartLine series={series} xLabels={["Jan", "Feb", "Mar", "Apr"]} />,
+    );
+    // Domain [0, 8] → nice ticks 0 / 5 / 10.
+    const axis = screen.getByTestId("chart-y-axis");
+    expect(axis).toHaveClass("text-text-2");
+    const labels = [...axis.querySelectorAll("span")].map(
+      (node) => node.textContent,
+    );
+    expect(labels).toEqual(["₦0", "₦5", "₦10"]);
+    const gridlines = container.querySelectorAll(
+      '[data-testid="chart-gridline"]',
+    );
+    expect(gridlines).toHaveLength(3);
+    expect(gridlines[0]).toHaveClass("stroke-border");
+  });
+
+  it("yTickFormat is the content-kind instance override", () => {
+    render(<ChartLine series={series} yTickFormat={(value) => `${value}%`} />);
+    expect(screen.getByTestId("chart-y-axis")).toHaveTextContent("10%");
+  });
+
+  it("negative domains tick below zero (dipping cash flow)", () => {
+    render(
+      <ChartLine
+        series={[
+          {
+            id: "net",
+            label: "Net",
+            color: "accent" as const,
+            points: [-1_134_650, 331_800, 1_529_700],
+          },
+        ]}
+      />,
+    );
+    const labels = [
+      ...screen.getByTestId("chart-y-axis").querySelectorAll("span"),
+    ].map((node) => node.textContent);
+    expect(labels).toEqual(["−₦1M", "₦0", "₦1M", "₦2M"]);
+  });
+
+  it("mobile thinning: interior ticks hide below sm (edges + zero stay)", () => {
+    render(
+      <ChartLine
+        series={[
+          {
+            id: "net",
+            label: "Net",
+            color: "accent" as const,
+            points: [-1_134_650, 331_800, 1_529_700],
+          },
+        ]}
+        xLabels={["Aug", "Oct", "Dec"]}
+      />,
+    );
+    // Ticks −1M / 0 / 1M / 2M: only ₦1M is interior non-zero.
+    expect(screen.getByText("₦1M")).toHaveClass("max-sm:hidden");
+    expect(screen.getByText("−₦1M")).not.toHaveClass("max-sm:hidden");
+    expect(screen.getByText("₦0")).not.toHaveClass("max-sm:hidden");
+    expect(screen.getByText("₦2M")).not.toHaveClass("max-sm:hidden");
+    // X labels: interior months hide, edges stay.
+    expect(screen.getByText("Oct")).toHaveClass("max-sm:hidden");
+    expect(screen.getByText("Aug")).not.toHaveClass("max-sm:hidden");
+    expect(screen.getByText("Dec")).not.toHaveClass("max-sm:hidden");
+  });
+
+  it("yAxis={false} keeps the bare hairline variant (no labels, no gridlines)", () => {
+    const { container } = render(<ChartLine series={series} yAxis={false} />);
+    expect(screen.queryByTestId("chart-y-axis")).toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="chart-gridline"]'),
+    ).toHaveLength(0);
+    // The austere axis hairlines remain.
+    expect(container.querySelectorAll("line")).toHaveLength(2);
   });
 
   it("loading renders the axis-first skeleton", () => {
