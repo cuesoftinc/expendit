@@ -246,12 +246,13 @@ never on screens.
 > axis; dark/light QA happens on the preview frames (the Components page's
 > "Mode test — Dark" frame).
 >
-> **Theme parity (2026-07-19).** Runtime light/dark switching ships on the
-> marketing nav, the dashboard chrome (AppNav) and in settings via the
-> ThemeToggle component, per the cross-product "Marketing nav, footer &
-> theme parity canon": apparule's `ThemeProvider` contract replicated —
+> **Theme parity.** Runtime theme switching ships on the marketing nav,
+> the dashboard chrome (AppNav) and in settings via the ThemeToggle
+> component, per the cross-product "Marketing nav, footer & theme parity
+> canon": apparule's `ThemeProvider` contract replicated — three-state
+> cycle light → dark → system (system follows live `prefers-color-scheme`),
 > `data-theme` on `<html>`, persisted at localStorage key `expendit.theme`,
-> falling back to the product design default. [Directive 2026-07-19]
+> falling back to the product design default. **[Revised 2026-07-20]**
 
 | Component | Variants × states |
 | --- | --- |
@@ -292,7 +293,7 @@ never on screens.
 | Component | Variants × states |
 | --- | --- |
 | AppNav / NavItem | **blocking** · item: default / hover / active / with-badge-count (MI-5) · group label · expanded 240px / collapsed 64px icon rail · org-switcher slot top · theme ×2 · ThemeToggle instance in the chrome (expanded footer + collapsed rail) [Directive 2026-07-19] |
-| ThemeToggle | **blocking** · theme: light / dark (active cell tracks the applied theme) · lucide sun/moon icons · token-bound (`bg-elev`/`border`/`bg`, icon strokes → `text`) so one master renders in both modes · instances pinned in MarketingNav and AppNav chrome per the cross-product canon [Directive 2026-07-19] |
+| ThemeToggle | **blocking** · theme: light / dark / system — three-cell segmented control (sun / moon / lucide monitor; the active cell tracks the applied state) · cycle order light → dark → system; system follows live `prefers-color-scheme` · persisted at localStorage `expendit.theme` · token-bound (`bg-elev`/`border`/`bg`, icon strokes → `text`) so one master renders in both modes · instances pinned in MarketingNav and AppNav chrome per the cross-product canon **[Revised 2026-07-20]** |
 | OrgSwitcher | **blocking** · closed / open (menu) · org kind: personal / company · current + list rows · theme ×2 (as built: `open` is modeled on kind=company only — 3 of 4 combos; the open menu is the company exemplar) |
 | MobileTabBar + MobileHeader | **nice-to-have** (Part C, later phase) · 5 tabs Home/Transactions/Capture/Reports/Settings · active/inactive · Capture accent · header: title + back |
 
