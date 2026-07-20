@@ -193,9 +193,16 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
       page.getByText(/Statement confirmed — ratios recomputed/),
     ).toBeVisible({ timeout: 15_000 });
   }
-  // Statement view (normalized rows incl. derived totals — the registry
-  // StatementView renders mono canonical keys, design.md §8.2).
-  await expect(page.getByText("total_assets").first()).toBeVisible();
+  // Statement view (normalized rows incl. derived totals): human reading
+  // labels from the canonical vocabulary (Figma 98:743), derived rows
+  // carry the ƒ chip, and the identity-check footer ties out green.
+  await expect(page.getByText("Total assets").first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "ƒ derived" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Identity check — Assets = Liabilities \+ Equity/),
+  ).toBeVisible();
 
   // --- B6b ratios: gauges + MI-8 trace inspector -------------------------
   await openNav(page, "Ratios").click();
