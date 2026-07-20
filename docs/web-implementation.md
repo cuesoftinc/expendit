@@ -330,6 +330,14 @@ adjudicated audit ledger):**
   (`showDeveloperTools: "never"` — `showToolbar` is its deprecated
   alias), never a fork.
 
+**A5a thumb clamp as-built (2026-07-20,
+`fix/howitworks-thumb-alignment`):** the three how-it-works step thumbs
+are pinned to the frame's 384×190 box (`aspect-[384/190]` + overflow
+clip — the taller B3b/B1/B7 embeds crop at the bottom exactly as the
+A5a thumbs do), so the numbered captions sit on one aligned row at
+desktop; the home e2e asserts the caption row stays level (±2px) at
+1440 in both themes.
+
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
