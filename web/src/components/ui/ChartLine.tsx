@@ -220,10 +220,14 @@ export const ChartLine: React.FC<ChartLineProps> = ({
             // Absolute positioning pins to the PADDING box, so inset-0
             // would slide the plot under the y-axis label column — the
             // left inset restates the 52px axis offset (user report:
-            // gridlines struck through the tick labels).
+            // gridlines struck through the tick labels). Width must be
+            // explicit: an absolutely-positioned SVG is a REPLACED
+            // element, so left+right insets with w-auto resolve width
+            // from the viewBox aspect (huge at tall plots) instead of
+            // stretching between the insets.
             fill &&
               (yAxis
-                ? "lg:absolute lg:inset-y-0 lg:right-0 lg:left-[52px] lg:h-full lg:w-auto"
+                ? "lg:absolute lg:inset-y-0 lg:left-[52px] lg:h-full lg:w-[calc(100%-52px)]"
                 : "lg:absolute lg:inset-0 lg:h-full"),
           )}
         >
