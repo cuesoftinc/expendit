@@ -45,14 +45,16 @@ export const SectionInner: React.FC<{
   </div>
 );
 
-/** Section heading — Display/32 Bold, centered (Figma A3–A10 pattern). */
+/** Section heading — Display/32 Bold, centered (Figma A3–A10 pattern):
+ * 32/38 with the style's −1% (−0.01em) tracking, 28/34 below md. Same
+ * metrics the StatCard value already pins. */
 export const SectionHeading: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className }) => (
   <h2
     className={cn(
-      "text-center font-display text-[28px] font-bold leading-tight tracking-tight text-text md:text-[32px]",
+      "text-center font-display text-[28px] font-bold leading-[34px] tracking-[-0.01em] text-text md:text-[32px] md:leading-[38px]",
       className,
     )}
   >

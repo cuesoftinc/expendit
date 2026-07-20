@@ -65,7 +65,9 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
           {eyebrow}
         </div>
       ) : null}
-      <h3 className="text-base font-semibold text-text">
+      {/* Title/20 Semi Bold (Figma EditorialCard master 132:1284): 20/26,
+          −0.05px tracking. */}
+      <h3 className="text-[20px] font-semibold leading-[26px] tracking-[-0.05px] text-text">
         {/* Accent underline draws on hover. */}
         <span className="bg-gradient-to-r from-accent to-accent bg-[length:0%_2px] bg-left-bottom bg-no-repeat transition-[background-size] duration-base ease-standard group-hover:bg-[length:100%_2px] motion-reduce:transition-none">
           {title}
@@ -77,9 +79,10 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
           />
         ) : null}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-text-2">{body}</p>
+      {/* Body/14 Regular (14/20); the CTA line is Body/14 Medium. */}
+      <p className="mt-2 text-sm leading-5 text-text-2">{body}</p>
       {cta ? (
-        <span className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-accent">
+        <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium leading-5 text-accent">
           {cta}
           <ChevronRight aria-hidden className="h-3.5 w-3.5" />
         </span>
