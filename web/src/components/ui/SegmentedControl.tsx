@@ -48,7 +48,7 @@ export const SegmentedControl: React.FC<SegmentedControlProps> = ({
         className={cn(
           "rounded px-2.5 py-1 text-[13px] font-medium transition-colors duration-fast ease-standard",
           option.value === value
-            ? "bg-bg text-text shadow-sm"
+            ? "bg-bg text-text shadow-xs"
             : "text-text-2 hover:text-text",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
         )}
