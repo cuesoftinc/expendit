@@ -18,6 +18,7 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Radio from "@/components/ui/Radio";
 import Select from "@/components/ui/Select";
+import Wordmark from "@/components/ui/Wordmark";
 
 const NG_STATES = [
   { value: "NG-LA", label: "Lagos" },
@@ -45,9 +46,7 @@ export const OnboardingView: React.FC = () => {
   return (
     <main className="flex min-h-screen items-start justify-center bg-bg px-6 py-16">
       <div className="w-full max-w-lg">
-        <span className="font-display text-2xl font-bold tracking-tight text-text">
-          expendit
-        </span>
+        <Wordmark className="font-display text-2xl font-bold text-text" />
         <h1 className="mt-8 font-display text-xl font-semibold tracking-tight text-text">
           Set up your workspace
         </h1>

@@ -10,6 +10,7 @@ import React from "react";
 import Link from "next/link";
 import { useAuthController } from "@/controllers/use-auth";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
+import Wordmark from "@/components/ui/Wordmark";
 
 const SigninView: React.FC = () => {
   const { signInWithGoogle, loading, error } = useAuthController();
@@ -18,9 +19,7 @@ const SigninView: React.FC = () => {
     <main className="flex min-h-screen items-center justify-center bg-bg px-6">
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-12 block text-center">
-          <span className="font-display text-2xl font-bold tracking-tight text-text">
-            expendit
-          </span>
+          <Wordmark className="font-display text-2xl font-bold text-text" />
         </Link>
 
         <h1 className="text-center font-display text-2xl font-semibold tracking-tight text-text">
