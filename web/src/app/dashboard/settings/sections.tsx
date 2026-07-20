@@ -677,10 +677,7 @@ export const NotificationsSection: React.FC = () => {
   const [toast, setToast] = useState<string | null>(null);
   return (
     <>
-      <Section
-        title="Notifications"
-        description="Deadline reminders and import summaries."
-      >
+      <Section title="Notifications">
         <div className="space-y-4">
           <Switch
             label="Deadline reminders"
