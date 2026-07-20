@@ -16,7 +16,8 @@ export const SECURITY_POLICY_URL = `${GITHUB_URL}/blob/main/SECURITY.md`;
 export const LICENSE_URL = `${GITHUB_URL}/blob/main/LICENSE`;
 export const DOCS_URL = "https://cuesoft.gitbook.io/expendit";
 export const QUICKSTART_URL = `${DOCS_URL}/setup`;
-export const API_REFERENCE_URL = `${DOCS_URL}/system/api-surface`;
+// In-product Scalar reference (X-2) — renders docs/api/openapi.yaml.
+export const API_REFERENCE_URL = "/docs/api";
 export const SELF_HOST_DOCS_URL = `${DOCS_URL}/system/deployment`;
 export const ROADMAP_URL = `${DOCS_URL}/product/roadmap`;
 export const DISCORD_URL = "https://discord.gg/CDfZxxrxbb";
