@@ -374,6 +374,26 @@ plus typed sync and the in-viewport boundingBox at both widths;
 `floating-layers.spec.ts` unchanged). Presets stay the as-built chips
 row (the master's range preset rail is a design-lane follow-up).
 
+**Self-host tabbed snippet as-built (2026-07-20, PR #239).** The A8a
+compose one-liner is now the user-approved Docker Compose | Helm tab pair
+(A8c, Figma proposal 474:2): `CodeSnippet` gained a tabbed mode (the
+single-block mode is unchanged) — Radix Tabs supply roving focus + ARIA
+per the kit reuse policy, the active tab carries the 2px accent underline
+(labels stay font-medium in both states, so switching never reflows
+them), and copy targets the ACTIVE tab's full two-line block: `git clone
+https://github.com/cuesoftinc/expendit` shared; `cd expendit && docker
+compose up --build -d` (the repo's `make up`) vs `cd expendit && helm
+install expendit deploy/helm` (the real chart path). The rendered `$ `
+prompts are decorative (select-none) and stay out of the payload. The
+shared muted caption renders once under the block — "Compose ships
+MongoDB + Redis — the Helm chart expects reachable instances
+(MONGODB_URL, REDIS_URL)." — visible in both tab states, so switching
+never shifts layout. The section eyebrow drops "· docker" (now
+method-neutral "self-host"). Unit: `CodeSnippet.test.tsx` tabbed cases
+(tab state, per-tab copy payload, Radix roving focus, copied-morph
+reset); e2e: `home.spec.ts` pins helm-tab copy → the clipboard payload,
+caption persistence and the 1440/390 container fit.
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `expendit/tokens` collection
