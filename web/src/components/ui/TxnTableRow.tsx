@@ -20,7 +20,7 @@ import {
   Split,
 } from "lucide-react";
 import { formatIso } from "@/lib/dates";
-import { activeAnomalies, type TxnEntry, type TxnSource } from "@/models";
+import type { TxnEntry, TxnSource } from "@/models";
 import { cn } from "@/lib/cn";
 import AnomalyBadge from "./AnomalyBadge";
 import CategoryChip, { type CategoryOption } from "./CategoryChip";
@@ -52,8 +52,8 @@ export interface TxnTableRowProps {
   onSplit?: () => void;
   onExclude?: () => void;
   onOpen?: () => void;
-  /** Inline anomaly badge click → the anomaly-explain inspector. */
-  onExplain?: () => void;
+  /** Inline AnomalyBadge click → anomaly-explain inspector (B2b). */
+  onExplainAnomaly?: () => void;
 }
 
 export const TxnTableRow: React.FC<TxnTableRowProps> = ({
@@ -69,11 +69,10 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   onSplit,
   onExclude,
   onOpen,
-  onExplain,
+  onExplainAnomaly,
 }) => {
   const { Icon: SourceIcon, label: sourceLabel } = SOURCE_ICON[txn.source];
-  // Expected flags (Mark expected) no longer badge the row.
-  const anomaly = activeAnomalies(txn)[0];
+  const anomaly = txn.anomalies[0];
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.target !== event.currentTarget) return;
@@ -183,12 +182,13 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         </td>
       ) : anomaly ? (
         <td className="flex shrink-0 items-center">
-          {/* Inline badges OPEN the explain panel (Figma 208:3967). */}
+          {/* Clickable: opens the anomaly-explain inspector (B2b) — the
+              panel is reachable from the row, not deep-link-only. */}
           <AnomalyBadge
             type={anomaly.rule_id}
             severity={anomaly.severity}
             variant="inline"
-            onClick={onExplain}
+            onClick={onExplainAnomaly}
           />
         </td>
       ) : null}

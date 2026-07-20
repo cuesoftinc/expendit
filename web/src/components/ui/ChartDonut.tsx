@@ -98,26 +98,25 @@ export const ChartDonut: React.FC<ChartDonutProps> = ({
             />
           ))}
         </g>
+        {/* Center stack per the Figma master (126:1183): caption on top,
+            compact value below. */}
         {centerTotal ? (
-          // Center label (Figma master 126:1183): caption ON TOP (13px,
-          // text-2), compact value below (20px semibold) — callers pass
-          // compact-notation totals (₦3.61M, never full precision).
           <>
             {centerCaption ? (
               <text
                 x="60"
                 y="54"
                 textAnchor="middle"
-                className="fill-text-2 text-[13px]"
+                className="fill-text-2 text-[10px]"
               >
                 {centerCaption}
               </text>
             ) : null}
             <text
               x="60"
-              y={centerCaption ? 74 : 66}
+              y={centerCaption ? 70 : 64}
               textAnchor="middle"
-              className="fill-text text-[20px] font-semibold tabular-nums"
+              className="fill-text text-[15px] font-semibold tabular-nums"
             >
               {centerTotal}
             </text>

@@ -28,7 +28,7 @@ import {
 } from "@/controllers";
 import { useTransactionsController } from "@/controllers/use-transactions";
 import { formatMoney } from "@/lib/format";
-import { activeAnomalies, type TxnEntry, type TxnFilters } from "@/models";
+import type { AnomalySeverity, TxnEntry, TxnFilters } from "@/models";
 import AnomalyBadge from "@/components/ui/AnomalyBadge";
 import Banner from "@/components/ui/Banner";
 import BulkActionBar from "@/components/ui/BulkActionBar";
@@ -53,10 +53,19 @@ import ToastLayer from "../ToastLayer";
 // exception; mirrors the mock categories default).
 const FALLBACK_CATEGORY_COLOR = "#6E6E76";
 
-/** Humanized severity deck (Figma 208:3967 — never the raw enum). */
-const SEVERITY_LABELS: Record<"info" | "warn", string> = {
-  warn: "High",
-  info: "Low",
+/** B2b explain panel: severity reads human, never the raw enum. */
+const SEVERITY_LABEL: Record<AnomalySeverity, string> = {
+  info: "Info",
+  warn: "Warning",
+};
+
+/** Median amount of the comparable set (B2b explain footer). */
+const median = (txns: TxnEntry[]): number => {
+  const sorted = [...txns].map((txn) => txn.amount).sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
 };
 
 const SOURCE_OPTIONS = [
@@ -369,6 +378,21 @@ export const TransactionsView: React.FC = () => {
     }
   };
 
+  /** B2b "Mark expected": clears the flags — the AI-trust affordance. */
+  const markExpected = async () => {
+    if (!activeTxn) return;
+    setSaving(true);
+    try {
+      await txns.update(activeTxn.id, { anomalies: [] });
+      setToast("Marked expected — this pattern won't be flagged again.");
+      closeInspector();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const splitTxn = async () => {
     if (!activeTxn) return;
     const part = Number(splitAmount);
@@ -423,37 +447,6 @@ export const TransactionsView: React.FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inspector.kind, activeTxnId, fetchComparables]);
-  // Median of the comparables (explain-panel footer, Figma 208:3967).
-  const comparableMedian = useMemo(() => {
-    if (comparableTxns.length === 0) return null;
-    const amounts = [...comparableTxns]
-      .map((txn) => txn.amount)
-      .sort((a, b) => a - b);
-    const mid = Math.floor(amounts.length / 2);
-    return amounts.length % 2 === 1
-      ? amounts[mid]
-      : (amounts[mid - 1] + amounts[mid]) / 2;
-  }, [comparableTxns]);
-
-  const activeAnomaly = activeTxn
-    ? (activeAnomalies(activeTxn)[0] ?? activeTxn.anomalies[0])
-    : undefined;
-
-  // "Mark expected" (AI-trust affordance): the flag flips to expected in
-  // the mock and drops out of badges, feeds and the anomaly filter.
-  const markExpected = async () => {
-    if (!activeTxn) return;
-    setSaving(true);
-    try {
-      await txns.markAnomaliesExpected(activeTxn.id);
-      setToast("Marked expected — this entry is no longer flagged.");
-      closeInspector();
-    } catch (err) {
-      setToast(err instanceof Error ? err.message : "Update failed");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const isEmpty = !txns.loading && sorted.length === 0 && !txns.filters.search;
 
@@ -757,8 +750,10 @@ export const TransactionsView: React.FC = () => {
                       excluded_from_reports: !txn.excluded_from_reports,
                     })
                   }
-                  onExplain={() =>
-                    openInspector({ kind: "anomaly", txnId: txn.id })
+                  onExplainAnomaly={
+                    txn.anomalies.length > 0
+                      ? () => openInspector({ kind: "anomaly", txnId: txn.id })
+                      : undefined
                   }
                 />
               ))}
@@ -1065,8 +1060,9 @@ export const TransactionsView: React.FC = () => {
         </div>
       </Inspector>
 
-      {/* Anomaly-explain inspector (design.md §8.2 variant, Figma
-          208:3967 + master 67:349) */}
+      {/* Anomaly-explain inspector (design.md §8.2 variant, B2b frame
+          208:3967: humanized severity, provenance/rule-version line,
+          median footer, Cancel / Mark expected actions) */}
       <Inspector
         open={inspector.kind === "anomaly"}
         onClose={closeInspector}
@@ -1077,10 +1073,11 @@ export const TransactionsView: React.FC = () => {
             <Button kind="quiet" size="sm" onClick={closeInspector}>
               Cancel
             </Button>
+            {/* The AI-trust affordance: expected patterns stop flagging. */}
             <Button
               size="sm"
               loading={saving}
-              disabled={!activeAnomaly}
+              disabled={!activeTxn || activeTxn.anomalies.length === 0}
               onClick={() => void markExpected()}
             >
               Mark expected
@@ -1088,29 +1085,14 @@ export const TransactionsView: React.FC = () => {
           </div>
         }
       >
-        {activeTxn && activeAnomaly ? (
+        {activeTxn && activeTxn.anomalies.length > 0 ? (
           <div className="space-y-4">
             <AnomalyBadge
-              type={activeAnomaly.rule_id}
-              severity={activeAnomaly.severity}
+              type={activeTxn.anomalies[0].rule_id}
+              severity={activeTxn.anomalies[0].severity}
               variant="feed"
-              description={activeAnomaly.note}
+              description={activeTxn.anomalies[0].note}
             />
-            {/* Provenance: detection date + the rule that raised it. */}
-            <p className="text-[12px] text-text-2">
-              Detected{" "}
-              {formatIso(
-                activeAnomaly.detected_at ?? activeTxn.txn_date,
-                "d MMM yyyy",
-              )}{" "}
-              ·{" "}
-              <span className="font-mono">
-                rule: {activeAnomaly.rule_id}
-                {activeAnomaly.rule_version
-                  ? ` ${activeAnomaly.rule_version}`
-                  : ""}
-              </span>
-            </p>
             <dl className="space-y-1 text-[13px]">
               <div className="flex justify-between gap-2">
                 <dt className="text-text-2">Transaction</dt>
@@ -1128,13 +1110,29 @@ export const TransactionsView: React.FC = () => {
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-text-2">Severity</dt>
-                {/* Humanized (the raw enum read "WARN"). */}
-                <dd>{SEVERITY_LABELS[activeAnomaly.severity]}</dd>
+                {/* Human-cased, never the raw enum (B2b frame). */}
+                <dd>{SEVERITY_LABEL[activeTxn.anomalies[0].severity]}</dd>
               </div>
             </dl>
+            {/* Provenance line (B2b frame): when + which rule build. */}
+            <p className="text-[12px] text-text-2">
+              Detected{" "}
+              {formatIso(
+                activeTxn.anomalies[0].detected_at ?? activeTxn.created_at,
+                "d MMM yyyy",
+              )}{" "}
+              · rule:{" "}
+              <span className="font-mono">
+                {activeTxn.anomalies[0].rule_id}{" "}
+                {activeTxn.anomalies[0].rule_version ?? "v1"}
+              </span>
+            </p>
             <section aria-label="Comparable transactions">
               <h3 className="mb-1 text-[11px] font-medium uppercase tracking-wide text-text-2">
                 Comparable transactions
+                {" — "}
+                {categoryById.get(activeTxn.category_id)?.name ??
+                  activeTxn.category_id}
               </h3>
               {comparableTxns.length === 0 ? (
                 <p className="text-[13px] text-text-2">
@@ -1156,15 +1154,18 @@ export const TransactionsView: React.FC = () => {
                       </li>
                     ))}
                   </ul>
-                  {comparableMedian !== null ? (
-                    <p className="mt-2 border-t border-border pt-2 text-[12px] text-text-2">
-                      Median of {comparableTxns.length} comparable
-                      {comparableTxns.length === 1 ? "" : "s"} —{" "}
-                      <span className="tabular-nums text-text">
-                        {formatMoney(comparableMedian, currency)}
-                      </span>
-                    </p>
-                  ) : null}
+                  {/* Median footer (B2b frame) — the flagged amount reads
+                      against the category's normal. */}
+                  <p className="mt-2 border-t border-border pt-2 text-[12px] text-text-2">
+                    Median{" "}
+                    {formatMoney(median(comparableTxns), currency, {
+                      decimals: 0,
+                    })}{" "}
+                    across {comparableTxns.length} comparable{" "}
+                    {comparableTxns.length === 1
+                      ? "transaction"
+                      : "transactions"}
+                  </p>
                 </>
               )}
             </section>

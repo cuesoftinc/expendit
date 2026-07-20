@@ -25,6 +25,11 @@ test.describe("API reference — /docs/api", () => {
       page.getByRole("heading", { name: "Expendit API" }),
     ).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText("List expenses").first()).toBeVisible();
+
+    // Scalar's dev toolbar stays off the public reference
+    // (showDeveloperTools: "never") — it would otherwise render on
+    // 127.0.0.1, where this suite runs.
+    await expect(page.locator("header.api-reference-toolbar")).toHaveCount(0);
   });
 
   test("the OpenAPI document is served at /docs/api/openapi.yaml", async ({

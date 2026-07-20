@@ -34,19 +34,10 @@ export async function PUT(request: Request, context: Context) {
   const { id } = await context.params;
   const txn = find(request, id);
   if (!txn) return notFound();
-  const body = (await request.json()) as Partial<TxnEntry> & {
-    /** "Mark expected" (anomaly-explain footer) — flips every flag. */
-    mark_anomalies_expected?: boolean;
-  };
+  const body = (await request.json()) as Partial<TxnEntry>;
 
   if (body.amount !== undefined && body.amount <= 0) {
     return fail(422, "validation_failed", "Amount must be positive");
-  }
-  if (body.mark_anomalies_expected) {
-    txn.anomalies = txn.anomalies.map((anomaly) => ({
-      ...anomaly,
-      expected: true,
-    }));
   }
   if (body.description !== undefined) txn.description = body.description;
   if (body.amount !== undefined) txn.amount = body.amount;
@@ -54,6 +45,18 @@ export async function PUT(request: Request, context: Context) {
   if (body.txn_date !== undefined) txn.txn_date = body.txn_date;
   if (body.excluded_from_reports !== undefined)
     txn.excluded_from_reports = body.excluded_from_reports;
+  // B2b "Mark expected": the only anomaly write is clearing the flags —
+  // the user telling the AI this pattern is normal. Anything else 422s.
+  if (body.anomalies !== undefined) {
+    if (!Array.isArray(body.anomalies) || body.anomalies.length > 0) {
+      return fail(
+        422,
+        "validation_failed",
+        "anomalies only accepts [] (mark expected)",
+      );
+    }
+    txn.anomalies = [];
+  }
   if (body.category_id !== undefined) {
     txn.category_id = body.category_id;
     txn.ai_categorized = false; // human confirmation clears the ✨ (MI-4)

@@ -248,6 +248,11 @@ export const ImportsView: React.FC = () => {
               <ImportJobRow
                 key={job.id}
                 job={job}
+                failureMessage={
+                  job.status === "failed"
+                    ? failureMessage(job.error_code)
+                    : undefined
+                }
                 onOpen={() => router.push(`/dashboard/imports/${job.id}`)}
               />
             ))}

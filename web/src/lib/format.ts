@@ -40,7 +40,11 @@ export const formatMoney = (
 export const formatMoneyCompact = (
   amount: number,
   currency = "NGN",
+  options: { decimals?: number } = {},
 ): string => {
+  // Default 1 decimal (axis ticks); the donut center total passes 2 per
+  // the Figma ChartDonut master ("₦3.61M").
+  const maxDecimals = options.decimals ?? 1;
   const sign = amount < 0 ? "−" : "";
   const abs = Math.abs(amount);
   const [suffix, divisor] =
@@ -51,8 +55,9 @@ export const formatMoneyCompact = (
         : abs >= 1e3
           ? ["K", 1e3]
           : ["", 1];
-  const value = Math.round((abs / divisor) * 10) / 10;
-  const text = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+  const factor = 10 ** maxDecimals;
+  const value = Math.round((abs / divisor) * factor) / factor;
+  const text = parseFloat(value.toFixed(maxDecimals)).toString();
   return `${sign}${currencySymbol(currency)}${text}${suffix}`;
 };
 

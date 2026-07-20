@@ -76,16 +76,28 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   `POST /expense/create` / `POST /income/create` endpoints).
 - Bulk select → bulk re-categorize / export selection.
 - Anomaly-explain inspector state: AnomalyBadge click opens the Inspector
-  `anomaly-explain` variant (design.md §8.2) — what flagged, severity,
-  comparable txns, dismiss/confirm **[Directive 2026-07-18]**.
+  `anomaly-explain` variant (design.md §8.2) — inline row badges are the
+  entry point (row-reachable, not deep-link-only). Panel anatomy: what
+  flagged, human-cased severity, provenance line (detected date +
+  `rule_id` rule version), comparable transactions named by category with
+  a median footer; actions **Cancel / Mark expected** — Mark expected
+  clears the flags (the AI-trust affordance) **[Directive 2026-07-18]**.
 - Empty + loading frames per the screen-state rule (design.md §8.1)
   **[Directive 2026-07-18]**.
 
 ### B3 `/imports` — Import hub
-- UploadDropzone (CSV/PDF/receipt image) (MI-2) + import-job history table
-  (status, counts, anomalies found).
+- UploadDropzone (CSV/PDF/receipt image) (MI-2) + "Import history" job list
+  (status, counts, anomalies found). Parked review jobs tag blue **Ready
+  for review**; failed rows read a human failure sentence with the raw
+  taxonomy code demoted to a details disclosure; dates are absolute (the
+  finance-date idiom).
 - Job detail: staged-review table (AI categories ✨, duplicates pre-flagged),
-  per-row category fix (MI-4), then confirm/discard (MI-3).
+  per-row category fix (MI-4), then confirm/discard (MI-3). CTAs per the
+  B3b frame: secondary **Discard N duplicates** (flags every duplicate for
+  discard; the commit performs it) + primary **Import N**; whole-job abort
+  is a quiet "Discard import" in the page header. Footer reassurance:
+  "N rows will join your ledger. Discarded duplicates stay recoverable for
+  30 days."
 - Async model (202 + polling) per architecture.md §4.2.
 - Import failure state: a `failed` job renders the error screen —
   failure-taxonomy copy + retry (new job), flows/import.md §3
@@ -100,7 +112,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Synced transactions land in the same staged-review pipeline as uploads
   (single ingestion path **[Proposed]**), auto-confirm option per account
   once trust is established.
-- Re-auth banners when a link expires (design.md banners).
+- Re-auth banners when a link expires (design.md banners) — amber (a
+  recoverable pause): "Access Bank link expired — sync paused since
+  12 Jul" + **Re-authenticate**.
 - Bank-link journey states as screens: consent (Mono widget hand-off) /
   syncing (progress + live txn counter) / done — the MI-9 stepper,
   flows/bank-link.md **[Directive 2026-07-18]**.
@@ -109,7 +123,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Generate: monthly summary / cash-movement / category deep-dive
   (`kind: category_deep_dive` + `category` param, api.md §2); period picker;
   format PDF/CSV.
-- Artifact history table (TTL'd) with download (MI-14).
+- "Artifact history" list (TTL'd) with download (MI-14); expiry caption
+  under the list: "Artifacts expire after 30 days. You can regenerate any
+  report at any time."
 - Scheduled reports (monthly email) **[Proposed, later]**.
 
 ### B6 `/company` — Company financials **[Directive — new]**
@@ -132,13 +148,18 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   ManualStatementRow add-row for parser-missed lines —
   flows/statement-mapping.md **[Directive 2026-07-18]**.
 - **Statement view**: per confirmed statement (kind × period), render the
-  normalized statement — human line labels with the canonical key secondary
-  in mono, derived rows bold with an "ƒ derived" chip (formula tooltip),
-  parked rows surfaced as an "N unmapped" tag, `mapping_warning` badges, a
-  green "Assets = Liabilities + Equity" footer when the balance-sheet
-  identity holds (±1%), and period + Export in the card header
+  normalized statement — rows read as the vocabulary's **human labels**
+  (`CANONICAL_KEY_LABELS`, raw key preserved as the row title), derived
+  rows bold with a **ƒ derived** chip carrying the formula tooltip,
+  unmapped rows tagged per row with a header count tag,
+  `mapping_warning` badges, an **identity-check footer** per kind (green
+  "Assets = Liabilities + Equity" when the statement ties out within the
+  ±1% tolerance, amber when not), and period + Export in the card header
   (StatementView, design.md §8.2); export to report artifact
   (`kind: financial_statement`, api.md §2).
+- Archive tab **[Proposed — deferred]**: the B6 hub frame carries a
+  Statements / Ratios / Trends / Archive tab row; the built IA stays two
+  nav pages (adjudicated parity) and no Archive surface ships yet.
 - **Ratios** (`/company/ratios` — screen B6b): RatioGauge grid (MI-8),
   grouped:
   - *Liquidity*: current ratio, quick ratio, cash ratio
@@ -148,7 +169,10 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   - *Cash flow & scale*: working capital, operating cash-flow ratio, free
     cash flow, CFO-to-total-debt — currency values render as
     StatCard/MoneyCell, not gauges (line-items.md §5)
-  - Each gauge: value, period delta, benchmark band, "how we got this"
+  - Each gauge: value, period delta (real `period_delta` — current minus
+    the prior same-kind period, computed by the ratio engine; the caption
+    names the prior period, e.g. "vs FY2024"; growth metrics carry none —
+    they already are comparisons), benchmark band, "how we got this"
     formula trace (MI-8 tooltip → inspector with line items). **Benchmark
     bands [Decided v1]: static per-ratio healthy ranges shipped as constants
     in the ratio registry** (line-items.md §5), clearly labeled "general
@@ -158,7 +182,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   across periods; export to report artifact. As built: the periods are
   discrete annual observations — point markers at each confirmed FY with
   FY ticks at the data positions, so a two-year history reads as two
-  observations, not a continuous trend (scales unchanged as FYs accrue).
+  observations, not a continuous trend (scales unchanged as FYs accrue);
+  the card carries a **Data table** toggle (mirrors the B1 cash-flow
+  toggle: Period / Revenue / Gross profit / Net income).
 - Requires ≥1 mapped statement period; empty state explains inputs needed
   and which org kind captures statements (data-model.md §5 "Who uses which
   org kind"); empty + loading frames per the screen-state rule
@@ -201,16 +227,24 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   center ships its empty + loading frames.
 
 ### B8 `/categories`, B9 `/settings`
-- Categories: CRUD + color/dot, merge tool, AI-training note.
+- Categories: CRUD + color/dot, merge tool, AI-training note. Rows carry
+  the usage meta "N transactions this year" (calendar-year count enriched
+  on the list response — merge-safety context) and the **AI-proposed row
+  state** (✨ chip + provenance note, e.g. "AI proposed from 3 vendors"; a
+  human edit confirms the entry). Per-row Delete confirms before firing
+  (danger pattern); `category_in_use` pivots to merge.
 - Settings: org members/roles (company orgs), organization profile — name,
   registered address, fiscal year end (company orgs; data-model.md §5,
-  FormRow), data & privacy (export-all USR-001, purge USR-002 with MI-15),
-  AI-processing consent, bank-link permissions, notifications,
-  theme/density.
+  FormRow; FYE is a human month-end select, "31 December", writing the
+  MM-DD wire format), data & privacy (export-all USR-001, purge USR-002
+  with MI-15), AI-processing consent, bank-link permissions,
+  notifications, theme/density (theme control order Light | Dark | System
+  — the toggle's cycle order).
 - Rights & data screens: export-all progress (202 job → running/completed
   with signed-url download, flows/rights.md §1) and delete-account
-  typed-confirm (MI-15, 7-day grace, flows/rights.md §2)
-  **[Directive 2026-07-18]**.
+  typed-confirm (MI-15: type the **org name**, 5s danger-armed CTA, an
+  **Export first** secondary that kicks off USR-001; 7-day grace,
+  flows/rights.md §2) **[Directive 2026-07-18]**.
 
 ## Part C — Mobile app (later phase; parity direction **[Directive]**)
 

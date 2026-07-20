@@ -51,33 +51,25 @@ describe("ImportJobRow (design.md §8.2b)", () => {
     expect(screen.getByText("Processing")).toBeInTheDocument();
   });
 
-  it("failed renders the human taxonomy line; the raw code rides the tooltip", () => {
+  it("failed reads human; the taxonomy code demotes to a details disclosure", () => {
     render(
       <ImportJobRow
-        job={job({ status: "failed", error_code: "password_protected_pdf" })}
+        job={job({ status: "failed", error_code: "unreadable_file" })}
+        failureMessage="We could not read this file — try a CSV export."
       />,
     );
-    const line = screen.getByText("Remove the password and re-upload.");
-    expect(line).toBeInTheDocument();
-    expect(line).toHaveAttribute("title", "password_protected_pdf");
-    expect(screen.queryByText("password_protected_pdf")).toBeNull();
+    expect(
+      screen.getByText("We could not read this file — try a CSV export."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Details")).toBeInTheDocument();
+    expect(screen.getByText("unreadable_file")).toBeInTheDocument();
   });
 
-  it("parked staged jobs tag blue 'Ready for review' with a relative age", () => {
-    render(
-      <ImportJobRow
-        job={job({
-          confirmed: false,
-          imported: 0,
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        })}
-      />,
-    );
-    expect(screen.getByText("Ready for review")).toBeInTheDocument();
-    expect(
-      screen.getByText("214 staged for review · 5 duplicates flagged"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("2h ago")).toBeInTheDocument();
+  it("parked review jobs tag blue 'Ready for review' (B3 frame)", () => {
+    render(<ImportJobRow job={job({ confirmed: false, imported: 0 })} />);
+    const tag = screen.getByText("Ready for review");
+    expect(tag).toBeInTheDocument();
+    expect(tag).toHaveAttribute("data-tint", "info");
   });
 
   it("completed-empty and completed-bank variants", () => {

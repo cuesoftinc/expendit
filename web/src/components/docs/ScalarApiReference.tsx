@@ -43,6 +43,10 @@ export function ScalarApiReference() {
         forceDarkModeState: resolvedTheme,
         hideDarkModeToggle: true,
         withDefaultFonts: false,
+        // Scalar's dev toolbar stays off the public reference —
+        // configuration, not a fork (defaults to "localhost";
+        // `showToolbar` is the deprecated alias of this option).
+        showDeveloperTools: "never",
       }}
     />
   );

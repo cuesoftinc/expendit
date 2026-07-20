@@ -34,8 +34,8 @@ import PageHeader from "../PageHeader";
 import ToastLayer from "../ToastLayer";
 
 /**
- * Fiscal-year-end options — the humanized month-end Select (Figma B9:
- * "31 December", never a raw MM-DD mask). Values keep the API grammar.
+ * Fiscal-year-end options — the wire format stays MM-DD (api.md), the
+ * labels read human ("31 December") per the B9 frame.
  */
 const FISCAL_YEAR_END_OPTIONS = [
   { value: "01-31", label: "31 January" },
@@ -346,21 +346,30 @@ export const SettingsView: React.FC = () => {
                     </div>
                   )}
                 </FormRow>
-                {/* Humanized month-end control (Figma B9: "31 December"). */}
                 <FormRow
                   label="Fiscal year end"
                   helper="Defines FY periods for statements and CIT."
                 >
-                  {() => (
-                    <Select
-                      aria-label="Fiscal year end"
-                      options={FISCAL_YEAR_END_OPTIONS}
-                      value={
-                        fiscalYearEnd ?? activeOrg?.fiscal_year_end ?? "12-31"
-                      }
-                      onValueChange={setFiscalYearEnd}
-                    />
-                  )}
+                  {() => {
+                    const fyeValue =
+                      fiscalYearEnd ?? activeOrg?.fiscal_year_end ?? "12-31";
+                    // Non-month-end legacy values stay selectable raw.
+                    const options = FISCAL_YEAR_END_OPTIONS.some(
+                      (option) => option.value === fyeValue,
+                    )
+                      ? FISCAL_YEAR_END_OPTIONS
+                      : [
+                          { value: fyeValue, label: fyeValue },
+                          ...FISCAL_YEAR_END_OPTIONS,
+                        ];
+                    return (
+                      <Select
+                        options={options}
+                        value={fyeValue}
+                        onValueChange={setFiscalYearEnd}
+                      />
+                    );
+                  }}
                 </FormRow>
               </>
             ) : null}
@@ -578,7 +587,8 @@ export const SettingsView: React.FC = () => {
             {() => (
               <SegmentedControl
                 aria-label="Theme"
-                // Order mirrors the toggle cycle: light → dark → system.
+                // Light | Dark | System — mirrors the toggle's cycle
+                // order (Figma B9 frame).
                 options={[
                   { value: "light", label: "Light" },
                   { value: "dark", label: "Dark" },
@@ -594,10 +604,9 @@ export const SettingsView: React.FC = () => {
         </Section>
       </div>
 
-      {/* MI-15 danger flow (converged purge construction, Figma B9b):
-          org-name typed confirm + "Export everything first" secondary +
-          danger icon in the title; 7-day grace + Schedule deletion +
-          the 5s armed countdown stay. */}
+      {/* MI-15 danger flow (converged model, Figma B9 190:4223 + B9b
+          208:4194): type the ORG NAME to confirm, 5s danger-armed CTA,
+          "Export first" escape hatch; grace handled by the controller. */}
       <Modal
         open={purgeOpen}
         onOpenChange={setPurgeOpen}
@@ -614,9 +623,10 @@ export const SettingsView: React.FC = () => {
             onClick={() => {
               setPurgeOpen(false);
               void startExport();
+              setToast("Preparing your export — deletion can wait.");
             }}
           >
-            Export everything first
+            Export first
           </Button>
         }
       />

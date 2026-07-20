@@ -279,12 +279,10 @@ const categories: Category[] = [
     vat_treatment: "exempt",
     vat_basis: "inclusive",
   },
+  // AI-proposed category awaiting confirmation (B8 frame row state):
+  // courier/dispatch vendors clustered out of Ops & logistics.
   {
-    // AI-proposed, not yet human-confirmed (B8 ✨ row, Figma 190:2836):
-    // the categorizer noticed courier/dispatch vendors that fit neither
-    // Fuel & transport nor Ops & logistics. No ledger rows until a human
-    // confirms it — proposals never move money on their own.
-    id: "cat-logistics",
+    id: "cat-ai-logistics",
     org_id: ORG_CUESOFT,
     name: "Logistics",
     type: "expense",
@@ -293,7 +291,7 @@ const categories: Category[] = [
     vat_treatment: "exempt",
     vat_basis: "inclusive",
     ai_proposed: true,
-    ai_vendor_count: 3,
+    ai_note: "AI proposed from 3 vendors",
   },
   // Personal org — the freelancer dataset
   {

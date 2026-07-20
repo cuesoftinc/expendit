@@ -1,8 +1,11 @@
 "use client";
 
 /**
- * StagedReviewHeader — design.md §8.2b (MI-3): counts ("Import 209 /
- * discard 5 duplicates") · state reviewing / committing (cascade at the
+ * StagedReviewHeader — design.md §8.2b (MI-3), CTA semantics per the
+ * B3b frame (183:2437): counts line · secondary "Discard N duplicates"
+ * (the discard decision is its own affordance) · primary "Import N"
+ * (single verb — the commit discards flagged duplicates per
+ * flows/import.md §2) · state reviewing / committing (cascade at the
  * table) · warnings-banner slot.
  */
 
@@ -12,10 +15,12 @@ import Button from "./Button";
 
 export interface StagedReviewHeaderProps {
   importCount: number;
+  /** Flagged duplicates currently marked for discard. */
   duplicateCount: number;
   state?: "reviewing" | "committing";
   onCommit?: () => void;
-  onDiscardAll?: () => void;
+  /** Flags every duplicate for discard (resets explicit re-includes). */
+  onDiscardDuplicates?: () => void;
   /** Warnings-banner slot (partial-extraction notices). */
   warnings?: React.ReactNode;
   className?: string;
@@ -26,7 +31,7 @@ export const StagedReviewHeader: React.FC<StagedReviewHeaderProps> = ({
   duplicateCount,
   state = "reviewing",
   onCommit,
-  onDiscardAll,
+  onDiscardDuplicates,
   warnings,
   className,
 }) => (
@@ -47,29 +52,20 @@ export const StagedReviewHeader: React.FC<StagedReviewHeaderProps> = ({
             · <span className="tabular-nums text-warn">
               {duplicateCount}
             </span>{" "}
-            {duplicateCount === 1 ? "duplicate" : "duplicates"} flagged
+            {duplicateCount === 1 ? "duplicate" : "duplicates"} flagged for
+            discard
           </span>
         ) : null}
       </p>
-      <Button kind="quiet" size="sm" onClick={onDiscardAll}>
-        Discard all
-      </Button>
-      {/* MI-3: the confirm button carries the counts. */}
-      <Button
-        size="sm"
-        loading={state === "committing"}
-        onClick={onCommit}
-        aria-label={`Import ${importCount}, discard ${duplicateCount} ${
-          duplicateCount === 1 ? "duplicate" : "duplicates"
-        }`}
-      >
-        {state === "committing"
-          ? "Committing…"
-          : duplicateCount > 0
-            ? `Import ${importCount} / discard ${duplicateCount} ${
-                duplicateCount === 1 ? "duplicate" : "duplicates"
-              }`
-            : `Import ${importCount}`}
+      {duplicateCount > 0 ? (
+        <Button kind="quiet" size="sm" onClick={onDiscardDuplicates}>
+          Discard {duplicateCount}{" "}
+          {duplicateCount === 1 ? "duplicate" : "duplicates"}
+        </Button>
+      ) : null}
+      {/* MI-3: the confirm button carries the import count. */}
+      <Button size="sm" loading={state === "committing"} onClick={onCommit}>
+        {state === "committing" ? "Committing…" : `Import ${importCount}`}
       </Button>
     </div>
   </header>

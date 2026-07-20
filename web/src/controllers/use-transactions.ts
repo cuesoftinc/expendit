@@ -101,16 +101,6 @@ export const useTransactionsController = (orgId?: string) => {
     [orgId],
   );
 
-  /** "Mark expected" — flips the record's anomaly flags to expected. */
-  const markAnomaliesExpected = useCallback(
-    async (id: string) => {
-      const txn = await transactionsRepo.markAnomaliesExpected(id, { orgId });
-      setItems((prev) => prev.map((item) => (item.id === id ? txn : item)));
-      return txn;
-    },
-    [orgId],
-  );
-
   return {
     items,
     nextCursor,
@@ -124,6 +114,5 @@ export const useTransactionsController = (orgId?: string) => {
     update,
     remove,
     fetchComparables,
-    markAnomaliesExpected,
   };
 };

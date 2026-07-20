@@ -22,6 +22,7 @@ import {
   RATIO_REGISTRY,
   type MetricGroup,
 } from "@/models/registry/ratios";
+import { previousPeriod } from "@/models/registry/line-items";
 import type { RatioResult } from "@/models";
 import {
   formatMoney,
@@ -109,7 +110,6 @@ export const RatiosView: React.FC = () => {
 
   const [period, setPeriod] = useState<string | null>(null);
   const [trace, setTrace] = useState<RatioResult | null>(null);
-  const [showTrendTable, setShowTrendTable] = useState(false);
 
   // Default to the latest confirmed period once statements load.
   useEffect(() => {
@@ -131,6 +131,8 @@ export const RatiosView: React.FC = () => {
   // Trend series: revenue / gross_profit / net_income across confirmed
   // income-statement periods (line-items.md §5 trend rows).
   const { trend } = useTrendsController(statements.statements, activeOrgId);
+  // B6b frame: the trends chart offers a "Data table" toggle (mirrors B1).
+  const [showTrendTable, setShowTrendTable] = useState(false);
 
   const grouped = useMemo(() => {
     const map = new Map<MetricGroup, RatioResult[]>();
@@ -251,7 +253,13 @@ export const RatiosView: React.FC = () => {
                             status={result.status}
                             band={result.status === "na" ? null : domain.band}
                             delta={result.period_delta ?? undefined}
-                            deltaCaption="vs prior period"
+                            // Name the prior period ("vs FY2024"), not a
+                            // generic "vs prior period" (B6b frame copy).
+                            deltaCaption={
+                              (period && previousPeriod(period)
+                                ? `vs ${previousPeriod(period)}`
+                                : undefined) ?? "vs prior period"
+                            }
                             formula={result.formula}
                             naReason={result.na_reason}
                             caption={result.benchmark_band ?? undefined}
@@ -307,8 +315,7 @@ export const RatiosView: React.FC = () => {
                 Trends
               </h2>
               {trend && trend.labels.length >= 2 ? (
-                // Chart ↔ data-table toggle (Figma B6b trend card — same
-                // construction as the B1 cash-flow card).
+                // Chart data-table toggle per the B6b frame (mirrors B1).
                 <button
                   type="button"
                   onClick={() => setShowTrendTable((prev) => !prev)}
@@ -324,7 +331,7 @@ export const RatiosView: React.FC = () => {
                   <div className="max-lg:overflow-x-auto">
                     <table
                       className="w-full min-w-[420px] text-[13px]"
-                      aria-label="Trend data"
+                      aria-label="Trends data"
                     >
                       <thead>
                         <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-text-2">
@@ -357,7 +364,7 @@ export const RatiosView: React.FC = () => {
                             key={label}
                             className="border-b border-border last:border-b-0"
                           >
-                            <td className="py-1.5">{label}</td>
+                            <td className="py-1.5 tabular-nums">{label}</td>
                             <td className="py-1.5 text-right tabular-nums">
                               {formatMoney(trend.revenue[index], currency, {
                                 decimals: 0,

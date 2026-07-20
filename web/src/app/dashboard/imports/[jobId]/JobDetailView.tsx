@@ -57,7 +57,10 @@ export const JobDetailView: React.FC = () => {
   const imports = useImportsController(activeOrgId);
   const { items: categories } = useCategoriesController(activeOrgId);
   const [committing, setCommitting] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    kind: "info" | "error";
+  } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -104,7 +107,10 @@ export const JobDetailView: React.FC = () => {
       const result = await imports.confirm(job.id);
       router.push(`/dashboard/transactions?imported=${result.imported}`);
     } catch (err) {
-      setToast(err instanceof Error ? err.message : "Confirm failed");
+      setToast({
+        message: err instanceof Error ? err.message : "Confirm failed",
+        kind: "error",
+      });
       setCommitting(false);
     }
   };
@@ -113,6 +119,25 @@ export const JobDetailView: React.FC = () => {
     if (!job) return;
     await imports.discard(job.id);
     router.push("/dashboard/imports");
+  };
+
+  /**
+   * B3b "Discard N duplicates": flags every duplicate for discard —
+   * resets explicit re-includes; the commit performs the actual discard
+   * (flows/import.md §2, duplicates excluded unless re-included).
+   */
+  const discardDuplicates = async () => {
+    const reIncluded = staged.filter(
+      (row) => row.is_duplicate && row.include_duplicate,
+    );
+    for (const row of reIncluded) {
+      await imports.setIncludeDuplicate(row.id, false);
+    }
+    const flagged = staged.filter((row) => row.is_duplicate).length;
+    setToast({
+      message: `${flagged} ${flagged === 1 ? "duplicate" : "duplicates"} flagged for discard — recoverable for 30 days after import.`,
+      kind: "info",
+    });
   };
 
   if (loadError) {
@@ -240,12 +265,19 @@ export const JobDetailView: React.FC = () => {
         title={title}
         description={job.ai_summary ?? undefined}
         actions={
-          job.anomalies.length > 0 ? (
-            <Tag tint="warn" size="md">
-              {job.anomalies.length}{" "}
-              {job.anomalies.length === 1 ? "anomaly" : "anomalies"} found
-            </Tag>
-          ) : undefined
+          <div className="flex items-center gap-2">
+            {job.anomalies.length > 0 ? (
+              <Tag tint="warn" size="md">
+                {job.anomalies.length}{" "}
+                {job.anomalies.length === 1 ? "anomaly" : "anomalies"} found
+              </Tag>
+            ) : null}
+            {/* Whole-job abort — demoted out of the review band (the B3b
+                frame's band carries only the discard-dupes/import pair). */}
+            <Button kind="quiet" size="sm" onClick={() => void discard()}>
+              Discard import
+            </Button>
+          </div>
         }
       />
 
@@ -254,7 +286,7 @@ export const JobDetailView: React.FC = () => {
         duplicateCount={duplicateCount}
         state={committing ? "committing" : "reviewing"}
         onCommit={() => void confirm()}
-        onDiscardAll={() => void discard()}
+        onDiscardDuplicates={() => void discardDuplicates()}
         warnings={
           job.warnings.length > 0 ? (
             <Banner kind="warn">{job.warnings.join(" · ")}</Banner>
@@ -318,19 +350,21 @@ export const JobDetailView: React.FC = () => {
             })}
           </tbody>
         </table>
-        {/* Reassurance footer (Figma B3b 183:2437) — the 30-day
-            recoverability line is a trust promise (flows/import.md §4). */}
-        <p className="mt-3 text-[12px] leading-4 text-text-2">
-          {importCount} row{importCount === 1 ? "" : "s"} will join your ledger.
-          {duplicateCount > 0
-            ? " Discarded duplicates stay recoverable for 30 days."
-            : ""}
-        </p>
       </section>
 
+      {/* Reassurance footer (B3b frame): the 30-day recoverability is a
+          trust promise — same copy family as the Reports expiry caption. */}
+      <p className="mt-3 text-[12px] text-text-2">
+        {importCount} {importCount === 1 ? "row" : "rows"} will join your
+        ledger.
+        {duplicateCount > 0
+          ? " Discarded duplicates stay recoverable for 30 days."
+          : ""}
+      </p>
+
       <ToastLayer
-        message={toast}
-        kind="error"
+        message={toast?.message ?? null}
+        kind={toast?.kind ?? "info"}
         onDismiss={() => setToast(null)}
       />
     </>

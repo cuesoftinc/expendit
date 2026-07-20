@@ -61,7 +61,8 @@ const NAV_ROUTES: NavRoute[] = [
   },
   { href: "/dashboard/imports", label: "Imports", icon: Upload, nested: true },
   { href: "/dashboard/accounts", label: "Accounts", icon: Landmark },
-  // AppNav master icons: Reports = file-text, Statements = file-spreadsheet.
+  // Icons per the AppNav master: file-text (Reports), file-spreadsheet
+  // (Statements) — audit B1/B6 low rows.
   { href: "/dashboard/reports", label: "Reports", icon: FileText },
   {
     href: "/dashboard/company",

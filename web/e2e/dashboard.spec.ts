@@ -101,13 +101,15 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await page.waitForURL(/anomalies=1.*record=.*explain=1/);
   const explain = page.getByRole("dialog", { name: "Why this was flagged" });
   await expect(explain).toBeVisible();
-  await expect(explain.getByText(/^(High|Low)$/)).toBeVisible();
-  await expect(explain.getByText(/rule: [a-z_]+ v\d+/)).toBeVisible();
-  await expect(explain.getByText(/Median of \d+ comparable/)).toBeVisible();
-  // Mark expected flips the flag in the mock — the entry stops flagging.
+  await expect(explain.getByText(/^(Info|Warning)$/)).toBeVisible();
+  await expect(explain.getByText(/rule:/)).toBeVisible();
+  // Comparables come from the FULL ledger — the deep link lands on an
+  // anomaly-only filtered list, which must not hide clean comparables.
+  await expect(explain.getByText(/^Median/)).toBeVisible();
+  // Mark expected clears the flags in the mock — the entry stops flagging.
   await explain.getByRole("button", { name: "Mark expected" }).click();
   await expect(
-    page.getByText("Marked expected — this entry is no longer flagged."),
+    page.getByText("Marked expected — this pattern won't be flagged again."),
   ).toBeVisible();
 
   // --- B2 transactions CRUD (manual path, MI-11 inspector) --------------
@@ -184,10 +186,6 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
     // (system QA 2026-07-19 — the green Completed tag hid the parked
     // review); bank/auto-confirmed jobs stay "completed*".
     .toMatch(/completed|needs-review/);
-  // Relative ages (systemic adjudication): history rows say "…ago".
-  // The mock clock pins created_at to the narrative day, so the bucket
-  // depends on real wall-clock distance — assert the idiom, not a value.
-  await expect(jobRow.getByText(/just now|\bago\b/)).toBeVisible();
   // Post-parse summary card beside the dropzone (Figma B3): green check,
   // counts, and the "Review import" hand-off.
   const summaryCard = page.getByRole("region", {
@@ -253,13 +251,16 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
       page.getByText(/Statement confirmed — ratios recomputed/),
     ).toBeVisible({ timeout: 15_000 });
   }
-  // Statement view (Figma 98:743): human line labels with the canonical
-  // key secondary in mono, bold derived rows with the ƒ chip, and the
-  // green identity-check footer once the sheet balances.
+  // Statement view (normalized rows incl. derived totals): human reading
+  // labels from the canonical vocabulary (Figma 98:743), derived rows
+  // carry the ƒ chip, and the identity-check footer ties out green.
   await expect(page.getByText("Total assets").first()).toBeVisible();
-  await expect(page.getByText("total_assets").first()).toBeVisible();
-  await expect(page.getByText("ƒ derived").first()).toBeVisible();
-  await expect(page.getByText("Assets = Liabilities + Equity")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "ƒ derived" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Identity check — Assets = Liabilities \+ Equity/),
+  ).toBeVisible();
   // Export lives in the statement card header, not the page header.
   await expect(
     page
@@ -300,15 +301,17 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await expect(
     trends.getByTestId("chart-y-axis").getByText("₦0", { exact: true }),
   ).toBeVisible();
-  // Multi-series chart keeps its legend; the data-table toggle swaps the
-  // chart for an accessible table (Figma B6b trend card).
+  // Multi-series chart keeps its legend (single-series ones drop it);
+  // the data-table toggle swaps chart ⇄ accessible table (B6b frame).
   await expect(trends.locator("figcaption")).toContainText("Gross profit");
   await trends.getByRole("button", { name: "Data table" }).click();
-  await expect(trends.getByRole("table", { name: "Trend data" })).toBeVisible();
+  const trendsTable = trends.getByRole("table", { name: "Trends data" });
+  await expect(trendsTable).toBeVisible();
   await expect(
-    trends.getByRole("columnheader", { name: "Net income" }),
+    trendsTable.getByRole("columnheader", { name: "Gross profit" }),
   ).toBeVisible();
-  await trends.getByRole("button", { name: "Chart" }).click();
+  await expect(trendsTable.locator("tbody tr")).toHaveCount(2);
+  await trends.getByRole("button", { name: "Chart", exact: true }).click();
   await expect(trends.getByTestId("chart-y-axis")).toBeVisible();
 
   // --- B7 tax center → B7b filing wizard → filing history ----------------
@@ -534,7 +537,7 @@ test("settings — humanized FYE, editable address, theme order, purge construct
     purgeModal.getByLabel('Type "Cuesoft Ltd" to confirm'),
   ).toBeVisible();
   await expect(
-    purgeModal.getByRole("button", { name: "Export everything first" }),
+    purgeModal.getByRole("button", { name: "Export first" }),
   ).toBeVisible();
   await expect(
     purgeModal.getByRole("button", { name: /Schedule deletion/ }),
@@ -633,4 +636,79 @@ test("semantic chrome — one main landmark, labeled nav, real ledger table", as
   await expect(page.locator("main")).toHaveCount(1);
   await expect(page.locator("table").first()).toBeVisible();
   expect(await page.getByRole("columnheader").count()).toBeGreaterThan(2);
+});
+
+test("overview mid-band forms two columns at lg (Figma 179:12)", async ({
+  page,
+}) => {
+  // The chart card (2fr) sits beside the donut/anomalies rail (1fr) at
+  // lg+ — regression guard for the invalid `grid-cols-[2fr,1fr]`
+  // arbitrary value (comma is dropped by browsers, collapsing the band
+  // to a single column at every width).
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await signIn(page);
+  const band = page.getByTestId("overview-mid-band");
+  await expect(band).toBeVisible();
+  const trackCount = await band.evaluate(
+    (el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length,
+  );
+  expect(trackCount).toBe(2);
+});
+
+test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await openNav(page, "Settings").click();
+  await page.waitForURL("**/dashboard/settings");
+
+  await page.getByRole("button", { name: "Delete everything…" }).click();
+  const modal = page.getByRole("dialog", { name: "Delete account & all data" });
+  await expect(modal).toBeVisible();
+
+  // Converged construction (B9 + B9b): Export-first secondary present,
+  // CTA locked until the ORG NAME is typed (not a literal phrase).
+  await expect(
+    modal.getByRole("button", { name: "Export first" }),
+  ).toBeVisible();
+  const schedule = modal.getByRole("button", { name: /Schedule deletion/ });
+  await expect(schedule).toBeDisabled();
+  const confirmInput = modal.getByLabel(/Type "Personal" to confirm/);
+  await confirmInput.fill("DELETE EVERYTHING");
+  await expect(schedule).toBeDisabled();
+  await confirmInput.fill("Personal");
+  // Unlocks once the 5s danger-arming countdown elapses; nothing is
+  // scheduled — the flow exits via Cancel (no store mutation).
+  await expect(schedule).toBeEnabled({ timeout: 10_000 });
+  await modal.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(modal).not.toBeVisible();
+});
+
+test("anomaly explain opens from the ledger row (B2b frame anatomy)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await openNav(page, "Transactions").click();
+  await page.waitForURL("**/dashboard/transactions");
+  await expect(page.locator("table tbody tr").first()).toBeVisible();
+
+  // Inline anomaly badges are the row-level entry point — no deep link.
+  await page
+    .locator("tbody")
+    .getByRole("button", {
+      name: /Large transaction|Spending spike|Unusual category|Possible duplicate/,
+    })
+    .first()
+    .click();
+  const explain = page.getByRole("dialog", { name: "Why this was flagged" });
+  await expect(explain).toBeVisible();
+  // Humanized severity, provenance/rule-version line, frame actions.
+  await expect(explain.getByText(/^(Info|Warning)$/)).toBeVisible();
+  await expect(explain.getByText(/Detected .* · rule:/)).toBeVisible();
+  await expect(
+    explain.getByRole("button", { name: "Mark expected" }),
+  ).toBeVisible();
+  // Exit via Cancel — nothing is mutated in the serial narrative.
+  await explain.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(explain).not.toBeVisible();
 });

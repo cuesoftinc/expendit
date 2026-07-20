@@ -13,8 +13,7 @@ import {
   Image as ImageIcon,
   Landmark,
 } from "lucide-react";
-import { formatRelativeAge } from "@/lib/dates";
-import { failureMessage } from "@/lib/import-failures";
+import { formatIso } from "@/lib/dates";
 import type { ImportJob } from "@/models";
 import { cn } from "@/lib/cn";
 import Tag from "./Tag";
@@ -48,13 +47,18 @@ const FILE_ICON = {
 } as const;
 
 /** Figma caption line per status. */
-const caption = (job: ImportJob, status: ImportJobRowStatus): string => {
+const caption = (
+  job: ImportJob,
+  status: ImportJobRowStatus,
+  failureMessage?: string,
+): string => {
   switch (status) {
     case "processing":
       return "Parsing…";
     case "failed":
-      // Human line (Figma B3) — the raw code rides the title tooltip.
-      return failureMessage(job.error_code);
+      // Human sentence (B3 frame tone); the raw taxonomy code moves to
+      // the details disclosure under the row.
+      return failureMessage ?? "Import failed — nothing was imported.";
     case "completed-empty":
       return "0 transactions found — check file contents";
     case "needs-review": {
@@ -96,7 +100,8 @@ const STATUS_TAG: Record<
 > = {
   processing: { label: "Processing", tint: "info" },
   completed: { label: "Completed", tint: "success" },
-  // Figma ImportJobRow 127:1238: blue "Ready for review".
+  // B3 frame (ImportJobRow 127:1238): blue "Ready for review" — an
+  // invitation, not a warning.
   "needs-review": { label: "Ready for review", tint: "info" },
   "completed-bank": { label: "Completed", tint: "success" },
   "completed-empty": { label: "Empty", tint: "neutral" },
@@ -105,12 +110,15 @@ const STATUS_TAG: Record<
 
 export interface ImportJobRowProps {
   job: ImportJob;
+  /** Human failure sentence (flows/import.md §3 taxonomy copy). */
+  failureMessage?: string;
   onOpen?: () => void;
   className?: string;
 }
 
 export const ImportJobRow: React.FC<ImportJobRowProps> = ({
   job,
+  failureMessage,
   onOpen,
   className,
 }) => {
@@ -118,8 +126,7 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
   const Icon =
     job.source === "bank_sync" ? Landmark : FILE_ICON[job.file_type ?? "csv"];
   const tag = STATUS_TAG[status];
-  // Relative age ("2h ago") — systemic adjudication 2026-07-20.
-  const when = formatRelativeAge(job.created_at);
+  const when = formatIso(job.created_at, "d MMM");
   return (
     // Semantic list row (W3 directive): job history composes <ul>; the
     // whole-row action is a real <button> inside the <li>.
@@ -145,18 +152,25 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
               "block truncate leading-4",
               status === "failed" ? "text-expense" : "text-text-2",
             )}
-            title={
-              status === "failed" && job.error_code ? job.error_code : undefined
-            }
           >
-            {caption(job, status)}
+            {caption(job, status, failureMessage)}
           </span>
         </span>
         <Tag tint={tag.tint}>{tag.label}</Tag>
-        <span className="w-16 shrink-0 text-right tabular-nums text-text-2">
+        <span className="w-14 shrink-0 text-right tabular-nums text-text-2">
           {when}
         </span>
       </button>
+      {status === "failed" && job.error_code ? (
+        // Raw taxonomy code demoted to a disclosure (B3 frame: failed
+        // meta reads human; the code stays reachable for support).
+        <details className="border-b border-border px-3 py-1.5 text-[11px] text-text-2">
+          <summary className="cursor-pointer select-none">Details</summary>
+          <code className="mt-1 block font-mono text-expense">
+            {job.error_code}
+          </code>
+        </details>
+      ) : null}
     </li>
   );
 };

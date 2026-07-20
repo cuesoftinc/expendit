@@ -49,27 +49,18 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
   });
 
   it("inline anomaly badge opens the explain panel (Figma 208:3967)", async () => {
-    const onExplain = vi.fn();
-    render(<TxnTableRow txn={txn} category={category} onExplain={onExplain} />);
+    const onExplainAnomaly = vi.fn();
+    render(
+      <TxnTableRow
+        txn={txn}
+        category={category}
+        onExplainAnomaly={onExplainAnomaly}
+      />,
+    );
     await userEvent.click(
       screen.getByRole("button", { name: "Large transaction (warn)" }),
     );
-    expect(onExplain).toHaveBeenCalled();
-  });
-
-  it("expected anomalies (Mark expected) no longer badge the row", () => {
-    render(
-      <TxnTableRow
-        txn={{
-          ...txn,
-          anomalies: [{ ...txn.anomalies[0], expected: true }],
-        }}
-        category={category}
-      />,
-    );
-    expect(
-      screen.queryByRole("button", { name: "Large transaction (warn)" }),
-    ).toBeNull();
+    expect(onExplainAnomaly).toHaveBeenCalled();
   });
 
   it("MI-6: hover actions are absolutely positioned (no layout shift)", () => {

@@ -11,7 +11,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatIso, formatRelativeAge, daysUntil } from "@/lib/dates";
+import { formatIso, daysUntil } from "@/lib/dates";
 import { useOrg, useOverviewController } from "@/controllers";
 import { useCategoriesController } from "@/controllers/use-categories";
 import { formatMoney, formatMoneyCompact } from "@/lib/format";
@@ -346,7 +346,10 @@ export const OverviewView: React.FC = () => {
       </div>
 
       {/* Figma 179:12: chart left (2/3), donut + anomalies right (1/3). */}
-      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr_1fr]">
+      <div
+        data-testid="overview-mid-band"
+        className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr_1fr]"
+      >
         <Card
           // The monthly series starts at ledger onset (no fabricated
           // pre-onset months) — the title states the span it actually has.
@@ -444,8 +447,11 @@ export const OverviewView: React.FC = () => {
               <div className="flex items-center gap-4">
                 <ChartDonut
                   slices={donutSlices}
-                  // Compact center value (Figma master 126:1183).
-                  centerTotal={formatMoneyCompact(donutTotal, currency)}
+                  // Compact center total per the ChartDonut master
+                  // ("₦3.61M" — caption above, value below).
+                  centerTotal={formatMoneyCompact(donutTotal, currency, {
+                    decimals: 2,
+                  })}
                   centerCaption="Expenses"
                   legend="none"
                 />
@@ -513,8 +519,7 @@ export const OverviewView: React.FC = () => {
                         severity={txn.anomalies[0].severity}
                         variant="feed"
                         description={`${txn.description} — ${formatMoney(txn.amount, currency)}`}
-                        // Relative ages (systemic adjudication 2026-07-20).
-                        timestamp={formatRelativeAge(txn.txn_date)}
+                        timestamp={formatIso(txn.txn_date, "d MMM")}
                         onClick={() =>
                           router.push(
                             `/dashboard/transactions?record=${txn.id}&explain=1`,

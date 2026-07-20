@@ -9,14 +9,14 @@ export async function GET(request: Request) {
   const orgId = resolveOrgId(request);
   if (!orgId) return fail(404, "not_found", "Unknown org");
   const db = getDb();
-  const year = `${mockNow().getFullYear()}-`;
-  // Usage meta ("N transactions this year") — merge-safety context
-  // computed from the ledger on read (Figma B8 190:2836).
+  // Usage enrichment (B8 "N transactions this year" — merge-safety
+  // context): calendar-year count per category, derived at read time.
+  const year = String(mockNow().getFullYear());
   const items = db.categories
     .filter((cat) => cat.org_id === orgId)
     .map((cat) => ({
       ...cat,
-      txn_count_year: db.transactions.filter(
+      txn_count_ytd: db.transactions.filter(
         (txn) =>
           txn.org_id === orgId &&
           txn.category_id === cat.id &&
