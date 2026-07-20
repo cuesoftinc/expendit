@@ -192,75 +192,113 @@ describe("PeriodPicker (design.md §8.2b)", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Out of range");
   });
 
-  describe("viewport collision clamp (system QA 2026-07-19)", () => {
+  describe("collision placement (master contract 467:11039)", () => {
     afterEach(() => {
       vi.unstubAllGlobals();
       vi.restoreAllMocks();
+      // The prototype clientHeight spy shadows documentElement too —
+      // drop the instance overrides installed by mockViewport.
+      Reflect.deleteProperty(document.documentElement, "clientWidth");
+      Reflect.deleteProperty(document.documentElement, "clientHeight");
     });
 
-    it("translates the popover back inside the viewport when it would overflow right", async () => {
+    // The hook reads the viewport from documentElement (scrollbar-safe);
+    // pin it per test so the element-prototype spies cannot leak into it.
+    const mockViewport = (width: number, height: number) => {
+      vi.stubGlobal("innerWidth", width);
+      vi.stubGlobal("innerHeight", height);
+      Object.defineProperty(document.documentElement, "clientWidth", {
+        value: width,
+        configurable: true,
+      });
+      Object.defineProperty(document.documentElement, "clientHeight", {
+        value: height,
+        configurable: true,
+      });
+    };
+
+    // The prototype mock feeds the TRIGGER rect (the hook only measures
+    // the anchor); panel size comes from the offset/scroll spies.
+    const mockGeometry = (rect: Partial<DOMRect>) => {
+      vi.spyOn(
+        window.HTMLElement.prototype,
+        "getBoundingClientRect",
+      ).mockReturnValue(rect as DOMRect);
+      vi.spyOn(
+        window.HTMLElement.prototype,
+        "offsetWidth",
+        "get",
+      ).mockReturnValue(220);
+      vi.spyOn(
+        window.HTMLElement.prototype,
+        "offsetHeight",
+        "get",
+      ).mockReturnValue(320);
+      vi.spyOn(
+        window.HTMLElement.prototype,
+        "clientHeight",
+        "get",
+      ).mockReturnValue(320);
+      vi.spyOn(
+        window.HTMLElement.prototype,
+        "scrollHeight",
+        "get",
+      ).mockReturnValue(320);
+    };
+
+    it("right-anchors the panel on a right-edge trigger (Overview header)", async () => {
       // Overview header regression: w-36 trigger at the right edge of a
-      // 1440 viewport; the min-w-56 panel overflowed by 56px.
-      vi.stubGlobal("innerWidth", 1440);
-      vi.stubGlobal("innerHeight", 900);
-      vi.spyOn(
-        window.HTMLElement.prototype,
-        "getBoundingClientRect",
-      ).mockReturnValue({
-        left: 1272,
-        right: 1496,
-        top: 100,
-        bottom: 420,
-      } as DOMRect);
+      // 1440 viewport — the left-anchored 220px panel overflowed and sat
+      // flush against the viewport edge with no gutter.
+      mockViewport(1440, 900);
+      mockGeometry({ left: 1272, right: 1416, top: 52, bottom: 84 });
 
       render(<PeriodPicker mode="month" value="2026-07" />);
       await userEvent.click(screen.getByRole("button"));
 
-      expect(screen.getByRole("dialog")).toHaveStyle({
-        transform: "translate(-64px, 0px)",
-      });
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveClass("right-0");
+      expect(dialog).toHaveClass("top-full");
+      expect(dialog.style.transform).toBe("");
     });
 
-    it("translates the popover up when the calendar would clip the bottom edge", async () => {
-      // The embedded grids made the panel tall enough to clip below on
-      // low anchors (390 canon viewport) — the same 1-D clamp runs on Y.
-      vi.stubGlobal("innerWidth", 1440);
-      vi.stubGlobal("innerHeight", 900);
-      vi.spyOn(
-        window.HTMLElement.prototype,
-        "getBoundingClientRect",
-      ).mockReturnValue({
-        left: 400,
-        right: 624,
-        top: 700,
-        bottom: 1020,
-      } as DOMRect);
+    it("flips the panel above a bottom-anchored trigger (never covers it)", async () => {
+      mockViewport(1440, 900);
+      mockGeometry({ left: 400, right: 544, top: 700, bottom: 732 });
 
       render(<PeriodPicker mode="month" value="2026-07" />);
       await userEvent.click(screen.getByRole("button"));
 
-      expect(screen.getByRole("dialog")).toHaveStyle({
-        transform: "translate(0px, -128px)",
-      });
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveClass("bottom-full");
+      expect(dialog.style.maxHeight).toBe("");
     });
 
-    it("leaves an in-viewport popover unshifted", async () => {
-      vi.stubGlobal("innerWidth", 1440);
-      vi.stubGlobal("innerHeight", 900);
-      vi.spyOn(
-        window.HTMLElement.prototype,
-        "getBoundingClientRect",
-      ).mockReturnValue({
-        left: 400,
-        right: 624,
-        top: 100,
-        bottom: 420,
-      } as DOMRect);
+    it("caps the panel with internal scroll when neither side fits", async () => {
+      mockViewport(1440, 300);
+      mockGeometry({ left: 400, right: 544, top: 40, bottom: 72 });
 
       render(<PeriodPicker mode="month" value="2026-07" />);
       await userEvent.click(screen.getByRole("button"));
 
-      expect(screen.getByRole("dialog").style.transform).toBe("");
+      const dialog = screen.getByRole("dialog");
+      // Below wins (more room): 300 − 8 − 72 − 4 = 216.
+      expect(dialog.style.maxHeight).toBe("216px");
+      expect(dialog.style.overflowY).toBe("auto");
+    });
+
+    it("leaves an in-viewport popover below, left-anchored and unshifted", async () => {
+      mockViewport(1440, 900);
+      mockGeometry({ left: 400, right: 544, top: 52, bottom: 84 });
+
+      render(<PeriodPicker mode="month" value="2026-07" />);
+      await userEvent.click(screen.getByRole("button"));
+
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveClass("top-full");
+      expect(dialog).toHaveClass("left-0");
+      expect(dialog.style.transform).toBe("");
+      expect(dialog.style.maxHeight).toBe("");
     });
   });
 });

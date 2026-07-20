@@ -9,6 +9,12 @@
  * kits); date-fns for the math; construction parity with apparule's
  * DateInput calendar. QuarterPicker/YearPicker extend the same
  * anatomy to the closed period grammar's other modes (line-items.md §6).
+ *
+ * Geometry is the Figma DatePicker master (set 467:11039): 194px grid
+ * content; day cells 26×22 (gap 2px across / 4px between weeks,
+ * weekday header S M T W T F S at 13 Medium text-2); month/quarter
+ * cells 26px tall on a 4px gap; nav rows carry 14px chevrons around a
+ * centered 13 Medium label; 4px row rhythm.
  */
 
 import React, { useLayoutEffect, useRef, useState } from "react";
@@ -56,18 +62,20 @@ const GridHeader: React.FC<{
   onPrev: () => void;
   onNext: () => void;
 }> = ({ label, prevLabel, nextLabel, onPrev, onNext }) => (
-  <div className="mb-1.5 flex items-center justify-between">
+  // Master nav row: 14px chevrons at the row edges, 13 Medium label
+  // centered; 4px gap to the grid below.
+  <div className="mb-1 flex w-full items-center justify-between">
     <button
       type="button"
       aria-label={prevLabel}
       onClick={onPrev}
       className={cn(
-        "grid size-7 place-items-center rounded text-text-2",
+        "grid size-6 place-items-center rounded text-text-2",
         "transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
       )}
     >
-      <ChevronLeft aria-hidden className="h-4 w-4" />
+      <ChevronLeft aria-hidden className="h-3.5 w-3.5" />
     </button>
     <span
       aria-live="polite"
@@ -80,12 +88,12 @@ const GridHeader: React.FC<{
       aria-label={nextLabel}
       onClick={onNext}
       className={cn(
-        "grid size-7 place-items-center rounded text-text-2",
+        "grid size-6 place-items-center rounded text-text-2",
         "transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
       )}
     >
-      <ChevronRight aria-hidden className="h-4 w-4" />
+      <ChevronRight aria-hidden className="h-3.5 w-3.5" />
     </button>
   </div>
 );
@@ -191,13 +199,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         role="grid"
         aria-label={format(month, "MMMM yyyy")}
         onKeyDown={onGridKeyDown}
-        className="grid grid-cols-7 text-center"
+        // Master day grid: 26px columns, 2px column gap, 4px week gap
+        // (7×26 + 6×2 = the 194px content width).
+        className="grid w-[194px] grid-cols-7 gap-x-0.5 gap-y-1 text-center"
       >
         {WEEKDAYS.map((weekday, index) => (
           <span
             key={index}
             aria-hidden
-            className="py-1 text-[11px] font-medium text-text-2"
+            className="flex h-[22px] w-[26px] items-center justify-center text-[13px] font-medium text-text-2"
           >
             {weekday}
           </span>
@@ -220,7 +230,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               aria-pressed={selected || undefined}
               aria-current={isToday(day) ? "date" : undefined}
               className={cn(
-                "mx-auto grid size-8 place-items-center rounded text-[13px] tabular-nums",
+                // Master day cell: 26×22, 4px radius, Table/13.
+                "grid h-[22px] w-[26px] place-items-center rounded text-[13px] tabular-nums",
                 "transition-colors duration-fast ease-standard",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 selected
@@ -228,12 +239,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   : inRange(day)
                     ? "bg-accent/15 text-text"
                     : isToday(day)
-                      ? // Master's today state: outlined cell, plain text.
-                        "text-text ring-1 ring-inset ring-accent hover:bg-bg-elev"
+                      ? // Master's today state: accent-outlined cell, Medium.
+                        "font-medium text-text ring-1 ring-inset ring-accent hover:bg-bg-elev"
                       : "text-text hover:bg-bg-elev",
-                outside && !selected && "text-text-2/50",
+                outside && !selected && "text-text-2",
                 disabled &&
-                  "cursor-not-allowed text-text-2/30 hover:bg-transparent",
+                  "cursor-not-allowed text-text-2/40 hover:bg-transparent",
               )}
             >
               {format(day, "d")}
@@ -276,7 +287,8 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
         onPrev={() => setYear((current) => current - 1)}
         onNext={() => setYear((current) => current + 1)}
       />
-      <div className="grid grid-cols-3 gap-1">
+      {/* Master month grid: 62×26 cells on a 4px gap (194px content). */}
+      <div className="grid w-[194px] grid-cols-3 gap-1">
         {Array.from({ length: 12 }, (_, index) => {
           const monthStart = new Date(year, index, 1);
           const selected = value !== null && isSameMonth(monthStart, value);
@@ -290,7 +302,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
               aria-pressed={selected || undefined}
               aria-current={current ? "date" : undefined}
               className={cn(
-                "h-8 rounded text-[13px] transition-colors duration-fast ease-standard",
+                "h-[26px] rounded text-[13px] transition-colors duration-fast ease-standard",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 selected
                   ? "bg-accent font-medium text-on-accent"
@@ -349,7 +361,8 @@ export const QuarterPicker: React.FC<QuarterPickerProps> = ({
         onPrev={() => setYear((current) => current - 1)}
         onNext={() => setYear((current) => current + 1)}
       />
-      <div className="grid grid-cols-4 gap-1">
+      {/* Master quarter row: Q1–Q4 as one 26px row on a 4px gap. */}
+      <div className="grid w-[194px] grid-cols-4 gap-1">
         {[1, 2, 3, 4].map((quarter) => {
           const selected =
             value !== null && value.year === year && value.quarter === quarter;
@@ -364,7 +377,7 @@ export const QuarterPicker: React.FC<QuarterPickerProps> = ({
               aria-pressed={selected || undefined}
               aria-current={current ? "date" : undefined}
               className={cn(
-                "h-8 rounded text-[13px] tabular-nums transition-colors duration-fast ease-standard",
+                "h-[26px] rounded text-[13px] tabular-nums transition-colors duration-fast ease-standard",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 selected
                   ? "bg-accent font-medium text-on-accent"
@@ -411,9 +424,13 @@ export const YearPicker: React.FC<YearPickerProps> = ({
   const currentYear = new Date().getFullYear();
 
   return (
+    // Master year list: 26px rows, no nav — the list scrolls (~5 rows).
     <ul
       data-testid="year-picker"
-      className={cn("max-h-44 select-none overflow-auto", className)}
+      className={cn(
+        "max-h-[132px] w-[194px] select-none overflow-auto",
+        className,
+      )}
     >
       {years.map((year) => (
         <li key={year}>
@@ -423,7 +440,7 @@ export const YearPicker: React.FC<YearPickerProps> = ({
             aria-pressed={year === value || undefined}
             aria-current={year === currentYear ? "date" : undefined}
             className={cn(
-              "w-full rounded px-2 py-1 text-left text-[13px] tabular-nums",
+              "flex h-[26px] w-full items-center rounded px-2 text-left text-[13px] tabular-nums",
               "transition-colors duration-fast ease-standard",
               year === value
                 ? "bg-accent font-medium text-on-accent"

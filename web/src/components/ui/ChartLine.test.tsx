@@ -170,4 +170,31 @@ describe("Chart/Line (design.md §8.2b, MI-12)", () => {
     render(<ChartLine state="empty" emptyKind="transactions" />);
     expect(screen.getByText("No transactions yet")).toBeInTheDocument();
   });
+
+  it("fill mode stretches the plot at lg with a floor and non-scaling strokes (B1 band alignment)", () => {
+    render(<ChartLine fill series={series} />);
+    const plot = screen.getByTestId("chart-plot");
+    expect(plot).toHaveClass("lg:flex-1");
+    expect(plot).toHaveClass("lg:min-h-[176px]");
+    const svg = screen.getByRole("img");
+    expect(svg).toHaveAttribute("preserveAspectRatio", "none");
+    expect(svg).toHaveClass("lg:h-full");
+    expect(screen.getByTestId("chart-line-income")).toHaveAttribute(
+      "vector-effect",
+      "non-scaling-stroke",
+    );
+    expect(screen.getAllByTestId("chart-gridline")[0]).toHaveAttribute(
+      "vector-effect",
+      "non-scaling-stroke",
+    );
+  });
+
+  it("default construction keeps the aspect-driven box (no fill artifacts)", () => {
+    render(<ChartLine series={series} />);
+    const svg = screen.getByRole("img");
+    expect(svg).not.toHaveAttribute("preserveAspectRatio");
+    expect(screen.getByTestId("chart-line-income")).not.toHaveAttribute(
+      "vector-effect",
+    );
+  });
 });

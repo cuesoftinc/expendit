@@ -78,62 +78,89 @@ export const useViewportShiftX = (
   return shift;
 };
 
-export interface ViewportShift {
-  x: number;
-  y: number;
+export interface PanelPlacement {
+  /** Vertical side relative to the anchor. */
+  side: "below" | "above";
+  /** Right-align the panel to the anchor's right edge. */
+  alignRight: boolean;
+  /** Cap + internal scroll when neither side fits the full panel. */
+  maxHeight?: number;
+  /** Residual horizontal clamp after alignment (px translate). */
+  shiftX: number;
 }
 
-const NO_SHIFT: ViewportShift = { x: 0, y: 0 };
-
 /**
- * Two-axis variant of useViewportShiftX — the calendar grids made the
- * PeriodPicker panel tall enough to clip the bottom viewport edge on
- * low anchors (390 canon viewport), so the same 1-D clamp runs on Y
- * too. clampShiftX is axis-agnostic: pass top/bottom + innerHeight.
+ * Placement for a trigger-anchored absolute panel — the DatePicker
+ * master's collision contract (467:11039): the popover FLIPS above the
+ * field when viewport room below runs out (it never covers the field,
+ * and never translates over the page like a raw Y-shift would), caps
+ * with internal scroll when neither side fits (an open popover never
+ * exceeds the viewport or grows the document scroll height), clamps
+ * horizontally at the viewport edges, and right-anchored triggers stay
+ * right-anchored. Returns null until the first measure paints (the
+ * caller hides the panel for that frame). Replaces the earlier
+ * translate-Y clamp, which slid the panel over its own trigger.
  */
-export const useViewportShiftXY = (
+export const useAnchoredPanelPlacement = (
   open: boolean,
+  anchorRef: RefObject<HTMLElement | null>,
   panelRef: RefObject<HTMLElement | null>,
-): ViewportShift => {
-  const [shift, setShift] = useState(NO_SHIFT);
+  offsetY: number = 4,
+): PanelPlacement | null => {
+  const [placement, setPlacement] = useState<PanelPlacement | null>(null);
 
   // Reset when the layer closes — adjust-state-during-render, no effect.
   const [prevOpen, setPrevOpen] = useState(open);
   if (prevOpen !== open) {
     setPrevOpen(open);
-    if (!open) setShift(NO_SHIFT);
+    if (!open) setPlacement(null);
   }
 
   useLayoutEffect(() => {
     if (!open) return;
-    // Mirrors the shift already painted so resize re-measures can
-    // recover the unshifted anchor geometry from the live rect.
-    let applied = NO_SHIFT;
     const measure = () => {
+      const anchor = anchorRef.current;
       const panel = panelRef.current;
-      if (!panel || typeof window === "undefined") return;
-      const rect = panel.getBoundingClientRect();
-      const next = {
-        x: clampShiftX(
-          rect.left - applied.x,
-          rect.right - applied.x,
-          window.innerWidth,
-        ),
-        y: clampShiftX(
-          rect.top - applied.y,
-          rect.bottom - applied.y,
-          window.innerHeight,
-        ),
-      };
-      applied = next;
-      setShift((current) =>
-        current.x === next.x && current.y === next.y ? current : next,
+      if (!anchor || !panel || typeof window === "undefined") return;
+      // clientWidth/Height exclude a classic scrollbar (innerWidth does
+      // not — the panel used to sit flush under it); jsdom reports 0,
+      // so fall back to the window metrics there.
+      const viewportW =
+        document.documentElement.clientWidth || window.innerWidth;
+      const viewportH =
+        document.documentElement.clientHeight || window.innerHeight;
+      const rect = anchor.getBoundingClientRect();
+      const panelW = panel.offsetWidth;
+      // Natural panel height even when a previous measure capped it.
+      const chromeH = panel.offsetHeight - panel.clientHeight;
+      const panelH = Math.max(panel.offsetHeight, panel.scrollHeight + chromeH);
+      const spaceBelow = viewportH - VIEWPORT_GUTTER - rect.bottom - offsetY;
+      const spaceAbove = rect.top - VIEWPORT_GUTTER - offsetY;
+      const side: PanelPlacement["side"] =
+        panelH <= spaceBelow || spaceBelow >= spaceAbove ? "below" : "above";
+      const space = side === "below" ? spaceBelow : spaceAbove;
+      const maxHeight =
+        panelH > space ? Math.max(Math.floor(space), 0) : undefined;
+      // Master: right-anchored triggers keep their right anchoring.
+      const alignRight =
+        rect.left + panelW > viewportW - VIEWPORT_GUTTER &&
+        rect.right - panelW >= VIEWPORT_GUTTER;
+      const left = alignRight ? rect.right - panelW : rect.left;
+      const shiftX = clampShiftX(left, left + panelW, viewportW);
+      setPlacement((current) =>
+        current !== null &&
+        current.side === side &&
+        current.alignRight === alignRight &&
+        current.maxHeight === maxHeight &&
+        current.shiftX === shiftX
+          ? current
+          : { side, alignRight, maxHeight, shiftX },
       );
     };
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [open, panelRef]);
+  }, [open, anchorRef, panelRef, offsetY]);
 
-  return shift;
+  return placement;
 };

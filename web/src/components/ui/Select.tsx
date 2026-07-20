@@ -128,6 +128,10 @@ export const Select: React.FC<SelectProps> = ({
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "Escape") {
+      // With the menu open, Escape closes the MENU only — inside a
+      // Radix modal the un-stopped event would close the dialog too
+      // (merge-modal report).
+      if (open) event.stopPropagation();
       setOpen(false);
       return;
     }
@@ -197,6 +201,11 @@ export const Select: React.FC<SelectProps> = ({
         ? wrapMenu(
             <div
               ref={panelRef}
+              // Floating-layer marker: Modal's outside-interaction guard
+              // ignores events inside it, and pointer-events re-enable
+              // under Radix's modal body lock (merge-modal report — the
+              // in-body menu clipped into a raw inner scrollbox).
+              data-floating-layer={portalMenu ? true : undefined}
               style={
                 portalMenu
                   ? (anchoredStyle ?? {
@@ -208,7 +217,7 @@ export const Select: React.FC<SelectProps> = ({
               className={cn(
                 "rounded border border-border bg-bg shadow-lg",
                 portalMenu
-                  ? "z-modal"
+                  ? "z-modal pointer-events-auto"
                   : "absolute left-0 top-full z-dropdown mt-1 w-full",
               )}
             >

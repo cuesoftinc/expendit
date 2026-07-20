@@ -393,6 +393,58 @@ test("overview mid-band forms two columns at lg (Figma 179:12)", async ({
   expect(trackCount).toBe(2);
 });
 
+test("overview mid-band bottoms align at lg — the chart card stretches to the rail (user report)", async ({
+  page,
+}) => {
+  const expectAlignedBand = async () => {
+    const band = page.getByTestId("overview-mid-band");
+    await expect(band).toBeVisible();
+    // ±2px: the chart card's bottom edge tracks the donut/anomalies
+    // rail (grid stretch + ChartLine fill absorbing the difference).
+    await expect
+      .poll(
+        async () => {
+          const chartBox = await band
+            .locator("> section")
+            .first()
+            .boundingBox();
+          const railBox = await band.locator("> div").last().boundingBox();
+          if (!chartBox || !railBox) return Number.NaN;
+          return Math.abs(
+            chartBox.y + chartBox.height - (railBox.y + railBox.height),
+          );
+        },
+        { timeout: 10_000 },
+      )
+      .toBeLessThanOrEqual(2);
+    // The plot absorbed the stretch but never dips below its floor.
+    const plotBox = await page
+      .getByTestId("overview-mid-band")
+      .getByTestId("chart-plot")
+      .boundingBox();
+    expect(plotBox!.height).toBeGreaterThanOrEqual(176);
+  };
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page);
+  await expectAlignedBand();
+
+  // Company org: different rail composition, same contract.
+  await switchToCompanyOrg(page);
+  await expectAlignedBand();
+
+  // Stacked at 390 the aspect construction is unchanged — one column,
+  // no fill floor (the plot stays shorter than the lg minimum).
+  await page.setViewportSize({ width: 390, height: 844 });
+  const band = page.getByTestId("overview-mid-band");
+  const tracks = await band.evaluate(
+    (el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length,
+  );
+  expect(tracks).toBe(1);
+  const stackedPlot = await band.getByTestId("chart-plot").boundingBox();
+  expect(stackedPlot!.height).toBeLessThan(150);
+});
+
 test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)", async ({
   page,
 }) => {

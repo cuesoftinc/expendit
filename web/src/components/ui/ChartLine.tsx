@@ -62,6 +62,15 @@ export interface ChartLineProps {
   emptyKind?: EmptyStateKind;
   onEmptyAction?: () => void;
   height?: number;
+  /**
+   * Fill the parent column at lg+ (B1 mid-band bottom alignment): the
+   * plot grows to the card's remaining height — floored at the default
+   * plot's rendered size so short rails never squash it — instead of
+   * the fixed viewBox aspect. The stretched SVG keeps device-pixel
+   * strokes (non-scaling) and the %-positioned tick ladder tracks any
+   * height. Below lg the stacked layout keeps the aspect construction.
+   */
+  fill?: boolean;
   className?: string;
 }
 
@@ -99,6 +108,7 @@ export const ChartLine: React.FC<ChartLineProps> = ({
   emptyKind = "transactions",
   onEmptyAction,
   height = 160,
+  fill = false,
   className,
 }) => {
   if (state === "loading") {
@@ -148,8 +158,25 @@ export const ChartLine: React.FC<ChartLineProps> = ({
   };
 
   return (
-    <figure data-state="data" className={cn("w-full", className)}>
-      <div className={cn("relative w-full", yAxis && Y_AXIS_OFFSET_CLASS)}>
+    <figure
+      data-state="data"
+      className={cn(
+        "w-full",
+        fill && "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col",
+        className,
+      )}
+    >
+      <div
+        data-testid="chart-plot"
+        className={cn(
+          "relative w-full",
+          // Fill: the plot takes the card's remaining height at lg+,
+          // floored at the default plot's rendered size (~176px at the
+          // 2fr column) so a short rail never squashes it.
+          fill && "lg:min-h-[176px] lg:flex-1",
+          yAxis && Y_AXIS_OFFSET_CLASS,
+        )}
+      >
         {/* Y tick labels — HTML at fixed 13px (Figma Table/13 Regular),
             absolutely spanning the plot so percentage tops track the
             gridline fractions at any rendered width. Presentation only —
@@ -181,9 +208,14 @@ export const ChartLine: React.FC<ChartLineProps> = ({
         ) : null}
         <svg
           viewBox={`0 0 ${WIDTH} ${plotHeight}`}
+          // Fill: the box stretches past the viewBox aspect; geometry
+          // scales with it and the %-based tick ladder stays aligned.
+          // (Sizing is unaffected below lg — the box then matches the
+          // viewBox aspect exactly, so "none" renders identically.)
+          preserveAspectRatio={fill ? "none" : undefined}
           role="img"
           aria-label={`Line chart: ${series.map((entry) => entry.label).join(", ")}`}
-          className="w-full"
+          className={cn("w-full", fill && "lg:absolute lg:inset-0 lg:h-full")}
         >
           {scale ? (
             // Gridline per tick (--border); the lowest is the baseline.
@@ -196,6 +228,9 @@ export const ChartLine: React.FC<ChartLineProps> = ({
                 y1={yAt(tick)}
                 y2={yAt(tick)}
                 strokeWidth="1"
+                // Fill stretches the box non-uniformly — keep hairlines
+                // at device pixels.
+                vectorEffect={fill ? "non-scaling-stroke" : undefined}
                 className="stroke-border"
               />
             ))
@@ -228,6 +263,7 @@ export const ChartLine: React.FC<ChartLineProps> = ({
               points={toPoints(entry.points)}
               fill="none"
               strokeWidth="1.5"
+              vectorEffect={fill ? "non-scaling-stroke" : undefined}
               pathLength={1}
               strokeDasharray="1"
               className={cn(

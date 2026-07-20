@@ -374,13 +374,41 @@ immediately (range mode: two clicks, start held in the input as
 Cancel/Apply pair; Escape/Cancel/commit return focus to the trigger
 (the input's Enter commit `preventDefault`s — the browser's Enter
 activation otherwise clicks the re-focused trigger and reopens the
-popover). The taller panel extends the collision canon to both axes:
-`useViewportShiftXY` (use-viewport-clamp) reuses the 1-D clamp on Y, so
-the panel never clips at 1440/390 (`e2e/date-picker.spec.ts` pins the
-Overview pick-a-month flow — value applied + category query refires —
-plus typed sync and the in-viewport boundingBox at both widths;
-`floating-layers.spec.ts` unchanged). Presets stay the as-built chips
-row (the master's range preset rail is a design-lane follow-up).
+popover). Geometry is the master's (set 467:11039): a 220px popover —
+194px content behind 12/10px padding — day cells 26×22 on 2/4px gaps,
+month cells 62×26 / a Q1–Q4 row / 26px year rows on a 4px gap, 14px nav
+chevrons, Table/13 throughout; the panel hugs the grid rather than
+stretching to the trigger. Collision follows the master's contract via
+`useAnchoredPanelPlacement` (use-viewport-clamp): the popover FLIPS
+above the field when viewport room below runs out (it never covers the
+field), caps with internal scroll when neither side fits — an open
+popover never exceeds the viewport or grows the document scroll
+height — clamps X against `documentElement.clientWidth` (innerWidth
+counts the classic scrollbar the panel used to sit flush under), and
+right-anchored triggers stay right-anchored (the Overview header).
+`e2e/date-picker.spec.ts` pins the Overview pick-a-month flow — value
+applied + category query refires — plus typed sync, the in-viewport
+boundingBox and unchanged document scrollHeight at 1440×900, 1440×700
+and 390; `floating-layers.spec.ts` unchanged. Presets stay the as-built
+chips row (the master's range preset rail is a design-lane follow-up).
+
+**Floating layers in modals + B1 band balance as-built (2026-07-20,
+`fix/datepicker-polish`).** (a) `Select portalMenu` is modal-safe: the
+portaled menu marks itself `data-floating-layer` + `pointer-events-auto`
+(Radix's modal body lock disables pointer events under `<body>`),
+`Modal` ignores outside interactions originating inside floating layers,
+and Escape with an open menu closes the menu only (second Escape reaches
+the dialog). The B8 merge modal opts in — its "Merge into" menu used to
+render inside the modal body's `overflow-auto` as a clipped inner
+scrollbox (`e2e/categories-merge.spec.ts` walks the merge end-to-end and
+pins the unclipped, height-capped construction). (b) The B1 mid-band
+drops `items-start`: the chart card stretches to the donut/anomalies
+rail (±2px e2e on personal and company orgs) through `ChartLine`'s
+`fill` mode — at lg+ the plot grows to the card's remaining height,
+floored at `lg:min-h-[176px]` so short rails never squash it
+(absolutely-filled SVG, `preserveAspectRatio="none"`, non-scaling
+strokes; the %-positioned tick ladder tracks any height); below lg the
+stacked aspect construction is unchanged.
 
 **Self-host tabbed snippet as-built (2026-07-20, PR #239).** The A8a
 compose one-liner is now the user-approved Docker Compose | Helm tab pair

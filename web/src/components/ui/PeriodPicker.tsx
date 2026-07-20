@@ -15,7 +15,8 @@ import { Calendar, ChevronDown } from "lucide-react";
 import { format, isBefore, isValid, parseISO } from "date-fns";
 import { formatIso } from "@/lib/dates";
 import { cn } from "@/lib/cn";
-import { useViewportShiftXY } from "@/lib/use-viewport-clamp";
+import { useAnchoredPanelPlacement } from "@/lib/use-viewport-clamp";
+import Button from "./Button";
 import {
   DatePicker,
   MonthPicker,
@@ -179,12 +180,11 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  // The panel is min-w-56+ while the trigger can be narrower (Overview
-  // header w-36) — left-anchored it overflowed the right viewport edge
-  // (system QA 2026-07-19); the embedded grids are tall enough to clip
-  // the bottom edge on low anchors. The two-axis clamp keeps the panel
-  // fully in the viewport.
-  const shift = useViewportShiftXY(open, panelRef);
+  // Master collision contract (467:11039): flip above when room below
+  // runs out (never cover the field), cap + scroll when neither side
+  // fits, keep right-anchored triggers right-anchored (the Overview
+  // header trigger sat flush against the viewport edge), clamp X.
+  const placement = useAnchoredPanelPlacement(open, triggerRef, panelRef);
 
   // Track the controlled value — adjust-state-during-render, no effect.
   const [prevValue, setPrevValue] = useState(value);
@@ -304,15 +304,25 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
           ref={panelRef}
           role="dialog"
           aria-label={`Pick ${mode}`}
-          style={
-            shift.x || shift.y
-              ? { transform: `translate(${shift.x}px, ${shift.y}px)` }
-              : undefined
-          }
+          style={{
+            // Cap + internal scroll when neither side fits the panel —
+            // it must never exceed the viewport or grow the document.
+            ...(placement?.maxHeight !== undefined
+              ? { maxHeight: placement.maxHeight, overflowY: "auto" as const }
+              : {}),
+            ...(placement?.shiftX
+              ? { transform: `translateX(${placement.shiftX}px)` }
+              : {}),
+            // Hide the unplaced first frame (measure paints next).
+            ...(placement === null ? { visibility: "hidden" as const } : {}),
+          }}
           className={cn(
-            "absolute left-0 top-full z-dropdown mt-1 w-full rounded border border-border bg-bg p-3 shadow-lg",
-            // The 7-column calendar needs the wider floor (7×32px cells).
-            mode === "day" || mode === "range" ? "min-w-64" : "min-w-56",
+            // Master popover chrome (467:10998): 194px content behind
+            // 12px/10px padding — the panel hugs the grid, it does not
+            // stretch to the trigger.
+            "absolute z-dropdown w-[220px] rounded border border-border bg-bg px-3 py-2.5 shadow-lg",
+            placement?.side === "above" ? "bottom-full mb-1" : "top-full mt-1",
+            placement?.alignRight ? "right-0" : "left-0",
           )}
         >
           {presets.length > 0 ? (
@@ -358,7 +368,9 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
               onSelect={(year) => commit(`FY${year}`)}
             />
           )}
-          <label className="mt-2 block border-t border-border pt-2 text-[11px] font-medium uppercase tracking-wide text-text-2">
+          {/* Grammar input — the typing path keeps clear air around its
+              divider (it sat jammed against the grid; user report). */}
+          <label className="mt-2.5 block border-t border-border pt-2 text-[11px] font-medium uppercase tracking-wide text-text-2">
             {mode}
             <input
               autoFocus
@@ -375,30 +387,28 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
               }}
               placeholder={MODE_PLACEHOLDER[mode]}
               className={cn(
-                "mt-1 h-9 w-full rounded border bg-bg px-2.5 font-mono text-[13px] tabular-nums text-text",
+                "mt-1.5 h-8 w-full rounded border bg-bg px-2.5 font-mono text-[13px] tabular-nums text-text",
                 "placeholder:text-text-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 draftError ? "border-expense" : "border-border",
               )}
             />
           </label>
-          <div className="mt-2 flex justify-end gap-2">
-            <button
-              type="button"
+          {/* Master confirm row: quiet Cancel + primary Apply, 28px
+              Buttons on an 8px gap (the shared Button sm construction). */}
+          <div className="mt-2.5 flex justify-end gap-2">
+            <Button
+              kind="quiet"
+              size="sm"
               onClick={() => {
                 setOpen(false);
                 triggerRef.current?.focus();
               }}
-              className="rounded px-2.5 py-1 text-[13px] font-medium text-text-2 transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text"
             >
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => commit(draft)}
-              className="rounded bg-accent px-2.5 py-1 text-[13px] font-medium text-on-accent transition-colors duration-fast ease-standard hover:opacity-90"
-            >
+            </Button>
+            <Button size="sm" onClick={() => commit(draft)}>
               Apply
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

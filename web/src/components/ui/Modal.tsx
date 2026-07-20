@@ -67,6 +67,18 @@ export const Modal: React.FC<ModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 z-overlay bg-bg-editorial/60 animate-fade-in motion-reduce:animate-none" />
         <Dialog.Content
           aria-describedby={undefined}
+          // App floating layers (portaled Select menus) live under
+          // <body>, outside the Radix content subtree — without this
+          // guard a click inside one dismisses the whole dialog
+          // (merge-modal report).
+          onInteractOutside={(event) => {
+            if (
+              event.target instanceof Element &&
+              event.target.closest("[data-floating-layer]")
+            ) {
+              event.preventDefault();
+            }
+          }}
           className={cn(
             // font-sans: portals mount under <body>, which still carries
             // the legacy Poppins font until the legacy pages retire (W3).
