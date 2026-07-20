@@ -85,7 +85,14 @@ const NAV_ROUTES: NavRoute[] = [
     group: "Taxes",
   },
   { href: "/dashboard/categories", label: "Categories", icon: TagIcon },
-  { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
+  // nested: the routed settings tabs (/dashboard/settings/<tab>) keep
+  // the Settings entry highlighted (ratified 2026-07-20).
+  {
+    href: "/dashboard/settings",
+    label: "Settings",
+    icon: SettingsIcon,
+    nested: true,
+  },
 ];
 
 const isActive = (pathname: string, route: NavRoute): boolean => {
