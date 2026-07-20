@@ -365,7 +365,13 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") commit(draft);
+                if (event.key === "Enter") {
+                  // Commit refocuses the trigger — without preventDefault
+                  // the browser's Enter activation then clicks the newly
+                  // focused trigger and instantly reopens the popover.
+                  event.preventDefault();
+                  commit(draft);
+                }
               }}
               placeholder={MODE_PLACEHOLDER[mode]}
               className={cn(
@@ -375,7 +381,17 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
               )}
             />
           </label>
-          <div className="mt-2 flex justify-end">
+          <div className="mt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                triggerRef.current?.focus();
+              }}
+              className="rounded px-2.5 py-1 text-[13px] font-medium text-text-2 transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text"
+            >
+              Cancel
+            </button>
             <button
               type="button"
               onClick={() => commit(draft)}

@@ -15,10 +15,10 @@ describe("calendarDays (grid math)", () => {
     const days = calendarDays(new Date(2024, 1, 1));
     const isos = days.map((day) => format(day, "yyyy-MM-dd"));
     expect(isos).toContain("2024-02-29");
-    // Feb 2024 starts Thursday → the grid opens Monday Jan 29 and
-    // closes Sunday Mar 3: exactly five ISO weeks.
-    expect(isos[0]).toBe("2024-01-29");
-    expect(isos.at(-1)).toBe("2024-03-03");
+    // Feb 2024 starts Thursday → the Sunday-first grid opens Jan 28 and
+    // closes Saturday Mar 2: exactly five full weeks.
+    expect(isos[0]).toBe("2024-01-28");
+    expect(isos.at(-1)).toBe("2024-03-02");
     expect(days).toHaveLength(35);
   });
 
@@ -30,13 +30,13 @@ describe("calendarDays (grid math)", () => {
     expect(isos).toContain("2026-02-28");
   });
 
-  it("aligns every month to full Monday-first weeks", () => {
+  it("aligns every month to full Sunday-first weeks (master grid geometry)", () => {
     for (let offset = 0; offset < 24; offset += 1) {
       const month = addMonths(new Date(2025, 0, 1), offset);
       const days = calendarDays(month);
       expect(days.length % 7).toBe(0);
-      expect(days[0].getDay()).toBe(1); // Monday
-      expect(days.at(-1)?.getDay()).toBe(0); // Sunday
+      expect(days[0].getDay()).toBe(0); // Sunday
+      expect(days.at(-1)?.getDay()).toBe(6); // Saturday
       // The 1st is always inside the grid (month is its own 1st here).
       const isos = days.map((day) => format(day, "yyyy-MM-dd"));
       expect(isos).toContain(format(month, "yyyy-MM-dd"));

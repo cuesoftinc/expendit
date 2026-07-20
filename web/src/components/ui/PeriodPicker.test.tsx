@@ -135,6 +135,23 @@ describe("PeriodPicker (design.md §8.2b)", () => {
     );
   });
 
+  it("cancels without committing (master's Cancel/Apply footer)", async () => {
+    const onValueChange = vi.fn();
+    render(
+      <PeriodPicker
+        mode="month"
+        value="2026-06"
+        onValueChange={onValueChange}
+      />,
+    );
+    const trigger = screen.getByRole("button");
+    await userEvent.click(trigger);
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
   it("returns focus to the trigger on Escape", async () => {
     render(<PeriodPicker mode="month" value="2026-06" />);
     const trigger = screen.getByRole("button");

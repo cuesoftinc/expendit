@@ -31,14 +31,16 @@ import {
 } from "date-fns";
 import { cn } from "@/lib/cn";
 
-/** ISO weeks — Monday first, matching the org calendar construction. */
-const WEEK_STARTS_ON = 1;
+/** Sunday-first weeks — the Figma DatePicker master's grid geometry. */
+const WEEK_STARTS_ON = 0;
 
-const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+/** Single-letter weekday header per the master (S M T W T F S). */
+const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 /**
- * Pure grid math: every day the month grid shows — full ISO weeks from
- * the Monday on/before the 1st through the Sunday on/after month end.
+ * Pure grid math: every day the month grid shows — full Sunday-first
+ * weeks from the Sunday on/before the 1st through the Saturday
+ * on/after month end.
  */
 export const calendarDays = (month: Date): Date[] =>
   eachDayOfInterval({
@@ -191,9 +193,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         onKeyDown={onGridKeyDown}
         className="grid grid-cols-7 text-center"
       >
-        {WEEKDAYS.map((weekday) => (
+        {WEEKDAYS.map((weekday, index) => (
           <span
-            key={weekday}
+            key={index}
             aria-hidden
             className="py-1 text-[11px] font-medium text-text-2"
           >
@@ -226,7 +228,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   : inRange(day)
                     ? "bg-accent/15 text-text"
                     : isToday(day)
-                      ? "font-semibold text-accent hover:bg-bg-elev"
+                      ? // Master's today state: outlined cell, plain text.
+                        "text-text ring-1 ring-inset ring-accent hover:bg-bg-elev"
                       : "text-text hover:bg-bg-elev",
                 outside && !selected && "text-text-2/50",
                 disabled &&
@@ -292,7 +295,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
                 selected
                   ? "bg-accent font-medium text-on-accent"
                   : current
-                    ? "font-semibold text-accent hover:bg-bg-elev"
+                    ? "text-text ring-1 ring-inset ring-accent hover:bg-bg-elev"
                     : "text-text hover:bg-bg-elev",
               )}
             >
@@ -366,7 +369,7 @@ export const QuarterPicker: React.FC<QuarterPickerProps> = ({
                 selected
                   ? "bg-accent font-medium text-on-accent"
                   : current
-                    ? "font-semibold text-accent hover:bg-bg-elev"
+                    ? "text-text ring-1 ring-inset ring-accent hover:bg-bg-elev"
                     : "text-text hover:bg-bg-elev",
               )}
             >
@@ -425,7 +428,7 @@ export const YearPicker: React.FC<YearPickerProps> = ({
               year === value
                 ? "bg-accent font-medium text-on-accent"
                 : year === currentYear
-                  ? "font-semibold text-accent hover:bg-bg-elev"
+                  ? "text-text ring-1 ring-inset ring-accent hover:bg-bg-elev"
                   : "text-text hover:bg-bg-elev",
             )}
           >

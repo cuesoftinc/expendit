@@ -341,6 +341,39 @@ assemblies (TxnTable full, staged-review table, ratio grid, filing wizard
 steps) stay screen-level compositions in code too — feature components under
 their W3 screens, not `components/ui/` modules.
 
+**DatePicker as-built (2026-07-20 — every dashboard date field is
+pick-or-type).** `components/ui/DatePicker.tsx` is the period-grammar
+grid family, bespoke per the reuse policy (date-fns math, tokens only):
+`DatePicker` — the calendar month grid (Sunday-first single-letter
+weekday header S M T W T F S per the Figma DatePicker master, month
+chevron nav, selected = filled accent cell, today = accent-outlined
+cell, outside days muted, optional min/max disabling, in-range tint for
+range picking, roving arrow-key focus that flips the month at a grid
+edge; `calendarDays` is the exported pure grid math) — and `MonthPicker`
+(year chevron nav + 12-month grid), with `QuarterPicker` (year nav +
+Q1–Q4) and `YearPicker` (year list, newest first, FY#### labels via
+`formatLabel`) extending the same anatomy to the rest of the closed
+period grammar. PeriodPicker embeds the mode's grid in its existing
+popover panel above the grammar input, so every call site — Overview
+month switch, transactions range filter + inspector txn date, reports
+month/FY statement periods, company statements quarter, ratios FY,
+filing wizard VAT month / CIT FY — got the picker with no call-site
+changes. **Typing stays live** (the a11y path): a grammar-valid draft
+drives the grid's selection and visible month/year before Apply;
+invalid drafts keep the existing inline validation. Grid picks commit
+immediately (range mode: two clicks, start held in the input as
+`from..`, endpoints normalized); the footer is the master's
+Cancel/Apply pair; Escape/Cancel/commit return focus to the trigger
+(the input's Enter commit `preventDefault`s — the browser's Enter
+activation otherwise clicks the re-focused trigger and reopens the
+popover). The taller panel extends the collision canon to both axes:
+`useViewportShiftXY` (use-viewport-clamp) reuses the 1-D clamp on Y, so
+the panel never clips at 1440/390 (`e2e/date-picker.spec.ts` pins the
+Overview pick-a-month flow — value applied + category query refires —
+plus typed sync and the in-viewport boundingBox at both widths;
+`floating-layers.spec.ts` unchanged). Presets stay the as-built chips
+row (the master's range preset rail is a design-lane follow-up).
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `expendit/tokens` collection
