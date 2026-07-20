@@ -1,7 +1,9 @@
 /**
  * Seed narrative — the docs-coherent dataset ("today" = 20 Jul 2026),
  * simulating seven months of actual usage (Jan–Jul 2026) for Cuesoft Ltd
- * (Lekki, Lagos — NG-LA) plus the owner's personal/freelancer org.
+ * (Lekki, Lagos — NG-LA) plus the owner's personal/freelancer org, whose
+ * ledger spans the full trailing 12 months (Aug 2025 – Jul 2026: imported
+ * statement history + live use — the B1 chart shows a complete year).
  *
  * The company story: a services + product studio that staffed up in April
  * ahead of its June GA launch — revenue grows every month while payroll
@@ -1370,12 +1372,225 @@ const cuesoftTxns: TxnSeed[] = [
 ];
 
 /**
- * Personal org — the freelancer dataset. 2026 YTD taxable gross is LOCKED
- * at ₦5,400,000 (PIT-2026 estimate ₦762,000: 0% to 800k · 15% to 3m ·
- * 18% band). Anomaly notes compute from these rows; all four AnomalyBadge
- * types appear here too (web-implementation.md §6).
+ * Personal org — the freelancer dataset, Aug 2025 – Jul 2026 (a full
+ * trailing-12-month B1 window). Aug–Oct 2025 rows arrived as imported
+ * statement history (source csv — the org itself was created 3 Nov 2025);
+ * Nov onward is live use. 2026 YTD taxable gross is LOCKED at ₦5,400,000
+ * (PIT-2026 estimate ₦762,000: 0% to 800k · 15% to 3m · 18% band) — the
+ * 2025 backfill never enters the 2026 PIT basis. Anomaly notes compute
+ * from these rows; all four AnomalyBadge types appear here too
+ * (web-implementation.md §6).
+ *
+ * Monthly totals (income / expenses):
+ * Aug-25 420,000 / 88,400 · Sep-25 380,000 / 80,300 ·
+ * Oct-25 510,000 / 92,100 · Nov-25 300,000 / 83,400 ·
+ * Dec-25 650,000 / 1,057,300 (H1-2026 rent prepaid 29 Dec) ·
+ * Jan 380,000 / 48,200 · Feb 1,500,000 / 71,200 · Mar 450,000 / 244,300 ·
+ * Apr 1,200,000 / 88,100 · May 170,000 / 98,900 · Jun 1,700,000 / 170,300 ·
+ * Jul MTD 0 / 1,134,650 (H2 rent lands in July — the −174.2% "vs Jun"
+ * net-cash-flow delta on B1 is real: −1,134,650 vs +1,529,700).
  */
 const personalTxns: TxnSeed[] = [
+  ...month("p", "2508", [
+    [
+      8,
+      "Brand identity — Yaba fintech studio",
+      420_000,
+      "income",
+      "cat-personal-clients",
+      "csv",
+      { ai: true },
+    ],
+    [
+      2,
+      "MTN data bundle",
+      15_000,
+      "expense",
+      "cat-personal-tools",
+      "csv",
+      { ai: true },
+    ],
+    [
+      15,
+      "POS — Shoprite Lekki",
+      51_400,
+      "expense",
+      "cat-personal-living",
+      "csv",
+      { ai: true },
+    ],
+    [
+      22,
+      "Fuel — Total Admiralty",
+      22_000,
+      "expense",
+      "cat-personal-transport",
+      "csv",
+      { ai: true },
+    ],
+  ]),
+  ...month("p", "2509", [
+    [
+      12,
+      "Webflow build — Surulere logistics co",
+      380_000,
+      "income",
+      "cat-personal-clients",
+      "csv",
+      { ai: true },
+    ],
+    [
+      16,
+      "POS — Shoprite Lekki",
+      47_800,
+      "expense",
+      "cat-personal-living",
+      "csv",
+      { ai: true },
+    ],
+    [
+      21,
+      "Medplus pharmacy",
+      14_200,
+      "expense",
+      "cat-personal-health",
+      "csv",
+      { ai: true },
+    ],
+    [
+      27,
+      "Bolt rides",
+      18_300,
+      "expense",
+      "cat-personal-transport",
+      "csv",
+      { ai: true },
+    ],
+  ]),
+  ...month("p", "2510", [
+    [
+      9,
+      "Design sprint — Ikeja healthtech",
+      510_000,
+      "income",
+      "cat-personal-clients",
+      "csv",
+      { ai: true },
+    ],
+    [
+      2,
+      "MTN data bundle",
+      15_000,
+      "expense",
+      "cat-personal-tools",
+      "csv",
+      { ai: true },
+    ],
+    [
+      17,
+      "POS — Shoprite Lekki",
+      55_600,
+      "expense",
+      "cat-personal-living",
+      "csv",
+      { ai: true },
+    ],
+    [
+      24,
+      "Fuel — Total Admiralty",
+      21_500,
+      "expense",
+      "cat-personal-transport",
+      "csv",
+      { ai: true },
+    ],
+  ]),
+  // Nov 2025 — the org's first live month (created 3 Nov 2025).
+  ...month("p", "2511", [
+    [
+      14,
+      "Logo + deck refresh — Ajah retail chain",
+      300_000,
+      "income",
+      "cat-personal-clients",
+      "manual",
+    ],
+    [
+      11,
+      "POS — Shoprite Lekki",
+      49_200,
+      "expense",
+      "cat-personal-living",
+      "csv",
+      { ai: true },
+    ],
+    [
+      19,
+      "Medplus pharmacy",
+      16_800,
+      "expense",
+      "cat-personal-health",
+      "receipt",
+      { ai: true },
+    ],
+    [
+      25,
+      "Bolt rides",
+      17_400,
+      "expense",
+      "cat-personal-transport",
+      "receipt",
+      { ai: true },
+    ],
+  ]),
+  ...month("p", "2512", [
+    [
+      18,
+      "Year-end campaign — PiggyVest referral",
+      650_000,
+      "income",
+      "cat-personal-clients",
+      "csv",
+      { ai: true },
+    ],
+    [
+      20,
+      "POS — Shoprite Lekki",
+      68_900,
+      "expense",
+      "cat-personal-living",
+      "csv",
+      { ai: true },
+    ],
+    [
+      22,
+      "Fuel — Total Admiralty",
+      26_000,
+      "expense",
+      "cat-personal-transport",
+      "receipt",
+      { ai: true },
+    ],
+    [
+      27,
+      "Medplus pharmacy",
+      12_400,
+      "expense",
+      "cat-personal-health",
+      "receipt",
+      { ai: true },
+    ],
+    // Semiannual rent cycle: H1-2026 prepaid end-December, H2 paid 5 Jul
+    // (the existing July row) — December dips negative, mirroring July.
+    [
+      29,
+      "Rent — Lekki apartment (H1)",
+      950_000,
+      "expense",
+      "cat-personal-living",
+      "manual",
+    ],
+  ]),
   ...month("p", "2601", [
     [
       20,

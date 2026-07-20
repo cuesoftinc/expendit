@@ -301,7 +301,11 @@ export const RatiosView: React.FC = () => {
             </h2>
             {trend && trend.labels.length >= 2 ? (
               <div className="rounded border border-border bg-bg p-4">
+                {/* Annual observations, not a continuous series — point
+                    markers + FY ticks at the data positions so N=2 reads
+                    as two observations (scales to more FYs). */}
                 <ChartLine
+                  pointMarkers
                   series={[
                     {
                       id: "revenue",

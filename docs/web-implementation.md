@@ -398,7 +398,7 @@ with full CRUD; contract types shared with `src/models/`.
 | Group | Mocked endpoints (under `/api/mock/v1`) |
 | --- | --- |
 | Ledger | `/expense` · `/income` · `/category` CRUD + search (v1-consolidated: JWT-scoped, enveloped, cursor-paginated) |
-| Dashboard aggregates | monthly income-vs-expense + category totals (the api.md §1 report endpoints, v1-consolidated) — B1 charts and StatCards; the anomaly feed reads anomaly-flagged transactions (flows/import.md §7 registry), no separate endpoint |
+| Dashboard aggregates | monthly income-vs-expense + category totals (the api.md §1 report endpoints, v1-consolidated) — B1 charts and StatCards; the monthly series is the trailing-12-month window trimmed to ledger onset (months before the org's first transaction are never emitted — no fabricated zero points; zero months after onset are true zeros); the anomaly feed reads anomaly-flagged transactions (flows/import.md §7 registry), no separate endpoint |
 | Import | `POST /import/upload` (`202 {job_id}`, scripted processing → completed) · `GET /import/{job_id}` (polling) · `PUT /import/transaction/{id}/category` · `POST /import/{job_id}/confirm` · `DELETE /import/{job_id}` — every flows/import.md §3 failure-taxonomy code reproducible via designated fixture files |
 | Reports & artifacts | `POST /reports` (`201 {artifact_id, signed_url, expires_at}` — mock-served file URL) · `GET /reports` (TTL'd history) |
 | Data rights | `POST /account/export` (`202 {job_id}` → poll → signed_url) · `POST /account/purge` · `DELETE /account/purge` (grace; `409 purge_pending` on writes while open) |

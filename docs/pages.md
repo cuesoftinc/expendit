@@ -58,8 +58,10 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 ### B1 `/dashboard` — Overview
 - StatCard row: net cash flow, income, expenses, runway (company orgs;
   formula + n/a rules in line-items.md §5) (MI-7).
-- Cash-flow chart (12mo), category donut, anomaly feed (MI-5), latest
-  transactions table (5 rows → Transactions).
+- Cash-flow chart (trailing 12mo, starting at ledger onset — months before
+  the org's first transaction are never drawn; the card title states the
+  actual span), category donut, anomaly feed (MI-5), latest transactions
+  table (5 rows → Transactions).
 - Empty state: MI-16 with demo-data toggle; empty + loading frames ship per
   the screen-state rule (design.md §8.1) **[Directive 2026-07-18]**.
 
@@ -145,7 +147,10 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
     guidance"; industry-specific benchmarks are a later data product.
 - Trend view: ratio **and key line-item** time-series (revenue,
   gross_profit, net_income + period-over-period growth, line-items.md §5)
-  across periods; export to report artifact.
+  across periods; export to report artifact. As built: the periods are
+  discrete annual observations — point markers at each confirmed FY with
+  FY ticks at the data positions, so a two-year history reads as two
+  observations, not a continuous trend (scales unchanged as FYs accrue).
 - Requires ≥1 mapped statement period; empty state explains inputs needed
   and which org kind captures statements (data-model.md §5 "Who uses which
   org kind"); empty + loading frames per the screen-state rule

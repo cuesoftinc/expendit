@@ -2,6 +2,10 @@
  * Mock: monthly income-vs-expense report (api.md §1 `GET /report/monthly/…`,
  * v1-consolidated: JWT/org-scoped, no :userID) + the runway snapshot
  * (line-items.md §5 ledger-burn rule) — the B1 overview aggregates.
+ *
+ * Series contract: a trailing 12-calendar-month window ending at
+ * mock-today, trimmed to the org's ledger onset — months before the first
+ * transaction are never emitted (no fabricated zero points on the chart).
  */
 
 import type { MonthlyFlowPoint, RunwaySnapshot } from "@/models";
@@ -87,17 +91,28 @@ export async function GET(request: Request) {
   const byMonth = new Map<string, MonthlyFlowPoint>(
     window.map((month) => [month, { month, income: 0, expense: 0 }]),
   );
+  let onsetMonth: string | null = null;
   for (const txn of db.transactions) {
     if (txn.org_id !== orgId || txn.excluded_from_reports) continue;
-    const point = byMonth.get(txn.txn_date.slice(0, 7));
+    const month = txn.txn_date.slice(0, 7);
+    if (onsetMonth === null || month < onsetMonth) onsetMonth = month;
+    const point = byMonth.get(month);
     if (!point) continue;
     if (txn.direction === "income") point.income += txn.amount;
     else point.expense += txn.amount;
   }
 
+  // Months before the ledger's first entry carry no data — emitting them
+  // as zeros drew a fabricated flat segment on the B1 chart. The series
+  // starts at ledger onset; zero months *after* onset are true zeros
+  // (an active ledger with no movement) and stay in the window.
+  const items = window
+    .filter((month) => onsetMonth !== null && month >= onsetMonth)
+    .map((month) => byMonth.get(month)!);
+
   return ok({
     currency: org?.currency ?? "NGN",
-    items: window.map((month) => byMonth.get(month)!),
+    items,
     runway: runwaySnapshot(orgId, byMonth),
   });
 }
