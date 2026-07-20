@@ -77,6 +77,9 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   expect(donutBox).not.toBeNull();
   expect(donutBox!.x).toBeGreaterThanOrEqual(chartBox!.x + chartBox!.width);
   expect(Math.abs(donutBox!.y - chartBox!.y)).toBeLessThan(8);
+  // Single-series charts carry no legend row (Figma B1 — the legend only
+  // renders when there is more than one series to disambiguate).
+  await expect(chartCard.locator("figcaption")).toHaveCount(0);
 
   await switchToCompanyOrg(page);
   await expect(page.getByText("Net cash flow").first()).toBeVisible();
@@ -256,6 +259,16 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await expect(
     trends.getByTestId("chart-y-axis").getByText("₦0", { exact: true }),
   ).toBeVisible();
+  // Multi-series chart keeps its legend; the data-table toggle swaps the
+  // chart for an accessible table (Figma B6b trend card).
+  await expect(trends.locator("figcaption")).toContainText("Gross profit");
+  await trends.getByRole("button", { name: "Data table" }).click();
+  await expect(trends.getByRole("table", { name: "Trend data" })).toBeVisible();
+  await expect(
+    trends.getByRole("columnheader", { name: "Net income" }),
+  ).toBeVisible();
+  await trends.getByRole("button", { name: "Chart" }).click();
+  await expect(trends.getByTestId("chart-y-axis")).toBeVisible();
 
   // --- B7 tax center → B7b filing wizard → filing history ----------------
   await openNav(page, "Tax center").click();

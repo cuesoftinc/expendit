@@ -286,20 +286,24 @@ export const ChartLine: React.FC<ChartLineProps> = ({
           </div>
         </div>
       ) : null}
-      <figcaption className="mt-2 flex flex-wrap items-center gap-3">
-        {series.map((entry) => (
-          <span
-            key={entry.id}
-            className="inline-flex items-center gap-1.5 text-[11px] text-text-2"
-          >
+      {series.length > 1 ? (
+        // Legend renders only when there is something to disambiguate —
+        // a single-series legend is redundant chrome (Figma B1 has none).
+        <figcaption className="mt-2 flex flex-wrap items-center gap-3">
+          {series.map((entry) => (
             <span
-              aria-hidden
-              className={cn("h-0.5 w-4 rounded-full", COLOR_BG[entry.color])}
-            />
-            {entry.label}
-          </span>
-        ))}
-      </figcaption>
+              key={entry.id}
+              className="inline-flex items-center gap-1.5 text-[11px] text-text-2"
+            >
+              <span
+                aria-hidden
+                className={cn("h-0.5 w-4 rounded-full", COLOR_BG[entry.color])}
+              />
+              {entry.label}
+            </span>
+          ))}
+        </figcaption>
+      ) : null}
     </figure>
   );
 };

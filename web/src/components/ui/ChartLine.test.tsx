@@ -161,6 +161,15 @@ describe("Chart/Line (design.md §8.2b, MI-12)", () => {
     expect(container.querySelectorAll("line")).toHaveLength(2);
   });
 
+  it("multi-series charts carry a legend; single-series charts do not", () => {
+    const multi = render(<ChartLine series={series} />);
+    expect(multi.container.querySelector("figcaption")).not.toBeNull();
+    multi.unmount();
+    const single = render(<ChartLine series={[series[0]]} />);
+    // Redundant single-series legend row dropped (Figma B1 has none).
+    expect(single.container.querySelector("figcaption")).toBeNull();
+  });
+
   it("loading renders the axis-first skeleton", () => {
     render(<ChartLine state="loading" series={series} />);
     expect(screen.getByTestId("skeleton-chart")).toBeInTheDocument();
