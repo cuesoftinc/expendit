@@ -84,8 +84,14 @@ export const HowItWorksSection: React.FC = () => {
           {STEPS.map((step) => (
             <li key={step.number}>
               {/* Thumb: inert composition + link overlay (no nested
-                  interactive elements — the embed is decorative). */}
-              <div className="relative overflow-hidden rounded border border-border bg-bg transition-transform duration-base ease-standard hover:-translate-y-0.5 motion-reduce:hover:translate-y-0">
+                  interactive elements — the embed is decorative). The box is
+                  pinned to the frame's 384×190 thumb proportions (A5a) —
+                  taller embeds clip at the bottom, so all three captions
+                  sit on one aligned row. */}
+              <div
+                data-testid="how-thumb"
+                className="relative aspect-[384/190] overflow-hidden rounded border border-border bg-bg transition-transform duration-base ease-standard hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
+              >
                 <div inert className="pointer-events-none select-none">
                   {step.thumb}
                 </div>
@@ -96,7 +102,10 @@ export const HowItWorksSection: React.FC = () => {
                   className="absolute inset-0 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                 />
               </div>
-              <div className="mt-5 flex items-center gap-3">
+              <div
+                data-testid="how-step-caption"
+                className="mt-5 flex items-center gap-3"
+              >
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent text-[13px] font-semibold text-on-accent">
                   {step.number}
                 </span>
