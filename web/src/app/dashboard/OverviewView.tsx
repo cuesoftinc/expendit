@@ -11,6 +11,7 @@
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/cn";
 import { formatIso, daysUntil } from "@/lib/dates";
 import { useOrg, useOverviewController } from "@/controllers";
 import { useCategoriesController } from "@/controllers/use-categories";
@@ -34,14 +35,26 @@ const Card: React.FC<{
   title: string;
   children: React.ReactNode;
   action?: React.ReactNode;
+  /** Body becomes a column flex so a fill-mode chart can stretch. */
+  fill?: boolean;
   className?: string;
-}> = ({ title, children, action, className }) => (
-  <section className={`rounded border border-border bg-bg ${className ?? ""}`}>
+}> = ({ title, children, action, fill, className }) => (
+  <section
+    className={cn(
+      "rounded border border-border bg-bg",
+      fill && "lg:flex lg:flex-col",
+      className,
+    )}
+  >
     <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
       <h2 className="text-[13px] font-medium text-text">{title}</h2>
       {action}
     </header>
-    <div className="p-4">{children}</div>
+    <div
+      className={cn("p-4", fill && "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col")}
+    >
+      {children}
+    </div>
   </section>
 );
 
@@ -345,12 +358,16 @@ export const OverviewView: React.FC = () => {
         )}
       </div>
 
-      {/* Figma 179:12: chart left (2/3), donut + anomalies right (1/3). */}
+      {/* Figma 179:12: chart left (2/3), donut + anomalies right (1/3).
+          Default grid stretch (no items-start): the chart card's bottom
+          tracks the rail's — its fill-mode plot absorbs the difference
+          (user report: the band read bottom-ragged at lg). */}
       <div
         data-testid="overview-mid-band"
-        className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr_1fr]"
+        className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]"
       >
         <Card
+          fill
           // The monthly series starts at ledger onset (no fabricated
           // pre-onset months) — the title states the span it actually has.
           title={
@@ -416,6 +433,7 @@ export const OverviewView: React.FC = () => {
             </div>
           ) : (
             <ChartLine
+              fill
               state={points.length === 0 ? "empty" : "data"}
               emptyKind="transactions"
               series={[
