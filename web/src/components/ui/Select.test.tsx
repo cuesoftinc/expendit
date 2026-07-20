@@ -69,4 +69,37 @@ describe("Select/Menu (design.md §8.2b)", () => {
       "true",
     );
   });
+
+  describe("portalMenu inside a modal (merge-modal report)", () => {
+    it("marks the portaled menu as a floating layer with pointer events", async () => {
+      render(<Select options={options} value={null} portalMenu />);
+      await userEvent.click(screen.getByRole("combobox"));
+      const menu = screen.getByRole("listbox").parentElement!;
+      // Modal's outside-interaction guard keys on this marker, and
+      // pointer-events must re-enable under Radix's modal body lock.
+      expect(menu).toHaveAttribute("data-floating-layer");
+      expect(menu).toHaveClass("pointer-events-auto");
+      expect(menu.parentElement).toBe(document.body);
+    });
+
+    it("Escape closes the open menu without reaching the dialog", async () => {
+      const onEscape = vi.fn();
+      render(
+        <div onKeyDown={onEscape}>
+          <Select options={options} value={null} portalMenu />
+        </div>,
+      );
+      const trigger = screen.getByRole("combobox");
+      await userEvent.click(trigger);
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+      trigger.focus();
+      await userEvent.keyboard("{Escape}");
+      // The menu closed; the wrapping (dialog-like) handler never saw it.
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+      expect(onEscape).not.toHaveBeenCalled();
+      // A second Escape (menu closed) propagates to the dialog layer.
+      await userEvent.keyboard("{Escape}");
+      expect(onEscape).toHaveBeenCalled();
+    });
+  });
 });

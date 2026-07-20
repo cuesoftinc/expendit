@@ -417,6 +417,10 @@ export const CategoriesView: React.FC = () => {
       >
         <Select
           label="Merge into"
+          // The in-body menu clipped into a raw scrollbox inside the
+          // modal body's overflow (user report) — portal it to <body>;
+          // Modal's outside-interaction guard keeps the dialog open.
+          portalMenu
           options={categories.items
             .filter(
               (cat) =>
