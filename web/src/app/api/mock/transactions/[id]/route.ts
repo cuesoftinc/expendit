@@ -45,6 +45,18 @@ export async function PUT(request: Request, context: Context) {
   if (body.txn_date !== undefined) txn.txn_date = body.txn_date;
   if (body.excluded_from_reports !== undefined)
     txn.excluded_from_reports = body.excluded_from_reports;
+  // B2b "Mark expected": the only anomaly write is clearing the flags —
+  // the user telling the AI this pattern is normal. Anything else 422s.
+  if (body.anomalies !== undefined) {
+    if (!Array.isArray(body.anomalies) || body.anomalies.length > 0) {
+      return fail(
+        422,
+        "validation_failed",
+        "anomalies only accepts [] (mark expected)",
+      );
+    }
+    txn.anomalies = [];
+  }
   if (body.category_id !== undefined) {
     txn.category_id = body.category_id;
     txn.ai_categorized = false; // human confirmation clears the ✨ (MI-4)

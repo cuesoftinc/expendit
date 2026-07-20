@@ -421,3 +421,32 @@ test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)
   await modal.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(modal).not.toBeVisible();
 });
+
+test("anomaly explain opens from the ledger row (B2b frame anatomy)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await openNav(page, "Transactions").click();
+  await page.waitForURL("**/dashboard/transactions");
+  await expect(page.locator("table tbody tr").first()).toBeVisible();
+
+  // Inline anomaly badges are the row-level entry point — no deep link.
+  await page
+    .locator("tbody")
+    .getByRole("button", {
+      name: /Large transaction|Spending spike|Unusual category|Possible duplicate/,
+    })
+    .first()
+    .click();
+  const explain = page.getByRole("dialog", { name: "Why this was flagged" });
+  await expect(explain).toBeVisible();
+  // Humanized severity, provenance/rule-version line, frame actions.
+  await expect(explain.getByText(/^(Info|Warning)$/)).toBeVisible();
+  await expect(explain.getByText(/Detected .* · rule:/)).toBeVisible();
+  await expect(
+    explain.getByRole("button", { name: "Mark expected" }),
+  ).toBeVisible();
+  // Exit via Cancel — nothing is mutated in the serial narrative.
+  await explain.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(explain).not.toBeVisible();
+});

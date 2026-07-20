@@ -20,6 +20,9 @@ export type TxnUpdate = Partial<
     | "category_id"
     | "txn_date"
     | "excluded_from_reports"
+    // "Mark expected" (B2b): the only accepted anomaly write is [] —
+    // clearing the flags; the server rejects anything else.
+    | "anomalies"
   >
 >;
 

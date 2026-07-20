@@ -52,6 +52,8 @@ export interface TxnTableRowProps {
   onSplit?: () => void;
   onExclude?: () => void;
   onOpen?: () => void;
+  /** Inline AnomalyBadge click → anomaly-explain inspector (B2b). */
+  onExplainAnomaly?: () => void;
 }
 
 export const TxnTableRow: React.FC<TxnTableRowProps> = ({
@@ -67,6 +69,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   onSplit,
   onExclude,
   onOpen,
+  onExplainAnomaly,
 }) => {
   const { Icon: SourceIcon, label: sourceLabel } = SOURCE_ICON[txn.source];
   const anomaly = txn.anomalies[0];
@@ -179,10 +182,13 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         </td>
       ) : anomaly ? (
         <td className="flex shrink-0 items-center">
+          {/* Clickable: opens the anomaly-explain inspector (B2b) — the
+              panel is reachable from the row, not deep-link-only. */}
           <AnomalyBadge
             type={anomaly.rule_id}
             severity={anomaly.severity}
             variant="inline"
+            onClick={onExplainAnomaly}
           />
         </td>
       ) : null}
