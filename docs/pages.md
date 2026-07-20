@@ -113,6 +113,11 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Scheduled reports (monthly email) **[Proposed, later]**.
 
 ### B6 `/company` — Company financials **[Directive — new]**
+- **IA [Decided 2026-07-20]**: two nav pages + a detail drill-in — the
+  statements hub (`/dashboard/company`: list + upload + manual entry) and
+  Ratios (`/dashboard/company/ratios`, incl. trends), with per-statement
+  bodies on `/dashboard/company/statements/{id}` detail pages. There is no
+  tabs hub; an Archive surface is **[Later]**.
 - **Statements**: upload balance sheet / income statement / cash-flow
   (CSV/XLSX/PDF via the same dropzone — scanned/photographed statements
   JPG/PNG/HEIC and image-only PDFs go through the import vision path,
@@ -127,9 +132,12 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   ManualStatementRow add-row for parser-missed lines —
   flows/statement-mapping.md **[Directive 2026-07-18]**.
 - **Statement view**: per confirmed statement (kind × period), render the
-  normalized statement — canonical rows, *(derived)* rows flagged with their
-  formula, `mapping_warning` badges, period-selector header (StatementView,
-  design.md §8.2); export to report artifact
+  normalized statement — human line labels with the canonical key secondary
+  in mono, derived rows bold with an "ƒ derived" chip (formula tooltip),
+  parked rows surfaced as an "N unmapped" tag, `mapping_warning` badges, a
+  green "Assets = Liabilities + Equity" footer when the balance-sheet
+  identity holds (±1%), and period + Export in the card header
+  (StatementView, design.md §8.2); export to report artifact
   (`kind: financial_statement`, api.md §2).
 - **Ratios** (`/company/ratios` — screen B6b): RatioGauge grid (MI-8),
   grouped:

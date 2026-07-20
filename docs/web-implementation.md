@@ -272,12 +272,92 @@ flip, no reload). The pre-paint init script applies the resolved theme
 (no FOUC in any mode). `ThemeToggle` (marketing nav + dashboard chrome)
 cycles light → dark → system with distinct icons (sun / moon / monitor);
 its aria-label announces the active mode. The B9 Appearance section
-keeps the three-way Light/System/Dark segmented control over the same
-store (`useThemeController` delegates to the provider). The Scalar embed
+keeps the three-way Light/Dark/System segmented control (ordered to
+mirror the toggle cycle) over the same store (`useThemeController`
+delegates to the provider). The Scalar embed
 follows `resolvedTheme` (X-2 note above). Unit tests pin the storage
 convention, live system tracking, the cycle order and the storage-
 blocked fallbacks; e2e pins the cycle, an emulated OS flip in system
 mode and reload persistence.
+
+**Figma-audit fixes as-built (2026-07-20, `fix/audit-code-items`).** The
+adjudicated code-side items from the Figma ↔ code divergence audit:
+
+- **B1 overview:** the mid-band grid uses the valid
+  `lg:grid-cols-[2fr_1fr]` arbitrary value (the comma form is invalid
+  CSS and silently stacked the band; e2e-locked); the single-series
+  cash-flow chart drops its redundant legend (ChartLine renders legends
+  only for multi-series charts); ChartDonut's center stack is caption on
+  top + a 20px COMPACT value (master 126:1183); the anomalies card keeps
+  its count badge with RELATIVE row ages.
+- **Relative ages everywhere** (systemic): `formatRelativeAge`
+  (lib/dates) renders "2h ago"-style ages on import history rows and the
+  B1 anomaly feed.
+- **Anomaly explain (208:3967 + 67:349):** humanized severity
+  (High/Low), a "Detected 14 Jul 2026 · rule: large_transaction v2"
+  provenance line (Anomaly gains optional
+  `rule_version`/`detected_at`/`expected`; seed enriches every flag), a
+  comparables-median footer, and footer actions Cancel + **Mark
+  expected** (`PUT /transactions/{id}` `mark_anomalies_expected` flips
+  flags; expected flags leave badges, feeds, counts and `anomaly_only`).
+  B1 "Explain in ledger" and inline table badges deep-link INTO the
+  explain panel.
+- **StatementView (98:743):** human line labels with the canonical key
+  secondary in mono, bold derived rows + "ƒ derived" chips, an
+  "N unmapped" tag for parked rows, the green identity-check footer, and
+  Export in the card header.
+- **B6b trends:** the multi-series absolute construction keeps its
+  legend and gains the chart ↔ "Data table" toggle.
+- **B3/B3b imports:** post-parse summary card beside the dropzone
+  (counts + "Review import"), header "Upload statement" primary
+  (dropzone `inputId`), "Import history" heading, blue "Ready for
+  review" tag, humanized failure lines (lib/import-failures; the raw
+  code rides the tooltip), the 30-day recoverability footer, and proper
+  anomaly pluralization.
+- **B4/B4b bank-link:** amber re-auth banner with frame copy +
+  "Re-authenticate"; the link modal uses the frame's tile stepper (icon
+  circles + sub-captions in a dashed tray; WizardStep `icon`/`caption`),
+  per-step titles, the Mono consent copy deck, right-aligned
+  Cancel-then-primary footers (Modal canon), a determinate syncing % with
+  the account label, and a StampedCheck Done step ("Review import"
+  primary; auto-confirm stays card-level — ratified relocation).
+- **B5 reports:** inline generate toolbar (report · period · PDF·CSV
+  segmented · "Generate report"), a standalone generating strip with
+  "PDF · N%", ReportArtifactRow titles with humanized periods + a
+  "PDF · 1.2 MB" meta line (artifact `size_bytes`), the
+  "Artifact history" heading and the 30-day expiry caption.
+- **B7/B7b tax:** RemitToCard subtitles use the SHORT authority code
+  (full name in the tooltip); wizard rail steps carry sub-captions, step
+  3 is "Forms", and step 2 matches the frame anatomy (H2 + intro, first
+  trace open, chevrons left via Accordion `chevron="left"`, VAT line
+  names "Output VAT — collected on sales" / "Input VAT — paid on
+  purchases" / "Net VAT payable", CTA "Continue to forms", GREEN
+  completed checks, summary = Period + computed lines + the estimates
+  footnote).
+- **B8 categories:** rows carry ledger usage meta ("N transactions this
+  year", computed by the mock GET) and the AI-proposed treatment
+  ("✨ AI proposed from N vendors"; Category gains optional
+  `ai_proposed`/`ai_vendor_count`); per-row Delete demotes to a quiet
+  danger text link + typed-confirm danger modal; the AI-training
+  banner's doubled sparkle is fixed.
+- **B9/B9b settings:** humanized fiscal-year-end month-end Select
+  ("31 December"), editable registered address, Light | Dark | System
+  order, ONE purge construction (org-name typed confirm + "Export
+  everything first" secondary + danger icon in danger-modal titles;
+  grace semantics unchanged), and a determinate export strip (record
+  count + "ZIP · N%" + the email/twice-a-day microcopy; the mock export
+  job carries `record_count`/`progress`).
+- **Auth/onboarding (178:19, 205:3540):** /signin is a bordered card
+  with the dotted wordmark, "Sign in to your workspace", the frame
+  subtitle and two-line microcopy; ONE `Wordmark` component (accent dot)
+  is reused across nav/signin/footer/onboarding; the onboarding CTA
+  reads "Create organization".
+- **Small stuff:** Reports nav icon → FileText, Statements →
+  FileSpreadsheet; ledger filter reads "All accounts"; "Src" column
+  headers; humanized unset PeriodPicker trigger copy; BulkActionBar
+  bulk-delete (trash) behind a danger confirm.
+- UPPERCASE micro-labels stay as built (ratified — the Figma masters
+  catch up).
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the
