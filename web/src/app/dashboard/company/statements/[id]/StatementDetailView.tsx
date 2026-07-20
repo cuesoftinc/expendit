@@ -180,9 +180,25 @@ export const StatementDetailView: React.FC = () => {
     return (
       <>
         {back}
-        <PageHeader
-          title={title}
-          actions={
+        <PageHeader title={title} />
+        {statement.mapping_status === "superseded" ? (
+          <div className="mb-3">
+            <Banner kind="info">
+              This statement was superseded by a newer confirmation for the same
+              period
+              {statement.superseded_by ? ` (${statement.superseded_by})` : ""}.
+            </Banner>
+          </div>
+        ) : null}
+        <StatementView
+          kind={statement.kind}
+          period={statement.period}
+          currency={statement.currency}
+          lineItems={lineItems}
+          mappingWarnings={statement.mapping_warnings}
+          formulaNotes={FORMULA_NOTES}
+          // Export lives in the card header (Figma 98:743).
+          headerActions={
             <Button
               size="sm"
               loading={busy}
@@ -209,23 +225,6 @@ export const StatementDetailView: React.FC = () => {
               Export to report
             </Button>
           }
-        />
-        {statement.mapping_status === "superseded" ? (
-          <div className="mb-3">
-            <Banner kind="info">
-              This statement was superseded by a newer confirmation for the same
-              period
-              {statement.superseded_by ? ` (${statement.superseded_by})` : ""}.
-            </Banner>
-          </div>
-        ) : null}
-        <StatementView
-          kind={statement.kind}
-          period={statement.period}
-          currency={statement.currency}
-          lineItems={lineItems}
-          mappingWarnings={statement.mapping_warnings}
-          formulaNotes={FORMULA_NOTES}
         />
         <ToastLayer message={toast} onDismiss={() => setToast(null)} />
       </>

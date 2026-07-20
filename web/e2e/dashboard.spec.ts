@@ -209,9 +209,19 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
       page.getByText(/Statement confirmed — ratios recomputed/),
     ).toBeVisible({ timeout: 15_000 });
   }
-  // Statement view (normalized rows incl. derived totals — the registry
-  // StatementView renders mono canonical keys, design.md §8.2).
+  // Statement view (Figma 98:743): human line labels with the canonical
+  // key secondary in mono, bold derived rows with the ƒ chip, and the
+  // green identity-check footer once the sheet balances.
+  await expect(page.getByText("Total assets").first()).toBeVisible();
   await expect(page.getByText("total_assets").first()).toBeVisible();
+  await expect(page.getByText("ƒ derived").first()).toBeVisible();
+  await expect(page.getByText("Assets = Liabilities + Equity")).toBeVisible();
+  // Export lives in the statement card header, not the page header.
+  await expect(
+    page
+      .locator("section[data-kind] header")
+      .getByRole("button", { name: "Export to report" }),
+  ).toBeVisible();
 
   // --- B6b ratios: gauges + MI-8 trace inspector -------------------------
   await openNav(page, "Ratios").click();
