@@ -80,7 +80,10 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({
           }}
         >
           <div className="flex items-start gap-4 px-4 pt-3">
-            <RadixTabs.List aria-label={tabsLabel} className="flex flex-1 gap-4">
+            <RadixTabs.List
+              aria-label={tabsLabel}
+              className="flex flex-1 gap-4"
+            >
               {tabs.map((tab) => (
                 <RadixTabs.Trigger
                   key={tab.label}

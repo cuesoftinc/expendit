@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import CodeSnippet from "./CodeSnippet";
 
 const TABS = [
@@ -50,7 +51,7 @@ describe("CodeSnippet (design.md §8.2b)", () => {
     expect(screen.queryByText(/helm install expendit/)).not.toBeInTheDocument();
 
     // switch to Helm — the mirrored two-line block swaps in
-    fireEvent.click(screen.getByRole("tab", { name: "Helm" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Helm" }));
     expect(screen.getByRole("tab", { name: "Helm" })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -60,27 +61,25 @@ describe("CodeSnippet (design.md §8.2b)", () => {
     ).toBeInTheDocument();
 
     // copy targets the ACTIVE tab's full block — `$ ` prompts stay out
-    fireEvent.click(screen.getByRole("button", { name: "Copy code" }));
-    await act(async () => {
-      // flush the clipboard promise
-    });
+    await userEvent.click(screen.getByRole("button", { name: "Copy code" }));
     expect(writeText).toHaveBeenCalledWith(TABS[1].code);
 
     // switching tabs resets the copied morph
     expect(screen.getByRole("button", { name: "Copied" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: "Docker Compose" }));
+    await userEvent.click(screen.getByRole("tab", { name: "Docker Compose" }));
     expect(
       screen.getByRole("button", { name: "Copy code" }),
     ).toBeInTheDocument();
   });
 
-  it("tabbed mode: arrow keys rove focus across the tablist (Radix)", () => {
+  it("tabbed mode: arrow keys rove focus across the tablist (Radix)", async () => {
     render(<CodeSnippet tabs={TABS} />);
     const docker = screen.getByRole("tab", { name: "Docker Compose" });
     const helm = screen.getByRole("tab", { name: "Helm" });
     docker.focus();
-    fireEvent.keyDown(docker, { key: "ArrowRight" });
+    await userEvent.keyboard("{ArrowRight}");
     expect(helm).toHaveFocus();
+    expect(helm).toHaveAttribute("aria-selected", "true");
   });
 
   it("copy morphs idle → copied ✓ and resets", async () => {
