@@ -94,7 +94,7 @@ export const OverviewView: React.FC = () => {
             <StatCard key={i} label="" value={0} loading />
           ))}
         </div>
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr,1fr]">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
           <ChartLine state="loading" />
           <ChartDonut state="loading" />
         </div>
@@ -158,7 +158,7 @@ export const OverviewView: React.FC = () => {
             ),
           )}
         </div>
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr,1fr]">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
           <Card title="Cash flow — trailing 12 months">
             <ChartLine
               series={[
@@ -346,7 +346,10 @@ export const OverviewView: React.FC = () => {
       </div>
 
       {/* Figma 179:12: chart left (2/3), donut + anomalies right (1/3). */}
-      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr,1fr]">
+      <div
+        data-testid="overview-mid-band"
+        className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr_1fr]"
+      >
         <Card
           // The monthly series starts at ledger onset (no fabricated
           // pre-onset months) — the title states the span it actually has.
@@ -444,8 +447,10 @@ export const OverviewView: React.FC = () => {
               <div className="flex items-center gap-4">
                 <ChartDonut
                   slices={donutSlices}
-                  centerTotal={formatMoney(donutTotal, currency, {
-                    decimals: 0,
+                  // Compact center total per the ChartDonut master
+                  // ("₦3.61M" — caption above, value below).
+                  centerTotal={formatMoneyCompact(donutTotal, currency, {
+                    decimals: 2,
                   })}
                   centerCaption="Expenses"
                   legend="none"

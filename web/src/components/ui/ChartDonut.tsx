@@ -98,26 +98,28 @@ export const ChartDonut: React.FC<ChartDonutProps> = ({
             />
           ))}
         </g>
+        {/* Center stack per the Figma master (126:1183): caption on top,
+            compact value below. */}
         {centerTotal ? (
           <>
-            <text
-              x="60"
-              y="58"
-              textAnchor="middle"
-              className="fill-text text-[14px] font-semibold tabular-nums"
-            >
-              {centerTotal}
-            </text>
             {centerCaption ? (
               <text
                 x="60"
-                y="72"
+                y="54"
                 textAnchor="middle"
-                className="fill-text-2 text-[9px]"
+                className="fill-text-2 text-[10px]"
               >
                 {centerCaption}
               </text>
             ) : null}
+            <text
+              x="60"
+              y={centerCaption ? 70 : 64}
+              textAnchor="middle"
+              className="fill-text text-[15px] font-semibold tabular-nums"
+            >
+              {centerTotal}
+            </text>
           </>
         ) : null}
       </svg>

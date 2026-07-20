@@ -358,3 +358,20 @@ test("semantic chrome — one main landmark, labeled nav, real ledger table", as
   await expect(page.locator("table").first()).toBeVisible();
   expect(await page.getByRole("columnheader").count()).toBeGreaterThan(2);
 });
+
+test("overview mid-band forms two columns at lg (Figma 179:12)", async ({
+  page,
+}) => {
+  // The chart card (2fr) sits beside the donut/anomalies rail (1fr) at
+  // lg+ — regression guard for the invalid `grid-cols-[2fr,1fr]`
+  // arbitrary value (comma is dropped by browsers, collapsing the band
+  // to a single column at every width).
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await signIn(page);
+  const band = page.getByTestId("overview-mid-band");
+  await expect(band).toBeVisible();
+  const trackCount = await band.evaluate(
+    (el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length,
+  );
+  expect(trackCount).toBe(2);
+});
