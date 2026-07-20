@@ -20,9 +20,19 @@ export type AnomalySeverity = "info" | "warn";
 export interface Anomaly {
   rule_id: AnomalyType;
   severity: AnomalySeverity;
+  /** Rule-engine version that raised the flag (explain provenance). */
+  rule_version?: string;
+  /** ISO date the rule flagged the entry (explain provenance). */
+  detected_at?: string;
+  /** Human-confirmed as expected ("Mark expected") — drops the flag. */
+  expected?: boolean;
   /** Inspector explanation (AnomalyBadge click → anomaly-explain). */
   note: string;
 }
+
+/** The anomalies still flagging a transaction (expected ones drop out). */
+export const activeAnomalies = (txn: Pick<TxnEntry, "anomalies">): Anomaly[] =>
+  txn.anomalies.filter((anomaly) => !anomaly.expected);
 
 export interface TxnEntry {
   id: string;

@@ -1,6 +1,7 @@
 /** Mock: ledger transactions — list (filters + cursor) and create. */
 
 import type { TxnDirection, TxnEntry, TxnSource } from "@/models";
+import { activeAnomalies } from "@/models";
 import { getDb, nextId } from "@/mock/db";
 import { mockNow } from "@/mock/clock";
 import { fail, ok, paginate, resolveOrgId, writeBlocked } from "@/mock/http";
@@ -96,7 +97,8 @@ export async function GET(request: Request) {
     .filter((txn) => (direction ? txn.direction === direction : true))
     .filter((txn) => (amountMin ? txn.amount >= Number(amountMin) : true))
     .filter((txn) => (amountMax ? txn.amount <= Number(amountMax) : true))
-    .filter((txn) => (anomalyOnly ? txn.anomalies.length > 0 : true))
+    // Expected flags (Mark expected) no longer count as anomalies.
+    .filter((txn) => (anomalyOnly ? activeAnomalies(txn).length > 0 : true))
     .filter((txn) =>
       search ? txn.description.toLowerCase().includes(search) : true,
     )

@@ -48,6 +48,30 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
     expect(screen.getByLabelText("CSV import")).toBeInTheDocument();
   });
 
+  it("inline anomaly badge opens the explain panel (Figma 208:3967)", async () => {
+    const onExplain = vi.fn();
+    render(<TxnTableRow txn={txn} category={category} onExplain={onExplain} />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Large transaction (warn)" }),
+    );
+    expect(onExplain).toHaveBeenCalled();
+  });
+
+  it("expected anomalies (Mark expected) no longer badge the row", () => {
+    render(
+      <TxnTableRow
+        txn={{
+          ...txn,
+          anomalies: [{ ...txn.anomalies[0], expected: true }],
+        }}
+        category={category}
+      />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Large transaction (warn)" }),
+    ).toBeNull();
+  });
+
   it("MI-6: hover actions are absolutely positioned (no layout shift)", () => {
     render(<TxnTableRow txn={txn} category={category} />);
     const actions = screen.getByTestId("row-actions");

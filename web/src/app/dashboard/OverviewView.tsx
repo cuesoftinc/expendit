@@ -524,7 +524,9 @@ export const OverviewView: React.FC = () => {
                   ))}
                 </ul>
                 <Link
-                  href="/dashboard/transactions?anomalies=1"
+                  // Deep-link OPENS the explain panel over the filtered
+                  // ledger (Figma 208:3967) — never just the list.
+                  href={`/dashboard/transactions?anomalies=1&record=${anomalies[0].id}&explain=1`}
                   className="mt-3 inline-block text-[13px] font-medium text-accent hover:underline"
                 >
                   Explain in ledger →

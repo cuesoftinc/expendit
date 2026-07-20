@@ -61,6 +61,38 @@ describe("mock /transactions (docs-coherent ledger)", () => {
     expect(large.items.every((txn) => txn.amount >= 6_000_000)).toBe(true);
   });
 
+  it("seeded anomalies carry rule provenance; Mark expected drops the flag", async () => {
+    const anomalies = await json<Page<TxnEntry>>(
+      await listTxns(
+        mockRequest("/api/mock/transactions?anomaly_only=true&limit=100"),
+      ),
+    );
+    const flagged = anomalies.items[0];
+    // Provenance metadata (explain panel: "Detected … · rule: … v2").
+    expect(flagged.anomalies[0].rule_version).toMatch(/^v\d+$/);
+    expect(flagged.anomalies[0].detected_at).toBe(flagged.txn_date);
+    expect(flagged.anomalies[0].expected).toBe(false);
+
+    const marked = await json<TxnEntry>(
+      await updateTxn(
+        mockRequest(`/api/mock/transactions/${flagged.id}`, {
+          method: "PUT",
+          body: { mark_anomalies_expected: true },
+        }),
+        params({ id: flagged.id }),
+      ),
+    );
+    expect(marked.anomalies.every((anomaly) => anomaly.expected)).toBe(true);
+
+    // Expected flags no longer count for anomaly_only.
+    const after = await json<Page<TxnEntry>>(
+      await listTxns(
+        mockRequest("/api/mock/transactions?anomaly_only=true&limit=100"),
+      ),
+    );
+    expect(after.items.map((txn) => txn.id)).not.toContain(flagged.id);
+  });
+
   it("paginates with a cursor", async () => {
     const first = await json<Page<TxnEntry>>(
       await listTxns(mockRequest("/api/mock/transactions?limit=5")),

@@ -34,10 +34,19 @@ export async function PUT(request: Request, context: Context) {
   const { id } = await context.params;
   const txn = find(request, id);
   if (!txn) return notFound();
-  const body = (await request.json()) as Partial<TxnEntry>;
+  const body = (await request.json()) as Partial<TxnEntry> & {
+    /** "Mark expected" (anomaly-explain footer) — flips every flag. */
+    mark_anomalies_expected?: boolean;
+  };
 
   if (body.amount !== undefined && body.amount <= 0) {
     return fail(422, "validation_failed", "Amount must be positive");
+  }
+  if (body.mark_anomalies_expected) {
+    txn.anomalies = txn.anomalies.map((anomaly) => ({
+      ...anomaly,
+      expected: true,
+    }));
   }
   if (body.description !== undefined) txn.description = body.description;
   if (body.amount !== undefined) txn.amount = body.amount;

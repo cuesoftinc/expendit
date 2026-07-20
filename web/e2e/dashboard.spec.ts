@@ -93,6 +93,23 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await expect(companyYAxis.getByText("−₦2.5M", { exact: true })).toBeVisible();
   await expect(companyYAxis.getByText("₦5M", { exact: true })).toBeVisible();
 
+  // --- Anomaly explain (Figma 208:3967 + master 67:349) ------------------
+  // "Explain in ledger" deep-links INTO the explain panel over the
+  // filtered ledger; the panel carries humanized severity, the rule
+  // provenance line, the comparables median footer, and Mark expected.
+  await page.getByRole("link", { name: "Explain in ledger →" }).click();
+  await page.waitForURL(/anomalies=1.*record=.*explain=1/);
+  const explain = page.getByRole("dialog", { name: "Why this was flagged" });
+  await expect(explain).toBeVisible();
+  await expect(explain.getByText(/^(High|Low)$/)).toBeVisible();
+  await expect(explain.getByText(/rule: [a-z_]+ v\d+/)).toBeVisible();
+  await expect(explain.getByText(/Median of \d+ comparable/)).toBeVisible();
+  // Mark expected flips the flag in the mock — the entry stops flagging.
+  await explain.getByRole("button", { name: "Mark expected" }).click();
+  await expect(
+    page.getByText("Marked expected — this entry is no longer flagged."),
+  ).toBeVisible();
+
   // --- B2 transactions CRUD (manual path, MI-11 inspector) --------------
   await openNav(page, "Transactions").click();
   await page.waitForURL("**/dashboard/transactions");

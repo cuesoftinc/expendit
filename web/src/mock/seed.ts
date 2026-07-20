@@ -43,6 +43,7 @@
 
 import type {
   Anomaly,
+  AnomalyType,
   BankLink,
   Category,
   ConsentRecord,
@@ -1889,6 +1890,17 @@ const personalTxns: TxnSeed[] = [
   ]),
 ];
 
+/**
+ * Anomaly rule-engine versions — the explain-panel provenance line
+ * ("Detected 14 Jul 2026 · rule: large_transaction v2") reads these.
+ */
+export const ANOMALY_RULE_VERSIONS: Record<AnomalyType, string> = {
+  large_transaction: "v2",
+  spending_spike: "v1",
+  abnormal_category: "v1",
+  duplicate_charge: "v3",
+};
+
 const toTxn = (seedRow: TxnSeed, orgId: string): TxnEntry => ({
   id: seedRow.id,
   org_id: orgId,
@@ -1901,7 +1913,14 @@ const toTxn = (seedRow: TxnSeed, orgId: string): TxnEntry => ({
   source_link_id: seedRow.link ?? null,
   ai_categorized: seedRow.ai ?? false,
   excluded_from_reports: false,
-  anomalies: seedRow.anomalies ?? [],
+  // Rule metadata (version + detection date) enriches every seeded flag —
+  // rules run at ingest, so detection day = ledger day in the narrative.
+  anomalies: (seedRow.anomalies ?? []).map((anomaly) => ({
+    rule_version: ANOMALY_RULE_VERSIONS[anomaly.rule_id],
+    detected_at: seedRow.date,
+    expected: false,
+    ...anomaly,
+  })),
   created_at: `${seedRow.date}T09:00:00.000Z`,
 });
 

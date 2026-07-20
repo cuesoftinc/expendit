@@ -51,6 +51,14 @@ export const transactionsRepo = {
   update: (id: string, input: TxnUpdate, options?: RequestOptions) =>
     api.put<TxnEntry>(`/transactions/${id}`, input, options),
 
+  /** "Mark expected" (anomaly-explain footer) — flips every flag. */
+  markAnomaliesExpected: (id: string, options?: RequestOptions) =>
+    api.put<TxnEntry>(
+      `/transactions/${id}`,
+      { mark_anomalies_expected: true },
+      options,
+    ),
+
   remove: (id: string, options?: RequestOptions) =>
     api.delete<void>(`/transactions/${id}`, options),
 };

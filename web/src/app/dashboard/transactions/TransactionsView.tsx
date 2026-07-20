@@ -28,7 +28,7 @@ import {
 } from "@/controllers";
 import { useTransactionsController } from "@/controllers/use-transactions";
 import { formatMoney } from "@/lib/format";
-import type { TxnEntry, TxnFilters } from "@/models";
+import { activeAnomalies, type TxnEntry, type TxnFilters } from "@/models";
 import AnomalyBadge from "@/components/ui/AnomalyBadge";
 import Banner from "@/components/ui/Banner";
 import BulkActionBar from "@/components/ui/BulkActionBar";
@@ -52,6 +52,12 @@ import ToastLayer from "../ToastLayer";
 // Registry default category color — data, not styling (documented raw-hex
 // exception; mirrors the mock categories default).
 const FALLBACK_CATEGORY_COLOR = "#6E6E76";
+
+/** Humanized severity deck (Figma 208:3967 — never the raw enum). */
+const SEVERITY_LABELS: Record<"info" | "warn", string> = {
+  warn: "High",
+  info: "Low",
+};
 
 const SOURCE_OPTIONS = [
   { value: "all", label: "All sources" },
@@ -389,6 +395,37 @@ export const TransactionsView: React.FC = () => {
         )
         .slice(0, 4)
     : [];
+  // Median of the comparables (explain-panel footer, Figma 208:3967).
+  const comparableMedian = useMemo(() => {
+    if (comparableTxns.length === 0) return null;
+    const amounts = [...comparableTxns]
+      .map((txn) => txn.amount)
+      .sort((a, b) => a - b);
+    const mid = Math.floor(amounts.length / 2);
+    return amounts.length % 2 === 1
+      ? amounts[mid]
+      : (amounts[mid - 1] + amounts[mid]) / 2;
+  }, [comparableTxns]);
+
+  const activeAnomaly = activeTxn
+    ? (activeAnomalies(activeTxn)[0] ?? activeTxn.anomalies[0])
+    : undefined;
+
+  // "Mark expected" (AI-trust affordance): the flag flips to expected in
+  // the mock and drops out of badges, feeds and the anomaly filter.
+  const markExpected = async () => {
+    if (!activeTxn) return;
+    setSaving(true);
+    try {
+      await txns.markAnomaliesExpected(activeTxn.id);
+      setToast("Marked expected — this entry is no longer flagged.");
+      closeInspector();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const isEmpty = !txns.loading && sorted.length === 0 && !txns.filters.search;
 
@@ -692,6 +729,9 @@ export const TransactionsView: React.FC = () => {
                       excluded_from_reports: !txn.excluded_from_reports,
                     })
                   }
+                  onExplain={() =>
+                    openInspector({ kind: "anomaly", txnId: txn.id })
+                  }
                 />
               ))}
             </tbody>
@@ -984,7 +1024,8 @@ export const TransactionsView: React.FC = () => {
         </div>
       </Inspector>
 
-      {/* Anomaly-explain inspector (design.md §8.2 variant) */}
+      {/* Anomaly-explain inspector (design.md §8.2 variant, Figma
+          208:3967 + master 67:349) */}
       <Inspector
         open={inspector.kind === "anomaly"}
         onClose={closeInspector}
@@ -993,28 +1034,42 @@ export const TransactionsView: React.FC = () => {
         footer={
           <div className="flex justify-end gap-2">
             <Button kind="quiet" size="sm" onClick={closeInspector}>
-              Dismiss
+              Cancel
             </Button>
             <Button
               size="sm"
-              onClick={() =>
-                activeTxn &&
-                openInspector({ kind: "record", txnId: activeTxn.id })
-              }
+              loading={saving}
+              disabled={!activeAnomaly}
+              onClick={() => void markExpected()}
             >
-              Review transaction
+              Mark expected
             </Button>
           </div>
         }
       >
-        {activeTxn && activeTxn.anomalies.length > 0 ? (
+        {activeTxn && activeAnomaly ? (
           <div className="space-y-4">
             <AnomalyBadge
-              type={activeTxn.anomalies[0].rule_id}
-              severity={activeTxn.anomalies[0].severity}
+              type={activeAnomaly.rule_id}
+              severity={activeAnomaly.severity}
               variant="feed"
-              description={activeTxn.anomalies[0].note}
+              description={activeAnomaly.note}
             />
+            {/* Provenance: detection date + the rule that raised it. */}
+            <p className="text-[12px] text-text-2">
+              Detected{" "}
+              {formatIso(
+                activeAnomaly.detected_at ?? activeTxn.txn_date,
+                "d MMM yyyy",
+              )}{" "}
+              ·{" "}
+              <span className="font-mono">
+                rule: {activeAnomaly.rule_id}
+                {activeAnomaly.rule_version
+                  ? ` ${activeAnomaly.rule_version}`
+                  : ""}
+              </span>
+            </p>
             <dl className="space-y-1 text-[13px]">
               <div className="flex justify-between gap-2">
                 <dt className="text-text-2">Transaction</dt>
@@ -1032,7 +1087,8 @@ export const TransactionsView: React.FC = () => {
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-text-2">Severity</dt>
-                <dd className="uppercase">{activeTxn.anomalies[0].severity}</dd>
+                {/* Humanized (the raw enum read "WARN"). */}
+                <dd>{SEVERITY_LABELS[activeAnomaly.severity]}</dd>
               </div>
             </dl>
             <section aria-label="Comparable transactions">
@@ -1044,20 +1100,31 @@ export const TransactionsView: React.FC = () => {
                   No comparable transactions in this category yet.
                 </p>
               ) : (
-                <ul className="space-y-1 text-[13px]">
-                  {comparableTxns.map((txn) => (
-                    <li key={txn.id} className="flex justify-between gap-2">
-                      <span className="truncate text-text-2">
-                        {formatIso(txn.txn_date, "d MMM")} · {txn.description}
+                <>
+                  <ul className="space-y-1 text-[13px]">
+                    {comparableTxns.map((txn) => (
+                      <li key={txn.id} className="flex justify-between gap-2">
+                        <span className="truncate text-text-2">
+                          {formatIso(txn.txn_date, "d MMM")} · {txn.description}
+                        </span>
+                        <MoneyCell
+                          amount={txn.amount}
+                          direction={txn.direction}
+                          currency={currency}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  {comparableMedian !== null ? (
+                    <p className="mt-2 border-t border-border pt-2 text-[12px] text-text-2">
+                      Median of {comparableTxns.length} comparable
+                      {comparableTxns.length === 1 ? "" : "s"} —{" "}
+                      <span className="tabular-nums text-text">
+                        {formatMoney(comparableMedian, currency)}
                       </span>
-                      <MoneyCell
-                        amount={txn.amount}
-                        direction={txn.direction}
-                        currency={currency}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                    </p>
+                  ) : null}
+                </>
               )}
             </section>
           </div>
