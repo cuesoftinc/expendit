@@ -263,6 +263,56 @@ test.describe("public home `/` (Part A)", () => {
     expect(orphanRows).toBe(0);
   });
 
+  test("A5a: uniform thumbs pin the step captions to one row at 1440 (both themes)", async ({
+    page,
+  }, testInfo) => {
+    // Figma A5a pin: every step thumb is a 384×190 box (taller embeds clip
+    // at the bottom), so the numbered captions share a single row.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    for (const theme of ["light", "dark"] as const) {
+      await page.evaluate(
+        (next) => window.localStorage.setItem("expendit.theme", next),
+        theme,
+      );
+      await page.reload();
+      const section = page.locator("#how-it-works");
+      await section.scrollIntoViewIfNeeded();
+
+      const thumbs = section.locator('[data-testid="how-thumb"]');
+      await expect(thumbs).toHaveCount(3);
+      for (let i = 0; i < 3; i += 1) {
+        const box = await thumbs.nth(i).boundingBox();
+        expect
+          .soft(Math.abs((box?.width ?? 0) - 384), `thumb ${i} width ${theme}`)
+          .toBeLessThanOrEqual(1);
+        expect
+          .soft(
+            Math.abs((box?.height ?? 0) - 190),
+            `thumb ${i} height ${theme}`,
+          )
+          .toBeLessThanOrEqual(1);
+      }
+
+      const captions = section.locator('[data-testid="how-step-caption"]');
+      await expect(captions).toHaveCount(3);
+      const tops: number[] = [];
+      for (let i = 0; i < 3; i += 1) {
+        const box = await captions.nth(i).boundingBox();
+        tops.push(box?.y ?? Number.NaN);
+      }
+      expect(
+        Math.max(...tops) - Math.min(...tops),
+        `caption row skew (${theme}): ${tops.join(", ")}`,
+      ).toBeLessThanOrEqual(2);
+
+      await testInfo.attach(`how-it-works-${theme}`, {
+        body: await section.screenshot(),
+        contentType: "image/png",
+      });
+    }
+  });
+
   test("renders at 375w (responsive floor)", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/");
