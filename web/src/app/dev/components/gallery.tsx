@@ -1105,6 +1105,14 @@ export const ComponentGallery: React.FC = () => {
               <PeriodPicker mode="month" value={null} error="Pick a period" />
             </div>
           </Variant>
+          <Variant label="day (calendar) · range (two-click)">
+            <div className="w-48">
+              <PeriodPicker mode="day" value="2026-06-15" />
+            </div>
+            <div className="w-56">
+              <PeriodPicker mode="range" value="2026-06-01..2026-06-30" />
+            </div>
+          </Variant>
         </Section>
 
         <Section title="Modal / Dialog">
