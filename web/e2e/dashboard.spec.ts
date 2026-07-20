@@ -423,6 +423,15 @@ test("overview mid-band bottoms align at lg — the chart card stretches to the 
       .getByTestId("chart-plot")
       .boundingBox();
     expect(plotBox!.height).toBeGreaterThanOrEqual(176);
+    // Regression (user report): non-scaling-stroke dashes in screen
+    // space, so a pathLength-normalized dash draw-in renders the
+    // stretched series as literal dashes with gaps — the fill-mode
+    // polyline must carry no dash pattern.
+    const netLine = page
+      .getByTestId("overview-mid-band")
+      .getByTestId("chart-line-net");
+    await expect(netLine).not.toHaveAttribute("stroke-dasharray", /.+/);
+    await expect(netLine).not.toHaveAttribute("pathLength", /.+/);
   };
 
   await page.setViewportSize({ width: 1440, height: 900 });

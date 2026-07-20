@@ -264,11 +264,17 @@ export const ChartLine: React.FC<ChartLineProps> = ({
               fill="none"
               strokeWidth="1.5"
               vectorEffect={fill ? "non-scaling-stroke" : undefined}
-              pathLength={1}
-              strokeDasharray="1"
+              // non-scaling-stroke computes dash metrics in screen space,
+              // so the pathLength-normalized dash no longer spans the
+              // stretched path — the series renders as literal dashes with
+              // gaps. Fill mode fades in instead of the dash draw-in.
+              pathLength={fill ? undefined : 1}
+              strokeDasharray={fill ? undefined : "1"}
               className={cn(
                 COLOR_STROKE[entry.color],
-                "animate-draw-in motion-reduce:animate-none motion-reduce:[stroke-dashoffset:0]",
+                fill
+                  ? "animate-fade-in motion-reduce:animate-none"
+                  : "animate-draw-in motion-reduce:animate-none motion-reduce:[stroke-dashoffset:0]",
               )}
             />
           ))}
