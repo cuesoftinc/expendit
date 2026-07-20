@@ -15,16 +15,21 @@ export interface WizardStepProps {
   label: string;
   /** 1-based index shown in the marker for todo/current. */
   index: number;
+  /** Sub-caption under the label (bank-link tile tray, tax rail). */
+  caption?: string;
+  /** Icon circle marker (bank-link tiles) — replaces the index digit. */
+  icon?: React.ReactNode;
   orientation?: "vertical" | "horizontal";
   /** with-progress slot (MI-9 live txn counter). */
   progress?: React.ReactNode;
   className?: string;
 }
 
-const Marker: React.FC<{ state: WizardStepState; index: number }> = ({
-  state,
-  index,
-}) => (
+const Marker: React.FC<{
+  state: WizardStepState;
+  index: number;
+  icon?: React.ReactNode;
+}> = ({ state, index, icon }) => (
   <span
     aria-hidden
     className={cn(
@@ -41,7 +46,7 @@ const Marker: React.FC<{ state: WizardStepState; index: number }> = ({
     ) : state === "error" ? (
       <CircleAlert className="h-3.5 w-3.5" />
     ) : (
-      index
+      (icon ?? index)
     )}
   </span>
 );
@@ -50,6 +55,8 @@ export const WizardStep: React.FC<WizardStepProps> = ({
   state,
   label,
   index,
+  caption,
+  icon,
   orientation = "vertical",
   progress,
   className,
@@ -59,13 +66,15 @@ export const WizardStep: React.FC<WizardStepProps> = ({
     aria-current={state === "current" ? "step" : undefined}
     className={cn(
       "flex gap-2.5",
-      orientation === "vertical" ? "items-start" : "items-center",
+      orientation === "vertical" || caption ? "items-start" : "items-center",
       className,
     )}
   >
-    <Marker state={state} index={index} />
+    <Marker state={state} index={index} icon={icon} />
     <div
-      className={cn(orientation === "horizontal" && "flex items-center gap-2")}
+      className={cn(
+        orientation === "horizontal" && !caption && "flex items-center gap-2",
+      )}
     >
       <div
         className={cn(
@@ -76,6 +85,9 @@ export const WizardStep: React.FC<WizardStepProps> = ({
       >
         {label}
       </div>
+      {caption ? (
+        <div className="text-[11px] leading-4 text-text-2">{caption}</div>
+      ) : null}
       {progress ? (
         <div data-testid="wizard-step-progress" className="mt-1 min-w-32">
           {progress}

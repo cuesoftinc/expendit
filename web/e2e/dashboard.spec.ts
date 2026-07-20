@@ -356,6 +356,57 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   ).toBeVisible();
 });
 
+test("bank-link journey — tile tray, consent deck, determinate sync, stamped done (MI-9)", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await signIn(page);
+  await switchToCompanyOrg(page);
+  await openNav(page, "Accounts").click();
+  await page.waitForURL("**/dashboard/accounts");
+
+  // Re-auth banner (Figma B4): amber warning + frame copy + CTA label.
+  await expect(
+    page.getByText(/link expired — sync paused since/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Re-authenticate" }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Link account" }).click();
+  const modal = page.getByRole("dialog", { name: "Link a bank account" });
+  await expect(modal).toBeVisible();
+  // Tile tray (Figma B4b): icon-circle steps with sub-captions.
+  await expect(modal.getByText("Bank selected")).toBeVisible();
+  await expect(modal.getByText("Mono consent screen")).toBeVisible();
+  await expect(modal.getByText("Imports transactions")).toBeVisible();
+  // Footer: right-aligned Cancel-then-primary (Modal canon).
+  await modal.getByRole("button", { name: "Continue to Mono" }).click();
+
+  // Consent step: per-step title + the frame's consent copy deck.
+  const consent = page.getByRole("dialog", {
+    name: "Approve access in your bank app",
+  });
+  await expect(
+    consent.getByText(/credentials never touch Expendit/),
+  ).toBeVisible();
+  await consent.getByRole("button", { name: "Approve" }).click();
+
+  // Syncing: determinate % + account label (Figma B4b).
+  const syncing = page.getByRole("dialog", {
+    name: "Importing your transactions…",
+  });
+  await expect(syncing.getByText("Syncing GTBank ···0482")).toBeVisible();
+  await expect(syncing.getByText(/· \d+%/)).toBeVisible();
+
+  // Done: StampedCheck + staged copy; footer primary "Review import".
+  const done = page.getByRole("dialog", { name: "GTBank connected" });
+  await expect(done).toBeVisible({ timeout: 20_000 });
+  await expect(done.getByText(/transactions staged for review\./)).toBeVisible();
+  await done.getByRole("button", { name: "Review import" }).click();
+  await page.waitForURL("**/dashboard/imports/**");
+});
+
 test("keyboard-first path — ⌘K palette and ledger table nav", async ({
   page,
 }) => {

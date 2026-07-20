@@ -11,10 +11,11 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Landmark, Plus, RefreshCw } from "lucide-react";
+import { Check, Landmark, Plus, RefreshCw, ShieldCheck } from "lucide-react";
 import { useAccountsController, useOrg } from "@/controllers";
 import { importsRepo, ApiError } from "@/models/repositories";
 import type { BankLink } from "@/models";
+import { formatIso } from "@/lib/dates";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import Banner from "@/components/ui/Banner";
 import Button from "@/components/ui/Button";
@@ -24,6 +25,7 @@ import Modal from "@/components/ui/Modal";
 import ProgressBar from "@/components/ui/ProgressBar";
 import Radio from "@/components/ui/Radio";
 import Skeleton from "@/components/ui/Skeleton";
+import StampedCheck from "@/components/ui/StampedCheck";
 import Switch from "@/components/ui/Switch";
 import WizardStep, { type WizardStepState } from "@/components/ui/WizardStep";
 import PageHeader from "../PageHeader";
@@ -42,6 +44,41 @@ const stepState = (
   return a < b ? "done" : a === b ? "current" : "todo";
 };
 
+/**
+ * Step tiles (Figma B4b 206:3599): icon circle + label + sub-caption in
+ * a dashed tray. The Done caption reflects the ratified relocation —
+ * auto-confirm setup lives on the account cards, not the Done step.
+ */
+const STEP_TILES: Array<{
+  id: JourneyStep;
+  label: string;
+  caption: string;
+  Icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { id: "connect", label: "Connect", caption: "Bank selected", Icon: Landmark },
+  {
+    id: "consent",
+    label: "Consent",
+    caption: "Mono consent screen",
+    Icon: ShieldCheck,
+  },
+  {
+    id: "syncing",
+    label: "Syncing",
+    caption: "Imports transactions",
+    Icon: RefreshCw,
+  },
+  { id: "done", label: "Done", caption: "Staged for review", Icon: Check },
+];
+
+/** Per-step modal titles (Figma B4b copy deck). */
+const STEP_TITLES: Record<JourneyStep, string> = {
+  connect: "Link a bank account",
+  consent: "Approve access in your bank app",
+  syncing: "Importing your transactions…",
+  done: "GTBank connected",
+};
+
 export const AccountsView: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -56,6 +93,7 @@ export const AccountsView: React.FC = () => {
   const [linkId, setLinkId] = useState<string | null>(null);
   const [syncJobId, setSyncJobId] = useState<string | null>(null);
   const [counter, setCounter] = useState(0);
+  const [syncPercent, setSyncPercent] = useState(0);
   const [finalCount, setFinalCount] = useState<number | null>(null);
   const [journeyError, setJourneyError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -76,6 +114,7 @@ export const AccountsView: React.FC = () => {
     setLinkId(null);
     setSyncJobId(null);
     setCounter(0);
+    setSyncPercent(0);
     setFinalCount(null);
     setJourneyError(null);
   };
@@ -102,10 +141,16 @@ export const AccountsView: React.FC = () => {
         const detail = await importsRepo.get(jobId, { orgId: activeOrgId });
         if (detail.job.status === "processing") {
           setCounter((prev) => prev + Math.ceil(Math.random() * 3));
+          // Determinate read-out (Figma B4b): advances toward 95% while
+          // the job runs, landing on 100% with the final count.
+          setSyncPercent((prev) =>
+            Math.min(95, prev + 5 + Math.ceil(Math.random() * 7)),
+          );
           pollRef.current = setTimeout(tick, reduced ? 800 : 350);
         } else {
           setFinalCount(detail.job.total_parsed);
           setCounter(detail.job.total_parsed);
+          setSyncPercent(100);
           setStep("done");
           await accounts.refresh();
         }
@@ -185,10 +230,11 @@ export const AccountsView: React.FC = () => {
         </div>
       ) : null}
 
+      {/* Re-auth banner (Figma B4 184:1319): amber warning + frame copy. */}
       {reauthLinks.map((link) => (
         <div key={link.id} className="mb-3">
           <Banner
-            kind="error"
+            kind="warn"
             action={
               <Button
                 size="sm"
@@ -198,12 +244,15 @@ export const AccountsView: React.FC = () => {
                   setJourneyOpen(true);
                 }}
               >
-                Reconnect
+                Re-authenticate
               </Button>
             }
           >
-            {link.institution} {link.masked_account} needs re-authentication —
-            syncs are paused until you reconnect.
+            {link.institution} link expired — sync paused
+            {link.last_synced_at
+              ? ` since ${formatIso(link.last_synced_at, "d MMM")}`
+              : ""}
+            .
           </Banner>
         </div>
       ))}
@@ -302,66 +351,73 @@ export const AccountsView: React.FC = () => {
         </ul>
       )}
 
-      {/* MI-9 journey: connect → consent → syncing (live counter) → done */}
+      {/* MI-9 journey: connect → consent → syncing (determinate %) → done.
+          Per-step titles + right-aligned Cancel-then-primary footers
+          (Modal canon — matches the Inspector footer construction). */}
       <Modal
         open={journeyOpen}
         onOpenChange={(open) => {
           setJourneyOpen(open);
           if (!open) resetJourney();
         }}
-        title="Link a bank account"
+        title={STEP_TITLES[step]}
         size="md"
+        footer={
+          <div className="flex w-full justify-end gap-2">
+            <Button
+              kind="quiet"
+              onClick={() => {
+                setJourneyOpen(false);
+                resetJourney();
+              }}
+            >
+              Cancel
+            </Button>
+            {step === "connect" ? (
+              <Button loading={busy} onClick={() => void startConnect()}>
+                Continue to Mono
+              </Button>
+            ) : step === "consent" ? (
+              <Button loading={busy} onClick={() => void approveConsent()}>
+                Approve
+              </Button>
+            ) : step === "done" ? (
+              <Button
+                onClick={() => {
+                  setJourneyOpen(false);
+                  if (syncJobId) router.push(`/dashboard/imports/${syncJobId}`);
+                }}
+              >
+                Review import
+              </Button>
+            ) : null}
+          </div>
+        }
       >
+        {/* Step tiles in the dashed tray (Figma B4b WizardShell tiles). */}
         <nav
           aria-label="Link progress"
-          className="mb-4 flex items-center gap-2"
+          className="mb-4 grid grid-cols-2 gap-3 rounded border border-dashed border-border p-3 sm:grid-cols-4"
         >
-          <WizardStep
-            state={stepState("connect", step)}
-            label="Connect"
-            index={1}
-            orientation="horizontal"
-          />
-          <WizardStep
-            state={stepState("consent", step)}
-            label="Consent"
-            index={2}
-            orientation="horizontal"
-          />
-          <WizardStep
-            state={stepState("syncing", step)}
-            label="Syncing"
-            index={3}
-            orientation="horizontal"
-            progress={
-              step === "syncing" ? (
-                <ProgressBar
-                  size="sm"
-                  label={`${counter} transactions synced…`}
-                />
-              ) : undefined
-            }
-          />
-          <WizardStep
-            state={step === "done" ? "current" : "todo"}
-            label="Done"
-            index={4}
-            orientation="horizontal"
-          />
+          {STEP_TILES.map((tile, index) => (
+            <WizardStep
+              key={tile.id}
+              state={stepState(tile.id, step)}
+              label={tile.label}
+              caption={tile.caption}
+              icon={<tile.Icon className="h-3 w-3" />}
+              index={index + 1}
+              orientation="horizontal"
+            />
+          ))}
         </nav>
 
         {step === "connect" ? (
-          <div className="space-y-3">
-            <p className="text-[13px] leading-5 text-text-2">
-              Expendit connects through{" "}
-              <strong className="text-text">Mono</strong> with read-only access
-              — we can see transactions, never move money. You can unlink at any
-              time.
-            </p>
-            <Button loading={busy} onClick={() => void startConnect()}>
-              Continue to Mono
-            </Button>
-          </div>
+          <p className="text-[13px] leading-5 text-text-2">
+            Expendit connects through <strong className="text-text">Mono</strong>{" "}
+            with read-only access — we can see transactions, never move money.
+            You can unlink at any time.
+          </p>
         ) : null}
 
         {step === "consent" ? (
@@ -382,63 +438,47 @@ export const AccountsView: React.FC = () => {
                   <p className="font-mono text-[12px] text-text-2">···· 0482</p>
                 </div>
               </div>
+              {/* Frame consent copy deck (Figma B4b). */}
               <p className="mt-3 text-[12px] leading-4 text-text-2">
-                Mono will share account details and transaction history with
-                Expendit. Read-only.
+                Mono has sent a consent request to your GTBank app — approve it
+                there to share read-only account details and transaction
+                history. Your credentials never touch Expendit.
               </p>
             </section>
-            <div className="flex gap-2">
-              <Button loading={busy} onClick={() => void approveConsent()}>
-                Approve
-              </Button>
-              <Button
-                kind="quiet"
-                onClick={() => {
-                  setJourneyOpen(false);
-                  resetJourney();
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
           </div>
         ) : null}
 
         {step === "syncing" ? (
           <div className="space-y-3">
-            <p className="text-[13px] text-text-2">
-              Pulling transactions — this account&apos;s history is being staged
-              for review.
+            {/* Determinate progress + account label (Figma B4b). */}
+            <div className="flex items-center justify-between gap-2 text-[13px]">
+              <span className="font-medium text-text">
+                Syncing GTBank ···0482
+              </span>
+              <span className="tabular-nums text-text-2">
+                {counter} transaction{counter === 1 ? "" : "s"} · {syncPercent}%
+              </span>
+            </div>
+            <ProgressBar value={syncPercent} />
+            <p className="text-[12px] leading-4 text-text-2">
+              Your account history is being staged for review — nothing joins
+              the ledger until you confirm it.
             </p>
-            <ProgressBar label={`${counter} transactions synced…`} />
           </div>
         ) : null}
 
         {step === "done" ? (
-          <div className="space-y-3">
+          <div className="flex flex-col items-center gap-3 py-2 text-center">
+            <StampedCheck label="Connected" />
             <p className="text-[13px] leading-5 text-text">
-              Connected. {finalCount ?? counter} transactions synced and staged
-              for review — nothing lands in the ledger until you confirm.
+              {finalCount ?? counter} transaction
+              {(finalCount ?? counter) === 1 ? "" : "s"} staged for review.
             </p>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => {
-                  setJourneyOpen(false);
-                  if (syncJobId) router.push(`/dashboard/imports/${syncJobId}`);
-                }}
-              >
-                Review synced transactions
-              </Button>
-              <Button
-                kind="quiet"
-                onClick={() => {
-                  setJourneyOpen(false);
-                  resetJourney();
-                }}
-              >
-                Close
-              </Button>
-            </div>
+            <p className="text-[12px] leading-4 text-text-2">
+              Daily syncs stage new transactions automatically — nothing lands
+              in the ledger until you confirm. Auto-confirm for clean syncs
+              lives on the account card.
+            </p>
           </div>
         ) : null}
 
