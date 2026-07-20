@@ -20,6 +20,7 @@ import React, { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import Wordmark from "./Wordmark";
 
 export interface MarketingNavLink {
   label: string;
@@ -175,9 +176,9 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
           href="/"
           className="mr-4 rounded text-sm font-semibold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          {/* Brand mark with the accent dot — matches the footer
-              wordmark (frames carry it on nav + footer). */}
-          expendit<span className="text-accent">.</span>
+          {/* Brand mark with the accent dot — the shared Wordmark
+              (frames carry it on nav + footer). */}
+          <Wordmark />
         </Link>
 
         {links.map((link) =>

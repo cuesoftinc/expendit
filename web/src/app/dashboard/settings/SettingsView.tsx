@@ -80,6 +80,11 @@ export const SettingsView: React.FC = () => {
   const isCompany = activeOrg?.kind === "company";
   const [orgName, setOrgName] = useState<string | null>(null);
   const [fiscalYearEnd, setFiscalYearEnd] = useState<string | null>(null);
+  const [address, setAddress] = useState<{
+    line1: string;
+    city: string;
+    state: string;
+  } | null>(null);
   const [savingOrg, setSavingOrg] = useState(false);
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -127,10 +132,19 @@ export const SettingsView: React.FC = () => {
       await settings.updateOrg({
         ...(orgName !== null ? { name: orgName } : {}),
         ...(fiscalYearEnd !== null ? { fiscal_year_end: fiscalYearEnd } : {}),
+        ...(address !== null && activeOrg?.registered_address
+          ? {
+              registered_address: {
+                ...activeOrg.registered_address,
+                ...address,
+              },
+            }
+          : {}),
       });
       setToast("Organization updated");
       setOrgName(null);
       setFiscalYearEnd(null);
+      setAddress(null);
     } catch (err) {
       setToast(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -253,13 +267,83 @@ export const SettingsView: React.FC = () => {
             </FormRow>
             {isCompany ? (
               <>
-                <FormRow label="Registered address">
-                  {() => (
-                    <p className="text-[13px] text-text">
-                      {activeOrg?.registered_address
-                        ? `${activeOrg.registered_address.line1}, ${activeOrg.registered_address.city} (${activeOrg.registered_address.state})`
-                        : "—"}
-                    </p>
+                {/* Editable registered address (Figma B9 190:4223) —
+                    resolves the CIT/VAT remittance authority. */}
+                <FormRow
+                  label="Registered address"
+                  helper="Street, city and state — the state resolves your remittance authority."
+                >
+                  {(id) => (
+                    <div className="space-y-2">
+                      <Input
+                        id={id}
+                        aria-label="Address line"
+                        value={
+                          address?.line1 ??
+                          activeOrg?.registered_address?.line1 ??
+                          ""
+                        }
+                        onChange={(event) =>
+                          setAddress((prev) => ({
+                            line1: event.target.value,
+                            city:
+                              prev?.city ??
+                              activeOrg?.registered_address?.city ??
+                              "",
+                            state:
+                              prev?.state ??
+                              activeOrg?.registered_address?.state ??
+                              "",
+                          }))
+                        }
+                      />
+                      <div className="flex gap-2">
+                        <Input
+                          aria-label="City"
+                          placeholder="City"
+                          value={
+                            address?.city ??
+                            activeOrg?.registered_address?.city ??
+                            ""
+                          }
+                          onChange={(event) =>
+                            setAddress((prev) => ({
+                              line1:
+                                prev?.line1 ??
+                                activeOrg?.registered_address?.line1 ??
+                                "",
+                              city: event.target.value,
+                              state:
+                                prev?.state ??
+                                activeOrg?.registered_address?.state ??
+                                "",
+                            }))
+                          }
+                        />
+                        <Input
+                          aria-label="State"
+                          placeholder="NG-LA"
+                          value={
+                            address?.state ??
+                            activeOrg?.registered_address?.state ??
+                            ""
+                          }
+                          onChange={(event) =>
+                            setAddress((prev) => ({
+                              line1:
+                                prev?.line1 ??
+                                activeOrg?.registered_address?.line1 ??
+                                "",
+                              city:
+                                prev?.city ??
+                                activeOrg?.registered_address?.city ??
+                                "",
+                              state: event.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </FormRow>
                 <FormRow
@@ -292,7 +376,9 @@ export const SettingsView: React.FC = () => {
             <Button
               size="sm"
               loading={savingOrg}
-              disabled={orgName === null && fiscalYearEnd === null}
+              disabled={
+                orgName === null && fiscalYearEnd === null && address === null
+              }
               onClick={() => void saveOrg()}
             >
               Save changes
@@ -388,7 +474,26 @@ export const SettingsView: React.FC = () => {
               </p>
               <div className="mt-2">
                 {exportJob?.status === "running" ? (
-                  <ProgressBar label="Preparing your archive…" />
+                  // Determinate export strip (Figma B9b): record count +
+                  // "ZIP · N%" + the email/rate-limit reassurance.
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2 text-[13px]">
+                      <span className="text-text">
+                        Preparing export
+                        {exportJob.record_count
+                          ? ` — ${exportJob.record_count.toLocaleString("en-NG")} records`
+                          : "…"}
+                      </span>
+                      <span className="tabular-nums text-text-2">
+                        ZIP · {exportJob.progress ?? 0}%
+                      </span>
+                    </div>
+                    <ProgressBar size="sm" value={exportJob.progress ?? 0} />
+                    <p className="text-[12px] leading-4 text-text-2">
+                      We&apos;ll email you when it&apos;s ready. You can export
+                      up to twice a day.
+                    </p>
+                  </div>
                 ) : exportJob?.status === "completed" &&
                   exportJob.signed_url ? (
                   <Button

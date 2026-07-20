@@ -422,6 +422,32 @@ test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)
   await expect(modal).not.toBeVisible();
 });
 
+test("settings — editable address (B9) + determinate export strip (B9b)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await switchToCompanyOrg(page);
+  await openNav(page, "Settings").click();
+  await page.waitForURL("**/dashboard/settings");
+
+  // Registered address is editable per the B9 frame (street/city/state).
+  await expect(page.getByLabel("Address line")).toBeVisible();
+  await expect(page.getByLabel("City")).toBeVisible();
+  await expect(page.getByLabel("State")).toBeVisible();
+
+  // Export strip: determinate % + record count + rate-limit microcopy,
+  // resolving to the archive download.
+  await page.getByRole("button", { name: "Request export" }).click();
+  await expect(
+    page.getByText(/Preparing export — [\d,]+ records/),
+  ).toBeVisible();
+  await expect(page.getByText(/ZIP · \d+%/)).toBeVisible();
+  await expect(page.getByText(/export up to twice a day/)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Download archive" }),
+  ).toBeVisible({ timeout: 15_000 });
+});
+
 test("anomaly explain opens from the ledger row (B2b frame anatomy)", async ({
   page,
 }) => {

@@ -39,6 +39,18 @@ const MODE_PLACEHOLDER: Record<PeriodMode, string> = {
   year: "FYYYYY",
 };
 
+/**
+ * Humanized unset TRIGGER copy (Figma 182:455) — the raw grammar mask
+ * stays on the panel input where it teaches the format.
+ */
+const MODE_TRIGGER_PLACEHOLDER: Record<PeriodMode, string> = {
+  day: "Pick a date",
+  range: "All dates",
+  month: "Pick a month",
+  quarter: "Pick a quarter",
+  year: "Pick a year",
+};
+
 const MODE_PATTERN: Record<PeriodMode, RegExp> = {
   day: /^\d{4}-\d{2}-\d{2}$/,
   range: /^\d{4}-\d{2}-\d{2}\.\.\d{4}-\d{2}-\d{2}$/,
@@ -165,7 +177,7 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
               value ? "text-text" : "text-text-2",
             )}
           >
-            {value ? formatPeriod(mode, value) : MODE_PLACEHOLDER[mode]}
+            {value ? formatPeriod(mode, value) : MODE_TRIGGER_PLACEHOLDER[mode]}
           </span>
         </span>
         <ChevronDown aria-hidden className="h-4 w-4 shrink-0 text-text-2" />

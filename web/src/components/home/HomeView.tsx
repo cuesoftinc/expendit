@@ -12,6 +12,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import MarketingNav from "@/components/ui/MarketingNav";
 import MarketingFooter from "@/components/ui/MarketingFooter";
+import Wordmark from "@/components/ui/Wordmark";
 import {
   useAnalyticsController,
   usePageView,
@@ -217,8 +218,8 @@ export const HomeView: React.FC = () => {
         }
         brand={
           <div>
-            <div className="text-lg font-semibold tracking-tight text-text">
-              expendit<span className="text-accent">.</span>
+            <div className="text-lg font-semibold text-text">
+              <Wordmark />
             </div>
             <p className="mt-2 text-[13px] text-text-2">
               Financial intelligence for modern growth.

@@ -18,10 +18,14 @@ describe("RemitToCard (design.md §8.2)", () => {
         dueDate="2027-03-31"
       />,
     );
-    expect(
-      screen.getByText(/Remit to Lagos State Internal Revenue Service/),
-    ).toBeInTheDocument();
-    expect(screen.getByText("(LIRS)")).toBeInTheDocument();
+    // Short authority name in the subtitle (Figma 96:658); the full
+    // name rides the tooltip instead of truncating.
+    const subtitle = screen.getByText(/Remit to/);
+    expect(subtitle).toHaveTextContent("Remit to LIRS");
+    expect(subtitle).toHaveAttribute(
+      "title",
+      "Lagos State Internal Revenue Service",
+    );
     expect(screen.getByText("₦342,500.75")).toHaveClass("tabular-nums");
     // Figma: "Amount due" label + "Due 31 Mar 2027" + one "Pay via" chip.
     expect(screen.getByText("Amount due")).toBeInTheDocument();

@@ -21,6 +21,10 @@ export interface ExportJob {
   signed_url: string | null;
   /** 7-day download TTL (flows/rights.md §1). */
   expires_at: string | null;
+  /** Rows in the archive ("Preparing export — 34,208 records"). */
+  record_count?: number | null;
+  /** 0–100 determinate progress ("ZIP · 48%"). */
+  progress?: number;
 }
 
 export type PurgeStatus = "pending" | "cancelled" | "executed";
