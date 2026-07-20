@@ -60,7 +60,8 @@ const SEVERITY_LABELS: Record<"info" | "warn", string> = {
 };
 
 const SOURCE_OPTIONS = [
-  { value: "all", label: "All sources" },
+  // Frame label (Figma 182:455) — the filter reads "All accounts".
+  { value: "all", label: "All accounts" },
   { value: "manual", label: "Manual" },
   { value: "csv", label: "CSV" },
   { value: "pdf", label: "PDF" },
@@ -110,6 +111,7 @@ export const TransactionsView: React.FC = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkCategory, setBulkCategory] = useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [saveViewOpen, setSaveViewOpen] = useState(false);
   const [viewName, setViewName] = useState("");
   const [draft, setDraft] = useState<TxnDraft>(draftFrom());
@@ -311,6 +313,17 @@ export const TransactionsView: React.FC = () => {
     setBulkCategory(null);
     setSelected(new Set());
     setToast(`${ids.length} transactions re-categorized`);
+  };
+
+  // Bulk delete (Figma master 123:1126) — always behind the confirm.
+  const bulkDelete = async () => {
+    const ids = [...selected];
+    setBulkDeleteOpen(false);
+    await Promise.all(ids.map((id) => txns.remove(id)));
+    setSelected(new Set());
+    setToast(
+      `${ids.length} transaction${ids.length === 1 ? "" : "s"} deleted`,
+    );
   };
 
   const activeTxn =
@@ -651,7 +664,7 @@ export const TransactionsView: React.FC = () => {
                   sortable: true,
                   widthClass: "w-14",
                 },
-                { id: "source", label: "", widthClass: "w-4" },
+                { id: "source", label: "Src", widthClass: "w-8" },
                 {
                   id: "description",
                   label: "Description",
@@ -766,10 +779,23 @@ export const TransactionsView: React.FC = () => {
               setBulkOpen(true);
             }}
             onExport={exportSelection}
+            onDelete={() => setBulkDeleteOpen(true)}
             onClear={() => setSelected(new Set())}
           />
         </div>
       ) : null}
+
+      {/* Bulk delete — danger confirm (master 123:1126). */}
+      <Modal
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        variant="danger"
+        title={`Delete ${selected.size} transaction${selected.size === 1 ? "" : "s"}?`}
+        description="Deleted entries leave the ledger and every report immediately."
+        size="sm"
+        confirmLabel="Delete"
+        onConfirm={() => void bulkDelete()}
+      />
 
       {/* Bulk re-categorize (MI-4 at scale) */}
       <Modal

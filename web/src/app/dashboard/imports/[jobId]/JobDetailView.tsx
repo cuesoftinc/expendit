@@ -273,7 +273,7 @@ export const JobDetailView: React.FC = () => {
             sticky
             columns={[
               { id: "date", label: "Date", widthClass: "w-14" },
-              { id: "source", label: "", widthClass: "w-4" },
+              { id: "source", label: "Src", widthClass: "w-8" },
               { id: "description", label: "Description" },
               { id: "category", label: "Category", widthClass: "w-40" },
               {

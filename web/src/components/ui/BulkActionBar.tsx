@@ -1,18 +1,21 @@
 "use client";
 
 /**
- * BulkActionBar — design.md §8.2b: hidden / visible ("n selected" +
- * re-categorize / export / clear) · slide-in.
+ * BulkActionBar — design.md §8.2b (Figma 123:1126): hidden / visible
+ * ("n selected" + re-categorize / export / delete / clear) · slide-in.
+ * Delete is the quiet trash icon — the confirm modal carries the weight.
  */
 
 import React from "react";
-import { Download, Tag as TagIcon, X } from "lucide-react";
+import { Download, Tag as TagIcon, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export interface BulkActionBarProps {
   selectedCount: number;
   onRecategorize?: () => void;
   onExport?: () => void;
+  /** Bulk delete (with consumer-side confirm) — Figma 123:1126 trash. */
+  onDelete?: () => void;
   onClear?: () => void;
   className?: string;
 }
@@ -21,6 +24,7 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
   selectedCount,
   onRecategorize,
   onExport,
+  onDelete,
   onClear,
   className,
 }) => {
@@ -55,6 +59,16 @@ export const BulkActionBar: React.FC<BulkActionBarProps> = ({
         <Download aria-hidden className="h-3.5 w-3.5" />
         Export
       </button>
+      {onDelete ? (
+        <button
+          type="button"
+          aria-label="Delete selection"
+          onClick={onDelete}
+          className="rounded p-1 text-expense transition-colors duration-fast ease-standard hover:bg-expense/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      ) : null}
       <button
         type="button"
         aria-label="Clear selection"
