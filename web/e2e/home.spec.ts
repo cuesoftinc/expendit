@@ -278,4 +278,57 @@ test.describe("public home `/` (Part A)", () => {
     );
     expect(overflow).toBeLessThanOrEqual(1);
   });
+
+  // A8c tabbed snippet (Figma 474:2): tab switch is instant with no layout
+  // shift, the shared MongoDB/Redis caption persists in both tab states,
+  // copy targets the ACTIVE tab's full two-line block, and the block fits
+  // the 1440/390 container canons.
+  test("A8a self-host tabs — helm copy + caption persists", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    const block = page.getByTestId("selfhost-snippet");
+    await block.scrollIntoViewIfNeeded();
+    const caption = block.getByText(
+      "Compose ships MongoDB + Redis — the Helm chart expects reachable instances (MONGODB_URL, REDIS_URL).",
+    );
+    await expect(caption).toBeVisible();
+    const tablist = block.getByRole("tablist", { name: "Install method" });
+
+    const before = await block.boundingBox();
+    await tablist.getByRole("tab", { name: "Helm" }).click();
+    await expect(
+      block.getByText("cd expendit && helm install expendit deploy/helm"),
+    ).toBeVisible();
+    await expect(caption).toBeVisible();
+    // no layout shift — mirrored two-line block + always-rendered caption
+    const after = await block.boundingBox();
+    expect(after!.height).toBe(before!.height);
+    expect(after!.width).toBe(before!.width);
+
+    await block.getByRole("button", { name: "Copy code" }).click();
+    await expect(block.getByTestId("copy-check")).toBeVisible();
+    const clip = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clip).toBe(
+      "git clone https://github.com/cuesoftinc/expendit\ncd expendit && helm install expendit deploy/helm",
+    );
+
+    // 390 canon: block inside the viewport, no document overflow
+    await page.setViewportSize({ width: 390, height: 844 });
+    await block.scrollIntoViewIfNeeded();
+    await expect(caption).toBeVisible();
+    const mobile = await block.boundingBox();
+    expect(mobile!.width).toBeLessThanOrEqual(390);
+    const mobileOverflow = await page.evaluate(
+      () =>
+        Math.max(
+          document.documentElement.scrollWidth,
+          document.body.scrollWidth,
+        ) - document.documentElement.clientWidth,
+    );
+    expect(mobileOverflow).toBeLessThanOrEqual(1);
+  });
 });
