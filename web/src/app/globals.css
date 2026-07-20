@@ -220,4 +220,11 @@
     font-family:
       var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
   }
+
+  /* Fix Naira symbol and other currency symbols overlapping with digits under tabular-nums by disabling contextual alternates */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "calt" 0;
+  }
 }
+
