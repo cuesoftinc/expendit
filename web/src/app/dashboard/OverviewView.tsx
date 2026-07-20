@@ -444,9 +444,8 @@ export const OverviewView: React.FC = () => {
               <div className="flex items-center gap-4">
                 <ChartDonut
                   slices={donutSlices}
-                  centerTotal={formatMoney(donutTotal, currency, {
-                    decimals: 0,
-                  })}
+                  // Compact center value (Figma master 126:1183).
+                  centerTotal={formatMoneyCompact(donutTotal, currency)}
                   centerCaption="Expenses"
                   legend="none"
                 />

@@ -99,25 +99,28 @@ export const ChartDonut: React.FC<ChartDonutProps> = ({
           ))}
         </g>
         {centerTotal ? (
+          // Center label (Figma master 126:1183): caption ON TOP (13px,
+          // text-2), compact value below (20px semibold) — callers pass
+          // compact-notation totals (₦3.61M, never full precision).
           <>
-            <text
-              x="60"
-              y="58"
-              textAnchor="middle"
-              className="fill-text text-[14px] font-semibold tabular-nums"
-            >
-              {centerTotal}
-            </text>
             {centerCaption ? (
               <text
                 x="60"
-                y="72"
+                y="54"
                 textAnchor="middle"
-                className="fill-text-2 text-[9px]"
+                className="fill-text-2 text-[13px]"
               >
                 {centerCaption}
               </text>
             ) : null}
+            <text
+              x="60"
+              y={centerCaption ? 74 : 66}
+              textAnchor="middle"
+              className="fill-text text-[20px] font-semibold tabular-nums"
+            >
+              {centerTotal}
+            </text>
           </>
         ) : null}
       </svg>

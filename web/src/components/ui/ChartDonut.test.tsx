@@ -25,6 +25,20 @@ describe("Chart/Donut (design.md §8.2b)", () => {
     expect(screen.getByText("June")).toBeInTheDocument();
   });
 
+  it("center stack: caption on top, compact value below (Figma 126:1183)", () => {
+    render(
+      <ChartDonut slices={slices} centerTotal="₦3.61M" centerCaption="Total" />,
+    );
+    const caption = screen.getByText("Total");
+    const value = screen.getByText("₦3.61M");
+    expect(caption).toHaveClass("text-[13px]");
+    expect(value).toHaveClass("text-[20px]");
+    // SVG text y: caption sits above the value.
+    expect(Number(caption.getAttribute("y"))).toBeLessThan(
+      Number(value.getAttribute("y")),
+    );
+  });
+
   it("legend variants right / bottom / none", () => {
     const { container, rerender } = render(
       <ChartDonut slices={slices} legend="right" />,
