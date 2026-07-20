@@ -9,7 +9,7 @@
 
 import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import Button from "./Button";
 import Input from "./Input";
@@ -84,9 +84,15 @@ export const Modal: React.FC<ModalProps> = ({
               <Dialog.Title
                 className={cn(
                   "text-sm font-semibold",
-                  variant === "danger" ? "text-expense" : "text-text",
+                  variant === "danger"
+                    ? "flex items-center gap-1.5 text-expense"
+                    : "text-text",
                 )}
               >
+                {variant === "danger" ? (
+                  // Danger icon in the title (Figma B9b 208:4194).
+                  <TriangleAlert aria-hidden className="h-4 w-4 shrink-0" />
+                ) : null}
                 {title}
               </Dialog.Title>
               {description ? (

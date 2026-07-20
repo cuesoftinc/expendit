@@ -200,19 +200,31 @@ describe("mock data rights (flows/rights.md)", () => {
     expect(await json(afterCancel)).toBeNull();
   });
 
-  it("export-all: 202 job → completed with a 7-day signed URL", async () => {
+  it("export-all: 202 job → determinate progress → completed with a 7-day signed URL", async () => {
     const { job_id } = await json<{ job_id: string }>(await requestExport());
-    const status = await json<{
-      status: string;
-      signed_url: string | null;
-      expires_at: string | null;
-    }>(
-      await exportStatus(
-        mockRequest(`/api/mock/account/export/${job_id}`),
-        params({ jobId: job_id }),
-      ),
-    );
+    const poll = async () =>
+      json<{
+        status: string;
+        signed_url: string | null;
+        expires_at: string | null;
+        record_count?: number | null;
+        progress?: number;
+      }>(
+        await exportStatus(
+          mockRequest(`/api/mock/account/export/${job_id}`),
+          params({ jobId: job_id }),
+        ),
+      );
+    // First poll: determinate mid-flight ("ZIP · 48%") with the archive's
+    // record count (Figma B9b).
+    const midway = await poll();
+    expect(midway.status).toBe("running");
+    expect(midway.progress).toBe(48);
+    expect(midway.record_count).toBeGreaterThan(100);
+    // Second poll completes with the signed URL.
+    const status = await poll();
     expect(status.status).toBe("completed");
+    expect(status.progress).toBe(100);
     expect(status.signed_url).toBeTruthy();
     expect(status.expires_at).toBeTruthy();
   });

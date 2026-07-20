@@ -490,6 +490,61 @@ test("bank-link journey — tile tray, consent deck, determinate sync, stamped d
   await page.waitForURL("**/dashboard/imports/**");
 });
 
+test("settings — humanized FYE, editable address, theme order, purge construction, export strip (B9)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await switchToCompanyOrg(page);
+  await openNav(page, "Settings").click();
+  await page.waitForURL("**/dashboard/settings");
+
+  // Humanized fiscal-year-end month-end Select ("31 December").
+  await expect(
+    page.getByRole("combobox", { name: "Fiscal year end" }),
+  ).toContainText("31 December");
+  // Registered address is editable per frame.
+  await expect(page.getByLabel("Address line")).toBeVisible();
+  await expect(page.getByLabel("City")).toBeVisible();
+  await expect(page.getByLabel("State")).toBeVisible();
+
+  // Theme segmented order mirrors the cycle: Light | Dark | System.
+  await expect(
+    page.getByRole("radiogroup", { name: "Theme" }).getByRole("radio"),
+  ).toHaveText(["Light", "Dark", "System"]);
+
+  // Purge convergence (Figma B9b): danger-titled modal, ORG-NAME typed
+  // confirm, "Export everything first" secondary, armed Schedule
+  // deletion. Cancel keeps the account intact.
+  await page.getByRole("button", { name: "Delete everything…" }).click();
+  const purgeModal = page.getByRole("dialog", {
+    name: /Delete account & all data/,
+  });
+  await expect(purgeModal).toBeVisible();
+  await expect(
+    purgeModal.getByLabel('Type "Cuesoft Ltd" to confirm'),
+  ).toBeVisible();
+  await expect(
+    purgeModal.getByRole("button", { name: "Export everything first" }),
+  ).toBeVisible();
+  await expect(
+    purgeModal.getByRole("button", { name: /Schedule deletion/ }),
+  ).toBeDisabled();
+  await purgeModal.getByRole("button", { name: "Cancel" }).click();
+  await expect(purgeModal).toHaveCount(0);
+
+  // Export strip: determinate % + record count + rate-limit microcopy,
+  // resolving to the archive download.
+  await page.getByRole("button", { name: "Request export" }).click();
+  await expect(
+    page.getByText(/Preparing export — [\d,]+ records/),
+  ).toBeVisible();
+  await expect(page.getByText(/ZIP · \d+%/)).toBeVisible();
+  await expect(page.getByText(/export up to twice a day/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Download archive" })).toBeVisible(
+    { timeout: 15_000 },
+  );
+});
+
 test("keyboard-first path — ⌘K palette and ledger table nav", async ({
   page,
 }) => {
