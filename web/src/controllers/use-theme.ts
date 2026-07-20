@@ -5,8 +5,9 @@
  * delegates to the design-layer ThemeProvider, the single source of truth
  * for the `data-theme` override (theme parity canon, 2026-07-19: one
  * provider contract across the ecosystem — data-theme on <html>,
- * localStorage `expendit.theme`, system default when unset). The
- * controller API is kept so existing views stay unchanged.
+ * localStorage `expendit.theme`, dark (the design default) when unset —
+ * theme contract, 2026-07-20). The controller API is kept so existing
+ * views stay unchanged.
  */
 
 import {

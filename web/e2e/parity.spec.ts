@@ -4,8 +4,9 @@ import { expect, test, type Page } from "@playwright/test";
  * Marketing nav/footer & theme parity canon (org SKILL.md, 2026-07-19):
  * canonical link inventory on the A1 nav + A11 footer, and the
  * ThemeProvider contract (2026-07-20 tri-state: data-theme on <html>
- * always carries the RESOLVED theme; localStorage `expendit.theme`,
- * key absent = system) cycling + persisting on home AND dashboard.
+ * always carries the RESOLVED theme; localStorage `expendit.theme`, key
+ * absent = dark, expendit's design default; "system" stored explicitly)
+ * cycling + persisting on home AND dashboard.
  */
 
 const GITHUB = "https://github.com/cuesoftinc/expendit";
@@ -201,7 +202,12 @@ test("mobile (390w): the hamburger panel reaches every canonical nav destination
   await expect(panelStar).toHaveText("Star");
   await expect(panelStar.locator("svg")).toBeVisible();
 
-  // Theme toggle works from the panel (system → light → dark).
+  // Theme toggle works from the panel (fresh boot is dark, the design
+  // default; dark → system → light → dark).
+  await nav
+    .getByRole("button", { name: "Theme: dark — switch to system" })
+    .filter({ visible: true })
+    .click();
   await nav
     .getByRole("button", { name: "Theme: system — switch to light" })
     .filter({ visible: true })
@@ -236,39 +242,59 @@ const expectTheme = async (page: Page, theme: string | null) => {
 test("theme toggle cycles light → dark → system and persists on the home page", async ({
   page,
 }) => {
+  // Deterministic OS scheme for the system-resolution assertions.
+  await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
-  // system default — data-theme carries the RESOLVED theme (light OS here)
+  // Fresh visit = the dark design default (key absent — theme contract).
+  await expectTheme(page, "dark");
+  expect(
+    await page.evaluate(() => localStorage.getItem("expendit.theme")),
+  ).toBeNull();
+
+  // dark(default) → system. The initial attr is applied pre-hydration
+  // (init script), so retry the click until React's handler is attached —
+  // detected via storage (the attribute stays dark under the dark OS).
+  const toggle = page.getByTestId("theme-toggle");
+  await expect(async () => {
+    await toggle.click();
+    expect(
+      await page.evaluate(() => localStorage.getItem("expendit.theme")),
+    ).toBe("system");
+  }).toPass({ timeout: 15_000 });
+  await expectTheme(page, "dark"); // OS is dark
+
+  // system → light (explicit choice).
+  await toggle.click();
+  await expectTheme(page, "light");
+  expect(
+    await page.evaluate(() => localStorage.getItem("expendit.theme")),
+  ).toBe("light");
+
+  // Pre-paint persistence across a reload (no FOUC path).
+  await page.reload();
   await expectTheme(page, "light");
 
-  await page
-    .getByRole("button", { name: "Theme: system — switch to light" })
-    .click();
-  await expectTheme(page, "light");
-  await page
-    .getByRole("button", { name: "Theme: light — switch to dark" })
-    .click();
-  await expectTheme(page, "dark");
+  // light → dark (explicit choice ignores the OS).
+  await expect(async () => {
+    await toggle.click();
+    await expectTheme(page, "dark");
+  }).toPass({ timeout: 15_000 });
   expect(
     await page.evaluate(() => localStorage.getItem("expendit.theme")),
   ).toBe("dark");
 
-  // Pre-paint persistence across a reload (no FOUC path).
-  await page.reload();
-  await expectTheme(page, "dark");
-
-  // Third press returns to system: key removed, resolved from the OS,
-  // and a live OS flip tracks without a reload.
-  await page
-    .getByRole("button", { name: "Theme: dark — switch to system" })
-    .click();
-  await expectTheme(page, "light");
+  // dark → system: stored explicitly (key absent = the dark design
+  // default); resolved follows the OS and tracks a live flip without a
+  // reload.
+  await toggle.click();
   expect(
     await page.evaluate(() => localStorage.getItem("expendit.theme")),
-  ).toBeNull();
-  await page.emulateMedia({ colorScheme: "dark" });
-  await expectTheme(page, "dark");
+  ).toBe("system");
+  await expectTheme(page, "dark"); // OS is dark
   await page.emulateMedia({ colorScheme: "light" });
   await expectTheme(page, "light");
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expectTheme(page, "dark");
 });
 
 test("theme toggle lives in the dashboard chrome and persists", async ({
@@ -281,22 +307,25 @@ test("theme toggle lives in the dashboard chrome and persists", async ({
     page.getByRole("heading", { name: "Overview", level: 1 }),
   ).toBeVisible();
 
+  // Fresh session = dark (the design default, key absent).
+  await expectTheme(page, "dark");
+  await page
+    .getByRole("button", { name: "Theme: dark — switch to system" })
+    .click();
   await page
     .getByRole("button", { name: "Theme: system — switch to light" })
     .click();
-  await page
-    .getByRole("button", { name: "Theme: light — switch to dark" })
-    .click();
-  await expectTheme(page, "dark");
+  await expectTheme(page, "light");
   expect(
     await page.evaluate(() => localStorage.getItem("expendit.theme")),
-  ).toBe("dark");
+  ).toBe("light");
 
   await page.reload();
-  await expectTheme(page, "dark");
+  await expectTheme(page, "light");
 
   // The B9 settings control reads the same store (one source of truth) —
-  // its three-way segmented control returns the preference to system.
+  // its three-way segmented control moves the preference to system,
+  // stored explicitly (not key-absent).
   await page.goto("/dashboard/settings");
   await expect(page.getByRole("heading", { name: "Appearance" })).toBeVisible();
   await page
@@ -306,5 +335,5 @@ test("theme toggle lives in the dashboard chrome and persists", async ({
   await expectTheme(page, "light");
   expect(
     await page.evaluate(() => localStorage.getItem("expendit.theme")),
-  ).toBeNull();
+  ).toBe("system");
 });

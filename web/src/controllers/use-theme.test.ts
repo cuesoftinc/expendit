@@ -23,14 +23,15 @@ describe("useThemeController (B9 theme control)", () => {
     await waitFor(() => expect(result.current.theme).toBe("dark"));
   });
 
-  it("system removes the stored key; data-theme carries the resolved OS theme", () => {
+  it("system is stored explicitly; data-theme carries the resolved OS theme", () => {
     const { result } = renderHook(() => useThemeController(), { wrapper });
     act(() => result.current.setTheme("dark"));
     act(() => result.current.setTheme("system"));
     // Contract 2026-07-20: data-theme always carries the RESOLVED theme
-    // (light here — no matchMedia dark in jsdom); key absent = system.
+    // (light here — no matchMedia dark in jsdom); "system" is stored like
+    // any other preference (key absent = dark, the design default).
     expect(document.documentElement.dataset.theme).toBe("light");
-    expect(localStorage.getItem("expendit.theme")).toBeNull();
+    expect(localStorage.getItem("expendit.theme")).toBe("system");
   });
 
   it("reads a stored preference (provider store is localStorage-backed)", async () => {

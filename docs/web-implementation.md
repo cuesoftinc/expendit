@@ -263,9 +263,10 @@ and the embed-theme sync.
 **Theme contract as-built (2026-07-20, ratified — identical across
 apparule, expendit and upstat).** The preference is tri-state
 light | dark | system: `ThemeProvider` persists it at `expendit.theme`
-("light"/"dark" stored explicitly; KEY ABSENT = system — the
-cross-product storage convention), and `data-theme` on `<html>` always
-carries the RESOLVED theme — system resolves via `prefers-color-scheme`
+("light"/"dark"/"system" all stored explicitly; KEY ABSENT = dark,
+expendit's design default — the cross-product storage convention;
+"system" is never modeled as key-absent), and `data-theme` on `<html>`
+always carries the RESOLVED theme — system resolves via `prefers-color-scheme`
 and tracks it live (a matchMedia listener updates `data-theme` on an OS
 flip, no reload). The pre-paint init script applies the resolved theme
 (no FOUC in any mode). `ThemeToggle` (marketing nav + dashboard chrome)
