@@ -215,7 +215,17 @@ export const ChartLine: React.FC<ChartLineProps> = ({
           preserveAspectRatio={fill ? "none" : undefined}
           role="img"
           aria-label={`Line chart: ${series.map((entry) => entry.label).join(", ")}`}
-          className={cn("w-full", fill && "lg:absolute lg:inset-0 lg:h-full")}
+          className={cn(
+            "w-full",
+            // Absolute positioning pins to the PADDING box, so inset-0
+            // would slide the plot under the y-axis label column — the
+            // left inset restates the 52px axis offset (user report:
+            // gridlines struck through the tick labels).
+            fill &&
+              (yAxis
+                ? "lg:absolute lg:inset-y-0 lg:right-0 lg:left-[52px] lg:h-full lg:w-auto"
+                : "lg:absolute lg:inset-0 lg:h-full"),
+          )}
         >
           {scale ? (
             // Gridline per tick (--border); the lowest is the baseline.

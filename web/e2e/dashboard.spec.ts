@@ -432,6 +432,20 @@ test("overview mid-band bottoms align at lg — the chart card stretches to the 
       .getByTestId("chart-line-net");
     await expect(netLine).not.toHaveAttribute("stroke-dasharray", /.+/);
     await expect(netLine).not.toHaveAttribute("pathLength", /.+/);
+    // Regression (user report): the fill-mode SVG is absolutely
+    // positioned, which pins to the padding box — it must restate the
+    // axis offset, never slide under the y-axis label column (master:
+    // 44px labels + 8px gap before the plot).
+    const axisBox = await page
+      .getByTestId("overview-mid-band")
+      .getByTestId("chart-y-axis")
+      .boundingBox();
+    const svgBox = await page
+      .getByTestId("overview-mid-band")
+      .locator("svg")
+      .first()
+      .boundingBox();
+    expect(svgBox!.x - (axisBox!.x + axisBox!.width)).toBeGreaterThanOrEqual(4);
   };
 
   await page.setViewportSize({ width: 1440, height: 900 });

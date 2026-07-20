@@ -422,7 +422,7 @@ stacked aspect construction is unchanged. Fill-mode series fade in
 rather than dash-draw-in: `non-scaling-stroke` computes dash metrics in
 screen space, so the `pathLength`-normalized dash no longer spans the
 stretched path and the line renders as literal dashes with gaps (unit +
-e2e pin the fill-mode polyline dash-free).
+e2e pin the fill-mode polyline dash-free). The absolutely-positioned fill SVG pins to the padding box, so it restates the 52px axis offset as a left inset — the plot never slides under the y-axis label column (e2e pins the label→plot gap ≥ 4px).
 
 **Self-host tabbed snippet as-built (2026-07-20, PR #239).** The A8a
 compose one-liner is now the user-approved Docker Compose | Helm tab pair
