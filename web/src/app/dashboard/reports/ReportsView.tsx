@@ -105,16 +105,12 @@ export const ReportsView: React.FC = () => {
   // no progress signal; the strip parks near-done until it resolves).
   const generatingArtifacts = useMemo(
     () =>
-      reports.artifacts.filter(
-        (artifact) => artifact.status === "generating",
-      ),
+      reports.artifacts.filter((artifact) => artifact.status === "generating"),
     [reports.artifacts],
   );
   const listedArtifacts = useMemo(
     () =>
-      reports.artifacts.filter(
-        (artifact) => artifact.status !== "generating",
-      ),
+      reports.artifacts.filter((artifact) => artifact.status !== "generating"),
     [reports.artifacts],
   );
   const [generatingPercent, setGeneratingPercent] = useState(12);

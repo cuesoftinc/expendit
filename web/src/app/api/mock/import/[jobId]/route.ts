@@ -17,6 +17,9 @@ import {
 type Context = { params: Promise<{ jobId: string }> };
 
 const PROCESSING_MS = 1200;
+// Bank syncs run a touch longer so the MI-9 syncing step (determinate %
+// + account label, Figma B4b) is actually observable, not a blink.
+const BANK_SYNC_PROCESSING_MS = 3500;
 
 /**
  * Deterministic staged rows for jobs created through the mock upload.
@@ -74,7 +77,9 @@ export async function GET(request: Request, context: Context) {
   }
   const since = db.processingSince[job.id];
   if (job.status === "processing" && since !== undefined) {
-    if (Date.now() - since >= PROCESSING_MS) {
+    const processingMs =
+      job.source === "bank_sync" ? BANK_SYNC_PROCESSING_MS : PROCESSING_MS;
+    if (Date.now() - since >= processingMs) {
       delete db.processingSince[job.id];
       const name = job.file_name ?? "";
       if (name.includes("password-protected")) {

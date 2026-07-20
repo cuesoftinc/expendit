@@ -152,9 +152,10 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await openNav(page, "Imports").click();
   await page.waitForURL("**/dashboard/imports");
   // B3 (Figma 183:855): header "Upload statement" primary + the
-  // "Import history" heading.
+  // "Import history" heading. Scoped to the page header — the imports
+  // EmptyState carries the same CTA label while history loads.
   await expect(
-    page.getByRole("button", { name: "Upload statement" }),
+    page.locator("header").getByRole("button", { name: "Upload statement" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Import history" }),
@@ -184,7 +185,9 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
     // review); bank/auto-confirmed jobs stay "completed*".
     .toMatch(/completed|needs-review/);
   // Relative ages (systemic adjudication): history rows say "…ago".
-  await expect(jobRow.getByText(/just now|\d+m ago/)).toBeVisible();
+  // The mock clock pins created_at to the narrative day, so the bucket
+  // depends on real wall-clock distance — assert the idiom, not a value.
+  await expect(jobRow.getByText(/just now|\bago\b/)).toBeVisible();
   // Post-parse summary card beside the dropzone (Figma B3): green check,
   // counts, and the "Review import" hand-off.
   const summaryCard = page.getByRole("region", {
@@ -398,7 +401,9 @@ test("reports — inline toolbar, generating strip, artifact meta, expiry captio
   await expect(page.getByText("Monthly summary — Jun 2026")).toBeVisible();
   await expect(page.getByText(/1\.2 MB/).first()).toBeVisible();
   await expect(
-    page.getByText("Artifacts expire after 30 days. You can regenerate any report at any time."),
+    page.getByText(
+      "Artifacts expire after 30 days. You can regenerate any report at any time.",
+    ),
   ).toBeVisible();
 });
 
@@ -475,17 +480,22 @@ test("bank-link journey — tile tray, consent deck, determinate sync, stamped d
   ).toBeVisible();
   await consent.getByRole("button", { name: "Approve" }).click();
 
-  // Syncing: determinate % + account label (Figma B4b).
+  // Syncing: determinate % + account label (Figma B4b). The mock keeps
+  // bank syncs processing ~3.5s so the phase is observable.
   const syncing = page.getByRole("dialog", {
     name: "Importing your transactions…",
   });
-  await expect(syncing.getByText("Syncing GTBank ···0482")).toBeVisible();
+  await expect(syncing.getByText("Syncing GTBank ···0482")).toBeVisible({
+    timeout: 10_000,
+  });
   await expect(syncing.getByText(/· \d+%/)).toBeVisible();
 
   // Done: StampedCheck + staged copy; footer primary "Review import".
   const done = page.getByRole("dialog", { name: "GTBank connected" });
   await expect(done).toBeVisible({ timeout: 20_000 });
-  await expect(done.getByText(/transactions staged for review\./)).toBeVisible();
+  await expect(
+    done.getByText(/transactions staged for review\./),
+  ).toBeVisible();
   await done.getByRole("button", { name: "Review import" }).click();
   await page.waitForURL("**/dashboard/imports/**");
 });
@@ -540,9 +550,9 @@ test("settings — humanized FYE, editable address, theme order, purge construct
   ).toBeVisible();
   await expect(page.getByText(/ZIP · \d+%/)).toBeVisible();
   await expect(page.getByText(/export up to twice a day/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Download archive" })).toBeVisible(
-    { timeout: 15_000 },
-  );
+  await expect(
+    page.getByRole("button", { name: "Download archive" }),
+  ).toBeVisible({ timeout: 15_000 });
 });
 
 test("keyboard-first path — ⌘K palette and ledger table nav", async ({

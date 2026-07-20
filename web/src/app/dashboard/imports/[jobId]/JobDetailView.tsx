@@ -321,8 +321,7 @@ export const JobDetailView: React.FC = () => {
         {/* Reassurance footer (Figma B3b 183:2437) — the 30-day
             recoverability line is a trust promise (flows/import.md §4). */}
         <p className="mt-3 text-[12px] leading-4 text-text-2">
-          {importCount} row{importCount === 1 ? "" : "s"} will join your
-          ledger.
+          {importCount} row{importCount === 1 ? "" : "s"} will join your ledger.
           {duplicateCount > 0
             ? " Discarded duplicates stay recoverable for 30 days."
             : ""}

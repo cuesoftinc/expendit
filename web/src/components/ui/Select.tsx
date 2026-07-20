@@ -42,6 +42,8 @@ export interface SelectProps {
   disabled?: boolean;
   error?: string | null;
   label?: string;
+  /** Accessible trigger name for label-less instances (toolbars). */
+  "aria-label"?: string;
   className?: string;
 }
 
@@ -56,6 +58,7 @@ export const Select: React.FC<SelectProps> = ({
   disabled = false,
   error = null,
   label,
+  "aria-label": ariaLabel,
   className,
 }) => {
   const [open, setOpen] = useState(false);
@@ -158,6 +161,7 @@ export const Select: React.FC<SelectProps> = ({
         ref={triggerRef}
         type="button"
         role="combobox"
+        aria-label={ariaLabel ?? label}
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={open ? listboxId : undefined}

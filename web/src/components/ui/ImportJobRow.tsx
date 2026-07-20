@@ -146,9 +146,7 @@ export const ImportJobRow: React.FC<ImportJobRowProps> = ({
               status === "failed" ? "text-expense" : "text-text-2",
             )}
             title={
-              status === "failed" && job.error_code
-                ? job.error_code
-                : undefined
+              status === "failed" && job.error_code ? job.error_code : undefined
             }
           >
             {caption(job, status)}

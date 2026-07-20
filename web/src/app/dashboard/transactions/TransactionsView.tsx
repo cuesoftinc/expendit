@@ -321,9 +321,7 @@ export const TransactionsView: React.FC = () => {
     setBulkDeleteOpen(false);
     await Promise.all(ids.map((id) => txns.remove(id)));
     setSelected(new Set());
-    setToast(
-      `${ids.length} transaction${ids.length === 1 ? "" : "s"} deleted`,
-    );
+    setToast(`${ids.length} transaction${ids.length === 1 ? "" : "s"} deleted`);
   };
 
   const activeTxn =
@@ -398,16 +396,33 @@ export const TransactionsView: React.FC = () => {
     }
   };
 
-  const comparableTxns = activeTxn
-    ? txns.items
-        .filter(
-          (txn) =>
-            txn.id !== activeTxn.id &&
-            txn.category_id === activeTxn.category_id &&
-            txn.direction === activeTxn.direction,
-        )
-        .slice(0, 4)
-    : [];
+  // Comparables come from the FULL ledger via the controller — the
+  // deep-linked explain panel sits over an anomaly-only filtered list,
+  // which would otherwise hide every clean comparable.
+  const [comparableTxns, setComparableTxns] = useState<TxnEntry[]>([]);
+  const activeTxnId = activeTxn?.id;
+  const { fetchComparables } = txns;
+  useEffect(() => {
+    let cancelled = false;
+    // Defer to a microtask — effects must not set state synchronously.
+    if (inspector.kind !== "anomaly" || !activeTxn) {
+      queueMicrotask(() => {
+        if (!cancelled) setComparableTxns([]);
+      });
+    } else {
+      void fetchComparables(activeTxn)
+        .then((items) => {
+          if (!cancelled) setComparableTxns(items);
+        })
+        .catch(() => {
+          if (!cancelled) setComparableTxns([]);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inspector.kind, activeTxnId, fetchComparables]);
   // Median of the comparables (explain-panel footer, Figma 208:3967).
   const comparableMedian = useMemo(() => {
     if (comparableTxns.length === 0) return null;

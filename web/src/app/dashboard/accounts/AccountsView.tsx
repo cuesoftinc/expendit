@@ -414,9 +414,10 @@ export const AccountsView: React.FC = () => {
 
         {step === "connect" ? (
           <p className="text-[13px] leading-5 text-text-2">
-            Expendit connects through <strong className="text-text">Mono</strong>{" "}
-            with read-only access — we can see transactions, never move money.
-            You can unlink at any time.
+            Expendit connects through{" "}
+            <strong className="text-text">Mono</strong> with read-only access —
+            we can see transactions, never move money. You can unlink at any
+            time.
           </p>
         ) : null}
 
