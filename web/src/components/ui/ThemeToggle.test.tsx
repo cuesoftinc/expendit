@@ -1,5 +1,6 @@
-// ThemeToggle: flips the ThemeProvider preference light↔dark and persists
-// under `expendit.theme` (theme parity canon, 2026-07-19).
+// ThemeToggle: cycles the ThemeProvider preference light → dark → system
+// (theme contract 2026-07-20); persists under `expendit.theme` with
+// KEY ABSENT = system; the aria-label announces the active mode.
 import React from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -20,25 +21,32 @@ const setup = () =>
   );
 
 describe("ThemeToggle", () => {
-  it("defaults to offering dark, applies + persists it", async () => {
+  it("announces the active mode and cycles system → light", async () => {
     setup();
     const toggle = screen.getByRole("button", {
-      name: "Switch to dark theme",
+      name: "Theme: system — switch to light",
     });
     await userEvent.click(toggle);
-    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
-  });
-
-  it("flips back to light from dark", async () => {
-    setup();
-    await userEvent.click(
-      screen.getByRole("button", { name: "Switch to dark theme" }),
-    );
-    await userEvent.click(
-      screen.getByRole("button", { name: "Switch to light theme" }),
-    );
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
+  });
+
+  it("cycles light → dark → system (key removed, resolved applied)", async () => {
+    setup();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Theme: system — switch to light" }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Theme: light — switch to dark" }),
+    );
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Theme: dark — switch to system" }),
+    );
+    // Key absent = system; data-theme carries the resolved OS theme
+    // (light — no matchMedia dark in jsdom).
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBeNull();
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
   });
 });

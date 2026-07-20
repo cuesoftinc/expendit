@@ -57,7 +57,13 @@ export const DocsApiView: React.FC = () => {
         }}
         onTryCloud={() => track("try_cloud_click", { source: "nav" })}
       />
-      <main className="flex-1">
+      {/* Header-fix construction (2026-07-20): the sticky marketing nav
+          and Scalar's own sticky layout coexist by telling Scalar about
+          the header — `--scalar-custom-header-height` offsets its sticky
+          sidebar/mobile bar below the nav and shrinks its viewport math
+          to match (one coherent scroll). `isolate` opens a stacking
+          context so no Scalar z-index can paint over the nav. */}
+      <main className="isolate flex-1 [--scalar-custom-header-height:56px]">
         <ScalarApiReference />
       </main>
       {/* Minimal footer strip — verbatim legal line only (parity canon). */}
