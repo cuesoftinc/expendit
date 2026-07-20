@@ -90,35 +90,36 @@ test.describe("API reference — /docs/api", () => {
   test("the embed follows the tri-state theme, incl. a live OS flip in system mode", async ({
     page,
   }) => {
-    await page.emulateMedia({ colorScheme: "light" });
+    await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/docs/api");
     await expect(
       page.getByRole("heading", { name: "Expendit API" }),
     ).toBeVisible({ timeout: 20_000 });
 
-    // Scalar mirrors the resolved theme on body (light-mode/dark-mode).
+    // Scalar mirrors the resolved theme on body (light-mode/dark-mode);
+    // key absent = dark, the design default (theme contract).
     const body = page.locator("body");
-    await expect(body).toHaveClass(/light-mode/);
+    await expect(body).toHaveClass(/dark-mode/);
 
-    // system mode (default) follows an OS scheme flip live.
-    await page.emulateMedia({ colorScheme: "dark" });
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await expect(body).toHaveClass(/dark-mode/, { timeout: 15_000 });
-
-    // Explicit choice via the nav toggle wins over the OS (the embed
-    // resyncs to light after cycling system → light).
-    await page
-      .getByRole("button", { name: "Theme: system — switch to light" })
-      .click();
+    // Explicit SYSTEM mode follows an OS scheme flip live.
+    await page.getByTestId("theme-toggle").click(); // dark(default) → system
+    await page.emulateMedia({ colorScheme: "light" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await expect(body).toHaveClass(/light-mode/, { timeout: 15_000 });
+
+    // Explicit choice via the nav toggle wins over the OS (the embed
+    // resyncs after cycling system → light → dark).
+    await page.getByTestId("theme-toggle").click(); // system → light
+    await page.getByTestId("theme-toggle").click(); // light → dark
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(body).toHaveClass(/dark-mode/, { timeout: 15_000 });
     await expect(
       page.getByRole("heading", { name: "Expendit API" }),
     ).toBeVisible({ timeout: 20_000 });
 
     // The choice persists across reload (stored at expendit.theme).
     await page.reload();
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    await expect(body).toHaveClass(/light-mode/, { timeout: 20_000 });
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expect(body).toHaveClass(/dark-mode/, { timeout: 20_000 });
   });
 });
