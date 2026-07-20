@@ -1602,6 +1602,22 @@ export const ComponentGallery: React.FC = () => {
               />
             </div>
           </Variant>
+          <Variant label="code — tabbed (A8c: Docker Compose | Helm, copy per active tab)">
+            <div className="w-full max-w-md">
+              <CodeSnippet
+                tabs={[
+                  {
+                    label: "Docker Compose",
+                    code: "git clone https://github.com/cuesoftinc/expendit\ncd expendit && docker compose up --build -d",
+                  },
+                  {
+                    label: "Helm",
+                    code: "git clone https://github.com/cuesoftinc/expendit\ncd expendit && helm install expendit deploy/helm",
+                  },
+                ]}
+              />
+            </div>
+          </Variant>
           <Variant label="editorial: pillar / community (hover for lift + underline)">
             <div className="grid w-full grid-cols-1 gap-3 md:grid-cols-2">
               <EditorialCard

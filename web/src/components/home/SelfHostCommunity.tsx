@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * A8a — Self-host (dark editorial): data-ownership pitch, docker compose
- * one-liner (CodeSnippet copy ✓ morph), what ships, docs links.
+ * A8a — Self-host (dark editorial): data-ownership pitch, the tabbed
+ * Docker Compose | Helm snippet (A8c, Figma 474:2 — CodeSnippet tabs mode,
+ * copy ✓ morph on the active tab) with the shared MongoDB/Redis caption,
+ * what ships, docs links.
  * A9 — Community: Discord card + roadmap link.
  */
 
@@ -20,6 +22,22 @@ import {
   SELF_HOST_DOCS_URL,
 } from "./links";
 
+/** Mirrored two-line snippets — line 2 is `make up` (compose) or the real
+ *  chart at deploy/helm. */
+const SELF_HOST_TABS = [
+  {
+    label: "Docker Compose",
+    code: "git clone https://github.com/cuesoftinc/expendit\ncd expendit && docker compose up --build -d",
+  },
+  {
+    label: "Helm",
+    code: "git clone https://github.com/cuesoftinc/expendit\ncd expendit && helm install expendit deploy/helm",
+  },
+];
+
+const SELF_HOST_CAPTION =
+  "Compose ships MongoDB + Redis — the Helm chart expects reachable instances (MONGODB_URL, REDIS_URL).";
+
 export const SelfHostSection: React.FC = () => {
   const { track } = useAnalyticsController();
   return (
@@ -28,14 +46,21 @@ export const SelfHostSection: React.FC = () => {
         <SectionHeading>
           Self-host: your books never leave your building
         </SectionHeading>
-        <div className="mx-auto mt-8 max-w-[460px] text-left">
-          <p className="mb-2 font-mono text-[13px] text-text-2">
-            self-host · docker
-          </p>
+        <div
+          className="mx-auto mt-8 max-w-[460px] text-left"
+          data-testid="selfhost-snippet"
+        >
+          <p className="mb-2 font-mono text-[13px] text-text-2">self-host</p>
           <CodeSnippet
-            code="$ docker compose up -d   # api · web · mongo · redis"
-            label="Self-host command"
+            tabs={SELF_HOST_TABS}
+            tabsLabel="Install method"
+            label="Self-host commands"
           />
+          {/* shared caption — rendered once, outside the tab panels, so
+              both tab states keep it and switching never shifts layout */}
+          <p className="mt-2 text-xs leading-normal text-text-2">
+            {SELF_HOST_CAPTION}
+          </p>
         </div>
         <p className="mx-auto mt-8 max-w-3xl text-sm leading-relaxed text-text-2">
           Built for firms and accountants who can’t ship financial data to
