@@ -1,5 +1,8 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // Emit a minimal, self-contained production server (.next/standalone/server.js)
+  // for a small production Docker image.
   output: "standalone",
   // The floating dev indicator (a <nextjs-portal> overlay, bottom-left)
   // intercepts pointer events over the AppNav footer during local
@@ -8,4 +11,4 @@ const nextConfig = {
   devIndicators: false,
 };
 
-module.exports = nextConfig;
+export default nextConfig;

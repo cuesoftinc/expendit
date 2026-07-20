@@ -1,8 +1,158 @@
+@import "tailwindcss";
 @import "../design/tokens.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+ * Map design tokens (src/design/tokens.css, design.md §2) into Tailwind
+ * utility namespaces. `inline` keeps Tailwind from re-emitting the vars —
+ * tokens.css stays the single source of truth (light :root, dark
+ * [data-theme] / OS preference), so theme switching needs no class swaps.
+ * Alpha modifiers (bg-info/10, border-warn/40) work natively on the
+ * var-backed colors — v4 compiles them to color-mix().
+ */
+@theme inline {
+  /* colors → bg-*, text-*, border-*, fill-*, stroke-*, ring-* utilities */
+  --color-*: initial;
+  --color-bg: var(--color-bg);
+  --color-bg-editorial: var(--color-bg-editorial);
+  --color-bg-elev: var(--color-bg-elev);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-text-2: var(--color-text-2);
+  --color-accent: var(--color-accent);
+  --color-on-accent: var(--color-on-accent);
+  --color-income: var(--color-income);
+  --color-expense: var(--color-expense);
+  --color-warn: var(--color-warn);
+  --color-info: var(--color-info);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* type — UI: Inter; data/code: JetBrains Mono (design.md §2) */
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-display: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+
+  /* v4 ships the default text-* line-heights as unitless ratios; the
+     token components were built against the fixed-px values (children
+     with smaller arbitrary sizes, e.g. text-[13px] under text-sm, inherit
+     the parent's 20px line box — a ratio would shrink them). Pin the px
+     values for the sizes in use. */
+  --text-xs--line-height: 1rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl--line-height: 2rem;
+  --text-4xl--line-height: 2.5rem;
+
+  /* radii — product radius is 6px (`rounded` → --radius); rounded-lg is
+     the marketing hero device frame; rounded-full for pills/discs/dots. */
+  --radius-*: initial;
+  --radius: var(--radius);
+  --radius-none: 0;
+  --radius-lg: 0.5rem;
+  --radius-full: 9999px;
+
+  /* motion — duration/easing token scale (design.md §2) */
+  --transition-duration-fast: var(--duration-fast);
+  --transition-duration-base: var(--duration-base);
+  --transition-duration-slow: var(--duration-slow);
+  --transition-duration-entrance: var(--duration-entrance);
+  --ease-standard: var(--ease-standard);
+  --ease-exit: var(--ease-exit);
+
+  /* z-index layers (design.md §2 — nothing outside these six) */
+  --z-index-base: var(--z-base);
+  --z-index-sticky: var(--z-sticky);
+  --z-index-dropdown: var(--z-dropdown);
+  --z-index-overlay: var(--z-overlay);
+  --z-index-modal: var(--z-modal);
+  --z-index-toast: var(--z-toast);
+
+  /* MI keyframes (design.md §4) — durations/easings from the token scale. */
+  --animate-fade-in: fade-in 200ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* MI-1: palette opens 120ms fade + 4px rise. */
+  --animate-rise-in: rise-in 120ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* MI-11: inspector slides in from the right. */
+  --animate-slide-in-right: slide-in-right 280ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* BulkActionBar slide-in (design.md §8.2b). */
+  --animate-slide-in-up: slide-in-up 200ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* MI-9: sync dot breathes while syncing. */
+  --animate-breathe: breathe 2s ease-in-out infinite;
+  /* MI-12: chart series draw in 400ms after the axis (pathLength=1). */
+  --animate-draw-in: draw-in 400ms cubic-bezier(0.2, 0, 0, 1) both;
+  /* MI-10: filing-success stamp settles in. */
+  --animate-stamp-in: stamp-in 250ms cubic-bezier(0.2, 0, 0, 1) both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+  @keyframes slide-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes breathe {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+  @keyframes draw-in {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes stamp-in {
+    0% {
+      opacity: 0;
+      transform: scale(1.6) rotate(-8deg);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(0.95) rotate(2deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+  }
+}
 
 /*
  * Design-system base resets (QA loop 2026-07-18): UA button chrome
@@ -10,6 +160,17 @@
  * does not reset text-align, so do it here in the base layer.
  */
 @layer base {
+  /* v3-parity cell padding: Tailwind v3's preflight never reset the UA's
+     1px td/th padding, so every table without explicit cell-padding
+     classes (marketing demo/hero tables, gallery specimens) was built and
+     design-reviewed against it. v4's universal reset zeroes it; restore
+     the UA value so rendered output stays identical (dashboard tables set
+     explicit px-/py- classes, which override this either way). */
+  td,
+  th {
+    padding: 1px;
+  }
+
   button {
     text-align: inherit;
   }
@@ -46,5 +207,17 @@
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Preflight's element rule points code-ish elements at
+     --default-mono-font-family, which `@theme inline` never emits as a
+     real var — without this, a bare <code> falls back to ui-monospace
+     instead of the token mono stack. */
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family:
+      var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
   }
 }
