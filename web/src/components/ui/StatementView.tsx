@@ -46,7 +46,8 @@ const IDENTITY_CHECKS: Record<
     ],
   },
   income_statement: {
-    label: "Net income = Operating profit + Interest income − Interest expense − Tax",
+    label:
+      "Net income = Operating profit + Interest income − Interest expense − Tax",
     left: "net_income",
     right: [
       ["operating_profit", 1],
