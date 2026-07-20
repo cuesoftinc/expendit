@@ -13,11 +13,18 @@ export async function GET(request: Request, context: Context) {
   if (!job) return notFound();
 
   if (job.status === "running") {
-    const expires = mockNow();
-    expires.setDate(expires.getDate() + 7); // 7-day download TTL
-    job.status = "completed";
-    job.signed_url = `/api/mock/account/export/${jobId}/archive.zip`;
-    job.expires_at = expires.toISOString();
+    // Determinate lifecycle (Figma B9b "ZIP · 48%"): the archive builds
+    // across polls — ~48% a poll, completing on the second.
+    const progress = Math.min(100, (job.progress ?? 0) + 48);
+    job.progress = progress;
+    if (progress >= 96) {
+      const expires = mockNow();
+      expires.setDate(expires.getDate() + 7); // 7-day download TTL
+      job.status = "completed";
+      job.progress = 100;
+      job.signed_url = `/api/mock/account/export/${jobId}/archive.zip`;
+      job.expires_at = expires.toISOString();
+    }
   }
   return ok(job);
 }

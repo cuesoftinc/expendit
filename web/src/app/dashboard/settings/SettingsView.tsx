@@ -474,7 +474,26 @@ export const SettingsView: React.FC = () => {
               </p>
               <div className="mt-2">
                 {exportJob?.status === "running" ? (
-                  <ProgressBar label="Preparing your archive…" />
+                  // Determinate export strip (Figma B9b): record count +
+                  // "ZIP · N%" + the email/rate-limit reassurance.
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2 text-[13px]">
+                      <span className="text-text">
+                        Preparing export
+                        {exportJob.record_count
+                          ? ` — ${exportJob.record_count.toLocaleString("en-NG")} records`
+                          : "…"}
+                      </span>
+                      <span className="tabular-nums text-text-2">
+                        ZIP · {exportJob.progress ?? 0}%
+                      </span>
+                    </div>
+                    <ProgressBar size="sm" value={exportJob.progress ?? 0} />
+                    <p className="text-[12px] leading-4 text-text-2">
+                      We&apos;ll email you when it&apos;s ready. You can export
+                      up to twice a day.
+                    </p>
+                  </div>
                 ) : exportJob?.status === "completed" &&
                   exportJob.signed_url ? (
                   <Button
