@@ -6,8 +6,9 @@
  * expendit and upstat):
  *
  * - `preference` is what the user chose; persisted at `expendit.theme`
- *   ("light"/"dark" stored explicitly; KEY ABSENT = system — the
- *   cross-product storage convention).
+ *   ("light"/"dark"/"system" all stored explicitly; KEY ABSENT = dark,
+ *   expendit's design default — the cross-product storage convention;
+ *   "system" is never modeled as key-absent).
  * - `data-theme` on <html> always carries the RESOLVED theme ("light" or
  *   "dark"): explicit preferences resolve to themselves; system resolves
  *   via `prefers-color-scheme` and tracks it LIVE (matchMedia listener —
@@ -81,15 +82,19 @@ function emit(): void {
 // PR #209). Readable+writable storage stays the source of truth; after a
 // FAILED write the stored value is stale, so the in-session preference
 // wins until a write succeeds again.
-let memoryPreference: ThemePreference = "system";
+let memoryPreference: ThemePreference = "dark";
 let storageDesynced = false;
 
 function readStoredPreference(): ThemePreference {
   try {
     if (storageDesynced) return memoryPreference;
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    // Readable, in-sync storage is the source of truth (null = none).
-    return stored === "light" || stored === "dark" ? stored : "system";
+    // Readable, in-sync storage is the source of truth. Absent/invalid =
+    // dark, expendit's design default; "system" is an explicit choice,
+    // stored like any other preference.
+    if (stored === "light" || stored === "dark" || stored === "system")
+      return stored;
+    return "dark";
   } catch {
     // Storage unavailable — the in-session preference stands.
     return memoryPreference;
@@ -115,11 +120,14 @@ function readResolvedTheme(): ResolvedTheme {
 }
 
 function getServerPreference(): ThemePreference {
-  return "system";
+  return "dark";
 }
 
 function getServerResolved(): ResolvedTheme {
-  return "light";
+  // dark is expendit's design default (theme contract, 2026-07-20): the
+  // SSR frame renders it attribute-less; the init script resolves before
+  // paint.
+  return "dark";
 }
 
 function applyResolved(theme: ResolvedTheme): void {
@@ -133,7 +141,7 @@ interface ThemeContextValue {
   preference: ThemePreference;
   /** The concrete theme currently applied ("system" resolved live). */
   resolvedTheme: ResolvedTheme;
-  /** Set + persist the preference; "system" removes the stored key. */
+  /** Set + persist the preference ("system" is stored explicitly). */
   setPreference: (preference: ThemePreference) => void;
 }
 
@@ -155,11 +163,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     memoryPreference = next;
     applyResolved(resolveTheme(next));
     try {
-      if (next === "system") {
-        window.localStorage.removeItem(THEME_STORAGE_KEY);
-      } else {
-        window.localStorage.setItem(THEME_STORAGE_KEY, next);
-      }
+      window.localStorage.setItem(THEME_STORAGE_KEY, next);
       storageDesynced = false;
     } catch {
       // non-fatal: the in-session preference drives the store instead.
@@ -188,8 +192,9 @@ export function useTheme(): ThemeContextValue {
  * Pre-paint theme bootstrap (inlined by the root layout). A fully static
  * string — no runtime code construction (CodeQL js/bad-code-sanitization);
  * the literal storage key must match THEME_STORAGE_KEY (unit-tested).
- * Applies the RESOLVED theme: stored light/dark verbatim, otherwise the
- * OS preference — so system mode paints correctly on first frame (no FOUC).
+ * Applies the RESOLVED theme: stored light/dark verbatim, stored "system"
+ * via the OS preference, key absent = dark (the design default) — no FOUC
+ * in any mode.
  */
 export const themeInitScript =
-  '(function(){try{var t=localStorage.getItem("expendit.theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})();';
+  '(function(){try{var t=localStorage.getItem("expendit.theme");if(t==="system"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}else if(t!=="light"&&t!=="dark"){t="dark";}document.documentElement.setAttribute("data-theme",t);}catch(e){}})();';
