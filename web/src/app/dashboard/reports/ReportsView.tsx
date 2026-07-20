@@ -204,7 +204,9 @@ export const ReportsView: React.FC = () => {
       </section>
 
       <section aria-label="Artifact history" className="mt-6">
-        <h2 className="mb-2 text-[13px] font-medium text-text">History</h2>
+        <h2 className="mb-2 text-[13px] font-medium text-text">
+          Artifact history
+        </h2>
         {reports.loading && reports.artifacts.length === 0 ? (
           <div>
             {[...Array(4)].map((_, i) => (
@@ -233,6 +235,12 @@ export const ReportsView: React.FC = () => {
             ))}
           </ul>
         )}
+        {/* Expiry caption (B5 frame) — same trust-copy family as the
+            B3b recoverability footer. */}
+        <p className="mt-2 text-[12px] text-text-2">
+          Artifacts expire after 30 days. You can regenerate any report at any
+          time.
+        </p>
       </section>
 
       <ToastLayer message={toast} onDismiss={() => setToast(null)} />

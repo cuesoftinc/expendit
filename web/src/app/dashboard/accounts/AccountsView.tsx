@@ -16,6 +16,7 @@ import { useAccountsController, useOrg } from "@/controllers";
 import { importsRepo, ApiError } from "@/models/repositories";
 import type { BankLink } from "@/models";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
+import { formatIso } from "@/lib/dates";
 import Banner from "@/components/ui/Banner";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
@@ -185,10 +186,12 @@ export const AccountsView: React.FC = () => {
         </div>
       ) : null}
 
+      {/* B4 frame (184:1319): expired links banner amber — a recoverable
+          pause, not a failure — with the "Re-authenticate" action. */}
       {reauthLinks.map((link) => (
         <div key={link.id} className="mb-3">
           <Banner
-            kind="error"
+            kind="warn"
             action={
               <Button
                 size="sm"
@@ -198,12 +201,15 @@ export const AccountsView: React.FC = () => {
                   setJourneyOpen(true);
                 }}
               >
-                Reconnect
+                Re-authenticate
               </Button>
             }
           >
-            {link.institution} {link.masked_account} needs re-authentication —
-            syncs are paused until you reconnect.
+            {link.institution} link expired — sync paused
+            {link.last_synced_at
+              ? ` since ${formatIso(link.last_synced_at, "d MMM")}`
+              : ""}
+            .
           </Banner>
         </div>
       ))}

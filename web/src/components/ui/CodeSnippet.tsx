@@ -59,7 +59,10 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({
         data-state={copied ? "copied" : "idle"}
         onClick={onCopy}
         className={cn(
-          "absolute right-2 top-2 rounded border border-border p-1.5",
+          // Solid backdrop: long single-line commands scroll beneath the
+          // floated button — the fill keeps the tail from showing through
+          // (audit: copy button clipped "… redis" at 1440).
+          "absolute right-2 top-2 rounded border border-border bg-bg-editorial p-1.5",
           "transition-colors duration-fast ease-standard",
           copied ? "text-income" : "text-text-2 hover:text-text",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",

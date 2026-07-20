@@ -14,9 +14,9 @@ import { usePathname, useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   ArrowLeftRight,
-  Building2,
   Calculator,
-  Download,
+  FileSpreadsheet,
+  FileText,
   Landmark,
   LayoutDashboard,
   LogOut,
@@ -61,11 +61,13 @@ const NAV_ROUTES: NavRoute[] = [
   },
   { href: "/dashboard/imports", label: "Imports", icon: Upload, nested: true },
   { href: "/dashboard/accounts", label: "Accounts", icon: Landmark },
-  { href: "/dashboard/reports", label: "Reports", icon: Download },
+  // Icons per the AppNav master: file-text (Reports), file-spreadsheet
+  // (Statements) — audit B1/B6 low rows.
+  { href: "/dashboard/reports", label: "Reports", icon: FileText },
   {
     href: "/dashboard/company",
     label: "Statements",
-    icon: Building2,
+    icon: FileSpreadsheet,
     nested: true,
     group: "Company",
   },
