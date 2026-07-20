@@ -8,6 +8,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Full web implementation: the dashboard application (expense/income tracking,
+  reports, bank statement import and mapping review, categories, settings)
+  rebuilt from the shared component registry over a mock CRUD API, and the
+  marketing home page rebuilt to match, backed by a realistic seven-month
+  seeded ledger.
+- Interactive Scalar API reference at `/docs/api`, rendered live from the
+  repository's OpenAPI spec.
+- Tri-state theme control (light / dark / system).
+
+### Changed
+- Mobile-responsive pass: no document-level side-scroll at 390px on the home
+  page or any dashboard route; wide data surfaces (ledger, staged review,
+  statement grid, mapping review) now scroll within their own containers.
+- Cash-flow and report charts start at ledger onset instead of zero-filling
+  months before an organization's first transaction; fiscal-year trend
+  markers are discrete.
+- Dependency and tooling cleanup: retired the MUI/Emotion UI kit, Axios, and
+  other dead runtime dependencies; migrated to `date-fns`; retired Jest in
+  favor of co-located Vitest; adopted Tailwind v4 and a typed Next.js config;
+  cross-repo tooling parity (shared boundary gate, canonical lint/format/test
+  configs) with the other CueLABS™ repositories.
+
+### Removed
+- The legacy MUI-era dashboard and marketing app, and the redirect stubs for
+  its old routes (which now 404).
+
+### Fixed
+- An unset theme preference now boots the design default instead of forcing
+  a theme choice; the `/docs/api` header now coexists cleanly with the rest
+  of the app shell.
+- Floating-layer viewport collision clamping; demo-realism and usability QA
+  passes across the app.
+
+### Added
 - Production service bootstrap: `/health` + `/ready`, structured `slog` logging,
   `RequestID`/`Logger`/`Recovery`/CORS middleware, and graceful shutdown.
 - Local Docker stack: root `docker-compose.yml` (mongo, redis, api-common:8080,
