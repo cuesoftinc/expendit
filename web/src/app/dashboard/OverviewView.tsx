@@ -347,7 +347,13 @@ export const OverviewView: React.FC = () => {
       {/* Figma 179:12: chart left (2/3), donut + anomalies right (1/3). */}
       <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-[2fr,1fr]">
         <Card
-          title="Cash flow — 12 months"
+          // The monthly series starts at ledger onset (no fabricated
+          // pre-onset months) — the title states the span it actually has.
+          title={
+            points.length >= 12 || points.length === 0
+              ? "Cash flow — 12 months"
+              : `Cash flow — since ${formatIso(`${points[0].month}-01`, "MMM yyyy")}`
+          }
           action={
             // Chart data-table toggle (design.md §5 — screen assembly).
             <button
@@ -419,6 +425,9 @@ export const OverviewView: React.FC = () => {
               xLabels={points
                 .filter((_, index) => index % 2 === 0)
                 .map((p) => monthLabel(p.month))}
+              xLabelIndices={points
+                .map((_, index) => index)
+                .filter((index) => index % 2 === 0)}
             />
           )}
         </Card>

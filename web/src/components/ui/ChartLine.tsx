@@ -5,7 +5,10 @@
  * empty. Bespoke SVG per the reuse policy (no chart libraries); series
  * colors bind to --income/--expense/--accent (web-implementation.md §3).
  * Content kinds (12mo cash-flow / ratio + line-item trend) arrive via
- * props; the data-table toggle attaches at screen assembly.
+ * props; the data-table toggle attaches at screen assembly. Discrete
+ * observation sets (the B6b per-FY trend) opt into `pointMarkers`: a
+ * circle per datum so sparse series (N=2 fiscal years) read as
+ * observations, not a continuous trend; ticks sit at data positions.
  */
 
 import React from "react";
@@ -27,6 +30,17 @@ export interface ChartLineProps {
   series?: ChartLineSeries[];
   /** X axis tick labels (e.g. months). */
   xLabels?: string[];
+  /**
+   * Data index each xLabel ticks (thinned axes, e.g. every 2nd month).
+   * Without it, labels matching the point count align to data positions;
+   * otherwise they spread evenly (legacy marketing/demo usage).
+   */
+  xLabelIndices?: number[];
+  /**
+   * Circle per datum — discrete observations (B6b FY trend) read as
+   * points, not a continuous line; the plot insets so edge markers show.
+   */
+  pointMarkers?: boolean;
   /** Empty-state surface kind (MI-16). */
   emptyKind?: EmptyStateKind;
   onEmptyAction?: () => void;
@@ -46,12 +60,21 @@ const COLOR_BG: Record<ChartSeriesColor, string> = {
   accent: "bg-accent",
 };
 
+const COLOR_FILL: Record<ChartSeriesColor, string> = {
+  income: "fill-income",
+  expense: "fill-expense",
+  accent: "fill-accent",
+};
+
 const WIDTH = 480;
+const MARKER_RADIUS = 2.5;
 
 export const ChartLine: React.FC<ChartLineProps> = ({
   state = "data",
   series = [],
   xLabels = [],
+  xLabelIndices,
+  pointMarkers = false,
   emptyKind = "transactions",
   onEmptyAction,
   height = 160,
@@ -76,19 +99,30 @@ export const ChartLine: React.FC<ChartLineProps> = ({
   const max = Math.max(...all);
   const span = max - min || 1;
   const plotHeight = height - 24;
+  const pointCount = Math.max(...series.map((entry) => entry.points.length));
 
-  const toPoints = (points: number[]): string => {
-    const step = WIDTH / Math.max(1, points.length - 1);
-    return points
+  // Inset the plot when markers draw so edge circles are not clipped.
+  const inset = pointMarkers ? MARKER_RADIUS + 1 : 0;
+  const xAt = (index: number, count: number): number =>
+    inset + (index * (WIDTH - inset * 2)) / Math.max(1, count - 1);
+  const yAt = (value: number): number =>
+    plotHeight - 4 - ((value - min) / span) * (plotHeight - 8);
+
+  const toPoints = (points: number[]): string =>
+    points
       .map(
         (value, index) =>
-          `${(index * step).toFixed(1)},${(
-            plotHeight -
-            4 -
-            ((value - min) / span) * (plotHeight - 8)
-          ).toFixed(1)}`,
+          `${xAt(index, points.length).toFixed(1)},${yAt(value).toFixed(1)}`,
       )
       .join(" ");
+
+  /** Tick x: at the labelled datum when known, else an even spread. */
+  const tickX = (index: number): number => {
+    const dataIndex =
+      xLabelIndices?.[index] ?? (xLabels.length === pointCount ? index : null);
+    return dataIndex !== null
+      ? xAt(dataIndex, pointCount)
+      : (index * WIDTH) / Math.max(1, xLabels.length - 1);
   };
 
   return (
@@ -132,10 +166,30 @@ export const ChartLine: React.FC<ChartLineProps> = ({
             )}
           />
         ))}
+        {pointMarkers
+          ? series.map((entry) => (
+              <g
+                key={`${entry.id}-markers`}
+                data-testid={`chart-markers-${entry.id}`}
+                aria-hidden
+              >
+                {entry.points.map((value, index) => (
+                  <circle
+                    // Positional key — datum order is the identity here.
+                    key={index}
+                    cx={xAt(index, entry.points.length)}
+                    cy={yAt(value)}
+                    r={MARKER_RADIUS}
+                    className={COLOR_FILL[entry.color]}
+                  />
+                ))}
+              </g>
+            ))
+          : null}
         {xLabels.map((tick, index) => (
           <text
             key={tick}
-            x={(index * WIDTH) / Math.max(1, xLabels.length - 1)}
+            x={tickX(index)}
             y={height - 6}
             textAnchor={
               index === 0

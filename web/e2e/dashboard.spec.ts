@@ -49,8 +49,21 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
     page.getByRole("heading", { name: "Overview", level: 1 }),
   ).toBeVisible();
   await expect(page.getByText("Net cash flow").first()).toBeVisible();
+  // Personal cash-flow series: a full trailing year of real monthly
+  // points — never a fabricated flat segment over pre-ledger months.
+  await expect(page.getByText("Cash flow — 12 months")).toBeVisible();
+  const personalPoints = await page
+    .getByTestId("chart-line-net")
+    .getAttribute("points");
+  expect(personalPoints?.trim().split(/\s+/).length).toBeGreaterThanOrEqual(12);
   await switchToCompanyOrg(page);
   await expect(page.getByText("Net cash flow").first()).toBeVisible();
+  // Company ledger onset is Jan 2026 — the chart starts there and says so.
+  await expect(page.getByText("Cash flow — since Jan 2026")).toBeVisible();
+  const companyPoints = await page
+    .getByTestId("chart-line-net")
+    .getAttribute("points");
+  expect(companyPoints?.trim().split(/\s+/).length).toBe(7);
 
   // --- B2 transactions CRUD (manual path, MI-11 inspector) --------------
   await openNav(page, "Transactions").click();
@@ -188,6 +201,18 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await expect(trace).toBeVisible();
   await expect(trace).toContainText(/current_assets/);
   await page.keyboard.press("Escape");
+
+  // Trends: discrete FY observations — point markers at each confirmed
+  // fiscal year, FY ticks at the data positions (not a fake full-width
+  // continuous trend from two datapoints).
+  const trends = page.getByRole("region", { name: "Trends" });
+  await expect(trends.getByText("FY2024")).toBeVisible();
+  await expect(trends.getByText("FY2025")).toBeVisible();
+  for (const seriesId of ["revenue", "gross", "net"]) {
+    await expect(
+      trends.getByTestId(`chart-markers-${seriesId}`).locator("circle"),
+    ).toHaveCount(2);
+  }
 
   // --- B7 tax center → B7b filing wizard → filing history ----------------
   await openNav(page, "Tax center").click();

@@ -18,21 +18,84 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
     resetDb();
   });
 
-  it("returns 12 months oldest→newest ending at the mock-today month", async () => {
+  it("company series starts at ledger onset — no fabricated pre-onset months", async () => {
+    // The Cuesoft ledger begins Jan 2026; the trailing-12 window reaches
+    // back to Aug 2025. Pre-onset months must not be emitted as zeros —
+    // they drew a fabricated flat segment on the B1 chart.
     const report = await json<MonthlyFlowReport>(
       await monthlyReport(mockRequest("/api/mock/report/monthly")),
     );
-    expect(report.items).toHaveLength(12);
-    expect(report.items[11].month).toBe("2026-07");
-    expect(report.items[0].month).toBe("2025-08");
+    expect(report.items).toHaveLength(7);
+    expect(report.items[0].month).toBe("2026-01");
+    expect(report.items.at(-1)?.month).toBe("2026-07");
     expect(report.currency).toBe("NGN");
+  });
+
+  it("personal series covers the full trailing 12 months, every month with real data", async () => {
+    const report = await json<MonthlyFlowReport>(
+      await monthlyReport(
+        mockRequest("/api/mock/report/monthly", { orgId: ORG_PERSONAL }),
+      ),
+    );
+    expect(report.items).toHaveLength(12);
+    expect(report.items[0].month).toBe("2025-08");
+    expect(report.items.at(-1)?.month).toBe("2026-07");
+    // No zero-zero placeholder months anywhere in the series.
+    for (const point of report.items) {
+      expect(point.income + point.expense).toBeGreaterThan(0);
+    }
+  });
+
+  it("personal 2025 backfill months sum to the seed-comment totals", async () => {
+    const report = await json<MonthlyFlowReport>(
+      await monthlyReport(
+        mockRequest("/api/mock/report/monthly", { orgId: ORG_PERSONAL }),
+      ),
+    );
+    const byMonth = new Map(report.items.map((point) => [point.month, point]));
+    expect(byMonth.get("2025-08")).toMatchObject({
+      income: 420_000,
+      expense: 88_400,
+    });
+    expect(byMonth.get("2025-09")).toMatchObject({
+      income: 380_000,
+      expense: 80_300,
+    });
+    expect(byMonth.get("2025-10")).toMatchObject({
+      income: 510_000,
+      expense: 92_100,
+    });
+    expect(byMonth.get("2025-11")).toMatchObject({
+      income: 300_000,
+      expense: 83_400,
+    });
+    expect(byMonth.get("2025-12")).toMatchObject({
+      income: 650_000,
+      expense: 1_057_300,
+    });
+  });
+
+  it("personal stat-card delta stays coherent (Jul net −1,134,650 vs Jun +1,529,700 → −174.2%)", async () => {
+    const report = await json<MonthlyFlowReport>(
+      await monthlyReport(
+        mockRequest("/api/mock/report/monthly", { orgId: ORG_PERSONAL }),
+      ),
+    );
+    const jun = report.items.find((point) => point.month === "2026-06")!;
+    const jul = report.items.find((point) => point.month === "2026-07")!;
+    const junNet = jun.income - jun.expense;
+    const julNet = jul.income - jul.expense;
+    expect(junNet).toBe(1_529_700);
+    expect(julNet).toBe(-1_134_650);
+    expect(Math.round(((julNet - junNet) / junNet) * 1000) / 10).toBe(-174.2);
   });
 
   it("MTD sums match the seed narrative (income ₦8,435,200 / expenses ₦3,614,800)", async () => {
     const report = await json<MonthlyFlowReport>(
       await monthlyReport(mockRequest("/api/mock/report/monthly")),
     );
-    const current = report.items[11];
+    const current = report.items.at(-1)!;
+    expect(current.month).toBe("2026-07");
     expect(current.income).toBe(8_435_200);
     expect(current.expense).toBe(3_614_800);
   });
