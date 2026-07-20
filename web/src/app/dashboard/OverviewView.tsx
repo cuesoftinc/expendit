@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import { formatIso, daysUntil } from "@/lib/dates";
 import { useOrg, useOverviewController } from "@/controllers";
 import { useCategoriesController } from "@/controllers/use-categories";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, formatMoneyCompact } from "@/lib/format";
 import { DEMO_DATASETS } from "@/mock/demo";
 import type { TxnEntry } from "@/models";
 import AnomalyBadge from "@/components/ui/AnomalyBadge";
@@ -170,6 +170,7 @@ export const OverviewView: React.FC = () => {
                 },
               ]}
               xLabels={demo.cashflow.xLabels}
+              yTickFormat={(value) => formatMoneyCompact(value, demo.currency)}
             />
           </Card>
           <Card title="Spending by category">
@@ -428,6 +429,7 @@ export const OverviewView: React.FC = () => {
               xLabelIndices={points
                 .map((_, index) => index)
                 .filter((index) => index % 2 === 0)}
+              yTickFormat={(value) => formatMoneyCompact(value, currency)}
             />
           )}
         </Card>

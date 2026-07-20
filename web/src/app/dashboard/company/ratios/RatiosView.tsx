@@ -23,7 +23,12 @@ import {
   type MetricGroup,
 } from "@/models/registry/ratios";
 import type { RatioResult } from "@/models";
-import { formatMoney, formatPercent, formatRatio } from "@/lib/format";
+import {
+  formatMoney,
+  formatMoneyCompact,
+  formatPercent,
+  formatRatio,
+} from "@/lib/format";
 import Banner from "@/components/ui/Banner";
 import Button from "@/components/ui/Button";
 import ChartLine from "@/components/ui/ChartLine";
@@ -306,6 +311,7 @@ export const RatiosView: React.FC = () => {
                     as two observations (scales to more FYs). */}
                 <ChartLine
                   pointMarkers
+                  yTickFormat={(value) => formatMoneyCompact(value, currency)}
                   series={[
                     {
                       id: "revenue",

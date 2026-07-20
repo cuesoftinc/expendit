@@ -315,7 +315,15 @@ var-backed colors — v4 compiles them to `color-mix()`.
 
 Notes: Expendit has no chart series-palette tokens — donut slices take the
 registry category colors (B8, ColorSwatchPicker presets) and line charts
-draw from `--income`/`--expense`/`--accent`. The Afrocentric line motif is
+draw from `--income`/`--expense`/`--accent`. Chart/Line carries the Figma
+master's axis construction as built (2026-07-20 fidelity pass): a 44px
+y-axis column left of the plot (Table/13 Regular in `--text-2`,
+nice-scaled ticks, ₦-compact by default with a per-content-kind format
+override; negative domains tick below zero) with a 1px `--border`
+gridline per tick across the plot (the lowest gridline is the baseline —
+no separate axis hairlines), and 13px `--text-2` x labels below the plot
+at their data positions. StatCard sparklines, RatioGauge and Chart/Donut
+stay axis-free per their masters. The Afrocentric line motif is
 an asset at 4% opacity (dark editorial sections only), not a token.
 Breakpoints need no mapping — the design.md §2 scale (sm 640 … 2xl 1536) is
 Tailwind's default. Density row heights (compact 32 / comfortable 44) are
