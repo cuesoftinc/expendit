@@ -51,13 +51,25 @@ describe("ImportJobRow (design.md §8.2b)", () => {
     expect(screen.getByText("Processing")).toBeInTheDocument();
   });
 
-  it("failed renders the taxonomy code", () => {
+  it("failed reads human; the taxonomy code demotes to a details disclosure", () => {
     render(
       <ImportJobRow
         job={job({ status: "failed", error_code: "unreadable_file" })}
+        failureMessage="We could not read this file — try a CSV export."
       />,
     );
+    expect(
+      screen.getByText("We could not read this file — try a CSV export."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Details")).toBeInTheDocument();
     expect(screen.getByText("unreadable_file")).toBeInTheDocument();
+  });
+
+  it("parked review jobs tag blue 'Ready for review' (B3 frame)", () => {
+    render(<ImportJobRow job={job({ confirmed: false, imported: 0 })} />);
+    const tag = screen.getByText("Ready for review");
+    expect(tag).toBeInTheDocument();
+    expect(tag).toHaveAttribute("data-tint", "info");
   });
 
   it("completed-empty and completed-bank variants", () => {

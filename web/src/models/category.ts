@@ -26,4 +26,13 @@ export interface Category {
   tax_treatment: TaxTreatment;
   vat_treatment: VatTreatment;
   vat_basis: VatBasis;
+  /** AI-proposed, awaiting human confirmation (B8 frame row state). */
+  ai_proposed?: boolean;
+  /** Proposal provenance, e.g. "AI proposed from 3 vendors". */
+  ai_note?: string | null;
+  /**
+   * Usage this calendar year — derived, list-response enrichment only
+   * (B8 merge-safety context: "N transactions this year").
+   */
+  txn_count_ytd?: number;
 }

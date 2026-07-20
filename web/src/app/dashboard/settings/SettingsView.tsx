@@ -33,6 +33,25 @@ import Switch from "@/components/ui/Switch";
 import PageHeader from "../PageHeader";
 import ToastLayer from "../ToastLayer";
 
+/**
+ * Fiscal-year-end options — the wire format stays MM-DD (api.md), the
+ * labels read human ("31 December") per the B9 frame.
+ */
+const FISCAL_YEAR_END_OPTIONS = [
+  { value: "01-31", label: "31 January" },
+  { value: "02-28", label: "28 February" },
+  { value: "03-31", label: "31 March" },
+  { value: "04-30", label: "30 April" },
+  { value: "05-31", label: "31 May" },
+  { value: "06-30", label: "30 June" },
+  { value: "07-31", label: "31 July" },
+  { value: "08-31", label: "31 August" },
+  { value: "09-30", label: "30 September" },
+  { value: "10-31", label: "31 October" },
+  { value: "11-30", label: "30 November" },
+  { value: "12-31", label: "31 December" },
+];
+
 const Section: React.FC<{
   title: string;
   description?: string;
@@ -245,18 +264,28 @@ export const SettingsView: React.FC = () => {
                 </FormRow>
                 <FormRow
                   label="Fiscal year end"
-                  helper="MM-DD — defines FY periods for statements and CIT."
+                  helper="Defines FY periods for statements and CIT."
                 >
-                  {(id) => (
-                    <Input
-                      id={id}
-                      value={
-                        fiscalYearEnd ?? activeOrg?.fiscal_year_end ?? "12-31"
-                      }
-                      onChange={(event) => setFiscalYearEnd(event.target.value)}
-                      placeholder="12-31"
-                    />
-                  )}
+                  {() => {
+                    const fyeValue =
+                      fiscalYearEnd ?? activeOrg?.fiscal_year_end ?? "12-31";
+                    // Non-month-end legacy values stay selectable raw.
+                    const options = FISCAL_YEAR_END_OPTIONS.some(
+                      (option) => option.value === fyeValue,
+                    )
+                      ? FISCAL_YEAR_END_OPTIONS
+                      : [
+                          { value: fyeValue, label: fyeValue },
+                          ...FISCAL_YEAR_END_OPTIONS,
+                        ];
+                    return (
+                      <Select
+                        options={options}
+                        value={fyeValue}
+                        onValueChange={setFiscalYearEnd}
+                      />
+                    );
+                  }}
                 </FormRow>
               </>
             ) : null}
@@ -453,10 +482,12 @@ export const SettingsView: React.FC = () => {
             {() => (
               <SegmentedControl
                 aria-label="Theme"
+                // Light | Dark | System — mirrors the toggle's cycle
+                // order (Figma B9 frame).
                 options={[
                   { value: "light", label: "Light" },
-                  { value: "system", label: "System" },
                   { value: "dark", label: "Dark" },
+                  { value: "system", label: "System" },
                 ]}
                 value={theme}
                 onValueChange={(value) =>
@@ -468,16 +499,31 @@ export const SettingsView: React.FC = () => {
         </Section>
       </div>
 
-      {/* MI-15 danger flow: typed confirm; grace handled by the controller */}
+      {/* MI-15 danger flow (converged model, Figma B9 190:4223 + B9b
+          208:4194): type the ORG NAME to confirm, 5s danger-armed CTA,
+          "Export first" escape hatch; grace handled by the controller. */}
       <Modal
         open={purgeOpen}
         onOpenChange={setPurgeOpen}
         title="Delete account & all data"
         description="Everything — ledger, statements, filings, links — is deleted after a 7-day grace window. Writes are blocked while the window is open."
         variant="danger"
-        confirmPhrase="DELETE EVERYTHING"
+        confirmPhrase={activeOrg?.name ?? ""}
         confirmLabel="Schedule deletion"
         onConfirm={() => void startPurge()}
+        footer={
+          <Button
+            size="sm"
+            kind="quiet"
+            onClick={() => {
+              setPurgeOpen(false);
+              void startExport();
+              setToast("Preparing your export — deletion can wait.");
+            }}
+          >
+            Export first
+          </Button>
+        }
       />
 
       <ToastLayer message={toast} onDismiss={() => setToast(null)} />

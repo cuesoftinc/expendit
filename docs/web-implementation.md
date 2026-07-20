@@ -272,12 +272,63 @@ flip, no reload). The pre-paint init script applies the resolved theme
 (no FOUC in any mode). `ThemeToggle` (marketing nav + dashboard chrome)
 cycles light → dark → system with distinct icons (sun / moon / monitor);
 its aria-label announces the active mode. The B9 Appearance section
-keeps the three-way Light/System/Dark segmented control over the same
-store (`useThemeController` delegates to the provider). The Scalar embed
+keeps the three-way Light/Dark/System segmented control (the toggle's
+cycle order) over the same store (`useThemeController` delegates to the
+provider). The Scalar embed
 follows `resolvedTheme` (X-2 note above). Unit tests pin the storage
 convention, live system tracking, the cycle order and the storage-
 blocked fallbacks; e2e pins the cycle, an emulated OS flip in system
 mode and reload persistence.
+
+**Figma-convergence as-built notes (2026-07-20, code lane of the
+adjudicated audit ledger):**
+
+- **B1 overview**: the mid-band grid is `lg:grid-cols-[2fr_1fr]` — the
+  comma form is invalid CSS (browsers drop the declaration, collapsing
+  the band to one column); an e2e asserts two computed tracks at lg. The
+  donut center follows the master: caption above, compact 2-decimal value
+  below (`formatMoneyCompact` gains an opt-in `decimals`).
+- **StatementView reads human**: vocabulary labels over raw canonical
+  keys (raw key kept as the row `title`), bold derived rows with the
+  "ƒ derived" chip (formula tooltip), per-row + header unmapped tags, and
+  a per-kind identity-check footer (green within the ±1% tolerance,
+  amber outside, hidden when a side is absent).
+- **Purge model converged** (MI-15, one construction): typed confirm is
+  the ORG NAME, the 5s danger-armed CTA stays, and an "Export first"
+  secondary kicks off the USR-001 export from the modal; grace states as
+  previously built.
+- **Ratio gauges carry real deltas**: the mock engine computes the prior
+  same-kind period per metric and attaches `period_delta` (skipped for
+  growth metrics and when either side is n/a); `previousPeriod` lives in
+  the models registry (period grammar is contract); captions name the
+  prior period ("vs FY2024"). The B6b trends card gains the frame's
+  "Data table" toggle, mirroring B1's.
+- **Imports copy deck**: blue "Ready for review" tag on parked jobs,
+  human failure sentences with the raw taxonomy code in a details
+  disclosure, "Import history" heading; B3b splits the CTAs (secondary
+  "Discard N duplicates" + primary "Import N"; whole-job abort demoted to
+  a quiet page-header action) and restores the 30-day recoverability
+  footer. Absolute dates stay (adjudicated finance-date idiom).
+- **B8 categories**: usage meta "N transactions this year"
+  (`txn_count_ytd` list-response enrichment), the AI-proposed row state
+  (`ai_proposed`/`ai_note` on the seeded "Logistics"; a human PUT
+  confirms), and a delete-confirm modal ahead of the `category_in_use`
+  merge pivot.
+- **B2b anomaly explain**: reachable from the inline row badges;
+  human-cased severity; provenance line (detected date + rule version —
+  `Anomaly` gains optional `detected_at`/`rule_version`); category-named
+  comparables with a median footer; actions Cancel / **Mark expected**
+  (PUT `{anomalies: []}` — the only anomaly write the mock accepts).
+- **Low sweep**: amber re-auth banner ("… link expired — sync paused
+  since 12 Jul" + Re-authenticate), AppNav icons per the master (Reports
+  file-text, Statements file-spreadsheet), the marketing-nav wordmark
+  accent dot, CodeSnippet copy-button backdrop (no text showing through),
+  "Artifact history" heading + 30-day expiry caption, pluralized
+  "1 anomaly", humanized fiscal-year-end select, Light | Dark | System
+  order.
+- **/docs/api**: Scalar's dev toolbar is disabled via configuration
+  (`showDeveloperTools: "never"` — `showToolbar` is its deprecated
+  alias), never a fork.
 
 Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states — the

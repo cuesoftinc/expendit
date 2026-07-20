@@ -29,6 +29,14 @@ describe("formatMoneyCompact (chart y ticks — Figma Chart/Line master)", () =>
     expect(formatMoneyCompact(2_040_000)).toBe("₦2M");
   });
 
+  it("supports two decimals for the donut center total (₦3.61M)", () => {
+    expect(formatMoneyCompact(3_614_800, "NGN", { decimals: 2 })).toBe(
+      "₦3.61M",
+    );
+    // Trailing zeros are trimmed — never ₦2.50M.
+    expect(formatMoneyCompact(2_500_000, "NGN", { decimals: 2 })).toBe("₦2.5M");
+  });
+
   it("preserves the sign on negative ticks (dipping cash-flow domains)", () => {
     expect(formatMoneyCompact(-2_000_000)).toBe("−₦2M");
     expect(formatMoneyCompact(-2_500_000)).toBe("−₦2.5M");

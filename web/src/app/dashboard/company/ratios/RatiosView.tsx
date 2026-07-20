@@ -22,6 +22,7 @@ import {
   RATIO_REGISTRY,
   type MetricGroup,
 } from "@/models/registry/ratios";
+import { previousPeriod } from "@/models/registry/line-items";
 import type { RatioResult } from "@/models";
 import {
   formatMoney,
@@ -130,6 +131,8 @@ export const RatiosView: React.FC = () => {
   // Trend series: revenue / gross_profit / net_income across confirmed
   // income-statement periods (line-items.md §5 trend rows).
   const { trend } = useTrendsController(statements.statements, activeOrgId);
+  // B6b frame: the trends chart offers a "Data table" toggle (mirrors B1).
+  const [showTrendTable, setShowTrendTable] = useState(false);
 
   const grouped = useMemo(() => {
     const map = new Map<MetricGroup, RatioResult[]>();
@@ -250,7 +253,13 @@ export const RatiosView: React.FC = () => {
                             status={result.status}
                             band={result.status === "na" ? null : domain.band}
                             delta={result.period_delta ?? undefined}
-                            deltaCaption="vs prior period"
+                            // Name the prior period ("vs FY2024"), not a
+                            // generic "vs prior period" (B6b frame copy).
+                            deltaCaption={
+                              (period && previousPeriod(period)
+                                ? `vs ${previousPeriod(period)}`
+                                : undefined) ?? "vs prior period"
+                            }
                             formula={result.formula}
                             naReason={result.na_reason}
                             caption={result.benchmark_band ?? undefined}
@@ -301,39 +310,111 @@ export const RatiosView: React.FC = () => {
           })}
 
           <section aria-label="Trends" className="mb-6">
-            <h2 className="mb-2 text-[13px] font-medium uppercase tracking-wide text-text-2">
-              Trends
-            </h2>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-[13px] font-medium uppercase tracking-wide text-text-2">
+                Trends
+              </h2>
+              {trend && trend.labels.length >= 2 ? (
+                // Chart data-table toggle per the B6b frame (mirrors B1).
+                <button
+                  type="button"
+                  onClick={() => setShowTrendTable((prev) => !prev)}
+                  className="rounded border border-border bg-bg-elev px-2 py-0.5 text-[12px] font-medium text-text-2 transition-colors duration-fast ease-standard hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  {showTrendTable ? "Chart" : "Data table"}
+                </button>
+              ) : null}
+            </div>
             {trend && trend.labels.length >= 2 ? (
               <div className="rounded border border-border bg-bg p-4">
-                {/* Annual observations, not a continuous series — point
-                    markers + FY ticks at the data positions so N=2 reads
-                    as two observations (scales to more FYs). */}
-                <ChartLine
-                  pointMarkers
-                  yTickFormat={(value) => formatMoneyCompact(value, currency)}
-                  series={[
-                    {
-                      id: "revenue",
-                      label: "Revenue",
-                      color: "accent",
-                      points: trend.revenue,
-                    },
-                    {
-                      id: "gross",
-                      label: "Gross profit",
-                      color: "income",
-                      points: trend.grossProfit,
-                    },
-                    {
-                      id: "net",
-                      label: "Net income",
-                      color: "expense",
-                      points: trend.netIncome,
-                    },
-                  ]}
-                  xLabels={trend.labels}
-                />
+                {showTrendTable ? (
+                  <div className="max-lg:overflow-x-auto">
+                    <table
+                      className="w-full min-w-[420px] text-[13px]"
+                      aria-label="Trends data"
+                    >
+                      <thead>
+                        <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-text-2">
+                          <th scope="col" className="py-1.5 font-medium">
+                            Period
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-1.5 text-right font-medium"
+                          >
+                            Revenue
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-1.5 text-right font-medium"
+                          >
+                            Gross profit
+                          </th>
+                          <th
+                            scope="col"
+                            className="py-1.5 text-right font-medium"
+                          >
+                            Net income
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {trend.labels.map((label, index) => (
+                          <tr
+                            key={label}
+                            className="border-b border-border last:border-b-0"
+                          >
+                            <td className="py-1.5 tabular-nums">{label}</td>
+                            <td className="py-1.5 text-right tabular-nums">
+                              {formatMoney(trend.revenue[index], currency, {
+                                decimals: 0,
+                              })}
+                            </td>
+                            <td className="py-1.5 text-right tabular-nums">
+                              {formatMoney(trend.grossProfit[index], currency, {
+                                decimals: 0,
+                              })}
+                            </td>
+                            <td className="py-1.5 text-right tabular-nums">
+                              {formatMoney(trend.netIncome[index], currency, {
+                                decimals: 0,
+                              })}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  /* Annual observations, not a continuous series — point
+                     markers + FY ticks at the data positions so N=2 reads
+                     as two observations (scales to more FYs). */
+                  <ChartLine
+                    pointMarkers
+                    yTickFormat={(value) => formatMoneyCompact(value, currency)}
+                    series={[
+                      {
+                        id: "revenue",
+                        label: "Revenue",
+                        color: "accent",
+                        points: trend.revenue,
+                      },
+                      {
+                        id: "gross",
+                        label: "Gross profit",
+                        color: "income",
+                        points: trend.grossProfit,
+                      },
+                      {
+                        id: "net",
+                        label: "Net income",
+                        color: "expense",
+                        points: trend.netIncome,
+                      },
+                    ]}
+                    xLabels={trend.labels}
+                  />
+                )}
               </div>
             ) : (
               <p className="rounded border border-border bg-bg px-4 py-6 text-center text-[13px] text-text-2">

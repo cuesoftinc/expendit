@@ -22,6 +22,10 @@ export interface Anomaly {
   severity: AnomalySeverity;
   /** Inspector explanation (AnomalyBadge click → anomaly-explain). */
   note: string;
+  /** ISO date the rule fired — falls back to the entry's created_at. */
+  detected_at?: string;
+  /** Rule build the flag came from (provenance line), e.g. "v2". */
+  rule_version?: string;
 }
 
 export interface TxnEntry {

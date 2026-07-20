@@ -193,9 +193,16 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
       page.getByText(/Statement confirmed — ratios recomputed/),
     ).toBeVisible({ timeout: 15_000 });
   }
-  // Statement view (normalized rows incl. derived totals — the registry
-  // StatementView renders mono canonical keys, design.md §8.2).
-  await expect(page.getByText("total_assets").first()).toBeVisible();
+  // Statement view (normalized rows incl. derived totals): human reading
+  // labels from the canonical vocabulary (Figma 98:743), derived rows
+  // carry the ƒ chip, and the identity-check footer ties out green.
+  await expect(page.getByText("Total assets").first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "ƒ derived" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Identity check — Assets = Liabilities \+ Equity/),
+  ).toBeVisible();
 
   // --- B6b ratios: gauges + MI-8 trace inspector -------------------------
   await openNav(page, "Ratios").click();
@@ -230,6 +237,16 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await expect(
     trends.getByTestId("chart-y-axis").getByText("₦0", { exact: true }),
   ).toBeVisible();
+  // Data-table toggle (B6b frame, mirrors B1): chart ⇄ accessible table.
+  await trends.getByRole("button", { name: "Data table" }).click();
+  const trendsTable = trends.getByRole("table", { name: "Trends data" });
+  await expect(trendsTable).toBeVisible();
+  await expect(
+    trendsTable.getByRole("columnheader", { name: "Gross profit" }),
+  ).toBeVisible();
+  await expect(trendsTable.locator("tbody tr")).toHaveCount(2);
+  await trends.getByRole("button", { name: "Chart", exact: true }).click();
+  await expect(trends.getByTestId("chart-y-axis")).toBeVisible();
 
   // --- B7 tax center → B7b filing wizard → filing history ----------------
   await openNav(page, "Tax center").click();
@@ -357,4 +374,79 @@ test("semantic chrome — one main landmark, labeled nav, real ledger table", as
   await expect(page.locator("main")).toHaveCount(1);
   await expect(page.locator("table").first()).toBeVisible();
   expect(await page.getByRole("columnheader").count()).toBeGreaterThan(2);
+});
+
+test("overview mid-band forms two columns at lg (Figma 179:12)", async ({
+  page,
+}) => {
+  // The chart card (2fr) sits beside the donut/anomalies rail (1fr) at
+  // lg+ — regression guard for the invalid `grid-cols-[2fr,1fr]`
+  // arbitrary value (comma is dropped by browsers, collapsing the band
+  // to a single column at every width).
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await signIn(page);
+  const band = page.getByTestId("overview-mid-band");
+  await expect(band).toBeVisible();
+  const trackCount = await band.evaluate(
+    (el) => getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length,
+  );
+  expect(trackCount).toBe(2);
+});
+
+test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await openNav(page, "Settings").click();
+  await page.waitForURL("**/dashboard/settings");
+
+  await page.getByRole("button", { name: "Delete everything…" }).click();
+  const modal = page.getByRole("dialog", { name: "Delete account & all data" });
+  await expect(modal).toBeVisible();
+
+  // Converged construction (B9 + B9b): Export-first secondary present,
+  // CTA locked until the ORG NAME is typed (not a literal phrase).
+  await expect(
+    modal.getByRole("button", { name: "Export first" }),
+  ).toBeVisible();
+  const schedule = modal.getByRole("button", { name: /Schedule deletion/ });
+  await expect(schedule).toBeDisabled();
+  const confirmInput = modal.getByLabel(/Type "Personal" to confirm/);
+  await confirmInput.fill("DELETE EVERYTHING");
+  await expect(schedule).toBeDisabled();
+  await confirmInput.fill("Personal");
+  // Unlocks once the 5s danger-arming countdown elapses; nothing is
+  // scheduled — the flow exits via Cancel (no store mutation).
+  await expect(schedule).toBeEnabled({ timeout: 10_000 });
+  await modal.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(modal).not.toBeVisible();
+});
+
+test("anomaly explain opens from the ledger row (B2b frame anatomy)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await openNav(page, "Transactions").click();
+  await page.waitForURL("**/dashboard/transactions");
+  await expect(page.locator("table tbody tr").first()).toBeVisible();
+
+  // Inline anomaly badges are the row-level entry point — no deep link.
+  await page
+    .locator("tbody")
+    .getByRole("button", {
+      name: /Large transaction|Spending spike|Unusual category|Possible duplicate/,
+    })
+    .first()
+    .click();
+  const explain = page.getByRole("dialog", { name: "Why this was flagged" });
+  await expect(explain).toBeVisible();
+  // Humanized severity, provenance/rule-version line, frame actions.
+  await expect(explain.getByText(/^(Info|Warning)$/)).toBeVisible();
+  await expect(explain.getByText(/Detected .* · rule:/)).toBeVisible();
+  await expect(
+    explain.getByRole("button", { name: "Mark expected" }),
+  ).toBeVisible();
+  // Exit via Cancel — nothing is mutated in the serial narrative.
+  await explain.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(explain).not.toBeVisible();
 });

@@ -231,6 +231,24 @@ export const SUGGESTION_CONFIDENCE_FLOOR = 0.6;
 /** Period grammar (line-items.md §6) — closed; YYYY-MM reserved, rejected. */
 export const PERIOD_PATTERN = /^(\d{4}-Q[1-4]|\d{4}-H[12]|FY\d{4})$/;
 
+/** Previous same-kind period (growth rules: never mixed granularity). */
+export const previousPeriod = (period: string): string | null => {
+  const q = period.match(/^(\d{4})-Q([1-4])$/);
+  if (q) {
+    const year = Number(q[1]);
+    const quarter = Number(q[2]);
+    return quarter === 1 ? `${year - 1}-Q4` : `${year}-Q${quarter - 1}`;
+  }
+  const h = period.match(/^(\d{4})-H([12])$/);
+  if (h) {
+    const year = Number(h[1]);
+    return h[2] === "1" ? `${year - 1}-H2` : `${year}-H1`;
+  }
+  const fy = period.match(/^FY(\d{4})$/);
+  if (fy) return `FY${Number(fy[1]) - 1}`;
+  return null;
+};
+
 /** Annualization factor by period token kind (line-items.md §5). */
 export const annualizationFactor = (period: string): number => {
   if (/^\d{4}-Q[1-4]$/.test(period)) return 4;

@@ -9,7 +9,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useCategoriesController, useOrg } from "@/controllers";
 import { ApiError } from "@/models/repositories";
 import type { Category, CategoryType } from "@/models";
@@ -52,6 +52,13 @@ interface CategoryListProps {
   onDelete: (category: Category) => void;
 }
 
+/** B8 usage meta: "N transactions this year" (+ AI-proposal provenance). */
+const usageMeta = (category: Category): string => {
+  const count = category.txn_count_ytd ?? 0;
+  const usage = `${count} ${count === 1 ? "transaction" : "transactions"} this year`;
+  return category.ai_note ? `${usage} · ${category.ai_note}` : usage;
+};
+
 const CategoryList: React.FC<CategoryListProps> = ({
   title,
   items,
@@ -70,6 +77,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
         {items.map((category) => (
           <li
             key={category.id}
+            data-ai-proposed={category.ai_proposed || undefined}
             // flex-wrap: at narrow widths the action cluster wraps under
             // the chip instead of pushing the page wide (mobile canon).
             className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-border px-4 py-2 last:border-b-0"
@@ -80,8 +88,14 @@ const CategoryList: React.FC<CategoryListProps> = ({
                 name: category.name,
                 color: category.color,
               }}
+              // ✨ on AI-proposed rows (B8 frame) until a human edit
+              // confirms the registry entry.
+              aiSuggested={category.ai_proposed ?? false}
             />
-            <span className="min-w-0 flex-1" />
+            {/* Usage meta — merge-safety context (B8 frame). */}
+            <span className="min-w-0 flex-1 truncate text-[12px] text-text-2">
+              {usageMeta(category)}
+            </span>
             <span className="flex shrink-0 items-center gap-3">
               <Button kind="quiet" size="sm" onClick={() => onEdit(category)}>
                 Edit
@@ -118,6 +132,8 @@ export const CategoriesView: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [mergeSource, setMergeSource] = useState<Category | null>(null);
   const [mergeTarget, setMergeTarget] = useState<string | null>(null);
+  // Danger pattern: per-row delete confirms before it fires (B8 review).
+  const [confirmDelete, setConfirmDelete] = useState<Category | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const expenseCategories = useMemo(
@@ -224,8 +240,9 @@ export const CategoriesView: React.FC = () => {
       ) : null}
 
       <div className="mb-4">
+        {/* Banner kind="info" supplies its own leading icon — no manual
+            Sparkles (double-icon bug, audit B8). */}
         <Banner kind="info">
-          <Sparkles aria-hidden className="mr-1 inline h-3.5 w-3.5" />
           Your category corrections train the AI — re-categorized imports
           improve future suggestions for this workspace.
         </Banner>
@@ -251,7 +268,7 @@ export const CategoriesView: React.FC = () => {
               })
             }
             onMerge={setMergeSource}
-            onDelete={(category) => void removeCategory(category)}
+            onDelete={setConfirmDelete}
           />
           <CategoryList
             title="Income categories"
@@ -265,7 +282,7 @@ export const CategoriesView: React.FC = () => {
               })
             }
             onMerge={setMergeSource}
-            onDelete={(category) => void removeCategory(category)}
+            onDelete={setConfirmDelete}
           />
         </div>
       )}
@@ -333,6 +350,36 @@ export const CategoriesView: React.FC = () => {
           </div>
         ) : null}
       </Modal>
+
+      {/* Delete confirm — the danger pattern applies to every
+          destructive row action (B8 review; category_in_use pivots the
+          confirmed delete to the merge tool). */}
+      <Modal
+        open={confirmDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+        title={`Delete "${confirmDelete?.name ?? ""}"?`}
+        description="Unused categories are removed immediately; in-use ones pivot to the merge tool so history is never orphaned."
+        size="sm"
+        footer={
+          <div className="flex w-full justify-end gap-2">
+            <Button kind="quiet" onClick={() => setConfirmDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              kind="destructive"
+              onClick={() => {
+                const category = confirmDelete;
+                setConfirmDelete(null);
+                if (category) void removeCategory(category);
+              }}
+            >
+              Delete category
+            </Button>
+          </div>
+        }
+      />
 
       {/* Merge tool */}
       <Modal

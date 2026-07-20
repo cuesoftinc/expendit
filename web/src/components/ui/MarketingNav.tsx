@@ -175,7 +175,9 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
           href="/"
           className="mr-4 rounded text-sm font-semibold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          expendit
+          {/* Brand mark with the accent dot — matches the footer
+              wordmark (frames carry it on nav + footer). */}
+          expendit<span className="text-accent">.</span>
         </Link>
 
         {links.map((link) =>

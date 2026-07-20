@@ -23,6 +23,10 @@ describe("Chart/Donut (design.md §8.2b)", () => {
     );
     expect(screen.getByText("₦100k")).toBeInTheDocument();
     expect(screen.getByText("June")).toBeInTheDocument();
+    // Center stack order per the Figma master: caption above, value below.
+    const captionY = Number(screen.getByText("June").getAttribute("y"));
+    const valueY = Number(screen.getByText("₦100k").getAttribute("y"));
+    expect(captionY).toBeLessThan(valueY);
   });
 
   it("legend variants right / bottom / none", () => {
