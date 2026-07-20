@@ -237,6 +237,16 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   await expect(
     trends.getByTestId("chart-y-axis").getByText("₦0", { exact: true }),
   ).toBeVisible();
+  // Data-table toggle (B6b frame, mirrors B1): chart ⇄ accessible table.
+  await trends.getByRole("button", { name: "Data table" }).click();
+  const trendsTable = trends.getByRole("table", { name: "Trends data" });
+  await expect(trendsTable).toBeVisible();
+  await expect(
+    trendsTable.getByRole("columnheader", { name: "Gross profit" }),
+  ).toBeVisible();
+  await expect(trendsTable.locator("tbody tr")).toHaveCount(2);
+  await trends.getByRole("button", { name: "Chart", exact: true }).click();
+  await expect(trends.getByTestId("chart-y-axis")).toBeVisible();
 
   // --- B7 tax center → B7b filing wizard → filing history ----------------
   await openNav(page, "Tax center").click();
