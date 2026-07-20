@@ -356,6 +356,38 @@ test("core journey — overview, ledger CRUD, import, statements, ratios, tax wi
   ).toBeVisible();
 });
 
+test("reports — inline toolbar, generating strip, artifact meta, expiry caption (B5)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await switchToCompanyOrg(page);
+  await openNav(page, "Reports").click();
+  await page.waitForURL("**/dashboard/reports");
+
+  // Inline toolbar (Figma B5): PDF·CSV segmented + "Generate report".
+  await expect(page.getByRole("radiogroup", { name: "Format" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Generate report" }),
+  ).toBeVisible();
+
+  // Generating strip above the history with the % read-out.
+  await expect(
+    page.getByText(/Generating Cash movement — Jun 2026/),
+  ).toBeVisible();
+  await expect(page.getByText(/pdf · \d+%/i)).toBeVisible();
+
+  // History: "Artifact history" heading, titled rows with size meta,
+  // and the expiry reassurance caption.
+  await expect(
+    page.getByRole("heading", { name: "Artifact history" }),
+  ).toBeVisible();
+  await expect(page.getByText("Monthly summary — Jun 2026")).toBeVisible();
+  await expect(page.getByText(/1\.2 MB/).first()).toBeVisible();
+  await expect(
+    page.getByText("Artifacts expire after 30 days. You can regenerate any report at any time."),
+  ).toBeVisible();
+});
+
 test("bank-link journey — tile tray, consent deck, determinate sync, stamped done (MI-9)", async ({
   page,
 }) => {

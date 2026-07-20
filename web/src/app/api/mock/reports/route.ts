@@ -93,6 +93,8 @@ export async function POST(request: Request) {
     },
     status: "ready",
     signed_url: `/api/mock/reports/${nextId("dl")}/download`,
+    // Plausible artifact weight for the row meta ("PDF · 1.2 MB").
+    size_bytes: body.format === "pdf" ? 1_240_000 : 246_000,
     created_at: now.toISOString(),
     expires_at: expires.toISOString(),
   };

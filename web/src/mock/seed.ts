@@ -2819,6 +2819,7 @@ const artifacts: ReportArtifact[] = [
     params: {},
     status: "generating",
     signed_url: null,
+    size_bytes: null,
     created_at: "2026-07-20T09:41:00.000Z",
     expires_at: "2026-08-19T09:41:00.000Z",
   },
@@ -2831,6 +2832,7 @@ const artifacts: ReportArtifact[] = [
     params: { category: "cat-cloud" },
     status: "ready",
     signed_url: "/api/mock/reports/artifact-deepdive-cloud/download",
+    size_bytes: 845_000, // CSV deep-dive
     created_at: "2026-07-20T09:40:00.000Z", // NEW ≤24h (MI-14)
     expires_at: "2026-08-19T09:40:00.000Z",
   },
@@ -2843,6 +2845,7 @@ const artifacts: ReportArtifact[] = [
     params: {},
     status: "ready",
     signed_url: "/api/mock/reports/artifact-monthly-jun/download",
+    size_bytes: 1_240_000, // "PDF · 1.2 MB" (Figma 128:1209)
     created_at: "2026-07-02T08:15:00.000Z",
     expires_at: "2026-08-01T08:15:00.000Z",
   },
@@ -2855,6 +2858,7 @@ const artifacts: ReportArtifact[] = [
     params: { statement_kind: "balance_sheet" },
     status: "ready",
     signed_url: "/api/mock/reports/artifact-fs-fy2025/download",
+    size_bytes: 980_000,
     created_at: "2026-07-01T12:00:00.000Z",
     expires_at: "2026-07-31T12:00:00.000Z",
   },
@@ -2867,6 +2871,7 @@ const artifacts: ReportArtifact[] = [
     params: {},
     status: "ready", // expires_at < today → served as expired
     signed_url: "/api/mock/reports/artifact-monthly-mar/download",
+    size_bytes: 1_180_000,
     created_at: "2026-04-02T09:20:00.000Z",
     expires_at: "2026-05-02T09:20:00.000Z",
   },

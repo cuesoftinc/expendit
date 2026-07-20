@@ -1,7 +1,8 @@
 /**
- * ReportArtifactRow — design.md §8.2b: kind icon + name + period +
- * format · state generating (inline progress) / ready / NEW (≤24h,
- * MI-14) / expired (TTL).
+ * ReportArtifactRow — design.md §8.2b (Figma 128:1209): kind icon ·
+ * title "Monthly summary — Jun 2026" · meta line "PDF · 1.2 MB" under
+ * the title · state generating (inline progress) / ready / NEW (≤24h,
+ * MI-14) / expired (TTL, greyed).
  */
 
 import React from "react";
@@ -15,6 +16,8 @@ import {
 } from "lucide-react";
 import type { ReportArtifact, ReportKind } from "@/models";
 import { cn } from "@/lib/cn";
+import { formatIso } from "@/lib/dates";
+import { formatBytes } from "@/lib/format";
 import ProgressBar from "./ProgressBar";
 import Tag from "./Tag";
 
@@ -28,6 +31,10 @@ const KIND_META: Record<
   financial_statement: { label: "Financial statement", Icon: Banknote },
   full_export: { label: "Full export", Icon: FileArchive },
 };
+
+/** "2026-06" → "Jun 2026"; statement grammar (FY2025, 2026-Q2) as-is. */
+export const humanPeriod = (period: string): string =>
+  /^\d{4}-\d{2}$/.test(period) ? formatIso(`${period}-01`, "MMM yyyy") : period;
 
 export interface ReportArtifactRowProps {
   artifact: ReportArtifact;
@@ -63,12 +70,17 @@ export const ReportArtifactRow: React.FC<ReportArtifactRowProps> = ({
       )}
     >
       <Icon aria-hidden className="h-4 w-4 shrink-0 text-text-2" />
-      <span className="min-w-0 flex-1 truncate font-medium">{label}</span>
-      <span className="w-20 shrink-0 tabular-nums text-text-2">
-        {artifact.period}
-      </span>
-      <span className="w-12 shrink-0 font-mono text-[11px] uppercase text-text-2">
-        {artifact.format}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium leading-4">
+          {label} — {humanPeriod(artifact.period)}
+        </span>
+        {/* Meta line (Figma 128:1209): "PDF · 1.2 MB". */}
+        <span className="block truncate text-[12px] leading-4 text-text-2">
+          <span className="uppercase">{artifact.format}</span>
+          {artifact.size_bytes != null
+            ? ` · ${formatBytes(artifact.size_bytes)}`
+            : ""}
+        </span>
       </span>
       {state === "generating" ? (
         <span className="w-32 shrink-0" data-testid="artifact-progress">

@@ -29,6 +29,8 @@ export interface ReportArtifact {
   };
   status: ReportArtifactStatus;
   signed_url: string | null;
+  /** File size in bytes (row meta "PDF · 1.2 MB"); null while generating. */
+  size_bytes?: number | null;
   created_at: string;
   /** 30-day artifact TTL (api.md §2). */
   expires_at: string;

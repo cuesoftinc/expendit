@@ -59,5 +59,15 @@ export const formatMoneyCompact = (
 export const formatPercent = (value: number, decimals = 1): string =>
   `${(value * 100).toFixed(decimals)}%`;
 
+/** File sizes for artifact meta lines ("1.2 MB", "845 KB"). */
+export const formatBytes = (bytes: number): string => {
+  if (bytes >= 1e6) {
+    const mb = Math.round((bytes / 1e6) * 10) / 10;
+    return `${Number.isInteger(mb) ? mb.toFixed(0) : mb.toFixed(1)} MB`;
+  }
+  if (bytes >= 1e3) return `${Math.round(bytes / 1e3)} KB`;
+  return `${bytes} B`;
+};
+
 export const formatRatio = (value: number, decimals = 2): string =>
   value.toFixed(decimals);
