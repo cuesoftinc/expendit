@@ -3,8 +3,8 @@ import { act, renderHook } from "@testing-library/react";
 import {
   VIEWPORT_GUTTER,
   clampShiftX,
+  useAnchoredPanelPlacement,
   useViewportShiftX,
-  useViewportShiftXY,
 } from "./use-viewport-clamp";
 
 describe("clampShiftX (floating-layer viewport clamp)", () => {
@@ -83,42 +83,103 @@ describe("useViewportShiftX", () => {
   });
 });
 
-describe("useViewportShiftXY (two-axis clamp for the calendar panels)", () => {
+describe("useAnchoredPanelPlacement (master collision contract 467:11039)", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  const panelAt = (rect: Partial<DOMRect>) =>
+  const anchorAt = (rect: Partial<DOMRect>) =>
     ({
       getBoundingClientRect: () => rect as DOMRect,
     }) as HTMLElement;
 
-  it("clamps both axes independently", () => {
+  const panelSized = (width: number, height: number) =>
+    ({
+      offsetWidth: width,
+      offsetHeight: height,
+      clientHeight: height,
+      scrollHeight: height,
+    }) as HTMLElement;
+
+  it("keeps a fitting panel below and left-anchored", () => {
     vi.stubGlobal("innerWidth", 1440);
     vi.stubGlobal("innerHeight", 900);
-    const ref = {
-      current: panelAt({ left: 1272, right: 1496, top: 700, bottom: 1020 }),
+    const anchorRef = {
+      current: anchorAt({ left: 400, right: 544, top: 52, bottom: 84 }),
     };
-    const { result } = renderHook(() => useViewportShiftXY(true, ref));
+    const panelRef = { current: panelSized(220, 300) };
+    const { result } = renderHook(() =>
+      useAnchoredPanelPlacement(true, anchorRef, panelRef),
+    );
     expect(result.current).toEqual({
-      x: 1440 - VIEWPORT_GUTTER - 1496,
-      y: 900 - VIEWPORT_GUTTER - 1020,
+      side: "below",
+      alignRight: false,
+      maxHeight: undefined,
+      shiftX: 0,
     });
   });
 
-  it("returns zero shift for an in-viewport panel and resets on close", () => {
+  it("right-anchors a right-edge trigger (the Overview header case)", () => {
     vi.stubGlobal("innerWidth", 1440);
     vi.stubGlobal("innerHeight", 900);
-    const ref = {
-      current: panelAt({ left: 400, right: 624, top: 100, bottom: 420 }),
+    // w-36 trigger at the header's right edge: left-anchored, the
+    // 220px panel overflowed the right edge and sat flush under it.
+    const anchorRef = {
+      current: anchorAt({ left: 1272, right: 1416, top: 52, bottom: 84 }),
     };
-    const { result, rerender } = renderHook(
-      ({ open }: { open: boolean }) => useViewportShiftXY(open, ref),
-      { initialProps: { open: true } },
+    const panelRef = { current: panelSized(220, 300) };
+    const { result } = renderHook(() =>
+      useAnchoredPanelPlacement(true, anchorRef, panelRef),
     );
-    expect(result.current).toEqual({ x: 0, y: 0 });
-    ref.current = panelAt({ left: 1272, right: 1496, top: 700, bottom: 1020 });
+    expect(result.current).toMatchObject({ alignRight: true, shiftX: 0 });
+  });
+
+  it("flips above a bottom-anchored trigger instead of covering it", () => {
+    vi.stubGlobal("innerWidth", 1440);
+    vi.stubGlobal("innerHeight", 900);
+    const anchorRef = {
+      current: anchorAt({ left: 400, right: 544, top: 700, bottom: 732 }),
+    };
+    const panelRef = { current: panelSized(220, 300) };
+    const { result } = renderHook(() =>
+      useAnchoredPanelPlacement(true, anchorRef, panelRef),
+    );
+    expect(result.current).toMatchObject({
+      side: "above",
+      maxHeight: undefined,
+    });
+  });
+
+  it("caps with internal scroll when neither side fits", () => {
+    vi.stubGlobal("innerWidth", 1440);
+    vi.stubGlobal("innerHeight", 300);
+    const anchorRef = {
+      current: anchorAt({ left: 400, right: 544, top: 40, bottom: 72 }),
+    };
+    const panelRef = { current: panelSized(220, 320) };
+    const { result } = renderHook(() =>
+      useAnchoredPanelPlacement(true, anchorRef, panelRef),
+    );
+    // Below wins (more room): 300 − 8 − 72 − 4 = 216.
+    expect(result.current).toMatchObject({ side: "below", maxHeight: 216 });
+  });
+
+  it("returns null while closed and resets after closing", () => {
+    vi.stubGlobal("innerWidth", 1440);
+    vi.stubGlobal("innerHeight", 900);
+    const anchorRef = {
+      current: anchorAt({ left: 400, right: 544, top: 52, bottom: 84 }),
+    };
+    const panelRef = { current: panelSized(220, 300) };
+    const { result, rerender } = renderHook(
+      ({ open }: { open: boolean }) =>
+        useAnchoredPanelPlacement(open, anchorRef, panelRef),
+      { initialProps: { open: false } },
+    );
+    expect(result.current).toBeNull();
+    rerender({ open: true });
+    expect(result.current).not.toBeNull();
     rerender({ open: false });
-    expect(result.current).toEqual({ x: 0, y: 0 });
+    expect(result.current).toBeNull();
   });
 });
