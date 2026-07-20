@@ -23,6 +23,23 @@ describe("/signin view (flows/auth.md §1 — the one auth screen)", () => {
     expect(document.querySelector('input[type="email"]')).toBeNull();
   });
 
+  it("carries the frame construction: card, dotted wordmark, copy deck (Figma 178:19)", () => {
+    render(<SigninView />);
+    expect(
+      screen.getByRole("heading", { name: "Sign in to your workspace" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Statements, ratios and taxes — one account."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Google sign-in only — no passwords to manage."),
+    ).toBeInTheDocument();
+    // Wordmark with the accent dot, inside the bordered card.
+    const dot = screen.getByText(".", { selector: "span.text-accent" });
+    expect(dot).toBeInTheDocument();
+    expect(dot.closest("div.border-border")).not.toBeNull();
+  });
+
   it("TEST_MODE: Continue with Google signs in and routes to /dashboard", async () => {
     render(<SigninView />);
     await userEvent.click(

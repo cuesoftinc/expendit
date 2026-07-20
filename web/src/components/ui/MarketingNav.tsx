@@ -20,6 +20,7 @@ import React, { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import Wordmark from "./Wordmark";
 
 export interface MarketingNavLink {
   label: string;
@@ -175,7 +176,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
           href="/"
           className="mr-4 rounded text-sm font-semibold tracking-tight text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
-          expendit
+          <Wordmark />
         </Link>
 
         {links.map((link) =>

@@ -17,6 +17,21 @@ test("signin page shows the single Google CTA and no password fields", async ({
   await expect(page.locator('input[type="email"]')).toHaveCount(0);
 });
 
+test("signin carries the frame construction (Figma 178:19)", async ({
+  page,
+}) => {
+  await page.goto("/signin");
+  await expect(
+    page.getByRole("heading", { name: "Sign in to your workspace" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Statements, ratios and taxes — one account."),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Google sign-in only — no passwords to manage."),
+  ).toBeVisible();
+});
+
 test("TEST_MODE: Continue with Google goes straight to /dashboard", async ({
   page,
 }) => {
