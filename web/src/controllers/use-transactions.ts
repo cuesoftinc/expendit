@@ -85,6 +85,22 @@ export const useTransactionsController = (orgId?: string) => {
     [orgId],
   );
 
+  /**
+   * Comparable transactions for the anomaly-explain panel — same
+   * category + direction from the FULL ledger (never the currently
+   * filtered page, which may be anomaly-only).
+   */
+  const fetchComparables = useCallback(
+    async (txn: TxnEntry) => {
+      const page = await transactionsRepo.list(
+        { category_id: txn.category_id, direction: txn.direction, limit: 5 },
+        { orgId },
+      );
+      return page.items.filter((item) => item.id !== txn.id).slice(0, 4);
+    },
+    [orgId],
+  );
+
   return {
     items,
     nextCursor,
@@ -97,5 +113,6 @@ export const useTransactionsController = (orgId?: string) => {
     create,
     update,
     remove,
+    fetchComparables,
   };
 };
