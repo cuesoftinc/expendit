@@ -228,18 +228,26 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   state** (✨ chip + provenance note, e.g. "AI proposed from 3 vendors"; a
   human edit confirms the entry). Per-row Delete confirms before firing
   (danger pattern); `category_in_use` pivots to merge.
-- Settings: org members/roles (company orgs), organization profile — name,
-  registered address, fiscal year end (company orgs; data-model.md §5,
-  FormRow; FYE is a human month-end select, "31 December", writing the
-  MM-DD wire format), data & privacy (export-all USR-001, purge USR-002
-  with MI-15), AI-processing consent, bank-link permissions,
-  notifications, theme/density (theme control order Light | Dark | System
-  — the toggle's cycle order).
-- Rights & data screens: export-all progress (202 job → running/completed
-  with signed-url download, flows/rights.md §1) and delete-account
-  typed-confirm (MI-15: type the **org name**, 5s danger-armed CTA, an
-  **Export first** secondary that kicks off USR-001; 7-day grace,
-  flows/rights.md §2) **[Directive 2026-07-18]**.
+- Settings **[Ratified 2026-07-20]**: route-backed tabs — a settings-local
+  underline Tabs bar (kit grammar) under the page title; each tab is a
+  real sub-route `/dashboard/settings/<tab>`, deep-linkable, and the bare
+  `/dashboard/settings` redirects to the first tab (`/organization`).
+  Four tabs: **Organization** (`/organization`) — organization profile:
+  name, registered address, fiscal year end (company orgs; data-model.md
+  §5, FormRow; FYE is a human month-end select, "31 December", writing
+  the MM-DD wire format), with the Appearance rows at the tab tail (theme
+  control order Light | Dark | System — the toggle's cycle order; density
+  stays per-table) · **Members** (`/members`) — members/roles (company
+  orgs; invites pending until first sign-in) · **Data & privacy**
+  (`/data-privacy`) — AI-processing consent, bank-link permissions,
+  export-all USR-001, purge USR-002 with MI-15 · **Notifications**
+  (`/notifications`) — deadline reminders (T-30/T-7/T-1) and import
+  summaries.
+- Rights & data — the **Data & privacy** tab pane: export-all progress
+  (202 job → running/completed with signed-url download, flows/rights.md
+  §1) and delete-account typed-confirm (MI-15: type the **org name**, 5s
+  danger-armed CTA, an **Export first** secondary that kicks off USR-001;
+  7-day grace, flows/rights.md §2) **[Directive 2026-07-18]**.
 
 ## Part C — Mobile app (later phase; parity direction **[Directive]**)
 
