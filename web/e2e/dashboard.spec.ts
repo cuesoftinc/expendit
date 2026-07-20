@@ -382,3 +382,32 @@ test("overview mid-band forms two columns at lg (Figma 179:12)", async ({
   );
   expect(trackCount).toBe(2);
 });
+
+test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)", async ({
+  page,
+}) => {
+  await signIn(page);
+  await openNav(page, "Settings").click();
+  await page.waitForURL("**/dashboard/settings");
+
+  await page.getByRole("button", { name: "Delete everything…" }).click();
+  const modal = page.getByRole("dialog", { name: "Delete account & all data" });
+  await expect(modal).toBeVisible();
+
+  // Converged construction (B9 + B9b): Export-first secondary present,
+  // CTA locked until the ORG NAME is typed (not a literal phrase).
+  await expect(
+    modal.getByRole("button", { name: "Export first" }),
+  ).toBeVisible();
+  const schedule = modal.getByRole("button", { name: /Schedule deletion/ });
+  await expect(schedule).toBeDisabled();
+  const confirmInput = modal.getByLabel(/Type "Personal" to confirm/);
+  await confirmInput.fill("DELETE EVERYTHING");
+  await expect(schedule).toBeDisabled();
+  await confirmInput.fill("Personal");
+  // Unlocks once the 5s danger-arming countdown elapses; nothing is
+  // scheduled — the flow exits via Cancel (no store mutation).
+  await expect(schedule).toBeEnabled({ timeout: 10_000 });
+  await modal.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(modal).not.toBeVisible();
+});
