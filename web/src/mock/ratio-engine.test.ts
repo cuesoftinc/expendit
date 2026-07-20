@@ -87,6 +87,30 @@ describe("ratio engine (FY2025 seed — line-items.md §5 registry)", () => {
     expect(metric2024("interest_coverage").status).toBe("critical");
   });
 
+  it("plumbs period_delta vs the prior same-kind period (gauge delta line)", () => {
+    // FY2025 gauges carry current − FY2024 deltas (RatioGauge "vs FY2024").
+    const fy2025 = computeRatioReport(ORG_CUESOFT, "FY2025");
+    const fy2024 = computeRatioReport(ORG_CUESOFT, "FY2024");
+    const value = (report: typeof fy2025, key: string) =>
+      report.ratios.find((ratio) => ratio.key === key)!;
+    const current = value(fy2025, "current_ratio");
+    const prior = value(fy2024, "current_ratio");
+    expect(current.period_delta).not.toBeNull();
+    expect(current.period_delta).toBeCloseTo(
+      (current.value as number) - (prior.value as number),
+      6,
+    );
+    // The turnaround story reads positive: liquidity improved FY2024→FY2025.
+    expect(current.period_delta as number).toBeGreaterThan(0);
+    // Growth metrics ARE period comparisons — no delta-on-a-delta.
+    expect(value(fy2025, "revenue_growth").period_delta).toBeNull();
+    // FY2024 has no FY2023 statements → deltas stay null.
+    expect(prior.period_delta).toBeNull();
+    // Metrics n/a in the prior period attach no delta (CFO ratios: no
+    // FY2024 cash-flow statement).
+    expect(value(fy2025, "operating_cash_flow_ratio").period_delta).toBeNull();
+  });
+
   it("persists formula + resolved line-item inputs (the MI-8 trace)", () => {
     const current = metric("current_ratio");
     expect(current.formula).toBe("current_assets / current_liabilities");

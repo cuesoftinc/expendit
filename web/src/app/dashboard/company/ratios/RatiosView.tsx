@@ -22,6 +22,7 @@ import {
   RATIO_REGISTRY,
   type MetricGroup,
 } from "@/models/registry/ratios";
+import { previousPeriod } from "@/models/registry/line-items";
 import type { RatioResult } from "@/models";
 import {
   formatMoney,
@@ -252,7 +253,13 @@ export const RatiosView: React.FC = () => {
                             status={result.status}
                             band={result.status === "na" ? null : domain.band}
                             delta={result.period_delta ?? undefined}
-                            deltaCaption="vs prior period"
+                            // Name the prior period ("vs FY2024"), not a
+                            // generic "vs prior period" (B6b frame copy).
+                            deltaCaption={
+                              (period && previousPeriod(period)
+                                ? `vs ${previousPeriod(period)}`
+                                : undefined) ?? "vs prior period"
+                            }
                             formula={result.formula}
                             naReason={result.na_reason}
                             caption={result.benchmark_band ?? undefined}

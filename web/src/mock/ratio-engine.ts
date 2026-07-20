@@ -10,6 +10,7 @@ import type { CanonicalKey } from "@/models/registry/line-items";
 import {
   annualizationFactor,
   periodDayCount,
+  previousPeriod,
 } from "@/models/registry/line-items";
 import { classify, RATIO_REGISTRY } from "@/models/registry/ratios";
 import { mockNow } from "./clock";
@@ -59,23 +60,9 @@ const collectValues = (
   return { values, kinds };
 };
 
-/** Previous same-kind period (growth rules: never mixed granularity). */
-export const previousPeriod = (period: string): string | null => {
-  const q = period.match(/^(\d{4})-Q([1-4])$/);
-  if (q) {
-    const year = Number(q[1]);
-    const quarter = Number(q[2]);
-    return quarter === 1 ? `${year - 1}-Q4` : `${year}-Q${quarter - 1}`;
-  }
-  const h = period.match(/^(\d{4})-H([12])$/);
-  if (h) {
-    const year = Number(h[1]);
-    return h[2] === "1" ? `${year - 1}-H2` : `${year}-H1`;
-  }
-  const fy = period.match(/^FY(\d{4})$/);
-  if (fy) return `FY${Number(fy[1]) - 1}`;
-  return null;
-};
+// Period-grammar helper moved to the models registry (period logic is
+// contract, not mock) — re-exported for existing engine consumers/tests.
+export { previousPeriod };
 
 const KIND_OF_KEY: Record<
   string,
@@ -128,10 +115,8 @@ const ledgerBurn = (
   return { burn: -avgNet, months: nets.length, positive: false };
 };
 
-export const computeRatioReport = (
-  orgId: string,
-  period: string,
-): RatioReport => {
+/** One period's metric results (no cross-period deltas at this level). */
+const computeResults = (orgId: string, period: string): RatioResult[] => {
   const db = getDb();
   const { values, kinds } = collectValues(db, orgId, period);
   const prevValues = (() => {
@@ -580,6 +565,33 @@ export const computeRatioReport = (
       }
       default:
         break;
+    }
+  }
+
+  return results;
+};
+
+export const computeRatioReport = (
+  orgId: string,
+  period: string,
+): RatioReport => {
+  const results = computeResults(orgId, period);
+
+  // period_delta: current − prior same-kind period, per metric (RatioGauge
+  // "+0.21 vs FY2024" delta line — Figma B6b). Growth metrics already ARE
+  // period comparisons; deltas attach only where both periods computed.
+  const prev = previousPeriod(period);
+  if (prev) {
+    const prevByKey = new Map(
+      computeResults(orgId, prev).map((result) => [result.key, result]),
+    );
+    for (const result of results) {
+      if (result.value === null) continue;
+      if (result.group === "growth") continue;
+      const prior = prevByKey.get(result.key);
+      if (prior && prior.value !== null) {
+        result.period_delta = result.value - prior.value;
+      }
     }
   }
 
