@@ -38,4 +38,17 @@ describe("BulkActionBar (design.md §8.2b)", () => {
     expect(onExport).toHaveBeenCalled();
     expect(onClear).toHaveBeenCalled();
   });
+
+  it("bulk delete (Figma 123:1126) renders only when wired and fires", async () => {
+    const onDelete = vi.fn();
+    const { rerender } = render(<BulkActionBar selectedCount={3} />);
+    expect(
+      screen.queryByRole("button", { name: "Delete selection" }),
+    ).toBeNull();
+    rerender(<BulkActionBar selectedCount={3} onDelete={onDelete} />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Delete selection" }),
+    );
+    expect(onDelete).toHaveBeenCalled();
+  });
 });
