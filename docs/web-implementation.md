@@ -292,7 +292,25 @@ budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
 prod build only) AND that intent still mounts the full reference with
 the spec fetch intact.
 
-**Theme contract as-built (2026-07-20, ratified — identical across
+**Dashboard chunk audit (2026-07-21, adjudicated from the fleet perf
+audit P13 — expendit dashboards were the fleet's heaviest at 337–347K
+encoded / 73–92 requests per route).** Findings, network-recorded on
+the TEST_MODE prod build (cold cache per route): the audit's suspects
+do not exist — there is NO charting library (dashboard charts are
+hand-rolled SVG in app code) and NO xlsx dependency (imports parse CSV
+with app code); the dependency graph is radix + lucide + date-fns +
+clsx only. Route-level code splitting is healthy: each pillar view is
+its own small chunk (~5–8K gz) referenced only by its route. The
+uniform ~342K per route decomposes as (a) the framework floor shared
+with every page (react-dom ~70K enc + Next runtime/router ~60K +
+radix/lucide/shared-UI ~40K — /signin measures 237K settled with zero
+dashboard code), and (b) ~100K of Next segment-prefetch freight: the
+nav rail links every pillar, and App Router prefetch pulls sibling
+route chunks, converging every dashboard route to the same union set
+(the 73–92 requests are these many small turbopack chunks). Both are
+by design; no diet applied — disabling rail prefetch or force-splitting
+the shell would trade navigation latency for lab numbers, and the
+interaction-gated candidates are immaterial (CommandPalette ~2K gz).
 apparule, expendit and upstat).** The preference is tri-state
 light | dark | system: `ThemeProvider` persists it at `expendit.theme`
 ("light"/"dark"/"system" all stored explicitly; KEY ABSENT = dark,
