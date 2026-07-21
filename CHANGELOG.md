@@ -116,6 +116,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sign-in/sign-up hooks.
 
 ### Fixed
+- Demo embeds highlight the surface they depict in the nav rail (Overview /
+  Imports / Tax center) instead of always marking Overview active — canvas
+  parity for the hero and walkthrough thumbs (#265).
 
 - Ratio gauges format the period delta (2dp ratio convention, or the
   metric's own style — days stay integer) instead of printing the raw

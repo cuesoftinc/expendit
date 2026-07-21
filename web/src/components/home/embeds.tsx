@@ -91,20 +91,30 @@ const TXN_COLUMNS = [
 
 export { TXN_COLUMNS };
 
-const NAV = (
+// Each embed depicts a different surface, so its rail highlights that
+// surface (canvas parity — the A5a thumbs highlight per-surface nav).
+const navFor = (active: string) => (
   <AppNav
     orgSwitcher={<OrgSwitcher orgs={EMBED_ORGS} currentOrgId="org-cuesoft" />}
   >
-    <NavItem icon={LayoutDashboard} label="Overview" active />
+    <NavItem
+      icon={LayoutDashboard}
+      label="Overview"
+      active={active === "Overview"}
+    />
     <NavItem icon={ArrowLeftRight} label="Transactions" />
-    <NavItem icon={Upload} label="Imports" />
+    <NavItem icon={Upload} label="Imports" active={active === "Imports"} />
     <NavItem icon={Landmark} label="Accounts" />
     <NavItem icon={FileText} label="Reports" />
     <NavGroupLabel>Company</NavGroupLabel>
     <NavItem icon={FileSpreadsheet} label="Statements" />
     <NavItem icon={Gauge} label="Ratios" badgeCount={3} />
     <NavGroupLabel>Taxes</NavGroupLabel>
-    <NavItem icon={Calculator} label="Tax center" />
+    <NavItem
+      icon={Calculator}
+      label="Tax center"
+      active={active === "Tax center"}
+    />
     <NavItem icon={TagIcon} label="Categories" />
     <NavItem icon={Settings} label="Settings" />
   </AppNav>
@@ -199,7 +209,7 @@ export const DashboardEmbed: React.FC = () => {
       className="flex h-full w-full overflow-hidden bg-bg text-left"
       style={{ width: DASHBOARD_EMBED_WIDTH, height: DASHBOARD_EMBED_HEIGHT }}
     >
-      {NAV}
+      {navFor("Overview")}
       <div className="min-w-0 flex-1 space-y-4 overflow-hidden p-5">
         <div className="flex items-center justify-between gap-4">
           <h3 className="text-lg font-semibold tracking-tight text-text">
@@ -368,7 +378,7 @@ export const ImportReviewEmbed: React.FC = () => {
       className="flex h-full w-full overflow-hidden bg-bg text-left"
       style={{ width: IMPORT_EMBED_WIDTH, height: IMPORT_EMBED_HEIGHT }}
     >
-      {NAV}
+      {navFor("Imports")}
       <div className="min-w-0 flex-1 space-y-3 overflow-hidden p-5">
         <StagedReviewHeader importCount={209} duplicateCount={5} />
         <div>
@@ -421,7 +431,7 @@ export const TaxCenterEmbed: React.FC = () => (
     className="flex h-full w-full overflow-hidden bg-bg text-left"
     style={{ width: TAX_EMBED_WIDTH, height: TAX_EMBED_HEIGHT }}
   >
-    {NAV}
+    {navFor("Tax center")}
     <div className="min-w-0 flex-1 space-y-4 overflow-hidden p-5">
       <div className="flex items-center justify-between gap-4">
         <h3 className="text-lg font-semibold tracking-tight text-text">
