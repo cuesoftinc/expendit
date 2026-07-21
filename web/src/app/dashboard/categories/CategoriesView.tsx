@@ -1,10 +1,11 @@
 "use client";
 
 /**
- * B8 `/dashboard/categories` — Categories (pages.md B8): CRUD with
- * color dot (ColorSwatchPicker presets), the merge tool (repoints ledger
- * + staged rows), and the AI-training note. 409 category_in_use on
- * delete pivots to merge. Render-only.
+ * B8 `/dashboard/categories` — Categories, the Active registry tab
+ * (pages.md B8): CRUD with color dot (ColorSwatchPicker presets), the
+ * merge tool (repoints ledger + staged rows), the quiet Archive action
+ * (rows move to the routed Archive tab), and the AI-training note.
+ * 409 category_in_use on delete pivots to merge. Render-only.
  */
 
 import React, { useMemo, useState } from "react";
@@ -19,11 +20,13 @@ import CategoryChip from "@/components/ui/CategoryChip";
 import ColorSwatchPicker from "@/components/ui/ColorSwatchPicker";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
+import RouteTabs from "@/components/ui/RouteTabs";
 import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import PageHeader from "../PageHeader";
 import ToastLayer from "../ToastLayer";
+import { CATEGORY_TABS } from "./tabs";
 
 // Registry preset palette (data, not styling — B8 ColorSwatchPicker).
 const PRESET_COLORS = [
@@ -49,6 +52,7 @@ interface CategoryListProps {
   items: Category[];
   onEdit: (category: Category) => void;
   onMerge: (category: Category) => void;
+  onArchive: (category: Category) => void;
   onDelete: (category: Category) => void;
 }
 
@@ -64,6 +68,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
   items,
   onEdit,
   onMerge,
+  onArchive,
   onDelete,
 }) => (
   <section aria-label={title} className="rounded border border-border bg-bg">
@@ -102,6 +107,16 @@ const CategoryList: React.FC<CategoryListProps> = ({
               </Button>
               <Button kind="quiet" size="sm" onClick={() => onMerge(category)}>
                 Merge
+              </Button>
+              {/* Archive is quiet, not danger (danger ladder): it is the
+                  reversible soft path — the row moves to the Archive tab
+                  and leaves pickers, history untouched. */}
+              <Button
+                kind="quiet"
+                size="sm"
+                onClick={() => onArchive(category)}
+              >
+                Archive
               </Button>
               <Button
                 kind="destructive"
@@ -184,6 +199,16 @@ export const CategoriesView: React.FC = () => {
     }
   };
 
+  // Quiet + reversible (no confirm): the row moves to the Archive tab.
+  const archiveCategory = async (category: Category) => {
+    try {
+      await categories.archive(category.id);
+      setToast(`"${category.name}" archived — find it under Archive`);
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "Archive failed");
+    }
+  };
+
   const removeCategory = async (category: Category) => {
     try {
       await categories.remove(category.id);
@@ -233,59 +258,65 @@ export const CategoriesView: React.FC = () => {
         }
       />
 
-      {categories.error ? (
+      {/* Routed registry tabs (ratified 2026-07-21): Active | Archive,
+          every tab a real sub-route (RouteTabs idiom). */}
+      <RouteTabs tabs={[...CATEGORY_TABS]} aria-label="Category registry views">
+        {categories.error ? (
+          <div className="mb-4">
+            <Banner kind="error">{categories.error}</Banner>
+          </div>
+        ) : null}
+
         <div className="mb-4">
-          <Banner kind="error">{categories.error}</Banner>
+          {/* Banner kind="info" supplies its own leading icon — no manual
+              Sparkles (double-icon bug, audit B8). */}
+          <Banner kind="info">
+            Your category corrections train the AI — re-categorized imports
+            improve future suggestions for this workspace.
+          </Banner>
         </div>
-      ) : null}
 
-      <div className="mb-4">
-        {/* Banner kind="info" supplies its own leading icon — no manual
-            Sparkles (double-icon bug, audit B8). */}
-        <Banner kind="info">
-          Your category corrections train the AI — re-categorized imports
-          improve future suggestions for this workspace.
-        </Banner>
-      </div>
-
-      {categories.loading && categories.items.length === 0 ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {[...Array(2)].map((_, i) => (
-            <Skeleton key={i} variant="chart" />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <CategoryList
-            title="Expense categories"
-            items={expenseCategories}
-            onEdit={(category) =>
-              setDraft({
-                id: category.id,
-                name: category.name,
-                type: category.type,
-                color: category.color,
-              })
-            }
-            onMerge={setMergeSource}
-            onDelete={setConfirmDelete}
-          />
-          <CategoryList
-            title="Income categories"
-            items={incomeCategories}
-            onEdit={(category) =>
-              setDraft({
-                id: category.id,
-                name: category.name,
-                type: category.type,
-                color: category.color,
-              })
-            }
-            onMerge={setMergeSource}
-            onDelete={setConfirmDelete}
-          />
-        </div>
-      )}
+        {categories.loading && categories.items.length === 0 ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {[...Array(2)].map((_, i) => (
+              <Skeleton key={i} variant="chart" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <CategoryList
+              title="Expense categories"
+              items={expenseCategories}
+              onEdit={(category) =>
+                setDraft({
+                  id: category.id,
+                  name: category.name,
+                  type: category.type,
+                  color: category.color,
+                })
+              }
+              onMerge={setMergeSource}
+              onArchive={(category) => void archiveCategory(category)}
+              onDelete={setConfirmDelete}
+            />
+            <CategoryList
+              title="Income categories"
+              items={incomeCategories}
+              onEdit={(category) =>
+                setDraft({
+                  id: category.id,
+                  name: category.name,
+                  type: category.type,
+                  color: category.color,
+                })
+              }
+              onMerge={setMergeSource}
+              onArchive={(category) => void archiveCategory(category)}
+              onDelete={setConfirmDelete}
+            />
+          </div>
+        )}
+      </RouteTabs>
 
       {/* Create / edit */}
       <Modal

@@ -60,6 +60,29 @@ describe("RouteTabs (accessible routed-tabs pattern)", () => {
     );
   });
 
+  it("prefers the most specific tab when hrefs nest (categories Active/Archive)", () => {
+    pathname = "/dashboard/categories/archive";
+    render(
+      <RouteTabs
+        tabs={[
+          { href: "/dashboard/categories", label: "Active" },
+          { href: "/dashboard/categories/archive", label: "Archive" },
+        ]}
+        aria-label="Category registry views"
+      >
+        <p>Archive pane</p>
+      </RouteTabs>,
+    );
+    expect(screen.getByRole("tab", { name: "Archive" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: "Active" })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+  });
+
   it("moves focus with arrows/Home/End (manual activation, wrapping)", async () => {
     const user = userEvent.setup();
     renderTabs();
