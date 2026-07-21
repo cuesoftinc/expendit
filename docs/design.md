@@ -256,7 +256,7 @@ never on screens.
 
 | Component | Variants × states |
 | --- | --- |
-| Button | primary (accent) / quiet / destructive / danger-armed (countdown) · md/sm · default/pressed/disabled/loading · theme ×2 |
+| Button | primary (accent) / quiet / quiet-danger (danger text on quiet chrome — row-level destructive per the danger-affordance ladder) / destructive (filled — armed/confirm surfaces only) / danger-armed (countdown) · md/sm · default/pressed/disabled/loading · theme ×2 |
 | Input | type: text / search · state: default / focus / filled / disabled / error |
 | MoneyCell | direction: income / expense / zero · size: table / stat |
 | CategoryChip | confirmed / AI-suggested (✨) / editing (combobox open) |

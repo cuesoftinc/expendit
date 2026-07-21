@@ -292,8 +292,11 @@ export const AccountsView: React.FC = () => {
                           {link.status === "paused" ? "Resume" : "Pause"}
                         </Button>
                       ) : null}
+                      {/* Danger ladder: row-level destructive = quiet
+                          danger text; the confirm modal keeps the filled
+                          Unlink (B4 frame + SKILL.md, ratified 2026-07-20). */}
                       <Button
-                        kind="destructive"
+                        kind="quiet-danger"
                         size="sm"
                         onClick={() => setUnlinkTarget(link)}
                       >

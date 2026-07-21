@@ -1,16 +1,21 @@
 "use client";
 
 /**
- * Button — design.md §8.2: kind primary (accent) / quiet / destructive /
- * danger-armed (MI-15 countdown) · md/sm · default/pressed/disabled/
- * loading. Primary/destructive labels bind to on-accent.
+ * Button — design.md §8.2: kind primary (accent) / quiet / quiet-danger /
+ * destructive / danger-armed (MI-15 countdown) · md/sm · default/pressed/
+ * disabled/loading. Primary/destructive labels bind to on-accent.
+ * Danger-affordance ladder (SKILL.md, ratified 2026-07-20): row-level
+ * destructive actions use quiet-danger (danger TEXT on quiet chrome —
+ * Figma "Button (quiet-danger)"); filled destructive is reserved for
+ * armed/confirm surfaces.
  */
 
 import React, { useEffect, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-export type ButtonKind = "primary" | "quiet" | "destructive" | "danger-armed";
+export type ButtonKind =
+  "primary" | "quiet" | "quiet-danger" | "destructive" | "danger-armed";
 export type ButtonSize = "md" | "sm";
 
 export interface ButtonProps extends Omit<
@@ -30,6 +35,10 @@ export interface ButtonProps extends Omit<
 const KIND_CLASSES: Record<ButtonKind, string> = {
   primary: "bg-accent text-on-accent hover:opacity-90 active:opacity-80",
   quiet: "bg-transparent text-text hover:bg-bg-elev active:bg-bg-elev",
+  // Quiet chrome, danger text — the ladder's row-level destructive
+  // affordance (canvas: empty fills + expense-bound label).
+  "quiet-danger":
+    "bg-transparent text-expense hover:bg-bg-elev active:bg-bg-elev",
   destructive: "bg-expense text-on-accent hover:opacity-90 active:opacity-80",
   "danger-armed": "bg-expense text-on-accent",
 };

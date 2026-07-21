@@ -892,8 +892,11 @@ export const TransactionsView: React.FC = () => {
         footer={
           <div className="flex items-center justify-between gap-2">
             {inspector.kind === "record" && activeTxn ? (
+              // Danger ladder: the editor-footer Delete is the master's
+              // "Button (quiet-danger)" — danger text on quiet chrome,
+              // never a filled block (SKILL.md, ratified 2026-07-20).
               <Button
-                kind="destructive"
+                kind="quiet-danger"
                 size="sm"
                 onClick={() => {
                   void txns.remove(activeTxn.id).then(() => {
