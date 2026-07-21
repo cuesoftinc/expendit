@@ -292,6 +292,30 @@ const categories: Category[] = [
     ai_proposed: true,
     ai_note: "AI proposed from 3 vendors",
   },
+  // Archived registry (B8b frame): unused this year, archived out of the
+  // pickers — history untouched. Dates are the frame's mock narrative.
+  {
+    id: "cat-conferences",
+    org_id: ORG_CUESOFT,
+    name: "Conferences & travel",
+    type: "expense",
+    color: "#6E4BD6",
+    tax_treatment: "ignore",
+    vat_treatment: "exempt",
+    vat_basis: "inclusive",
+    archived_at: "2026-03-14T09:30:00.000Z",
+  },
+  {
+    id: "cat-print",
+    org_id: ORG_CUESOFT,
+    name: "Print & stationery",
+    type: "expense",
+    color: "#0E8B8B",
+    tax_treatment: "ignore",
+    vat_treatment: "exempt",
+    vat_basis: "inclusive",
+    archived_at: "2026-01-05T10:00:00.000Z",
+  },
   // Personal org — the freelancer dataset
   {
     id: "cat-personal-income",

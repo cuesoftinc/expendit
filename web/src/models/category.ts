@@ -35,4 +35,10 @@ export interface Category {
    * (B8 merge-safety context: "N transactions this year").
    */
   txn_count_ytd?: number;
+  /**
+   * Set when the category is archived (B8 Archive tab). Archived
+   * categories keep their history but leave the default list, so
+   * pickers, merge targets, and new imports never offer them.
+   */
+  archived_at?: string | null;
 }
