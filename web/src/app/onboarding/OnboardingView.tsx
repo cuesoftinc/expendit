@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useOnboardingController, useRequireAuth } from "@/controllers";
 import type { OrgKind } from "@/models";
+import { PRIVACY_HUB_URL } from "@/components/home/links";
 import Button from "@/components/ui/Button";
 import FormRow from "@/components/ui/FormRow";
 import Input from "@/components/ui/Input";
@@ -180,9 +181,17 @@ export const OnboardingView: React.FC = () => {
               className="mt-0.5 h-4 w-4 shrink-0 text-info"
             />
             <span>
-              Imported statements and receipts are categorized by an AI provider
-              (disclosed in the privacy hub). Only transaction rows are sent —
-              never your credentials.
+              Imported statements and receipts are categorized by an AI
+              provider (disclosed in the{" "}
+              <a
+                href={PRIVACY_HUB_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-text"
+              >
+                privacy hub
+              </a>
+              ). Only transaction rows are sent — never your credentials.
             </span>
           </p>
           <p>

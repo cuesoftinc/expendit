@@ -9,6 +9,7 @@
 import React from "react";
 import Link from "next/link";
 import { useAuthController } from "@/controllers/use-auth";
+import { PRIVACY_HUB_URL, TERMS_URL } from "@/components/home/links";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
 import Wordmark from "@/components/ui/Wordmark";
 
@@ -42,13 +43,23 @@ const SigninView: React.FC = () => {
         <p className="mt-6 text-center text-xs leading-relaxed text-text-2">
           Google is the only sign-in method — no passwords, ever. By continuing
           you agree to the{" "}
-          <Link href="/" className="underline hover:text-text">
+          <a
+            href={TERMS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-text"
+          >
             Terms
-          </Link>{" "}
+          </a>{" "}
           and{" "}
-          <Link href="/" className="underline hover:text-text">
+          <a
+            href={PRIVACY_HUB_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="underline hover:text-text"
+          >
             Privacy Policy
-          </Link>
+          </a>
           .
         </p>
       </div>

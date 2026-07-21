@@ -17,6 +17,19 @@ test("signin page shows the single Google CTA and no password fields", async ({
   await expect(page.locator('input[type="email"]')).toHaveCount(0);
 });
 
+test("legal links point at the canonical Cuesoft policies", async ({
+  page,
+}) => {
+  await page.goto("/signin");
+  await expect(page.getByRole("link", { name: "Terms" })).toHaveAttribute(
+    "href",
+    "https://terms.cuesoft.io",
+  );
+  await expect(
+    page.getByRole("link", { name: "Privacy Policy" }),
+  ).toHaveAttribute("href", "https://privacy.cuesoft.io");
+});
+
 test("TEST_MODE: Continue with Google goes straight to /dashboard", async ({
   page,
 }) => {
