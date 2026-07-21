@@ -24,18 +24,18 @@ const STATUS_META: Record<
   },
   active: {
     label: "Active",
-    pillClass: "bg-income/[0.12] text-income",
+    pillClass: "bg-income/[0.12] text-income-text",
     dotClass: "bg-income",
     breathe: true,
   },
   reauth_required: {
     label: "Re-auth required",
-    pillClass: "bg-warn/[0.12] text-warn",
+    pillClass: "bg-warn/[0.12] text-warn-text",
     dotClass: "bg-warn",
   },
   degraded: {
     label: "Degraded",
-    pillClass: "bg-warn/[0.12] text-warn",
+    pillClass: "bg-warn/[0.12] text-warn-text",
     dotClass: "bg-warn",
   },
   paused: {

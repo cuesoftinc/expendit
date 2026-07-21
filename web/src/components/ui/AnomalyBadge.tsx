@@ -49,8 +49,8 @@ const TYPE_META: Record<
 };
 
 const TONE_TEXT: Record<string, string> = {
-  warn: "text-warn",
-  expense: "text-expense",
+  warn: "text-warn-text",
+  expense: "text-expense-text",
   info: "text-info",
 };
 

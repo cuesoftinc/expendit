@@ -64,7 +64,7 @@ export const SecuritySection: React.FC = () => (
           href={SECURITY_POLICY_URL}
           target="_blank"
           rel="noreferrer"
-          className="rounded text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="rounded text-sm font-medium text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           View Security Policy →
         </a>
@@ -72,7 +72,7 @@ export const SecuritySection: React.FC = () => (
           href={PRIVACY_HUB_URL}
           target="_blank"
           rel="noreferrer"
-          className="rounded text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="rounded text-sm font-medium text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Privacy hub →
         </a>

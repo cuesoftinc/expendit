@@ -378,7 +378,7 @@ export const StatementDetailView: React.FC = () => {
         action={
           <button
             type="button"
-            className="font-medium text-accent"
+            className="font-medium text-accent-text"
             onClick={() => router.push("/dashboard/company/ratios")}
           >
             View ratios

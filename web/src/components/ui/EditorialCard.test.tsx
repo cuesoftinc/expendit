@@ -44,6 +44,6 @@ describe("EditorialCard (design.md §8.2b)", () => {
         href="/signin"
       />,
     );
-    expect(screen.getByText("Explore imports")).toHaveClass("text-accent");
+    expect(screen.getByText("Explore imports")).toHaveClass("text-accent-text");
   });
 });

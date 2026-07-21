@@ -220,7 +220,9 @@ export const TaxesView: React.FC = () => {
                   />
                 ) : (
                   <p className="font-mono text-[13px] text-text">
-                    {values.tin ?? <span className="text-warn">missing</span>}
+                    {values.tin ?? (
+                      <span className="text-warn-text">missing</span>
+                    )}
                   </p>
                 )
               }
@@ -243,7 +245,7 @@ export const TaxesView: React.FC = () => {
                   ) : (
                     <p className="font-mono text-[13px] text-text">
                       {values.rc_number ?? (
-                        <span className="text-warn">missing</span>
+                        <span className="text-warn-text">missing</span>
                       )}
                     </p>
                   )
@@ -272,7 +274,9 @@ export const TaxesView: React.FC = () => {
                     <p className="text-[13px] text-text">
                       {NG_STATES.find(
                         (state) => state.value === values.state_of_residence,
-                      )?.label ?? <span className="text-warn">missing</span>}
+                      )?.label ?? (
+                        <span className="text-warn-text">missing</span>
+                      )}
                     </p>
                   )
                 }

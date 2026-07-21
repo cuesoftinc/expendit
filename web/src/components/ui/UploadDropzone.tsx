@@ -165,7 +165,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
             type="button"
             disabled={disabled}
             onClick={() => inputRef.current?.click()}
-            className="font-medium text-accent underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="font-medium text-accent-text underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             browse
           </button>

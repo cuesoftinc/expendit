@@ -164,7 +164,7 @@ export const DeepDivesSection: React.FC = () => (
               dive.copySide === "right" && "md:order-2 md:justify-self-end",
             )}
           >
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-accent">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-accent-text">
               {dive.eyebrow}
             </div>
             <h3 className="mt-3 font-display text-2xl font-bold tracking-tight text-text">

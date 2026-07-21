@@ -58,7 +58,7 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
                     {...(/^https?:\/\//.test(link.href)
                       ? { target: "_blank", rel: "noreferrer" }
                       : {})}
-                    className="rounded text-[13px] text-text transition-colors duration-fast ease-standard hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="rounded text-[13px] text-text transition-colors duration-fast ease-standard hover:text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     {link.label}
                   </a>

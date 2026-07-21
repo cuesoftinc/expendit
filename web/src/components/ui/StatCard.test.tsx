@@ -19,10 +19,10 @@ describe("StatCard (design.md §8.2, MI-7)", () => {
       <StatCard label="Income" value={100} delta={0.042} />,
     );
     expect(screen.getByTestId("stat-delta")).toHaveTextContent("+4.2%");
-    expect(screen.getByTestId("stat-delta")).toHaveClass("text-income");
+    expect(screen.getByTestId("stat-delta")).toHaveClass("text-income-text");
     rerender(<StatCard label="Income" value={100} delta={-0.08} />);
     expect(screen.getByTestId("stat-delta")).toHaveTextContent("−8.0%");
-    expect(screen.getByTestId("stat-delta")).toHaveClass("text-expense");
+    expect(screen.getByTestId("stat-delta")).toHaveClass("text-expense-text");
   });
 
   it("sparkline renders as bespoke SVG when series given", () => {
@@ -70,7 +70,7 @@ describe("StatCard (design.md §8.2, MI-7)", () => {
       />,
     );
     const chip = screen.getByTestId("stat-delta");
-    expect(chip.className).toContain("text-income");
+    expect(chip.className).toContain("text-income-text");
     // Sign still encodes the raw direction (design.md §5).
     expect(chip.textContent).toContain("−68.6%");
   });
@@ -85,7 +85,7 @@ describe("StatCard (design.md §8.2, MI-7)", () => {
       />,
     );
     expect(screen.getByTestId("stat-delta").className).toContain(
-      "text-expense",
+      "text-expense-text",
     );
   });
 });

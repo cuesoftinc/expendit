@@ -148,8 +148,8 @@ export const StatCard: React.FC<StatCardProps> = ({
                 "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5",
                 "text-[13px] font-medium leading-4 tabular-nums",
                 improving
-                  ? "bg-income/[0.12] text-income"
-                  : "bg-expense/[0.12] text-expense",
+                  ? "bg-income/[0.12] text-income-text"
+                  : "bg-expense/[0.12] text-expense-text",
               )}
             >
               {positive ? (

@@ -21,11 +21,11 @@ describe("AnomalyBadge (design.md §8.2, MI-5)", () => {
     const { rerender } = render(
       <AnomalyBadge type="spending_spike" severity="warn" />,
     );
-    expect(screen.getByRole("button")).toHaveClass("text-expense");
+    expect(screen.getByRole("button")).toHaveClass("text-expense-text");
     rerender(<AnomalyBadge type="abnormal_category" severity="info" />);
     expect(screen.getByRole("button")).toHaveClass("text-info");
     rerender(<AnomalyBadge type="large_transaction" severity="warn" />);
-    expect(screen.getByRole("button")).toHaveClass("text-warn");
+    expect(screen.getByRole("button")).toHaveClass("text-warn-text");
   });
 
   it("inline shows the Figma short label", () => {

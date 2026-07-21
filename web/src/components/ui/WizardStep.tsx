@@ -31,9 +31,9 @@ const Marker: React.FC<{ state: WizardStepState; index: number }> = ({
       "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium tabular-nums",
       "transition-colors duration-base ease-standard",
       state === "done" && "border-accent bg-accent text-on-accent",
-      state === "current" && "border-accent text-accent",
+      state === "current" && "border-accent text-accent-text",
       state === "todo" && "border-border text-text-2",
-      state === "error" && "border-expense bg-expense/10 text-expense",
+      state === "error" && "border-expense bg-expense/10 text-expense-text",
     )}
   >
     {state === "done" ? (

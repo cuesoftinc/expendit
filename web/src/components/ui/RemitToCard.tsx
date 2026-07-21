@@ -73,7 +73,7 @@ export const RemitToCard: React.FC<RemitToCardProps> = ({
         <Calendar aria-hidden className="h-3.5 w-3.5" />
         <span className="tabular-nums">Due {due}</span>
         {threshold !== "none" ? (
-          <span className="rounded-full bg-warn/[0.15] px-1.5 py-0.5 text-[11px] font-medium uppercase leading-4 text-warn">
+          <span className="rounded-full bg-warn/[0.15] px-1.5 py-0.5 text-[11px] font-medium uppercase leading-4 text-warn-text">
             {threshold}
           </span>
         ) : null}

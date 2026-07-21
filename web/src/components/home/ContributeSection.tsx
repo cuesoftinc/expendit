@@ -159,7 +159,7 @@ export const ContributeSection: React.FC = () => {
                 onClick={() =>
                   track("contribute_click", { target: "contributing_md" })
                 }
-                className="rounded text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="rounded text-sm font-medium text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 CONTRIBUTING.md →
               </a>

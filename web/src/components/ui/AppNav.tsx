@@ -38,7 +38,7 @@ export const NavItem: React.FC<NavItemProps> = ({
     "group/nav-item relative flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-left text-[13px] font-medium",
     "transition-colors duration-fast ease-standard",
     active
-      ? "bg-accent/10 text-accent"
+      ? "bg-accent/10 text-accent-text"
       : "text-text-2 hover:bg-bg-elev hover:text-text",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
     collapsed && "justify-center px-0",
