@@ -32,7 +32,6 @@ commit real `.env` files — `make up` reads the root `.env`.
 | Variable | Description |
 | -------- | ----------- |
 | `NEXT_PUBLIC_BASE_URL` | Base URL of the API (e.g. `http://localhost:8080`) |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID |
 
 ## Quick start (Docker)
 
