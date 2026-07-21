@@ -286,7 +286,11 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               onCreate={() => router.push("/onboarding?create=1")}
               compact={effectiveCollapsed}
             />
-          ) : null
+          ) : (
+            // Pre-org reserve (CLS budget): the switcher's hydrated
+            // height, so the rail list doesn't jump down when orgs land.
+            <div aria-hidden className="h-(--widget-h-org)" />
+          )
         }
         footer={
           <div
@@ -385,7 +389,8 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </Dialog.Root>
       ) : null}
 
-      <main className="flex-1 overflow-y-auto">
+      {/* id/tabIndex: the SkipLink target (fleet canon P15). */}
+      <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1440px] px-6 py-6">
           {activeOrg ? children : null}
         </div>

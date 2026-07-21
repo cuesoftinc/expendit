@@ -148,8 +148,9 @@ export const HomeView: React.FC = () => {
         </div>
       ) : null}
 
-      {/* The page's one main landmark — everything but the nav + footer. */}
-      <main>
+      {/* The page's one main landmark — everything but the nav + footer.
+          id/tabIndex: the SkipLink target (fleet canon P15). */}
+      <main id="main" tabIndex={-1}>
         <div ref={heroRef}>
           <HeroSection
             nav={<MarketingNav variant="on-dark" {...navProps} />}

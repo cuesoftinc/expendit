@@ -83,5 +83,32 @@ describe("TableHeader (design.md §8.2b)", () => {
     expect(box).toHaveAttribute("aria-checked", "mixed");
     await userEvent.click(box);
     expect(onCheckedChange).toHaveBeenCalled();
+    // The th itself carries the name too (axe `empty-table-header`:
+    // the checkbox's aria-label doesn't name the cell). Regex: the
+    // cell's name concatenates the sr-only text with the checkbox's.
+    expect(
+      screen.getByRole("columnheader", { name: /Select all transactions/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("selectHeader renders an sr-only named th for select-cell rows", () => {
+    // axe `td-has-header` class (2026-07-21 audit): demo/read-only tables
+    // pair TxnTableRow select cells with a header that had no matching th.
+    render(<TableHeader columns={columns} selectHeader="Select" />);
+    const th = screen.getByRole("columnheader", { name: "Select" });
+    expect(th).toHaveClass("w-4");
+  });
+
+  it("srOnly columns name the th without visible text (actions column)", () => {
+    render(
+      <TableHeader
+        columns={[
+          ...columns,
+          { id: "actions", label: "Actions", srOnly: true },
+        ]}
+      />,
+    );
+    const th = screen.getByRole("columnheader", { name: "Actions" });
+    expect(th.querySelector("span")).toHaveClass("sr-only");
   });
 });

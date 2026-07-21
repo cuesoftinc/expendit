@@ -8,6 +8,7 @@
  */
 
 import React from "react";
+import DeferredPanel from "@/components/ui/DeferredPanel";
 import { useAnalyticsController } from "@/controllers/use-analytics";
 import { SectionHeading, SectionInner } from "./Section";
 import ScaledEmbed from "./ScaledEmbed";
@@ -92,9 +93,15 @@ export const HowItWorksSection: React.FC = () => {
                 data-testid="how-thumb"
                 className="relative aspect-[384/190] overflow-hidden rounded border border-border bg-bg transition-transform duration-base ease-standard hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
               >
-                <div inert className="pointer-events-none select-none">
-                  {step.thumb}
-                </div>
+                {/* The three thumbs are full dashboard compositions —
+                    below-the-fold, they mount on approach (perf pass
+                    2026-07-21). The aspect box above reserves the
+                    geometry, so the placeholder just fills it. */}
+                <DeferredPanel minHeight="100%" className="h-full">
+                  <div inert className="pointer-events-none select-none">
+                    {step.thumb}
+                  </div>
+                </DeferredPanel>
                 <a
                   href={`#${ANCHORS.demo}`}
                   onClick={scrollToDemo}

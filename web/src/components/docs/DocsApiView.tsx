@@ -63,7 +63,11 @@ export const DocsApiView: React.FC = () => {
           sidebar/mobile bar below the nav and shrinks its viewport math
           to match (one coherent scroll). `isolate` opens a stacking
           context so no Scalar z-index can paint over the nav. */}
-      <main className="isolate flex-1 [--scalar-custom-header-height:56px]">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="isolate flex-1 [--scalar-custom-header-height:56px]"
+      >
         <ScalarApiReferenceLazy />
       </main>
       {/* Minimal footer strip — verbatim legal line only (parity canon). */}

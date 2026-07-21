@@ -303,6 +303,9 @@ export const JobDetailView: React.FC = () => {
         <table className="w-full border-separate border-spacing-0">
           <TableHeader
             sticky
+            // Rows lead with a select cell — the sr-only header keeps
+            // every td under a named th (axe `td-has-header` class).
+            selectHeader="Select"
             columns={[
               { id: "date", label: "Date", widthClass: "w-14" },
               { id: "source", label: "Src", widthClass: "w-8" },

@@ -17,7 +17,11 @@ const SigninView: React.FC = () => {
   const { signInWithGoogle, loading, error } = useAuthController();
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-bg px-6">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="flex min-h-screen items-center justify-center bg-bg px-6"
+    >
       <div className="w-full max-w-sm">
         <Link href="/" className="mb-12 block text-center">
           <Wordmark className="font-display text-2xl font-bold text-text" />

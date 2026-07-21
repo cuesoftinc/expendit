@@ -1,6 +1,7 @@
 import React from "react";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
+import SkipLink from "@/components/ui/SkipLink";
 import "./globals.css";
 
 // Design-system type (design.md §2): Inter for UI/display (Inter Display
@@ -36,6 +37,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
+        {/* First focusable on every route (fleet canon P15) — every
+            page's <main> carries id="main" + tabIndex={-1}. */}
+        <SkipLink />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

@@ -9,7 +9,11 @@ import Link from "next/link";
  */
 const NotFound = () => (
   <div data-theme="dark" className="bg-bg-editorial">
-    <main className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col items-center justify-center px-6 py-16 text-center">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col items-center justify-center px-6 py-16 text-center"
+    >
       <p className="font-mono text-[13px] tabular-nums tracking-wide text-text-2">
         404 — page not found
       </p>

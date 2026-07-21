@@ -2,6 +2,10 @@
  * TestModeAuthProvider — NEXT_PUBLIC_TEST_MODE=1: no Firebase, sign-in
  * resolves instantly with the seeded test user and the app goes straight
  * to /dashboard (web standard — TEST_MODE).
+ *
+ * Session key convention (fleet P16, dictated canon 2026-07-21):
+ * `<product>.test-session` in **sessionStorage** — per-tab, gone on
+ * close, one shape across the fleet's e2e tooling.
  */
 
 import type { AuthProvider, AuthUser } from "./types";
@@ -18,7 +22,7 @@ export const TEST_USER: AuthUser = {
 export class TestModeAuthProvider implements AuthProvider {
   currentUser(): AuthUser | null {
     if (typeof window === "undefined") return null;
-    const raw = window.localStorage.getItem(SESSION_KEY);
+    const raw = window.sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     try {
       return JSON.parse(raw) as AuthUser;
@@ -29,14 +33,14 @@ export class TestModeAuthProvider implements AuthProvider {
 
   async signInWithGoogle(): Promise<AuthUser> {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(SESSION_KEY, JSON.stringify(TEST_USER));
+      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(TEST_USER));
     }
     return TEST_USER;
   }
 
   async signOut(): Promise<void> {
     if (typeof window !== "undefined") {
-      window.localStorage.removeItem(SESSION_KEY);
+      window.sessionStorage.removeItem(SESSION_KEY);
     }
   }
 
