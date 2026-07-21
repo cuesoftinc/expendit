@@ -6,13 +6,33 @@
  * icon rail · org-switcher slot top.
  */
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/cn";
 import Tag from "./Tag";
 
 const NavCollapsedContext = createContext(false);
+
+/**
+ * Intent-based prefetch (perf P13): the rail links every pillar, and App
+ * Router's default viewport prefetch pulled every sibling pillar's chunks
+ * into every dashboard route (the union set). `prefetch={false}` disables
+ * that pass entirely (Next 16 App Router: no hover fallback), so the first
+ * pointerenter/focus on an item calls `router.prefetch(href)` instead —
+ * hover leads the click and focus leads the Enter press, so navigation
+ * latency is unchanged while a cold route ships only its own chunks.
+ */
+const useIntentPrefetch = (href?: string) => {
+  const router = useRouter();
+  const fired = useRef(false);
+  return () => {
+    if (fired.current || !href) return;
+    fired.current = true;
+    router.prefetch(href);
+  };
+};
 
 export interface NavItemProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -33,6 +53,7 @@ export const NavItem: React.FC<NavItemProps> = ({
   onClick,
 }) => {
   const collapsed = useContext(NavCollapsedContext);
+  const prefetchOnIntent = useIntentPrefetch(href);
   const className = cn(
     // text-left: buttons default to centered text, the kit is left-aligned.
     "group/nav-item relative flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-left text-[13px] font-medium",
@@ -61,9 +82,12 @@ export const NavItem: React.FC<NavItemProps> = ({
     // identical to the plain anchor the kit was QA'd with.
     <Link
       href={href}
+      prefetch={false}
       aria-current={active ? "page" : undefined}
       aria-label={collapsed ? label : undefined}
       onClick={onClick}
+      onPointerEnter={prefetchOnIntent}
+      onFocus={prefetchOnIntent}
       className={className}
     >
       {content}

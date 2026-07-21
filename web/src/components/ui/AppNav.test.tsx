@@ -4,6 +4,11 @@ import userEvent from "@testing-library/user-event";
 import { LayoutDashboard, ArrowLeftRight } from "lucide-react";
 import AppNav, { NavGroupLabel, NavItem } from "./AppNav";
 
+const prefetch = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ prefetch }),
+}));
+
 const nav = (collapsed: boolean, onCollapsedChange = vi.fn()) => (
   <AppNav
     collapsed={collapsed}
@@ -64,5 +69,16 @@ describe("AppNav / NavItem (design.md §8.2b)", () => {
       "href",
       "/dashboard/transactions",
     );
+  });
+
+  it("intent prefetch: first pointerenter fires router.prefetch, once", async () => {
+    prefetch.mockClear();
+    render(nav(false));
+    const link = screen.getByRole("link", { name: /Transactions/ });
+    await userEvent.hover(link);
+    await userEvent.unhover(link);
+    await userEvent.hover(link);
+    expect(prefetch).toHaveBeenCalledTimes(1);
+    expect(prefetch).toHaveBeenCalledWith("/dashboard/transactions");
   });
 });
