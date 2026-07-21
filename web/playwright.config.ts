@@ -28,6 +28,11 @@ export default defineConfig({
       : `npm run dev -- -p ${PORT} --hostname 127.0.0.1`,
     url: `http://127.0.0.1:${PORT}/signin`,
     reuseExistingServer: !process.env.CI,
+    // CI post-mortems: two runner-side server deaths (ERR_ABORTED
+    // mid-suite) left no evidence — Playwright discards webServer
+    // output unless piped; piping lands it in the report artifact.
+    stdout: "pipe",
+    stderr: "pipe",
     timeout: 120_000,
     env: {
       NEXT_PUBLIC_TEST_MODE: "1",
