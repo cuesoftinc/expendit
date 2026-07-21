@@ -144,7 +144,11 @@ export const HomeView: React.FC = () => {
       {/* Sticky dark-on-light nav appears once the hero is scrolled. */}
       {pastHero ? (
         <div className="fixed inset-x-0 top-0 z-sticky animate-fade-in motion-reduce:animate-none">
-          <MarketingNav variant="dark-on-light" {...navProps} />
+          <MarketingNav
+            variant="dark-on-light"
+            ariaLabel="Marketing, sticky"
+            {...navProps}
+          />
         </div>
       ) : null}
 

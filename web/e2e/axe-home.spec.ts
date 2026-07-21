@@ -18,6 +18,7 @@ const LOCKED_RULES = [
   "button-name",
   "td-has-header",
   "empty-table-header",
+  "landmark-unique",
 ];
 
 test("home has zero critical axe violations (ARIA IDREF + name lock)", async ({

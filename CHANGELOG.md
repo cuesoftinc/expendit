@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (#257).
 
 ### Fixed
+- Accessibility closeout: valid tab IDREFs in code snippets, date-picker
+  popover focus containment, named table headers, a skip-to-content link,
+  distinct nav landmark labels, and deferred below-the-fold demo panels
+  cutting home mobile blocking time; overview layout shift drops to ~0
+  (#260).
 - Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
   recipe so tinted text clears 4.5:1 in both themes (#254).
 - Signin's legal links now point at the canonical Cuesoft policies, and the

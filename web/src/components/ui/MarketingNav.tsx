@@ -32,6 +32,9 @@ export interface MarketingNavLink {
 export interface MarketingNavProps {
   /** on-dark: over the hero; dark-on-light: post-hero sticky scroll. */
   variant?: "on-dark" | "dark-on-light";
+  /** Landmark label — must be unique when two navs coexist in the DOM
+      (the sticky post-hero copy shares the page with the hero nav). */
+  ariaLabel?: string;
   /** The 4 canonical links (GitHub carries `star: true`). */
   links?: MarketingNavLink[];
   /** Trailing slot before the CTAs (the theme toggle). */
@@ -63,6 +66,7 @@ const GitHubMark: React.FC<{ className?: string }> = ({ className }) => (
 
 export const MarketingNav: React.FC<MarketingNavProps> = ({
   variant = "on-dark",
+  ariaLabel = "Marketing",
   links = [],
   trailing,
   starCount = null,
@@ -157,7 +161,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
 
   return (
     <nav
-      aria-label="Marketing"
+      aria-label={ariaLabel}
       data-variant={variant}
       // on-dark: dark token mode scoped to the nav subtree (both themes).
       data-theme={onDark ? "dark" : undefined}
