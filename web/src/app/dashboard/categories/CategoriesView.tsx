@@ -121,8 +121,10 @@ const CategoryList: React.FC<CategoryListProps> = ({
               >
                 Archive
               </Button>
+              {/* Row-level destructive = quiet-danger (ladder); the
+                  filled kind stays on the confirm modal's Delete. */}
               <Button
-                kind="destructive"
+                kind="quiet-danger"
                 size="sm"
                 onClick={() => onDelete(category)}
               >
