@@ -3,7 +3,7 @@ import SigninView from "./SigninView";
 
 // X-1: the single auth screen — Google-only (flows/auth.md §1).
 export const metadata = {
-  title: "Expendit | Sign in",
+  title: "Sign in — Expendit",
   description: "Sign in to Expendit with Google",
 };
 
