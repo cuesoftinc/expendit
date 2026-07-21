@@ -468,6 +468,29 @@ Unit: `routes-categories.test.ts`, `use-categories.test.ts`,
 delete-cleanup, plus the deep-link) and the 390 sweep gains the archive
 route.
 
+**A11y blockers as-built (2026-07-21 audit).** Two component contracts
+hardened at the shared layer:
+
+- **Checkbox requires an accessible name.** `CheckboxProps` is a union:
+  either a visible `label` or an `aria-label` — a name-less usage is a
+  compile error (the audit found the row-select checkboxes shipped as
+  unnamed `button[role="checkbox"]`, axe `button-name` critical ×50 on
+  transactions, ×5 on overview and the home demo). `TxnTableRow` names
+  each row select "Select transaction {description}, {d MMM}";
+  `TableHeader`'s `selectAll` slot takes a required `label` ("Select all
+  transactions"). Unit: `Checkbox.test.tsx` (aria-label naming +
+  `@ts-expect-error` name-less lock), `TableHeader.test.tsx`; e2e:
+  `axe-transactions.spec.ts` (@axe-core/playwright) gates the ledger at
+  zero critical violations and zero `button-name`, ever.
+- **Overlays return focus to their opener.** `Modal` and `CommandPalette`
+  own the focus contract (fleet P4): the opener is captured on open
+  (before autofocus moves into the overlay) and refocused on close —
+  Radix's default targets a null trigger on controlled dialogs and the
+  palette opens programmatically via ⌘K, so both previously dropped focus
+  on `<body>`. `Modal` is also announced `aria-modal`. e2e:
+  `focus-restore.spec.ts` (open → Tab inside → Escape → trigger
+  refocused) for the palette and the merge modal.
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `expendit/tokens` collection

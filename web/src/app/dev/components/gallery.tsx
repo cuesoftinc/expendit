@@ -1380,6 +1380,7 @@ export const ComponentGallery: React.FC = () => {
                 ]}
                 sort={{ columnId: "amt", direction: "asc" }}
                 selectAll={{
+                  label: "Select all rows",
                   checked: "indeterminate",
                   onCheckedChange: () => undefined,
                 }}

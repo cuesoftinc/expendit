@@ -28,10 +28,12 @@ export interface TableHeaderProps {
   density?: "compact" | "comfortable";
   sort?: { columnId: string; direction: Exclude<SortDirection, "none"> } | null;
   onSortChange?: (columnId: string, direction: SortDirection) => void;
-  /** Select-all slot. */
+  /** Select-all slot. `label` is its accessible name (a11y audit: the
+   * select-all checkbox shipped unnamed — axe button-name critical). */
   selectAll?: {
     checked: boolean | "indeterminate";
     onCheckedChange: (checked: boolean | "indeterminate") => void;
+    label: string;
   };
   sticky?: boolean;
   className?: string;
@@ -65,6 +67,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
       {selectAll ? (
         <th scope="col" className="flex shrink-0 items-center">
           <Checkbox
+            aria-label={selectAll.label}
             checked={selectAll.checked}
             onCheckedChange={selectAll.onCheckedChange}
           />

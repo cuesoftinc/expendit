@@ -11,13 +11,21 @@ import * as RadixCheckbox from "@radix-ui/react-checkbox";
 import { Check, Minus } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-export interface CheckboxProps {
+/**
+ * Every checkbox must carry an accessible name (2026-07-21 a11y audit:
+ * label-less row selects shipped as unnamed `button[role="checkbox"]`,
+ * axe `button-name` critical). Either render a visible `label` or pass
+ * `aria-label` — the union makes a name compile-mandatory.
+ */
+export type CheckboxProps = {
   checked: boolean | "indeterminate";
   onCheckedChange?: (checked: boolean | "indeterminate") => void;
-  label?: string;
   disabled?: boolean;
   id?: string;
-}
+} & (
+  | { label: string; "aria-label"?: string }
+  | { label?: undefined; "aria-label": string }
+);
 
 export const Checkbox: React.FC<CheckboxProps> = ({
   checked,
@@ -25,6 +33,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   label,
   disabled = false,
   id,
+  "aria-label": ariaLabel,
 }) => (
   <label
     className={cn(
@@ -34,6 +43,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   >
     <RadixCheckbox.Root
       id={id}
+      aria-label={ariaLabel}
       checked={checked}
       onCheckedChange={onCheckedChange}
       disabled={disabled}

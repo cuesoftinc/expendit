@@ -109,6 +109,12 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
     >
       <td className="flex shrink-0 items-center">
         <Checkbox
+          // Per-row accessible name (2026-07-21 a11y audit: unnamed row
+          // selects were an axe button-name critical ×50).
+          aria-label={`Select transaction ${txn.description}, ${formatIso(
+            txn.txn_date,
+            "d MMM",
+          )}`}
           checked={selected}
           onCheckedChange={
             onSelectedChange

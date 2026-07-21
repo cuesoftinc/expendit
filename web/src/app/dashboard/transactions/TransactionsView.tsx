@@ -692,6 +692,7 @@ export const TransactionsView: React.FC = () => {
                 setSort(direction === "none" ? null : { columnId, direction })
               }
               selectAll={{
+                label: "Select all transactions",
                 checked: allSelected
                   ? true
                   : someSelected
