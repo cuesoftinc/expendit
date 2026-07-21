@@ -8,6 +8,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Settings goes route-backed tabs: Organization | Members | Data & privacy |
+  Notifications, each deep-linkable (#240).
+- Categories gains an Archive tab: routed Active | Archive registry views
+  (#245).
+- Self-host install snippet goes tabbed: Docker Compose and Helm (#239).
+- Real date pickers: `DatePicker`/`MonthPicker` grids, and `PeriodPicker` goes
+  pick-or-type (#235).
+- SEO plumbing: sitemap, `robots.txt`, canonical URLs, and a 1200×630 Open
+  Graph card (#253).
+
+### Changed
+- Chart fidelity: `Chart`/`Line` y-axis tick labels and gridlines now match
+  the Figma master; the cash-flow line no longer renders dashed under fill
+  mode; the fill-mode plot no longer slides under the y-axis labels (#228,
+  #229, #243, #244).
+- Destructive actions (row delete, ledger closeout) now use the quiet-danger
+  button styling instead of a loud red (#246, #250).
+- Dead-code and env-plumbing cleanup: removed dead symbols, an orphaned
+  asset/fixture, an unused popover dependency, and the dead
+  `NEXT_PUBLIC_GOOGLE_CLIENT_ID`/`NEXT_PUBLIC_BASE_URL` env plumbing; piped
+  Playwright's `webServer` output so CI server deaths are diagnosable (#247,
+  #248, #249).
+
+### Fixed
+- Figma↔code convergence pass: settings uniques, Wordmark parity, full-ledger
+  explain comparables, `Select` `aria-label` wiring, how-it-works thumbnail
+  sizing, landing typography, and the `DatePicker` popover placement/
+  modal-safe merge `Select`/mid-band balance (#230, #232, #233, #238, #241,
+  #242).
+- Accessibility: checkboxes now carry accessible names (axe critical errors
+  ×60 → 0) and overlays restore focus to their trigger on close (#252).
+
+### Added
 - Full web implementation: the dashboard application (expense/income tracking,
   reports, bank statement import and mapping review, categories, settings)
   rebuilt from the shared component registry over a mock CRUD API, and the
