@@ -27,12 +27,6 @@ commit real `.env` files — `make up` reads the root `.env`.
 | `REDIS_URL` | Redis connection string (optional) |
 | `FRONTEND_URL` | Web app URL for CORS/redirects |
 
-### Web (`web`)
-
-| Variable | Description |
-| -------- | ----------- |
-| `NEXT_PUBLIC_BASE_URL` | Base URL of the API (e.g. `http://localhost:8080`) |
-
 ## Quick start (Docker)
 
 ```bash

@@ -571,7 +571,7 @@ on it:
    (incl. the `X-Org-Id` context header), so repositories are identical in
    both modes except for the base URL.
 
-Unset (or `0`) → real `FirebaseAuthProvider` + `NEXT_PUBLIC_BASE_URL`
+Unset (or `0`) → real `FirebaseAuthProvider` + the real `/api/v1` base
 (api/common). TEST_MODE is how Playwright runs in CI and how the app is
 developed before the v1 backend consolidation lands.
 
