@@ -18,7 +18,7 @@ import { expect, test } from "@playwright/test";
  *
  * Budgets are the measured settled pre-intent encoded JS of the TEST_MODE
  * prod build (network-recorded, 2026-07-21) + 20% headroom. Before the
- * diet the same probe read 1381K (apparule), 1425K (expendit), 1371K
+ * diet the same probe read 1381K (apparule), 1409K (expendit), 1378K
  * (upstat) encoded.
  */
 
@@ -34,8 +34,8 @@ interface PayloadProfile {
 
 const PRODUCTS: Record<string, PayloadProfile> = {
   apparule: { budgetKiB: 268, apiTitle: "Apparule API" },
-  expendit: { budgetKiB: 320, apiTitle: "Expendit API" },
-  upstat: { budgetKiB: 262, apiTitle: "Upstat HTTP API" },
+  expendit: { budgetKiB: 303, apiTitle: "Expendit API" },
+  upstat: { budgetKiB: 264, apiTitle: "Upstat HTTP API" },
 };
 
 const pkgName: string = JSON.parse(
