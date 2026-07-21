@@ -181,8 +181,8 @@ export const OnboardingView: React.FC = () => {
               className="mt-0.5 h-4 w-4 shrink-0 text-info"
             />
             <span>
-              Imported statements and receipts are categorized by an AI
-              provider (disclosed in the{" "}
+              Imported statements and receipts are categorized by an AI provider
+              (disclosed in the{" "}
               <a
                 href={PRIVACY_HUB_URL}
                 target="_blank"
