@@ -97,7 +97,11 @@ const navFor = (active: string) => (
   <AppNav
     orgSwitcher={<OrgSwitcher orgs={EMBED_ORGS} currentOrgId="org-cuesoft" />}
   >
-    <NavItem icon={LayoutDashboard} label="Overview" active={active === "Overview"} />
+    <NavItem
+      icon={LayoutDashboard}
+      label="Overview"
+      active={active === "Overview"}
+    />
     <NavItem icon={ArrowLeftRight} label="Transactions" />
     <NavItem icon={Upload} label="Imports" active={active === "Imports"} />
     <NavItem icon={Landmark} label="Accounts" />
@@ -106,7 +110,11 @@ const navFor = (active: string) => (
     <NavItem icon={FileSpreadsheet} label="Statements" />
     <NavItem icon={Gauge} label="Ratios" badgeCount={3} />
     <NavGroupLabel>Taxes</NavGroupLabel>
-    <NavItem icon={Calculator} label="Tax center" active={active === "Tax center"} />
+    <NavItem
+      icon={Calculator}
+      label="Tax center"
+      active={active === "Tax center"}
+    />
     <NavItem icon={TagIcon} label="Categories" />
     <NavItem icon={Settings} label="Settings" />
   </AppNav>
