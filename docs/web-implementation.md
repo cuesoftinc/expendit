@@ -264,13 +264,53 @@ Scalar's own toggle is hidden and its remote default fonts are disabled
 Scalar's sticky layout coexist via `--scalar-custom-header-height` on
 the embed wrapper (offsets Scalar's sticky sidebar/mobile bar below the
 nav and shrinks its viewport math — one coherent page scroll) plus
-`isolate` so no Scalar z-index paints over the nav. The footer Docs
-column's "API reference" (`API_REFERENCE_URL`) links `/docs/api`;
-`e2e/docs-api.spec.ts` pins route 200, a rendered operation from the
-spec, the served document, the footer handoff, the header/scroll sanity
-and the embed-theme sync.
+`isolate` so no Scalar z-index paints over the nav. Scalar's developer
+toolbar is pinned off (`showDeveloperTools: "never"`) and Agent Scalar
+is disabled outright (`agent: { disabled: true }` — both auto-enable on
+localhost-class hosts, surfacing author chrome that never exists on the
+real deploy). The footer Docs column's "API reference"
+(`API_REFERENCE_URL`) links `/docs/api`; `e2e/docs-api.spec.ts` pins
+route 200, a rendered operation from the spec, the served document, the
+footer handoff, the header/scroll sanity and the embed-theme sync.
+Payload: Scalar is the app's heaviest dependency, so `DocsApiView`
+renders it through `ScalarApiReferenceLazy` — a `next/dynamic`
+`ssr: false` boundary gated on USER INTENT (fleet-uniform, perf audit +
+payload diet 2026-07-21). A `ssr: false` boundary alone only moves
+Scalar out of the first-load chunks (the async group still downloads
+right after hydration — settled /docs/api JS stayed ~1408K encoded /
+~4874K decoded, network-recorded on the prod build), so the import
+fires only on the first pointer/key/wheel/touch/scroll gesture or the
+placeholder's explicit "Load the interactive API reference" button
+(the screen-reader path). Bots, probes and bounces never pay for
+Scalar; any human interacting mounts it within their first gesture.
+The placeholder reserves the embed's viewport slice
+(`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
+layout; the nav/footer chrome stays SSR'd and interactive throughout.
+`e2e/docs-api-payload.spec.ts` (byte-identical fleet spec, keyed by
+package name — the seo.spec.ts pattern) locks the settled pre-intent
+budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
+prod build only) AND that intent still mounts the full reference with
+the spec fetch intact.
 
-**Theme contract as-built (2026-07-20, ratified — identical across
+**Dashboard chunk audit (2026-07-21, adjudicated from the fleet perf
+audit P13 — expendit dashboards were the fleet's heaviest at 337–347K
+encoded / 73–92 requests per route).** Findings, network-recorded on
+the TEST_MODE prod build (cold cache per route): the audit's suspects
+do not exist — there is NO charting library (dashboard charts are
+hand-rolled SVG in app code) and NO xlsx dependency (imports parse CSV
+with app code); the dependency graph is radix + lucide + date-fns +
+clsx only. Route-level code splitting is healthy: each pillar view is
+its own small chunk (~5–8K gz) referenced only by its route. The
+uniform ~342K per route decomposes as (a) the framework floor shared
+with every page (react-dom ~70K enc + Next runtime/router ~60K +
+radix/lucide/shared-UI ~40K — /signin measures 237K settled with zero
+dashboard code), and (b) ~100K of Next segment-prefetch freight: the
+nav rail links every pillar, and App Router prefetch pulls sibling
+route chunks, converging every dashboard route to the same union set
+(the 73–92 requests are these many small turbopack chunks). Both are
+by design; no diet applied — disabling rail prefetch or force-splitting
+the shell would trade navigation latency for lab numbers, and the
+interaction-gated candidates are immaterial (CommandPalette ~2K gz).
 apparule, expendit and upstat).** The preference is tri-state
 light | dark | system: `ThemeProvider` persists it at `expendit.theme`
 ("light"/"dark"/"system" all stored explicitly; KEY ABSENT = dark,

@@ -47,6 +47,10 @@ export function ScalarApiReference() {
         // configuration, not a fork (defaults to "localhost";
         // `showToolbar` is the deprecated alias of this option).
         showDeveloperTools: "never",
+        // Same leak class: Agent Scalar auto-enables on localhost-class
+        // hosts (isLocalUrl), surfacing an AI-chat drawer that never exists
+        // on the real deploy — disable outright.
+        agent: { disabled: true },
       }}
     />
   );
