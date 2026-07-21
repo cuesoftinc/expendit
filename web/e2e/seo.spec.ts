@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * SEO plumbing lock (fleet, 2026-07-21): sitemap + robots + canonical +
- * og/twitter card + product-branded icons + web app manifest.
+ * og/twitter card + product-branded icons + web manifest.
  *
  * This spec is BYTE-IDENTICAL across apparule/expendit/upstat (tooling
  * canon) — per-product expectations live in the config below keyed by
@@ -153,22 +153,30 @@ test("icons are product-branded and distinct from the sibling products", async (
   expect(appleRes.headers()["content-type"]).toContain("image/png");
 });
 
-test("manifest is served with the product identity and resolvable icons", async ({
+test("web manifest is linked, resolves, and carries the product identity", async ({
+  page,
   request,
 }) => {
-  const res = await request.get("/manifest.webmanifest");
+  // Linked from the page (App Router `manifest` file convention).
+  await page.goto("/");
+  const href = await page.locator('link[rel="manifest"]').getAttribute("href");
+  expect(href).toBeTruthy();
+  const manifestUrl = new URL(href!, product.base);
+  const res = await request.get(manifestUrl.pathname + manifestUrl.search);
   expect(res.status()).toBe(200);
-  const manifest = (await res.json()) as {
+  const manifest = JSON.parse(await res.text()) as {
     name?: string;
     icons?: { src: string }[];
   };
-  // Identity: the manifest names this product, never a sibling's copy.
-  expect(manifest.name?.toLowerCase()).toContain(pkgName);
-  // Icons: at least one, and every declared asset actually resolves.
-  expect(manifest.icons?.length).toBeGreaterThan(0);
+
+  // The manifest name carries the product (`package.json` name)…
+  expect(manifest.name?.toLowerCase()).toContain(pkgName.toLowerCase());
+
+  // …and every declared icon actually resolves.
+  expect(manifest.icons?.length ?? 0).toBeGreaterThan(0);
   for (const icon of manifest.icons ?? []) {
     const iconUrl = new URL(icon.src, product.base);
     const iconRes = await request.get(iconUrl.pathname + iconUrl.search);
-    expect(iconRes.status(), `icon ${icon.src} must resolve`).toBe(200);
+    expect(iconRes.status(), icon.src).toBe(200);
   }
 });
