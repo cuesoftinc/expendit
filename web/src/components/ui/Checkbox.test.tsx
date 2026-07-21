@@ -30,9 +30,38 @@ describe("Checkbox (design.md §8.2b)", () => {
   it("disabled blocks interaction", async () => {
     const onCheckedChange = vi.fn();
     render(
-      <Checkbox checked={false} onCheckedChange={onCheckedChange} disabled />,
+      <Checkbox
+        checked={false}
+        onCheckedChange={onCheckedChange}
+        disabled
+        aria-label="Disabled box"
+      />,
     );
     await userEvent.click(screen.getByRole("checkbox")).catch(() => undefined);
     expect(onCheckedChange).not.toHaveBeenCalled();
+  });
+
+  // 2026-07-21 a11y audit lock: the API cannot produce an unnamed control.
+  // Label-less checkboxes (table row selects) take aria-label as their
+  // accessible name; the CheckboxProps union makes one of label/aria-label
+  // compile-mandatory.
+  it("aria-label names a label-less checkbox", () => {
+    render(
+      <Checkbox
+        checked={false}
+        aria-label="Select transaction Jumia order, 12 Jan"
+      />,
+    );
+    expect(
+      screen.getByRole("checkbox", {
+        name: "Select transaction Jumia order, 12 Jan",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("rejects a name-less usage at the type level", () => {
+    // @ts-expect-error — accessible name (label or aria-label) is required.
+    const nameless = <Checkbox checked={false} />;
+    expect(nameless).toBeTruthy();
   });
 });

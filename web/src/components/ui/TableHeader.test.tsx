@@ -65,15 +65,21 @@ describe("TableHeader (design.md §8.2b)", () => {
     expect(screen.getByRole("row")).toHaveClass("h-[44px]");
   });
 
-  it("select-all slot wires the checkbox", async () => {
+  it("select-all slot wires the checkbox and names it (a11y audit)", async () => {
     const onCheckedChange = vi.fn();
     render(
       <TableHeader
         columns={columns}
-        selectAll={{ checked: "indeterminate", onCheckedChange }}
+        selectAll={{
+          checked: "indeterminate",
+          onCheckedChange,
+          label: "Select all transactions",
+        }}
       />,
     );
-    const box = screen.getByRole("checkbox");
+    const box = screen.getByRole("checkbox", {
+      name: "Select all transactions",
+    });
     expect(box).toHaveAttribute("aria-checked", "mixed");
     await userEvent.click(box);
     expect(onCheckedChange).toHaveBeenCalled();
