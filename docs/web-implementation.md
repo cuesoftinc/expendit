@@ -150,6 +150,16 @@ design-phase QA loops, design.md §8).
   sheet → typed confirm → stamped, immutable filing history). B9 carries
   the USR-001 export and USR-002 purge (MI-15 typed-confirm, 7-day grace,
   cancel) rights flows.
+- **B9 routed settings tabs [User-ratified 2026-07-20]:** settings is a
+  layout (title + underline tab bar) over four REAL sub-routes —
+  Organization (`/organization`, org profile + Appearance tail), Members
+  (`/members`), Data & privacy (`/data-privacy`, AI consent + bank-link
+  permissions, export card above the bordered danger card), Notifications
+  (`/notifications`). The bare route `redirect()`s to the first tab; the
+  tab bar is `RouteTabs` — a `role=tablist` of links with `aria-selected`
+  + `aria-current="page"` and roving-tabindex arrow-key focus (manual
+  activation), h-scrolling inside the viewport below `md`; AppNav's
+  Settings entry matches nested sub-routes.
 - **Semantic registry refactor:** `TxnTableRow`/`TableHeader` compose a
   real `<table>`/`<thead>`/`<tr>`/`<td>`/`<th scope="col">` ledger instead
   of div grids; row components that carried a table-context `role=row`
@@ -408,7 +418,11 @@ rail (±2px e2e on personal and company orgs) through `ChartLine`'s
 floored at `lg:min-h-[176px]` so short rails never squash it
 (absolutely-filled SVG, `preserveAspectRatio="none"`, non-scaling
 strokes; the %-positioned tick ladder tracks any height); below lg the
-stacked aspect construction is unchanged.
+stacked aspect construction is unchanged. Fill-mode series fade in
+rather than dash-draw-in: `non-scaling-stroke` computes dash metrics in
+screen space, so the `pathLength`-normalized dash no longer spans the
+stretched path and the line renders as literal dashes with gaps (unit +
+e2e pin the fill-mode polyline dash-free). The absolutely-positioned fill SVG pins to the padding box, so it restates the 52px axis offset as a left inset — the plot never slides under the y-axis label column (e2e pins the label→plot gap ≥ 4px).
 
 **Self-host tabbed snippet as-built (2026-07-20, PR #239).** The A8a
 compose one-liner is now the user-approved Docker Compose | Helm tab pair
@@ -429,6 +443,30 @@ method-neutral "self-host"). Unit: `CodeSnippet.test.tsx` tabbed cases
 (tab state, per-tab copy payload, Radix roving focus, copied-morph
 reset); e2e: `home.spec.ts` pins helm-tab copy → the clipboard payload,
 caption persistence and the 1440/390 container fit.
+
+**Categories Archive tab as-built (2026-07-21, ratified — resolves the
+deferred Archive proposal).** The archive surface ships on the category
+registry, not the B6 hub (B6 keeps its adjudicated two-page IA; the
+ratified canvas frame is "B8b — Categories (Archive)").
+`/dashboard/categories` carries the routed tab pair **Active | Archive**
+(RouteTabs idiom — every tab a real sub-route, deep-linkable; `RouteTabs`
+resolves the most specific matching href, so the bare Active route no
+longer captures its child). Rows gain a quiet **Archive** action (danger
+ladder: reversible moves are never danger and take no confirm);
+`/dashboard/categories/archive` lists archived rows as chip + "Archived
+d MMM yyyy · N transactions this year" (absolute finance dates) + quiet
+**Unarchive**. Model: `Category.archived_at` (ISO datetime, null/absent
+= active). Mock API: `GET /categories` serves the active registry only —
+pickers, merge targets, and recategorize menus never see archived rows —
+with `?archived=1` for the archive; idempotent `POST
+/categories/{id}/archive` / `.../unarchive`; merge refuses an archived
+target (`422 merge_target_archived`). Seed: "Conferences & travel" +
+"Print & stationery" archived on the Cuesoft org (the B8b narrative).
+Unit: `routes-categories.test.ts`, `use-categories.test.ts`,
+`CategoriesArchiveView.test.tsx`, and a RouteTabs nested-href case; e2e:
+`categories-archive.spec.ts` (archive → Archive tab → unarchive →
+delete-cleanup, plus the deep-link) and the 390 sweep gains the archive
+route.
 
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
@@ -499,8 +537,12 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | B6b | `/dashboard/company/ratios` | Ratio grid (RatioGauge groups, trends; traces open in the Inspector) |
 | B7 | `/dashboard/taxes` | Tax center (profile, calendar, estimates with RemitToCard, filing history) |
 | B7b | `/dashboard/taxes/file` | Filing wizard (MI-10) |
-| B8 | `/dashboard/categories` | Categories (CRUD, color, merge) |
-| B9 | `/dashboard/settings` | Settings incl. members/roles, org profile, rights & data screens (export-all, purge MI-15) |
+| B8 | `/dashboard/categories` · `/dashboard/categories/archive` | Categories — routed Active/Archive registry tabs (CRUD, color, merge; quiet archive/unarchive, absolute archive dates) |
+| B9 | `/dashboard/settings` → `/dashboard/settings/organization` | Settings shell — page title + routed tab bar (underline grammar, tablist-of-links with `aria-current`); the bare route redirects to the first tab (live IA, **[User-ratified 2026-07-20]**) |
+| B9 | `/dashboard/settings/organization` | Organization tab — org profile (name, registered address, fiscal year end) + Appearance card tail (theme control) |
+| B9 | `/dashboard/settings/members` | Members tab — members & roles (invite → pending until first sign-in) |
+| B9/B9b | `/dashboard/settings/data-privacy` | Data & privacy tab — AI consent + bank-link permissions; USR-001 export card (determinate strip) above the bordered danger card (USR-002 purge, MI-15 typed confirm + 7-day grace) |
+| B9 | `/dashboard/settings/notifications` | Notifications tab — deadline reminders + import summaries |
 
 Part C (mobile) has no web routes — it is a later phase (§8). Legacy
 flat paths (`/expense`, `/income`, `/history`, `/import`, `/reports`,
@@ -529,7 +571,7 @@ on it:
    (incl. the `X-Org-Id` context header), so repositories are identical in
    both modes except for the base URL.
 
-Unset (or `0`) → real `FirebaseAuthProvider` + `NEXT_PUBLIC_BASE_URL`
+Unset (or `0`) → real `FirebaseAuthProvider` + the real `/api/v1` base
 (api/common). TEST_MODE is how Playwright runs in CI and how the app is
 developed before the v1 backend consolidation lands.
 

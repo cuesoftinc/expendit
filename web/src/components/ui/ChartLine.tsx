@@ -215,7 +215,21 @@ export const ChartLine: React.FC<ChartLineProps> = ({
           preserveAspectRatio={fill ? "none" : undefined}
           role="img"
           aria-label={`Line chart: ${series.map((entry) => entry.label).join(", ")}`}
-          className={cn("w-full", fill && "lg:absolute lg:inset-0 lg:h-full")}
+          className={cn(
+            "w-full",
+            // Absolute positioning pins to the PADDING box, so inset-0
+            // would slide the plot under the y-axis label column — the
+            // left inset restates the 52px axis offset (user report:
+            // gridlines struck through the tick labels). Width must be
+            // explicit: an absolutely-positioned SVG is a REPLACED
+            // element, so left+right insets with w-auto resolve width
+            // from the viewBox aspect (huge at tall plots) instead of
+            // stretching between the insets.
+            fill &&
+              (yAxis
+                ? "lg:absolute lg:inset-y-0 lg:left-[52px] lg:h-full lg:w-[calc(100%-52px)]"
+                : "lg:absolute lg:inset-0 lg:h-full"),
+          )}
         >
           {scale ? (
             // Gridline per tick (--border); the lowest is the baseline.
@@ -264,11 +278,17 @@ export const ChartLine: React.FC<ChartLineProps> = ({
               fill="none"
               strokeWidth="1.5"
               vectorEffect={fill ? "non-scaling-stroke" : undefined}
-              pathLength={1}
-              strokeDasharray="1"
+              // non-scaling-stroke computes dash metrics in screen space,
+              // so the pathLength-normalized dash no longer spans the
+              // stretched path — the series renders as literal dashes with
+              // gaps. Fill mode fades in instead of the dash draw-in.
+              pathLength={fill ? undefined : 1}
+              strokeDasharray={fill ? undefined : "1"}
               className={cn(
                 COLOR_STROKE[entry.color],
-                "animate-draw-in motion-reduce:animate-none motion-reduce:[stroke-dashoffset:0]",
+                fill
+                  ? "animate-fade-in motion-reduce:animate-none"
+                  : "animate-draw-in motion-reduce:animate-none motion-reduce:[stroke-dashoffset:0]",
               )}
             />
           ))}

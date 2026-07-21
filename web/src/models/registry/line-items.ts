@@ -180,10 +180,6 @@ export const DERIVATIONS: readonly Derivation[] = [
   },
 ];
 
-export const DERIVED_KEYS: readonly CanonicalKey[] = DERIVATIONS.map(
-  (d) => d.key,
-);
-
 /** Human labels for pickers and the StatementView. */
 export const CANONICAL_KEY_LABELS: Record<CanonicalKey, string> = {
   cash_and_equivalents: "Cash & equivalents",

@@ -120,7 +120,14 @@ const PERSONAL_ROUTES = [
   "/dashboard/accounts",
   "/dashboard/reports",
   "/dashboard/categories",
-  "/dashboard/settings",
+  // routed registry tabs (2026-07-21): the Archive pane reflows too.
+  "/dashboard/categories/archive",
+  // routed settings tabs (2026-07-20): the bar itself must h-scroll in
+  // the viewport, and every pane reflows — sweep all four sub-routes.
+  "/dashboard/settings/organization",
+  "/dashboard/settings/members",
+  "/dashboard/settings/data-privacy",
+  "/dashboard/settings/notifications",
 ];
 
 const COMPANY_ROUTES = [

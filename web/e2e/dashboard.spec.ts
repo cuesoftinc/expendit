@@ -423,6 +423,29 @@ test("overview mid-band bottoms align at lg — the chart card stretches to the 
       .getByTestId("chart-plot")
       .boundingBox();
     expect(plotBox!.height).toBeGreaterThanOrEqual(176);
+    // Regression (user report): non-scaling-stroke dashes in screen
+    // space, so a pathLength-normalized dash draw-in renders the
+    // stretched series as literal dashes with gaps — the fill-mode
+    // polyline must carry no dash pattern.
+    const netLine = page
+      .getByTestId("overview-mid-band")
+      .getByTestId("chart-line-net");
+    await expect(netLine).not.toHaveAttribute("stroke-dasharray", /.+/);
+    await expect(netLine).not.toHaveAttribute("pathLength", /.+/);
+    // Regression (user report): the fill-mode SVG is absolutely
+    // positioned, which pins to the padding box — it must restate the
+    // axis offset, never slide under the y-axis label column (master:
+    // 44px labels + 8px gap before the plot).
+    const axisBox = await page
+      .getByTestId("overview-mid-band")
+      .getByTestId("chart-y-axis")
+      .boundingBox();
+    const svgBox = await page
+      .getByTestId("overview-mid-band")
+      .locator("svg")
+      .first()
+      .boundingBox();
+    expect(svgBox!.x - (axisBox!.x + axisBox!.width)).toBeGreaterThanOrEqual(4);
   };
 
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -450,7 +473,11 @@ test("purge modal — org-name typed confirm + Export first escape hatch (MI-15)
 }) => {
   await signIn(page);
   await openNav(page, "Settings").click();
-  await page.waitForURL("**/dashboard/settings");
+  // routed tabs (2026-07-20): bare settings lands on the first tab; the
+  // purge flow lives in the Data & privacy pane.
+  await page.waitForURL("**/dashboard/settings/organization");
+  await page.getByRole("tab", { name: "Data & privacy" }).click();
+  await page.waitForURL("**/dashboard/settings/data-privacy");
 
   await page.getByRole("button", { name: "Delete everything…" }).click();
   const modal = page.getByRole("dialog", { name: "Delete account & all data" });
@@ -480,7 +507,9 @@ test("settings — editable address (B9) + determinate export strip (B9b)", asyn
   await signIn(page);
   await switchToCompanyOrg(page);
   await openNav(page, "Settings").click();
-  await page.waitForURL("**/dashboard/settings");
+  // routed tabs (2026-07-20): the address lives on the Organization tab
+  // (the redirect target), the export strip on Data & privacy.
+  await page.waitForURL("**/dashboard/settings/organization");
 
   // Registered address is editable per the B9 frame (street/city/state).
   await expect(page.getByLabel("Address line")).toBeVisible();
@@ -489,6 +518,8 @@ test("settings — editable address (B9) + determinate export strip (B9b)", asyn
 
   // Export strip: determinate % + record count + rate-limit microcopy,
   // resolving to the archive download.
+  await page.getByRole("tab", { name: "Data & privacy" }).click();
+  await page.waitForURL("**/dashboard/settings/data-privacy");
   await page.getByRole("button", { name: "Request export" }).click();
   await expect(
     page.getByText(/Preparing export — [\d,]+ records/),

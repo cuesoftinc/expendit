@@ -1,14 +1,23 @@
-/** Categories repository — CRUD (pages.md B8). */
+/** Categories repository — CRUD + archive (pages.md B8). */
 
 import type { Category } from "../category";
 import { api, type RequestOptions } from "./client";
 
-export type CategoryCreate = Omit<Category, "id" | "org_id">;
+export type CategoryCreate = Omit<Category, "id" | "org_id" | "archived_at">;
 export type CategoryUpdate = Partial<CategoryCreate>;
 
+export interface CategoryListOptions extends RequestOptions {
+  /** List the archived registry instead of the active one (B8 Archive tab). */
+  archived?: boolean;
+}
+
 export const categoriesRepo = {
-  list: (options?: RequestOptions) =>
-    api.get<{ items: Category[] }>("/categories", options),
+  /** Active categories by default; `archived: true` lists the archive. */
+  list: ({ archived, ...options }: CategoryListOptions = {}) =>
+    api.get<{ items: Category[] }>("/categories", {
+      ...options,
+      query: { ...options.query, ...(archived ? { archived: 1 } : {}) },
+    }),
 
   get: (id: string, options?: RequestOptions) =>
     api.get<Category>(`/categories/${id}`, options),
@@ -29,4 +38,12 @@ export const categoriesRepo = {
       { into: intoCategoryId },
       options,
     ),
+
+  /** Archive (B8 Archive tab) — quiet and reversible, never destructive. */
+  archive: (id: string, options?: RequestOptions) =>
+    api.post<Category>(`/categories/${id}/archive`, undefined, options),
+
+  /** Restore an archived category to the active registry. */
+  unarchive: (id: string, options?: RequestOptions) =>
+    api.post<Category>(`/categories/${id}/unarchive`, undefined, options),
 };

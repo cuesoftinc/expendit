@@ -58,7 +58,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   <EditorialDark motif>
     {nav}
     <SectionInner className="pb-24 pt-14 text-center md:pt-24">
-      <h1 className="mx-auto max-w-[1100px] font-display text-[44px] font-bold leading-[1.05] tracking-tight text-text sm:text-[56px] lg:text-[80px]">
+      {/* Hero/88 Bold at the 1440 frame (Figma 193:1631, design.md §2
+          [Decided 2026-07-16]): 88/92; tracking-tight (−0.025em) is the
+          style's −2.5% exactly. Scales down 56/44 at smaller breakpoints. */}
+      <h1 className="mx-auto max-w-[1100px] font-display text-[44px] font-bold leading-[1.05] tracking-tight text-text sm:text-[56px] lg:text-[88px] lg:leading-[92px]">
         See every naira. File every tax.
       </h1>
       <p className="mx-auto mt-6 max-w-3xl text-base leading-relaxed text-text-2">

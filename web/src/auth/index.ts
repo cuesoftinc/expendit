@@ -24,7 +24,7 @@ export const getAuthProvider = (): AuthProvider => {
   return provider;
 };
 
-/** Test seam. */
+/** Test seam — vitest.setup.ts resets the singleton between tests. */
 export const resetAuthProvider = (): void => {
   provider = null;
 };
