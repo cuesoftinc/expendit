@@ -1,8 +1,8 @@
 /** Mock: tax profile — read + update (api.md §5; data-model.md §5). */
 
 import type { TaxProfile } from "@/models";
-import { getDb } from "@/mock/db";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);

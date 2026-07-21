@@ -1,10 +1,10 @@
 /** Mock: orgs — list mine + create (api.md §5; data-model.md §5). */
 
 import type { Org, OrgKind } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, ok, writeBlocked } from "@/mock/http";
-import { USER_IBUKUN } from "@/mock/seed";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, ok, writeBlocked } from "@/mocks/http";
+import { USER_IBUKUN } from "@/mocks/seed";
 
 export async function GET() {
   return ok({ items: getDb().orgs });

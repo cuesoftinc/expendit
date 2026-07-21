@@ -4,8 +4,8 @@
  * Idempotent: unarchiving an active category is a no-op 200.
  */
 
-import { getDb } from "@/mock/db";
-import { notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

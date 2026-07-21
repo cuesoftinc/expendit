@@ -3,8 +3,8 @@
  * recurring identical payments — flows/import.md §2 staged review).
  */
 
-import { getDb } from "@/mock/db";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

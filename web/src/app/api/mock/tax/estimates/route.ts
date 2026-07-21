@@ -5,8 +5,8 @@
  * CIT FY2026 (FIRS), and PIT 2026 → LIRS on the personal org.
  */
 
-import { computeEstimates } from "@/mock/tax-engine";
-import { fail, ok, resolveOrgId } from "@/mock/http";
+import { computeEstimates } from "@/mocks/tax-engine";
+import { fail, ok, resolveOrgId } from "@/mocks/http";
 
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);

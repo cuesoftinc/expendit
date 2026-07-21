@@ -1,8 +1,8 @@
 /** Mock: export job status — completes on poll with a 7-day signed URL. */
 
-import { getDb } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { notFound, ok } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { notFound, ok } from "@/mocks/http";
 
 type Context = { params: Promise<{ jobId: string }> };
 

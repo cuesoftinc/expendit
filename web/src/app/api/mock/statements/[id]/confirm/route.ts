@@ -4,11 +4,11 @@
  * reports (flows/statement-mapping.md §4).
  */
 
-import { getDb } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { recomputeReport } from "@/mock/ratio-engine";
-import { runDerivations, validateConfirm } from "@/mock/statement-engine";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { recomputeReport } from "@/mocks/ratio-engine";
+import { runDerivations, validateConfirm } from "@/mocks/statement-engine";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

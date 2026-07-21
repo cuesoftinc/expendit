@@ -1,8 +1,8 @@
 /** Mock: org update — name, registered_address, fiscal_year_end. */
 
 import type { Org } from "@/models";
-import { getDb } from "@/mock/db";
-import { fail, notFound, ok, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { fail, notFound, ok, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

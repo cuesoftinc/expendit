@@ -5,9 +5,9 @@
  * chip. Idempotent: archiving an archived category is a no-op 200.
  */
 
-import { getDb } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

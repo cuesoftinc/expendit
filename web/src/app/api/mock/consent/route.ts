@@ -1,10 +1,10 @@
 /** Mock: consent records — tos/privacy/ai_processing (flows/auth.md §4). */
 
 import type { ConsentDocument, ConsentRecord } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, ok } from "@/mock/http";
-import { USER_IBUKUN } from "@/mock/seed";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, ok } from "@/mocks/http";
+import { USER_IBUKUN } from "@/mocks/seed";
 
 const DOCUMENTS: ConsentDocument[] = ["tos", "privacy", "ai_processing"];
 

@@ -4,8 +4,8 @@
  */
 
 import type { Member, OrgRole } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { fail, notFound, ok, writeBlocked } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { fail, notFound, ok, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

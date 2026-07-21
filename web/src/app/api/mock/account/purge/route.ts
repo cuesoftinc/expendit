@@ -4,10 +4,10 @@
  * (→ 410 grace_expired after execution) — flows/rights.md §2.
  */
 
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, noContent, ok } from "@/mock/http";
-import { USER_IBUKUN } from "@/mock/seed";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, noContent, ok } from "@/mocks/http";
+import { USER_IBUKUN } from "@/mocks/seed";
 
 /**
  * Read the purge state so the grace banner + cancel affordance survive a

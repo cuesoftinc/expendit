@@ -1,8 +1,8 @@
 /** Mock: ratio report for a period (GET ?period=) — computes lazily. */
 
-import { getOrComputeReport } from "@/mock/ratio-engine";
+import { getOrComputeReport } from "@/mocks/ratio-engine";
 import { PERIOD_PATTERN } from "@/models/registry/line-items";
-import { fail, ok, resolveOrgId } from "@/mock/http";
+import { fail, ok, resolveOrgId } from "@/mocks/http";
 
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);

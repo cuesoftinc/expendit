@@ -9,8 +9,8 @@ import {
   isCanonicalKey,
   SUGGESTION_CONFIDENCE_FLOOR,
 } from "@/models/registry/line-items";
-import { getDb, nextId } from "@/mock/db";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

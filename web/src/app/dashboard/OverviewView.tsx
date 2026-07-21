@@ -16,7 +16,7 @@ import { formatIso, daysUntil } from "@/lib/dates";
 import { useOrg, useOverviewController } from "@/controllers";
 import { useCategoriesController } from "@/controllers/use-categories";
 import { formatMoney, formatMoneyCompact } from "@/lib/format";
-import { DEMO_DATASETS } from "@/mock/demo";
+import { DEMO_DATASETS } from "@/mocks/demo";
 import type { TxnEntry } from "@/models";
 import AnomalyBadge from "@/components/ui/AnomalyBadge";
 import Banner from "@/components/ui/Banner";

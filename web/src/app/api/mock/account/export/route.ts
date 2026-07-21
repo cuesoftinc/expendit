@@ -1,7 +1,7 @@
 /** Mock: export-all (USR-001) — 202 {job_id}; completes on first poll. */
 
-import { getDb, nextId } from "@/mock/db";
-import { ok } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { ok } from "@/mocks/http";
 
 export async function POST() {
   const db = getDb();

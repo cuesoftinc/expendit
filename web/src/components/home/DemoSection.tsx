@@ -17,7 +17,7 @@ import ChartLine from "@/components/ui/ChartLine";
 import ChartDonut from "@/components/ui/ChartDonut";
 import TableHeader from "@/components/ui/TableHeader";
 import TxnTableRow from "@/components/ui/TxnTableRow";
-import { DEMO_PERSONAS, DEMO_DATASETS, type DemoPersona } from "@/mock/demo";
+import { DEMO_PERSONAS, DEMO_DATASETS, type DemoPersona } from "@/mocks/demo";
 import { useHomeDemoController } from "@/controllers/use-home-demo";
 import { formatMoney } from "@/lib/format";
 import { SectionHeading, SectionInner } from "./Section";

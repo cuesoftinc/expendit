@@ -14,7 +14,7 @@ import {
   type DemoDataset,
   type DemoPersona,
   type DemoTxn,
-} from "@/mock/demo";
+} from "@/mocks/demo";
 import { useAnalyticsController } from "./use-analytics";
 
 /** Per-persona category overrides from demo recategorize actions. */

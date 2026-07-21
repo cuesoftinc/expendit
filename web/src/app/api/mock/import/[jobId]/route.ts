@@ -4,15 +4,15 @@
  */
 
 import type { StagedTransaction, TxnEntry } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
 import {
   noContent,
   notFound,
   ok,
   resolveOrgId,
   writeBlocked,
-} from "@/mock/http";
+} from "@/mocks/http";
 
 type Context = { params: Promise<{ jobId: string }> };
 

@@ -1,7 +1,7 @@
 /** Mock: staged-row category correction (MI-4 — clears the AI ✨). */
 
-import { getDb } from "@/mock/db";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 
