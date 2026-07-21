@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- Dashboard rail prefetch is intent-based: a pillar's chunks load on the
+  first hover/focus of its nav item instead of on viewport entry, so a cold
+  dashboard route ships only its own chunk set (~204K vs ~355K settled JS
+  on accounts) with navigation latency unchanged (#262).
+- The skip link converges on the fleet-canonical construction
+  ("Skip to content") (#262).
 - Mock-data module renamed `src/mock/` → `src/mocks/` for tree-shape parity
   with the sibling repos (#256).
 - `/docs/api`'s Scalar reference now loads on user intent instead of shipping
@@ -16,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (#257).
 
 ### Fixed
+- Ratio gauges format the period delta (2dp ratio convention, or the
+  metric's own style — days stay integer) instead of printing the raw
+  float (#262).
 - Accessibility closeout: valid tab IDREFs in code snippets, date-picker
   popover focus containment, named table headers, a skip-to-content link,
   distinct nav landmark labels, and deferred below-the-fold demo panels
@@ -28,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (#258).
 
 ### Added
+- Web app manifest at `/manifest.webmanifest`: product identity, token
+  colors and the brand icons; the fleet SEO spec now locks it (#262).
 - Settings goes route-backed tabs: Organization | Members | Data & privacy |
   Notifications, each deep-linkable (#240).
 - Categories gains an Archive tab: routed Active | Archive registry views
