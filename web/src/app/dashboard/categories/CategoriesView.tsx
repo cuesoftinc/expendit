@@ -101,7 +101,10 @@ const CategoryList: React.FC<CategoryListProps> = ({
             <span className="min-w-0 flex-1 truncate text-[12px] text-text-2">
               {usageMeta(category)}
             </span>
-            <span className="flex shrink-0 items-center gap-3">
+            {/* min-w-0 + flex-wrap: four actions now share the cluster —
+                inside a md two-column card it wraps instead of pushing
+                the column wide (768 overflow sweep). */}
+            <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
               <Button kind="quiet" size="sm" onClick={() => onEdit(category)}>
                 Edit
               </Button>
