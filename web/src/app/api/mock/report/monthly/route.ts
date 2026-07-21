@@ -9,10 +9,10 @@
  */
 
 import type { MonthlyFlowPoint, RunwaySnapshot } from "@/models";
-import { getDb } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { statementLineItems } from "@/mock/statement-engine";
-import { fail, ok, resolveOrgId } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { statementLineItems } from "@/mocks/statement-engine";
+import { fail, ok, resolveOrgId } from "@/mocks/http";
 
 const MONTHS = 12;
 

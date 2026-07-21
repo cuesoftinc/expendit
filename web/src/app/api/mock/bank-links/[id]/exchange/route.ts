@@ -4,9 +4,9 @@
  * already_linked (flows/bank-link.md §1 edge cases).
  */
 
-import { getDb } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

@@ -4,9 +4,9 @@
  * B1 category donut (donut slices take registry category colors).
  */
 
-import { getDb } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, ok, resolveOrgId } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, ok, resolveOrgId } from "@/mocks/http";
 
 const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 

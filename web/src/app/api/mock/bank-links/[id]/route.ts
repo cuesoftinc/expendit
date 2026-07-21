@@ -5,7 +5,7 @@
  */
 
 import type { BankLink } from "@/models";
-import { getDb } from "@/mock/db";
+import { getDb } from "@/mocks/db";
 import {
   fail,
   noContent,
@@ -13,7 +13,7 @@ import {
   ok,
   resolveOrgId,
   writeBlocked,
-} from "@/mock/http";
+} from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

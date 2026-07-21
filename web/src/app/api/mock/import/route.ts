@@ -1,7 +1,7 @@
 /** Mock: import-job history (pages.md B3). */
 
-import { getDb } from "@/mock/db";
-import { fail, ok, resolveOrgId } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { fail, ok, resolveOrgId } from "@/mocks/http";
 
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);

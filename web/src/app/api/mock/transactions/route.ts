@@ -1,9 +1,9 @@
 /** Mock: ledger transactions — list (filters + cursor) and create. */
 
 import type { TxnDirection, TxnEntry, TxnSource } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, ok, paginate, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, ok, paginate, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 

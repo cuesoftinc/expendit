@@ -1,7 +1,7 @@
 /** Mock: single statement + its line items (StatementView data). */
 
-import { getDb } from "@/mock/db";
-import { notFound, ok, resolveOrgId } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { notFound, ok, resolveOrgId } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

@@ -1,9 +1,9 @@
 /** Mock: bank links — list + widget bootstrap (flows/bank-link.md §1). */
 
 import type { BankLink } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);

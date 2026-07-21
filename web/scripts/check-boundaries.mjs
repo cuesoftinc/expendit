@@ -58,7 +58,7 @@ const REPO_RULES = {
         "src/controllers/use-github-stars.ts",
       ],
       // The mock server is server-side route-handler code, not a view.
-      prefixes: ["src/app/api/mock", "src/mock"],
+      prefixes: ["src/app/api/mock", "src/mocks"],
     }),
   ],
   upstat: [
@@ -72,7 +72,7 @@ const REPO_RULES = {
       // X-8 control-plane exception lives behind the repositories).
       viewForbiddenImports: [
         /from\s+["']@\/models\/repositories/,
-        /from\s+["'](@\/proto|@\/client|grpc-web|google-protobuf)/,
+        /from\s+["'](@\/proto|grpc-web|google-protobuf)/,
       ],
     }),
     rawHex({

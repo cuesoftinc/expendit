@@ -10,9 +10,9 @@
  */
 
 import type { ImportFileType, ImportJob } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 const MAX_BYTES = 15 * 1024 * 1024; // ≤15 MB [Decided]
 const EXT_TO_TYPE: Record<string, ImportFileType> = {

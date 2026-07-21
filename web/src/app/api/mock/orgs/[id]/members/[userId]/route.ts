@@ -1,8 +1,8 @@
 /** Mock: member role change + removal (owner-only in the real authz). */
 
 import type { OrgRole } from "@/models";
-import { getDb } from "@/mock/db";
-import { fail, noContent, notFound, ok, writeBlocked } from "@/mock/http";
+import { getDb } from "@/mocks/db";
+import { fail, noContent, notFound, ok, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string; userId: string }> };
 

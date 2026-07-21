@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
-import { resetDb } from "@/mock/db";
+import { resetDb } from "@/mocks/db";
 import { resetAuthProvider } from "@/auth";
 
 /**

@@ -5,13 +5,13 @@
  * generates artifacts incl. the remittance sheet (§5.5).
  */
 
-import { getDb } from "@/mock/db";
+import { getDb } from "@/mocks/db";
 import {
   identityIncomplete,
   resolveRuleset,
   RULESETS,
-} from "@/mock/tax-engine";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+} from "@/mocks/tax-engine";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ id: string }> };
 

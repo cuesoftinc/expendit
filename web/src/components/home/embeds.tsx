@@ -27,7 +27,7 @@ import {
   Upload,
 } from "lucide-react";
 import type { Org, TxnEntry } from "@/models";
-import { DEMO_DATASETS, type DemoTxn } from "@/mock/demo";
+import { DEMO_DATASETS, type DemoTxn } from "@/mocks/demo";
 import { formatMoney } from "@/lib/format";
 import AppNav, { NavGroupLabel, NavItem } from "@/components/ui/AppNav";
 import OrgSwitcher from "@/components/ui/OrgSwitcher";

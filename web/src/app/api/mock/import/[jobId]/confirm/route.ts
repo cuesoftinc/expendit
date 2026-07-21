@@ -5,9 +5,9 @@
  */
 
 import type { TxnEntry } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 type Context = { params: Promise<{ jobId: string }> };
 

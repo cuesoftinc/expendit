@@ -5,9 +5,9 @@
 
 import type { ReportArtifact, ReportKind } from "@/models";
 import { PERIOD_PATTERN } from "@/models/registry/line-items";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
-import { fail, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
+import { fail, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 const KINDS: ReportKind[] = [
   "monthly_summary",

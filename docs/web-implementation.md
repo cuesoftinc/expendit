@@ -636,7 +636,7 @@ boot looks like the designs:
   invariant: July MTD sums, the Apr–Jun nets, VAT 2026-06 net ₦550,600
   (due 21 Jul, T-1) computed from the June ledger, and the FY2025
   statement identities (the invariant table lives at the top of
-  `src/mock/seed.ts`).
+  `src/mocks/seed.ts`).
 - The signed-in test user owns a **personal org** (the freelancer dataset:
   a categorized NGN ledger with ✨ AI-suggested and confirmed CategoryChips,
   anomaly-flagged rows covering all four AnomalyBadge types, sources spread

@@ -4,15 +4,15 @@
  */
 
 import type { TaxFiling, TaxKind } from "@/models";
-import { getDb, nextId } from "@/mock/db";
-import { mockNow } from "@/mock/clock";
+import { getDb, nextId } from "@/mocks/db";
+import { mockNow } from "@/mocks/clock";
 import {
   computeCitEstimate,
   computePitEstimate,
   computeVatEstimate,
   periodComplete,
-} from "@/mock/tax-engine";
-import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+} from "@/mocks/tax-engine";
+import { fail, notFound, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 export async function GET(request: Request) {
   const orgId = resolveOrgId(request);

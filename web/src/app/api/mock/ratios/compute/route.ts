@@ -1,7 +1,7 @@
 /** Mock: POST /ratios/compute {period} → 201 report with traces. */
 
-import { recomputeReport } from "@/mock/ratio-engine";
-import { fail, ok, resolveOrgId, writeBlocked } from "@/mock/http";
+import { recomputeReport } from "@/mocks/ratio-engine";
+import { fail, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
 
 export async function POST(request: Request) {
   const blocked = writeBlocked();

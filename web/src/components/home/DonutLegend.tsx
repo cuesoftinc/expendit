@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import type { DemoDonutSlice } from "@/mock/demo";
+import type { DemoDonutSlice } from "@/mocks/demo";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
