@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Mock-data module renamed `src/mock/` → `src/mocks/` for tree-shape parity
+  with the sibling repos (#256).
+- `/docs/api`'s Scalar reference now loads on user intent instead of shipping
+  eagerly with the route; a dashboard bundle audit found every route's
+  shared weight is the framework + prefetch floor, with nothing safe to cut
+  (#257).
+
+### Fixed
+- Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
+  recipe so tinted text clears 4.5:1 in both themes (#254).
+- Signin's legal links now point at the canonical Cuesoft policies, and the
+  onboarding AI-consent sheet's "privacy hub" mention is now a real link
+  (#258).
+
 ### Added
 - Settings goes route-backed tabs: Organization | Members | Data & privacy |
   Notifications, each deep-linkable (#240).

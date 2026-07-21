@@ -46,9 +46,8 @@
 
 - Display (marketing + dashboard page titles): **Inter Display** committed for
   v1 [Decided — no commercial-font procurement now]; revisit at brand pass. Hero sizes 56–88px,
-  tight leading (Brex scale). The documented style ramp previously stopped at
-  Hero/56; **Hero/88 Bold** (the A2 hero headline) is added to complete the
-  56–88 scale [Decided 2026-07-16]. Inter Display remains unavailable in
+  tight leading (Brex scale), spanning Hero/56 through **Hero/88 Bold** (the
+  A2 hero headline) [Decided 2026-07-16]. Inter Display remains unavailable in
   Figma — the Inter Bold tight-tracked fallback stands until the brand pass.
 - UI/data: `Inter`; base 14, tables 13; **tabular figures always on for
   numeric columns**; money format `₦1,240,300.50` / `$…` with currency from
@@ -65,8 +64,8 @@
   the Figma `A — Home` frame was normalized to this rule on 2026-07-19 — the
   pillar row, all five feature deep-dive splits, the demo stats/charts/table,
   the how-it-works steps, the security columns, and the contribute dev-row
-  previously implied phantom containers (872–1128px wide); 3-up card rows now
-  share one 384px-card / 24px-gutter rhythm.
+  all align to the single centered container; 3-up card rows share one
+  384px-card / 24px-gutter rhythm.
 - Dashboard: left nav 240px (collapsible to 64px icon rail) · content
   max 1440px · right inspector panel (400px) slides in for detail views —
   tables never navigate away for a single record. **[Proposed]**
