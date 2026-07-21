@@ -14,6 +14,7 @@
 import React, { useEffect, useState } from "react";
 import type { RatioStatus } from "@/models";
 import { cn } from "@/lib/cn";
+import { formatRatio } from "@/lib/format";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import Tooltip from "./Tooltip";
 
@@ -31,6 +32,12 @@ export interface RatioGaugeProps {
   band?: { from: number; to: number } | null;
   /** Delta vs previous period (Figma: "+0.21 vs Q1"). */
   delta?: number;
+  /**
+   * Preformatted delta magnitude in the metric's own display style
+   * (e.g. "3 days", "1.2%"); the sign stays the gauge's. Defaults to
+   * the Figma 2dp ratio convention ("0.21").
+   */
+  deltaDisplay?: string;
   deltaCaption?: string;
   /** Caption line; defaults to the benchmark range when band is on. */
   caption?: string;
@@ -83,6 +90,7 @@ export const RatioGauge: React.FC<RatioGaugeProps> = ({
   status,
   band = null,
   delta,
+  deltaDisplay,
   deltaCaption,
   caption,
   formula,
@@ -192,7 +200,9 @@ export const RatioGauge: React.FC<RatioGaugeProps> = ({
           )}
         >
           {deltaPositive ? "+" : "−"}
-          {Math.abs(delta)}
+          {/* Never the raw float (a computed delta is full-precision —
+              "+1.2254901960784315"); 2dp per the Figma delta line. */}
+          {deltaDisplay ?? formatRatio(Math.abs(delta))}
           {deltaCaption ? ` ${deltaCaption}` : null}
         </div>
       ) : null}

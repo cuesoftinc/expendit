@@ -1,5 +1,5 @@
 // Skip link (fleet canon P15, 2026-07-21 a11y audit): every route's FIRST
-// Tab stop is a visually-hidden-until-focused "Skip to main content" link;
+// Tab stop is a visually-hidden-until-focused "Skip to content" link;
 // activating it moves focus into <main id="main" tabIndex={-1}>, past the
 // navigation chrome. Probe shape: load → Tab → link focused (and visible)
 // → Enter → activeElement is the main landmark.
@@ -18,7 +18,7 @@ const expectSkipLinkFlow = async (page: Page): Promise<void> => {
     window.scrollTo(0, 0);
   });
   await page.keyboard.press("Tab");
-  const link = page.getByRole("link", { name: "Skip to main content" });
+  const link = page.getByRole("link", { name: "Skip to content" });
   await expect(link).toBeFocused();
   await expect(link).toBeVisible();
 
