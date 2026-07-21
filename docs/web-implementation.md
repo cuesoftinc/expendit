@@ -345,8 +345,8 @@ adjudicated audit ledger):**
   amber outside, hidden when a side is absent).
 - **Purge model converged** (MI-15, one construction): typed confirm is
   the ORG NAME, the 5s danger-armed CTA stays, and an "Export first"
-  secondary kicks off the USR-001 export from the modal; grace states as
-  previously built.
+  secondary kicks off the USR-001 export from the modal; the 7-day grace
+  banner and cancel remain intact.
 - **Ratio gauges carry real deltas**: the mock engine computes the prior
   same-kind period per metric and attaches `period_delta` (skipped for
   growth metrics and when either side is n/a); `previousPeriod` lives in
@@ -478,8 +478,8 @@ prompts are decorative (select-none) and stay out of the payload. The
 shared muted caption renders once under the block — "Compose ships
 MongoDB + Redis — the Helm chart expects reachable instances
 (MONGODB_URL, REDIS_URL)." — visible in both tab states, so switching
-never shifts layout. The section eyebrow drops "· docker" (now
-method-neutral "self-host"). Unit: `CodeSnippet.test.tsx` tabbed cases
+never shifts layout. The section eyebrow reads method-neutral "self-host".
+Unit: `CodeSnippet.test.tsx` tabbed cases
 (tab state, per-tab copy payload, Radix roving focus, copied-morph
 reset); e2e: `home.spec.ts` pins helm-tab copy → the clipboard payload,
 caption persistence and the 1440/390 container fit.
@@ -525,9 +525,9 @@ hardened at the shared layer:
 - **Overlays return focus to their opener.** `Modal` and `CommandPalette`
   own the focus contract (fleet P4): the opener is captured on open
   (before autofocus moves into the overlay) and refocused on close —
-  Radix's default targets a null trigger on controlled dialogs and the
-  palette opens programmatically via ⌘K, so both previously dropped focus
-  on `<body>`. `Modal` is also announced `aria-modal`. e2e:
+  necessary because Radix's default targets a null trigger on controlled
+  dialogs, and the palette opens programmatically via ⌘K, so neither has a
+  natural focus-return target. `Modal` is also announced `aria-modal`. e2e:
   `focus-restore.spec.ts` (open → Tab inside → Escape → trigger
   refocused) for the palette and the merge modal.
 
@@ -787,9 +787,9 @@ products; per-product values only):
   canonical URL.
 - **og/twitter card** — `src/app/opengraph-image.png` (1200×630, App Router
   file convention): the "expendit·" wordmark + tagline on the editorial
-  token canvas — replaces the 1500×371 `/logo.png` wordmark (wrong aspect
-  for 1.91:1 cards); `twitter:card = summary_large_image`. `/signin` title
-  standardized to "Sign in — Expendit" (fleet separator).
+  token canvas, sized to the 1.91:1 card aspect ratio; `twitter:card =
+  summary_large_image`. `/signin` title standardized to "Sign in —
+  Expendit" (fleet separator).
 - **Icons** — `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO — was 16×16
   only) and `src/app/apple-icon.png` (180×180): the "e·" mark on the
   editorial tile.
