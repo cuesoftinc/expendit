@@ -264,11 +264,33 @@ Scalar's own toggle is hidden and its remote default fonts are disabled
 Scalar's sticky layout coexist via `--scalar-custom-header-height` on
 the embed wrapper (offsets Scalar's sticky sidebar/mobile bar below the
 nav and shrinks its viewport math — one coherent page scroll) plus
-`isolate` so no Scalar z-index paints over the nav. The footer Docs
-column's "API reference" (`API_REFERENCE_URL`) links `/docs/api`;
-`e2e/docs-api.spec.ts` pins route 200, a rendered operation from the
-spec, the served document, the footer handoff, the header/scroll sanity
-and the embed-theme sync.
+`isolate` so no Scalar z-index paints over the nav. Scalar's developer
+toolbar is pinned off (`showDeveloperTools: "never"`) and Agent Scalar
+is disabled outright (`agent: { disabled: true }` — both auto-enable on
+localhost-class hosts, surfacing author chrome that never exists on the
+real deploy). The footer Docs column's "API reference"
+(`API_REFERENCE_URL`) links `/docs/api`; `e2e/docs-api.spec.ts` pins
+route 200, a rendered operation from the spec, the served document, the
+footer handoff, the header/scroll sanity and the embed-theme sync.
+Payload: Scalar is the app's heaviest dependency, so `DocsApiView`
+renders it through `ScalarApiReferenceLazy` — a `next/dynamic`
+`ssr: false` boundary gated on USER INTENT (fleet-uniform, perf audit +
+payload diet 2026-07-21). A `ssr: false` boundary alone only moves
+Scalar out of the first-load chunks (the async group still downloads
+right after hydration — settled /docs/api JS stayed ~1408K encoded /
+~4874K decoded, network-recorded on the prod build), so the import
+fires only on the first pointer/key/wheel/touch/scroll gesture or the
+placeholder's explicit "Load the interactive API reference" button
+(the screen-reader path). Bots, probes and bounces never pay for
+Scalar; any human interacting mounts it within their first gesture.
+The placeholder reserves the embed's viewport slice
+(`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
+layout; the nav/footer chrome stays SSR'd and interactive throughout.
+`e2e/docs-api-payload.spec.ts` (byte-identical fleet spec, keyed by
+package name — the seo.spec.ts pattern) locks the settled pre-intent
+budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
+prod build only) AND that intent still mounts the full reference with
+the spec fetch intact.
 
 **Theme contract as-built (2026-07-20, ratified — identical across
 apparule, expendit and upstat).** The preference is tri-state
