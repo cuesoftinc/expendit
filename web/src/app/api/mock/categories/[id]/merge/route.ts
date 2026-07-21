@@ -40,6 +40,13 @@ export async function POST(request: Request, context: Context) {
       `Cannot merge ${source.type} into ${target.type} — types must match`,
     );
   }
+  if (target.archived_at) {
+    return fail(
+      422,
+      "merge_target_archived",
+      "Cannot merge into an archived category — restore it first",
+    );
+  }
 
   let moved = 0;
   for (const txn of db.transactions) {

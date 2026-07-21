@@ -48,7 +48,13 @@ export const RouteTabs: React.FC<RouteTabsProps> = ({
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
-  const active = tabs.find((tab) => isActive(tab.href));
+  // Most-specific match wins: with nested tab routes (e.g. categories'
+  // Active at the bare route and Archive at a sub-route) the parent
+  // href prefix-matches every child, so the longest match is the tab
+  // the user is actually on.
+  const active = tabs
+    .filter((tab) => isActive(tab.href))
+    .sort((a, b) => b.href.length - a.href.length)[0];
   // Roving focus falls back to the first tab when no route matches.
   const rovingHref = active?.href ?? tabs[0]?.href;
 

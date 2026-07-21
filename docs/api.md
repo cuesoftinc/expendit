@@ -70,6 +70,13 @@ without `:userID`, error envelope, pagination) plus these new capabilities:
 | `DELETE /api/v1/account/purge` | cancel within grace |
 | `GET /api/v1/consent` · `POST /api/v1/consent` | ToS/privacy/AI-processing acceptance records |
 
+### Category registry archive (pages.md B8) **[Ratified 2026-07-21]**
+
+| Method & path | Purpose |
+| --- | --- |
+| `GET /api/v1/categories?archived=1` | archived registry; the default (no param) list is active-only, so pickers, merge targets, and imports never see archived rows |
+| `POST /api/v1/categories/{id}/archive` · `.../unarchive` | quiet + reversible + idempotent; `archived_at` stamps the archive date (null = active); merge refuses an archived target — `422 merge_target_archived` |
+
 ### Import hardening
 
 | Change | Why |

@@ -1,8 +1,12 @@
 "use client";
 
 /**
- * Categories controller — CRUD + merge tool (pages.md B8). Views render
- * only; 409 category_in_use surfaces through `error` for the delete UX.
+ * Categories controller — CRUD + merge tool + archive (pages.md B8).
+ * Views render only; 409 category_in_use surfaces through `error` for
+ * the delete UX. One controller serves both registry tabs: the default
+ * lists active categories, `{ archived: true }` lists the archive.
+ * Archive/unarchive each drop the row from the current list (it now
+ * belongs to the other tab; routed tabs refetch on mount).
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -13,7 +17,15 @@ import {
   type CategoryUpdate,
 } from "@/models/repositories";
 
-export const useCategoriesController = (orgId?: string) => {
+export interface CategoriesControllerOptions {
+  /** List the archived registry (B8 Archive tab) instead of the active one. */
+  archived?: boolean;
+}
+
+export const useCategoriesController = (
+  orgId?: string,
+  { archived = false }: CategoriesControllerOptions = {},
+) => {
   const [items, setItems] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +34,7 @@ export const useCategoriesController = (orgId?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const { items: data } = await categoriesRepo.list({ orgId });
+      const { items: data } = await categoriesRepo.list({ orgId, archived });
       setItems(data);
     } catch (err) {
       setError(
@@ -31,7 +43,7 @@ export const useCategoriesController = (orgId?: string) => {
     } finally {
       setLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, archived]);
 
   useEffect(() => {
     // Defer to a microtask — effects must not set state synchronously.
@@ -76,5 +88,36 @@ export const useCategoriesController = (orgId?: string) => {
     [orgId],
   );
 
-  return { items, loading, error, refresh, create, update, remove, merge };
+  /** Quiet + reversible — the row moves to the Archive tab. */
+  const archiveCategory = useCallback(
+    async (id: string) => {
+      const category = await categoriesRepo.archive(id, { orgId });
+      setItems((prev) => prev.filter((item) => item.id !== id));
+      return category;
+    },
+    [orgId],
+  );
+
+  /** Restores an archived row to the active registry. */
+  const unarchiveCategory = useCallback(
+    async (id: string) => {
+      const category = await categoriesRepo.unarchive(id, { orgId });
+      setItems((prev) => prev.filter((item) => item.id !== id));
+      return category;
+    },
+    [orgId],
+  );
+
+  return {
+    items,
+    loading,
+    error,
+    refresh,
+    create,
+    update,
+    remove,
+    merge,
+    archive: archiveCategory,
+    unarchive: unarchiveCategory,
+  };
 };

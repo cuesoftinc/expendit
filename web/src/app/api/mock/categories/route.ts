@@ -9,11 +9,17 @@ export async function GET(request: Request) {
   const orgId = resolveOrgId(request);
   if (!orgId) return fail(404, "not_found", "Unknown org");
   const db = getDb();
+  // Active registry by default; `?archived=1` lists the archive (B8
+  // Archive tab). Pickers, merge targets, and imports read the default
+  // list, so archived categories never surface there.
+  const archived = new URL(request.url).searchParams.get("archived") === "1";
   // Usage enrichment (B8 "N transactions this year" — merge-safety
   // context): calendar-year count per category, derived at read time.
   const year = String(mockNow().getFullYear());
   const items = db.categories
-    .filter((cat) => cat.org_id === orgId)
+    .filter(
+      (cat) => cat.org_id === orgId && Boolean(cat.archived_at) === archived,
+    )
     .map((cat) => ({
       ...cat,
       txn_count_ytd: db.transactions.filter(

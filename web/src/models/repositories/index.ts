@@ -7,6 +7,7 @@ export {
 export {
   categoriesRepo,
   type CategoryCreate,
+  type CategoryListOptions,
   type CategoryUpdate,
 } from "./categories";
 export { importsRepo, type ImportJobDetail } from "./imports";

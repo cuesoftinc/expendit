@@ -152,9 +152,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   ±1% tolerance, amber when not), period-selector header (StatementView,
   design.md §8.2); export to report artifact
   (`kind: financial_statement`, api.md §2).
-- Archive tab **[Proposed — deferred]**: the B6 hub frame carries a
-  Statements / Ratios / Trends / Archive tab row; the built IA stays two
-  nav pages (adjudicated parity) and no Archive surface ships yet.
+- Archive **[Ratified 2026-07-21]**: the archive surface lives on the
+  category registry (B8 `/categories`, routed Archive tab); B6 keeps the
+  adjudicated two-page IA — no hub tab row.
 - **Ratios** (`/company/ratios` — screen B6b): RatioGauge grid (MI-8),
   grouped:
   - *Liquidity*: current ratio, quick ratio, cash ratio
@@ -228,6 +228,15 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   state** (✨ chip + provenance note, e.g. "AI proposed from 3 vendors"; a
   human edit confirms the entry). Per-row Delete confirms before firing
   (danger pattern); `category_in_use` pivots to merge.
+- Registry tabs **[Ratified 2026-07-21]** (routed — RouteTabs idiom,
+  deep-linkable): **Active** (`/categories`) and **Archive**
+  (`/categories/archive`). Archive is a quiet per-row action (reversible,
+  no confirm — the danger ladder reserves danger affordances for
+  destructive acts): an archived category keeps its history but leaves
+  the default list, so pickers, merge targets, and new imports never
+  offer it. Archive rows read "Archived d MMM yyyy · N transactions this
+  year" (absolute dates, finance idiom) with a quiet Unarchive; merging
+  into an archived target is refused (`merge_target_archived`).
 - Settings: org members/roles (company orgs), organization profile — name,
   registered address, fiscal year end (company orgs; data-model.md §5,
   FormRow; FYE is a human month-end select, "31 December", writing the
