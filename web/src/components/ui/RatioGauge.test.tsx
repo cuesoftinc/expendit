@@ -97,4 +97,48 @@ describe("RatioGauge (design.md §8.2, MI-8)", () => {
     expect(delta).toHaveTextContent("+0.21 vs Q1");
     expect(delta).toHaveClass("text-income");
   });
+
+  it("formats a computed delta to 2dp — never the raw float — keeping the sign", () => {
+    render(
+      <RatioGauge
+        label="Current ratio"
+        value={3.05}
+        status="healthy"
+        delta={1.2254901960784315}
+        deltaCaption="vs FY2024"
+      />,
+    );
+    expect(screen.getByTestId("gauge-delta")).toHaveTextContent(
+      "+1.23 vs FY2024",
+    );
+
+    render(
+      <RatioGauge
+        label="Quick ratio"
+        value={0.9}
+        status="warning"
+        delta={-0.5}
+        deltaCaption="vs FY2024"
+      />,
+    );
+    const negative = screen.getAllByTestId("gauge-delta")[1];
+    expect(negative).toHaveTextContent("−0.50 vs FY2024");
+    expect(negative).toHaveClass("text-expense");
+  });
+
+  it("deltaDisplay keeps the metric's own style (days stay integer)", () => {
+    render(
+      <RatioGauge
+        label="Receivables days"
+        value={38}
+        status="healthy"
+        delta={-3.2254901960784315}
+        deltaDisplay="3 days"
+        deltaCaption="vs FY2024"
+      />,
+    );
+    expect(screen.getByTestId("gauge-delta")).toHaveTextContent(
+      "−3 days vs FY2024",
+    );
+  });
 });

@@ -66,6 +66,31 @@ const displayValue = (result: RatioResult, currency: string): string => {
   }
 };
 
+/**
+ * Delta magnitude in the metric's own display style (the displayValue
+ * table); RatioGauge renders the sign and colors by it, so this is the
+ * magnitude only.
+ */
+const displayDelta = (
+  result: RatioResult,
+  currency: string,
+): string | undefined => {
+  if (result.period_delta === null) return undefined;
+  const magnitude = Math.abs(result.period_delta);
+  switch (result.display) {
+    case "percent":
+      return formatPercent(magnitude);
+    case "currency":
+      return formatMoney(magnitude, currency, { decimals: 0 });
+    case "days":
+      return `${Math.round(magnitude)} days`;
+    case "months":
+      return `${magnitude.toFixed(1)} mo`;
+    default:
+      return formatRatio(magnitude);
+  }
+};
+
 /** Gauge domain from the registry band (healthy range centered). */
 const gaugeDomain = (
   key: string,
@@ -253,6 +278,7 @@ export const RatiosView: React.FC = () => {
                             status={result.status}
                             band={result.status === "na" ? null : domain.band}
                             delta={result.period_delta ?? undefined}
+                            deltaDisplay={displayDelta(result, currency)}
                             // Name the prior period ("vs FY2024"), not a
                             // generic "vs prior period" (B6b frame copy).
                             deltaCaption={
