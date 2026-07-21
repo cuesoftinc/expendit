@@ -99,7 +99,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
   children,
 }) => (
   <section id={title} className="border-b border-border pb-8">
-    <h2 className="mb-4 pt-8 font-mono text-[13px] font-semibold text-accent">
+    <h2 className="mb-4 pt-8 font-mono text-[13px] font-semibold text-accent-text">
       {title}
     </h2>
     <div className="space-y-4">{children}</div>

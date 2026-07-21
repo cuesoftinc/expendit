@@ -212,7 +212,7 @@ export const DashboardEmbed: React.FC = () => {
         <Banner
           kind="warn"
           action={
-            <span className="text-[13px] font-medium text-accent">
+            <span className="text-[13px] font-medium text-accent-text">
               Prepare filing
             </span>
           }
@@ -312,7 +312,7 @@ export const DashboardEmbed: React.FC = () => {
                   timestamp="8 Jul"
                 />
               </div>
-              <div className="mt-2 text-[11px] font-medium text-accent">
+              <div className="mt-2 text-[11px] font-medium text-accent-text">
                 Explain in ledger →
               </div>
             </div>
@@ -323,7 +323,7 @@ export const DashboardEmbed: React.FC = () => {
             <span className="text-[13px] font-medium text-text">
               Latest transactions
             </span>
-            <span className="text-[11px] font-medium text-accent">
+            <span className="text-[11px] font-medium text-accent-text">
               View all →
             </span>
           </div>

@@ -268,7 +268,7 @@ export const RatiosView: React.FC = () => {
                             type="button"
                             onClick={() => void openTrace(result)}
                             aria-label={`${result.label} — how we got this`}
-                            className="absolute right-3 top-3 rounded border border-border px-1.5 py-0.5 font-mono text-[11px] italic text-accent transition-colors duration-fast ease-standard hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            className="absolute right-3 top-3 rounded border border-border px-1.5 py-0.5 font-mono text-[11px] italic text-accent-text transition-colors duration-fast ease-standard hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                           >
                             {/* Figma 187:2074: the ƒ formula chip at card top-right. */}
                             ƒ
@@ -443,7 +443,7 @@ export const RatiosView: React.FC = () => {
               {trace.benchmark_band ? ` · band: ${trace.benchmark_band}` : ""}
             </p>
             {trace.na_reason ? (
-              <p className="text-warn">{trace.na_reason}</p>
+              <p className="text-warn-text">{trace.na_reason}</p>
             ) : null}
             {trace.inputs.length > 0 ? (
               <section aria-label="Inputs">

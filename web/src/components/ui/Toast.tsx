@@ -47,7 +47,7 @@ export const Toast: React.FC<ToastProps> = ({
         {children}
       </div>
       {action ? (
-        <div className="shrink-0 text-[13px] font-medium leading-4 text-accent">
+        <div className="shrink-0 text-[13px] font-medium leading-4 text-accent-text">
           {action}
         </div>
       ) : null}

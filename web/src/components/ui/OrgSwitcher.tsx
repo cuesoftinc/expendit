@@ -44,7 +44,7 @@ const OrgTile: React.FC<{ org: Org; className?: string }> = ({
       "flex shrink-0 items-center justify-center rounded",
       org.kind === "company"
         ? "bg-info/[0.12] text-info"
-        : "bg-accent/[0.12] text-accent",
+        : "bg-accent/[0.12] text-accent-text",
       className,
     )}
   >

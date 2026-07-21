@@ -63,7 +63,7 @@ export const Inspector: React.FC<InspectorProps> = ({
           <h2
             className={cn(
               "text-sm font-semibold",
-              variant === "anomaly-explain" ? "text-warn" : "text-text",
+              variant === "anomaly-explain" ? "text-warn-text" : "text-text",
             )}
           >
             {title}

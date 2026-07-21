@@ -335,7 +335,7 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
                   className={cn(
                     "rounded border border-border bg-bg-elev px-2 py-0.5 text-[13px] tabular-nums text-text",
                     "transition-colors duration-fast ease-standard hover:border-text-2",
-                    preset.value === value && "border-accent text-accent",
+                    preset.value === value && "border-accent text-accent-text",
                   )}
                 >
                   {preset.label}

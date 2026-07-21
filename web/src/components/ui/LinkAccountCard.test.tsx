@@ -57,6 +57,6 @@ describe("LinkAccountCard (design.md §8.2, MI-9)", () => {
     const pill = screen.getByText("Re-auth required");
     expect(pill).toBeInTheDocument();
     // Figma: reauth pill is warn-tinted (not expense).
-    expect(pill.closest("span")).toHaveClass("text-warn");
+    expect(pill.closest("span")).toHaveClass("text-warn-text");
   });
 });

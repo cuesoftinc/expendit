@@ -38,6 +38,8 @@
 | `expense` | #C6373C | #FF6B6E | outflows, negative deltas |
 | `warn` | #B26A00 | #FFB020 | anomalies, tax deadlines |
 | `info` | #2456D6 | #7DA2FF | AI/insight chips |
+| `accent-text` | #AE4501 | #F46A1F | AA text variant — readable accent text (links, active nav, chip labels, toast/banner actions) binds this; fills/borders/icons/focus rings keep `accent`. Light value darkens `accent` in OKLCH (L only) until ≥4.5:1 on the tinted-chip recipe (`text-X` on `bg-X/10–20`) and both surfaces; the dark base already clears AA, so dark aliases it |
+| `warn-text/income-text/expense-text` | #804C05 / #077542 / #BC2D34 | #FFB020 / #34C77B / #FF6B6E | AA text variants for warn/income/expense as readable text (tinted chips, deadline copy, statement flags); same OKLCH derivation, dark aliases the base. `info` needs no variant (base clears its /12 chip) |
 | Afrocentric pattern | 4% opacity line motif | — | dark editorial sections only |
 
 ### Type

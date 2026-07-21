@@ -74,7 +74,7 @@ export const SelfHostSection: React.FC = () => {
             target="_blank"
             rel="noreferrer"
             onClick={() => track("github_click", { source: "self_host" })}
-            className="rounded text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="rounded text-sm font-medium text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             github.com/cuesoftinc/expendit →
           </a>
@@ -83,7 +83,7 @@ export const SelfHostSection: React.FC = () => {
             target="_blank"
             rel="noreferrer"
             onClick={() => track("self_host_click", { target: "docs" })}
-            className="rounded text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="rounded text-sm font-medium text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             Self-hosting docs →
           </a>
@@ -111,7 +111,7 @@ export const CommunitySection: React.FC = () => (
           href={ROADMAP_URL}
           target="_blank"
           rel="noreferrer"
-          className="shrink-0 rounded text-sm font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="shrink-0 rounded text-sm font-medium text-accent-text hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           See the public roadmap →
         </a>

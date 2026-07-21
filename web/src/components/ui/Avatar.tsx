@@ -33,7 +33,7 @@ export const Avatar: React.FC<AvatarProps> = ({ name, src, size = "sm" }) => (
       // Figma: initials disc = 15% accent tint + accent text (no border);
       // image/icon fallbacks stay neutral.
       !src && name
-        ? "bg-accent/[0.15] text-accent"
+        ? "bg-accent/[0.15] text-accent-text"
         : "border border-border bg-bg-elev text-text-2",
       SIZE_CLASSES[size],
     )}

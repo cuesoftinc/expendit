@@ -51,7 +51,7 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
             "mb-4 flex h-9 w-9 items-center justify-center rounded-full",
             kind === "community"
               ? "bg-info/10 text-info"
-              : "bg-accent/10 text-accent",
+              : "bg-accent/10 text-accent-text",
           )}
         >
           {/* 24px — h-4.5 was outside the v3 spacing scale, so the lucide
@@ -82,7 +82,7 @@ export const EditorialCard: React.FC<EditorialCardProps> = ({
       {/* Body/14 Regular (14/20); the CTA line is Body/14 Medium. */}
       <p className="mt-2 text-sm leading-5 text-text-2">{body}</p>
       {cta ? (
-        <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium leading-5 text-accent">
+        <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium leading-5 text-accent-text">
           {cta}
           <ChevronRight aria-hidden className="h-3.5 w-3.5" />
         </span>

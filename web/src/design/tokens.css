@@ -24,6 +24,18 @@
   --color-warn: #b26a00; /* anomalies, tax deadlines */
   --color-info: #2456d6; /* AI/insight chips */
 
+  /* ---- AA text variants (design.md §2) ------------------------------
+     Readable text in a hue binds the `-text` variant; fills/borders/
+     icons keep the base hue. Light values darken the base in OKLCH
+     (L only; C/H preserved) until ≥4.5:1 against the hue's worst tinted
+     recipe (chips at /10–/20 over bg-elev) and the plain surfaces; the
+     dark base values already clear AA everywhere, so the dark variants
+     alias them. `info` needs no variant (base clears its /12 chip). */
+  --color-accent-text: #ae4501; /* 4.60 on accent/15 over bg-elev */
+  --color-warn-text: #804c05; /* 4.61 on the T-1 compound warn tint over bg-elev */
+  --color-income-text: #077542; /* 4.64 on income/12 over bg-elev */
+  --color-expense-text: #bc2d34; /* 4.63 on expense/12 over bg-elev */
+
   /* ---- Spacing (4px base grid — no off-scale values) --------------- */
   --space-4: 4px;
   --space-8: 8px;
@@ -78,6 +90,10 @@
   --color-expense: #c6373c;
   --color-warn: #b26a00;
   --color-info: #2456d6;
+  --color-accent-text: #ae4501;
+  --color-warn-text: #804c05;
+  --color-income-text: #077542;
+  --color-expense-text: #bc2d34;
 }
 
 /* Dark theme values (design.md §2, Dark column). */
@@ -94,6 +110,11 @@
   --color-expense: #ff6b6e;
   --color-warn: #ffb020;
   --color-info: #7da2ff;
+  /* AA text variants — dark bases already clear AA; variants alias them */
+  --color-accent-text: #f46a1f;
+  --color-warn-text: #ffb020;
+  --color-income-text: #34c77b;
+  --color-expense-text: #ff6b6e;
 }
 
 /* OS dark preference applies unless a manual light override is set. */
@@ -111,5 +132,9 @@
     --color-expense: #ff6b6e;
     --color-warn: #ffb020;
     --color-info: #7da2ff;
+    --color-accent-text: #f46a1f;
+    --color-warn-text: #ffb020;
+    --color-income-text: #34c77b;
+    --color-expense-text: #ff6b6e;
   }
 }

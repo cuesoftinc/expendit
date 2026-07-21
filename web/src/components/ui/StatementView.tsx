@@ -139,7 +139,7 @@ export const StatementView: React.FC<StatementViewProps> = ({
           {mappingWarnings.map((warning) => (
             <span
               key={warning}
-              className="mr-1.5 inline-flex items-center gap-1 rounded border border-warn/40 bg-warn/10 px-1.5 py-0 text-[11px] font-medium text-warn"
+              className="mr-1.5 inline-flex items-center gap-1 rounded border border-warn/40 bg-warn/10 px-1.5 py-0 text-[11px] font-medium text-warn-text"
             >
               <TriangleAlert aria-hidden className="h-3 w-3" />
               {warning}
@@ -215,7 +215,9 @@ export const StatementView: React.FC<StatementViewProps> = ({
           data-identity={identityHolds ? "pass" : "fail"}
           className={cn(
             "flex items-center gap-1.5 border-t border-border px-4 py-2 text-[12px] font-medium",
-            identityHolds ? "bg-income/10 text-income" : "bg-warn/10 text-warn",
+            identityHolds
+              ? "bg-income/10 text-income-text"
+              : "bg-warn/10 text-warn-text",
           )}
         >
           {identityHolds ? (

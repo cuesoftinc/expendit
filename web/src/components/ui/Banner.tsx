@@ -67,7 +67,7 @@ export const Banner: React.FC<BannerProps> = ({
         <div
           className={cn(
             "shrink-0 text-[13px] font-medium leading-4",
-            kind === "error" ? "text-expense" : "text-accent",
+            kind === "error" ? "text-expense-text" : "text-accent-text",
           )}
         >
           {action}

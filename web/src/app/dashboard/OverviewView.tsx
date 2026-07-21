@@ -289,7 +289,7 @@ export const OverviewView: React.FC = () => {
             action={
               <Link
                 href="/dashboard/taxes/file"
-                className="text-[13px] font-medium text-accent hover:underline"
+                className="text-[13px] font-medium text-accent-text hover:underline"
               >
                 Prepare filing
               </Link>
@@ -549,7 +549,7 @@ export const OverviewView: React.FC = () => {
                 </ul>
                 <Link
                   href="/dashboard/transactions?anomalies=1"
-                  className="mt-3 inline-block text-[13px] font-medium text-accent hover:underline"
+                  className="mt-3 inline-block text-[13px] font-medium text-accent-text hover:underline"
                 >
                   Explain in ledger →
                 </Link>
@@ -565,7 +565,7 @@ export const OverviewView: React.FC = () => {
         action={
           <Link
             href="/dashboard/transactions"
-            className="text-[13px] font-medium text-accent hover:underline"
+            className="text-[13px] font-medium text-accent-text hover:underline"
           >
             View all →
           </Link>

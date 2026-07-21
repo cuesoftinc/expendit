@@ -21,10 +21,10 @@ export interface TagProps {
 const TINT_CLASSES: Record<TagTint, string> = {
   neutral: "bg-bg-elev text-text-2",
   info: "bg-info/[0.12] text-info",
-  warn: "bg-warn/[0.12] text-warn",
-  error: "bg-expense/[0.12] text-expense",
-  success: "bg-income/[0.12] text-income",
-  "new-accent": "bg-accent/[0.12] text-accent",
+  warn: "bg-warn/[0.12] text-warn-text",
+  error: "bg-expense/[0.12] text-expense-text",
+  success: "bg-income/[0.12] text-income-text",
+  "new-accent": "bg-accent/[0.12] text-accent-text",
 };
 
 export const Tag: React.FC<TagProps> = ({

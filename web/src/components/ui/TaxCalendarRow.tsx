@@ -33,8 +33,8 @@ const ROW_CLASSES: Record<DeadlineThreshold, string> = {
 const ICON_CLASSES: Record<DeadlineThreshold, string> = {
   none: "text-text-2",
   "t-30": "text-info",
-  "t-7": "text-warn",
-  "t-1": "text-warn",
+  "t-7": "text-warn-text",
+  "t-1": "text-warn-text",
 };
 
 const CHIP_META: Record<
@@ -42,8 +42,8 @@ const CHIP_META: Record<
   { label: string; className: string }
 > = {
   "t-30": { label: "Due in 30 days", className: "bg-info/[0.12] text-info" },
-  "t-7": { label: "Due in 7 days", className: "bg-warn/[0.12] text-warn" },
-  "t-1": { label: "Due tomorrow", className: "bg-warn/[0.2] text-warn" },
+  "t-7": { label: "Due in 7 days", className: "bg-warn/[0.12] text-warn-text" },
+  "t-1": { label: "Due tomorrow", className: "bg-warn/[0.2] text-warn-text" },
 };
 
 export interface TaxCalendarRowProps {

@@ -24,6 +24,12 @@
   --color-expense: var(--color-expense);
   --color-warn: var(--color-warn);
   --color-info: var(--color-info);
+  /* AA text variants — readable text in a hue binds these; fills/
+     borders/icons keep the base hue (design.md §2) */
+  --color-accent-text: var(--color-accent-text);
+  --color-warn-text: var(--color-warn-text);
+  --color-income-text: var(--color-income-text);
+  --color-expense-text: var(--color-expense-text);
   --color-transparent: transparent;
   --color-current: currentColor;
 
