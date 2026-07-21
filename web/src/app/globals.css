@@ -161,6 +161,26 @@
 }
 
 /*
+ * Widget-frame reserve heights (perf pass 2026-07-21, CLS budget —
+ * fleet P14 pattern from upstat): the B1 overview loading frame reserves
+ * every slot's hydrated size so the skeleton → data swap never moves
+ * layout (desktop CLS 0.071; probe-attributed to the loading → loaded
+ * swap and the rail's org-switcher slot mounting late). Values are the
+ * RENDERED sizes of the seeded widgets (desktop 1440, TEST_MODE) —
+ * re-derive by measuring if a widget's construction changes. Consumed
+ * as `min-h-(--widget-h-*)` / `h-(--widget-h-*)`; no per-page magic
+ * numbers.
+ */
+:root {
+  --widget-h-org: 50px; /* OrgSwitcher trigger (rail slot pre-org reserve) */
+  --widget-h-stat: 170px; /* StatCard: label + 32/38 value + delta/spark */
+  --widget-h-chart-card: 541px; /* B1 cash-flow Card (header + fill plot) */
+  --widget-h-donut-card: 195px; /* donut Card (header + 120 donut + legend) */
+  --widget-h-anomaly-card: 331px; /* anomaly feed Card (3 badges + link) */
+  --widget-h-latest-card: 339px; /* latest-transactions Card (header + 5 rows) */
+}
+
+/*
  * Design-system base resets (QA loop 2026-07-18): UA button chrome
  * centers text, which corrupted left-aligned row/nav buttons. Preflight
  * does not reset text-align, so do it here in the base layer.
@@ -230,7 +250,8 @@
   /* Fix Naira symbol and other currency symbols overlapping with digits under tabular-nums by disabling contextual alternates */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1, "calt" 0;
+    font-feature-settings:
+      "tnum" 1,
+      "calt" 0;
   }
 }
-

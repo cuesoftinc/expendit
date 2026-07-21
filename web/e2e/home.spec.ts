@@ -69,6 +69,8 @@ test.describe("public home `/` (Part A)", () => {
     await page.goto("/");
     // Scope to the A5 section — the A5a thumbs reuse the same demo pool.
     const demo = page.locator("#demo");
+    // The demo panel is IO-deferred (perf pass) — approach it first.
+    await demo.scrollIntoViewIfNeeded();
     // Freelancer boots (Figma A5 strip verbatim).
     await expect(demo.getByText("₦1,480,000.00")).toBeVisible();
     await expect(demo.getByText("MTN — data bundle top-up")).toBeVisible();
@@ -204,6 +206,9 @@ test.describe("public home `/` (Part A)", () => {
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
+    // The demo panel is IO-deferred (perf pass) — mount it before measuring.
+    await page.locator("#demo").scrollIntoViewIfNeeded();
+    await expect(page.getByTestId("demo-table")).toBeVisible();
     // Pillars (A4) and demo stat cards (A5) — 384px cards, 24px gutters.
     const widths = await page.evaluate(() => {
       const rows = [
@@ -233,7 +238,9 @@ test.describe("public home `/` (Part A)", () => {
 
     // Demo table: a real <table> (W3 semantic refactor) whose rows
     // contain only cells / columnheaders — native or ARIA (live QA
-    // 2026-07-19: rows were orphaned, cells bare).
+    // 2026-07-19: rows were orphaned, cells bare). IO-deferred (perf
+    // pass) — approach the section to mount it.
+    await page.locator("#demo").scrollIntoViewIfNeeded();
     const table = page.getByRole("table", { name: "Demo transactions" });
     await expect(table).toBeVisible();
     expect(

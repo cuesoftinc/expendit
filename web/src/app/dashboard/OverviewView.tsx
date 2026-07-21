@@ -99,24 +99,56 @@ export const OverviewView: React.FC = () => {
     !loading && latest.length === 0 && (current?.income ?? 0) === 0;
 
   if (loading) {
+    // The loading frame mirrors the loaded frame's geometry (CLS budget,
+    // fleet P14): every slot reserves its hydrated desktop size via the
+    // --widget-h-* tokens so the skeleton → data swap never moves layout
+    // (desktop CLS 0.071 came from the swap; mobile CLS is 0.000 and the
+    // stacked construction sizes differently, so the reserves are
+    // lg-scoped). The period-picker slot reserves too. The plain <div>
+    // root is load-bearing: returned as a bare fragment, index-based
+    // reconciliation MORPHED the loading frame's trailing slot into the
+    // loaded stat grid (a 744px node move Chrome scored as CLS 0.113) —
+    // a different root type forces a clean replace, and since the
+    // reserved geometry matches, the swap moves nothing.
     return (
-      <>
-        <PageHeader title="Overview" />
+      <div>
+        <PageHeader
+          title="Overview"
+          actions={<div aria-hidden className="h-8 w-36" />}
+        />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <StatCard key={i} label="" value={0} loading />
+            <StatCard
+              key={i}
+              label=""
+              value={0}
+              loading
+              className="lg:min-h-(--widget-h-stat)"
+            />
           ))}
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
-          <ChartLine state="loading" />
-          <ChartDonut state="loading" />
+          <div className="rounded border border-border bg-bg p-4 lg:min-h-(--widget-h-chart-card)">
+            <ChartLine state="loading" />
+          </div>
+          <div className="space-y-4">
+            <div className="rounded border border-border bg-bg p-4 lg:min-h-(--widget-h-donut-card)">
+              <ChartDonut state="loading" />
+            </div>
+            <div
+              aria-hidden
+              className="rounded border border-border bg-bg lg:min-h-(--widget-h-anomaly-card)"
+            />
+          </div>
         </div>
-        <div className="mt-4 space-y-2">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} variant="row" />
-          ))}
+        <div className="mt-4 rounded border border-border bg-bg lg:min-h-(--widget-h-latest-card)">
+          <div className="space-y-0 p-4">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} variant="row" />
+            ))}
+          </div>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -368,6 +400,8 @@ export const OverviewView: React.FC = () => {
       >
         <Card
           fill
+          // Reserved hydrated size (CLS budget) — mirrors the loading frame.
+          className="lg:min-h-(--widget-h-chart-card)"
           // The monthly series starts at ledger onset (no fabricated
           // pre-onset months) — the title states the span it actually has.
           title={
@@ -456,7 +490,10 @@ export const OverviewView: React.FC = () => {
         </Card>
 
         <div className="space-y-4">
-          <Card title={`Expenses by category — ${donutMonthLabel}`}>
+          <Card
+            title={`Expenses by category — ${donutMonthLabel}`}
+            className="lg:min-h-(--widget-h-donut-card)"
+          >
             {donutSlices.length === 0 ? (
               <p className="text-[13px] text-text-2">
                 No expenses recorded for {donutMonthLabel}.
@@ -521,6 +558,7 @@ export const OverviewView: React.FC = () => {
 
           <Card
             title="Anomalies"
+            className="lg:min-h-(--widget-h-anomaly-card)"
             action={<Tag tint="warn" count={anomalies.length} />}
           >
             {anomalies.length === 0 ? (
@@ -561,7 +599,7 @@ export const OverviewView: React.FC = () => {
 
       <Card
         title="Latest transactions"
-        className="mt-4"
+        className="mt-4 lg:min-h-(--widget-h-latest-card)"
         action={
           <Link
             href="/dashboard/transactions"
@@ -581,6 +619,9 @@ export const OverviewView: React.FC = () => {
               aria-label="Latest transactions"
             >
               <TableHeader
+                // Rows lead with a select cell — the sr-only header keeps
+                // every td under a named th (axe `td-has-header` class).
+                selectHeader="Select"
                 columns={[
                   { id: "date", label: "Date", widthClass: "w-14" },
                   { id: "source", label: "Src", widthClass: "w-8" },

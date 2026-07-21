@@ -10,6 +10,7 @@
  */
 
 import React from "react";
+import DeferredPanel from "@/components/ui/DeferredPanel";
 import Tabs, { TabItem, TabPanel } from "@/components/ui/Tabs";
 import Tag from "@/components/ui/Tag";
 import StatCard from "@/components/ui/StatCard";
@@ -48,172 +49,183 @@ export const DemoSection: React.FC = () => {
           </Tag>
         </div>
 
-        <Tabs
-          value={persona}
-          onValueChange={(value) => switchPersona(value as DemoPersona)}
-          kind="pill"
-          aria-label="Demo persona"
-          className="mt-6 flex flex-col items-center"
-          items={DEMO_PERSONAS.map((key) => (
-            <TabItem key={key} value={key} kind="pill">
-              {DEMO_DATASETS[key].label}
-            </TabItem>
-          ))}
-        >
-          {DEMO_PERSONAS.map((key) => (
-            <TabPanel key={key} value={key} className="w-full pt-8">
-              {key !== persona ? null : (
-                <>
-                  {/* 3-up stat row on the 384px-card / 24px-gutter rhythm,
+        {/* Below-the-fold demo chrome (charts + ledger table) mounts on
+            approach — the heading/Tag copy above stays eager (perf pass
+            2026-07-21: home mobile TBT ~310ms, hydration-dominated). The
+            reserve approximates the desktop panel so scroll geometry
+            holds until the IO fires 600px out. */}
+        <DeferredPanel minHeight={880}>
+          <Tabs
+            value={persona}
+            onValueChange={(value) => switchPersona(value as DemoPersona)}
+            kind="pill"
+            aria-label="Demo persona"
+            className="mt-6 flex flex-col items-center"
+            items={DEMO_PERSONAS.map((key) => (
+              <TabItem key={key} value={key} kind="pill">
+                {DEMO_DATASETS[key].label}
+              </TabItem>
+            ))}
+          >
+            {DEMO_PERSONAS.map((key) => (
+              <TabPanel key={key} value={key} className="w-full pt-8">
+                {key !== persona ? null : (
+                  <>
+                    {/* 3-up stat row on the 384px-card / 24px-gutter rhythm,
                       spanning the 1200px container (design.md §2 pin). */}
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                    <StatCard
-                      label={stats.net.label}
-                      value={stats.net.value}
-                      format={(value) => formatMoney(value)}
-                      delta={stats.net.delta}
-                      deltaCaption={dataset.deltaCaption}
-                      sparkline={stats.net.sparkline}
-                    />
-                    <StatCard
-                      label={stats.income.label}
-                      value={stats.income.value}
-                      format={(value) => formatMoney(value)}
-                      delta={stats.income.delta}
-                      deltaCaption={dataset.deltaCaption}
-                      sparkline={stats.income.sparkline}
-                    />
-                    <StatCard
-                      label={stats.expenses.label}
-                      value={stats.expenses.value}
-                      format={(value) => formatMoney(value)}
-                      delta={stats.expenses.delta}
-                      deltaCaption={dataset.deltaCaption}
-                      sparkline={stats.expenses.sparkline}
-                    />
-                  </div>
-
-                  <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
-                    <div className="rounded border border-border bg-bg p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <span className="text-[13px] font-medium text-text">
-                          Cash flow — 12 months
-                        </span>
-                        {/* Chart data-table parity toggle (design.md §5). */}
-                        <button
-                          type="button"
-                          onClick={toggleDataTable}
-                          aria-pressed={showDataTable}
-                          className="rounded border border-border px-2 py-0.5 text-[11px] font-medium text-text-2 transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                        >
-                          Data table
-                        </button>
-                      </div>
-                      {showDataTable ? (
-                        <table className="w-full text-[13px]">
-                          <caption className="sr-only">
-                            Cash flow by month
-                          </caption>
-                          <thead>
-                            <tr className="border-b border-border text-left text-text-2">
-                              <th scope="col" className="py-1 font-medium">
-                                Month
-                              </th>
-                              <th
-                                scope="col"
-                                className="py-1 text-right font-medium"
-                              >
-                                Net cash flow
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {dataset.cashflow.points.map((value, index) => (
-                              // Months run Aug → Jul (trailing 12).
-                              <tr
-                                key={index}
-                                className="border-b border-border last:border-0"
-                              >
-                                <td className="py-1 text-text-2">
-                                  M{index + 1}
-                                </td>
-                                <td className="py-1 text-right tabular-nums text-text">
-                                  {formatMoney(value)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      ) : (
-                        <ChartLine
-                          series={[
-                            {
-                              id: "cashflow",
-                              label: "Net cash flow",
-                              color: "accent",
-                              points: dataset.cashflow.points,
-                            },
-                          ]}
-                          xLabels={dataset.cashflow.xLabels}
-                          height={200}
-                        />
-                      )}
-                    </div>
-                    <div className="rounded border border-border bg-bg p-4">
-                      <div className="mb-3 text-[13px] font-medium text-text">
-                        Expenses by category
-                      </div>
-                      <div className="flex flex-wrap items-center gap-5">
-                        <ChartDonut
-                          slices={dataset.donut.slices}
-                          centerTotal={dataset.donut.centerTotal}
-                          centerCaption="Expenses"
-                          legend="none"
-                        />
-                        <DonutLegend
-                          slices={dataset.donut.slices}
-                          className="min-w-[220px] flex-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    data-testid="demo-table"
-                    className="mt-6 overflow-x-auto rounded border border-border bg-bg"
-                  >
-                    <table
-                      aria-label="Demo transactions"
-                      className="w-full min-w-[720px]"
-                    >
-                      <TableHeader
-                        columns={TXN_COLUMNS}
-                        sort={{ columnId: "date", direction: "desc" }}
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                      <StatCard
+                        label={stats.net.label}
+                        value={stats.net.value}
+                        format={(value) => formatMoney(value)}
+                        delta={stats.net.delta}
+                        deltaCaption={dataset.deltaCaption}
+                        sparkline={stats.net.sparkline}
                       />
-                      <tbody className="contents">
-                        {txns.map((txn) => (
-                          <TxnTableRow
-                            key={txn.id}
-                            txn={toTxnEntry(txn)}
-                            category={
-                              dataset.categories.find(
-                                (category) => category.id === txn.categoryId,
-                              ) ?? dataset.categories[0]
-                            }
-                            categoryOptions={dataset.categories}
-                            onCategorySelect={(categoryId) =>
-                              recategorize(txn.id, categoryId)
-                            }
+                      <StatCard
+                        label={stats.income.label}
+                        value={stats.income.value}
+                        format={(value) => formatMoney(value)}
+                        delta={stats.income.delta}
+                        deltaCaption={dataset.deltaCaption}
+                        sparkline={stats.income.sparkline}
+                      />
+                      <StatCard
+                        label={stats.expenses.label}
+                        value={stats.expenses.value}
+                        format={(value) => formatMoney(value)}
+                        delta={stats.expenses.delta}
+                        deltaCaption={dataset.deltaCaption}
+                        sparkline={stats.expenses.sparkline}
+                      />
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
+                      <div className="rounded border border-border bg-bg p-4">
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="text-[13px] font-medium text-text">
+                            Cash flow — 12 months
+                          </span>
+                          {/* Chart data-table parity toggle (design.md §5). */}
+                          <button
+                            type="button"
+                            onClick={toggleDataTable}
+                            aria-pressed={showDataTable}
+                            className="rounded border border-border px-2 py-0.5 text-[11px] font-medium text-text-2 transition-colors duration-fast ease-standard hover:bg-bg-elev hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                          >
+                            Data table
+                          </button>
+                        </div>
+                        {showDataTable ? (
+                          <table className="w-full text-[13px]">
+                            <caption className="sr-only">
+                              Cash flow by month
+                            </caption>
+                            <thead>
+                              <tr className="border-b border-border text-left text-text-2">
+                                <th scope="col" className="py-1 font-medium">
+                                  Month
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="py-1 text-right font-medium"
+                                >
+                                  Net cash flow
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {dataset.cashflow.points.map((value, index) => (
+                                // Months run Aug → Jul (trailing 12).
+                                <tr
+                                  key={index}
+                                  className="border-b border-border last:border-0"
+                                >
+                                  <td className="py-1 text-text-2">
+                                    M{index + 1}
+                                  </td>
+                                  <td className="py-1 text-right tabular-nums text-text">
+                                    {formatMoney(value)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <ChartLine
+                            series={[
+                              {
+                                id: "cashflow",
+                                label: "Net cash flow",
+                                color: "accent",
+                                points: dataset.cashflow.points,
+                              },
+                            ]}
+                            xLabels={dataset.cashflow.xLabels}
+                            height={200}
                           />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
-            </TabPanel>
-          ))}
-        </Tabs>
+                        )}
+                      </div>
+                      <div className="rounded border border-border bg-bg p-4">
+                        <div className="mb-3 text-[13px] font-medium text-text">
+                          Expenses by category
+                        </div>
+                        <div className="flex flex-wrap items-center gap-5">
+                          <ChartDonut
+                            slices={dataset.donut.slices}
+                            centerTotal={dataset.donut.centerTotal}
+                            centerCaption="Expenses"
+                            legend="none"
+                          />
+                          <DonutLegend
+                            slices={dataset.donut.slices}
+                            className="min-w-[220px] flex-1"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      data-testid="demo-table"
+                      className="mt-6 overflow-x-auto rounded border border-border bg-bg"
+                    >
+                      <table
+                        aria-label="Demo transactions"
+                        className="w-full min-w-[720px]"
+                      >
+                        <TableHeader
+                          columns={TXN_COLUMNS}
+                          // Rows lead with a select cell — the sr-only
+                          // header keeps every td under a named th (axe
+                          // `td-has-header`, 2026-07-21 audit).
+                          selectHeader="Select"
+                          sort={{ columnId: "date", direction: "desc" }}
+                        />
+                        <tbody className="contents">
+                          {txns.map((txn) => (
+                            <TxnTableRow
+                              key={txn.id}
+                              txn={toTxnEntry(txn)}
+                              category={
+                                dataset.categories.find(
+                                  (category) => category.id === txn.categoryId,
+                                ) ?? dataset.categories[0]
+                              }
+                              categoryOptions={dataset.categories}
+                              onCategorySelect={(categoryId) =>
+                                recategorize(txn.id, categoryId)
+                              }
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </TabPanel>
+            ))}
+          </Tabs>
+        </DeferredPanel>
       </SectionInner>
     </section>
   );
