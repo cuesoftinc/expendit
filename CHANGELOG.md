@@ -7,7 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Web app manifest at `/manifest.webmanifest`: product identity, token
+  colors and the brand icons; the fleet SEO spec now locks it (#262).
+- Settings goes route-backed tabs: Organization | Members | Data & privacy |
+  Notifications, each deep-linkable (#240).
+- Categories gains an Archive tab: routed Active | Archive registry views
+  (#245).
+- Self-host install snippet goes tabbed: Docker Compose and Helm (#239).
+- Real date pickers: `DatePicker`/`MonthPicker` grids, and `PeriodPicker` goes
+  pick-or-type (#235).
+- SEO plumbing: sitemap, `robots.txt`, canonical URLs, and a 1200×630 Open
+  Graph card (#253).
+
+- Full web implementation: the dashboard application (expense/income tracking,
+  reports, bank statement import and mapping review, categories, settings)
+  rebuilt from the shared component registry over a mock CRUD API, and the
+  marketing home page rebuilt to match, backed by a realistic seven-month
+  seeded ledger.
+- Interactive Scalar API reference at `/docs/api`, rendered live from the
+  repository's OpenAPI spec.
+- Tri-state theme control (light / dark / system).
+
+- Production service bootstrap: `/health` + `/ready`, structured `slog` logging,
+  `RequestID`/`Logger`/`Recovery`/CORS middleware, and graceful shutdown.
+- Local Docker stack: root `docker-compose.yml` (mongo, redis, api-common:8080,
+  web:3000), compose-driven `Makefile`, and `.env.example`.
+- Standardized repository structure and shared CueLABS™ community-health files
+  (SECURITY, CODE_OF_CONDUCT, CONTRIBUTING, CODEOWNERS, PR/issue templates), a
+  scoped Dependabot config, `deploy/{docker,helm,terraform}`, and
+  `docs/overview.md` + `docs/setup.md`.
+- Optional `envFrom` secret hook in the Helm deployment template so real
+  deployments can inject `JWT_SECRET`/SMTP credentials from Kubernetes Secrets.
+
 ### Changed
+
 - Dashboard rail prefetch is intent-based: a pillar's chunks load on the
   first hover/focus of its nav item instead of on viewport entry, so a cold
   dashboard route ships only its own chunk set (~204K vs ~355K settled JS
@@ -21,35 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   shared weight is the framework + prefetch floor, with nothing safe to cut
   (#257).
 
-### Fixed
-- Ratio gauges format the period delta (2dp ratio convention, or the
-  metric's own style — days stay integer) instead of printing the raw
-  float (#262).
-- Accessibility closeout: valid tab IDREFs in code snippets, date-picker
-  popover focus containment, named table headers, a skip-to-content link,
-  distinct nav landmark labels, and deferred below-the-fold demo panels
-  cutting home mobile blocking time; overview layout shift drops to ~0
-  (#260).
-- Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
-  recipe so tinted text clears 4.5:1 in both themes (#254).
-- Signin's legal links now point at the canonical Cuesoft policies, and the
-  onboarding AI-consent sheet's "privacy hub" mention is now a real link
-  (#258).
-
-### Added
-- Web app manifest at `/manifest.webmanifest`: product identity, token
-  colors and the brand icons; the fleet SEO spec now locks it (#262).
-- Settings goes route-backed tabs: Organization | Members | Data & privacy |
-  Notifications, each deep-linkable (#240).
-- Categories gains an Archive tab: routed Active | Archive registry views
-  (#245).
-- Self-host install snippet goes tabbed: Docker Compose and Helm (#239).
-- Real date pickers: `DatePicker`/`MonthPicker` grids, and `PeriodPicker` goes
-  pick-or-type (#235).
-- SEO plumbing: sitemap, `robots.txt`, canonical URLs, and a 1200×630 Open
-  Graph card (#253).
-
-### Changed
 - Chart fidelity: `Chart`/`Line` y-axis tick labels and gridlines now match
   the Figma master; the cash-flow line no longer renders dashed under fill
   mode; the fill-mode plot no longer slides under the y-axis labels (#228,
@@ -62,26 +68,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Playwright's `webServer` output so CI server deaths are diagnosable (#247,
   #248, #249).
 
-### Fixed
-- Figma↔code convergence pass: settings uniques, Wordmark parity, full-ledger
-  explain comparables, `Select` `aria-label` wiring, how-it-works thumbnail
-  sizing, landing typography, and the `DatePicker` popover placement/
-  modal-safe merge `Select`/mid-band balance (#230, #232, #233, #238, #241,
-  #242).
-- Accessibility: checkboxes now carry accessible names (axe critical errors
-  ×60 → 0) and overlays restore focus to their trigger on close (#252).
-
-### Added
-- Full web implementation: the dashboard application (expense/income tracking,
-  reports, bank statement import and mapping review, categories, settings)
-  rebuilt from the shared component registry over a mock CRUD API, and the
-  marketing home page rebuilt to match, backed by a realistic seven-month
-  seeded ledger.
-- Interactive Scalar API reference at `/docs/api`, rendered live from the
-  repository's OpenAPI spec.
-- Tri-state theme control (light / dark / system).
-
-### Changed
 - Mobile-responsive pass: no document-level side-scroll at 390px on the home
   page or any dashboard route; wide data surfaces (ledger, staged review,
   statement grid, mapping review) now scroll within their own containers.
@@ -94,30 +80,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   cross-repo tooling parity (shared boundary gate, canonical lint/format/test
   configs) with the other CueLABS™ repositories.
 
-### Removed
-- The legacy MUI-era dashboard and marketing app, and the redirect stubs for
-  its old routes (which now 404).
-
-### Fixed
-- An unset theme preference now boots the design default instead of forcing
-  a theme choice; the `/docs/api` header now coexists cleanly with the rest
-  of the app shell.
-- Floating-layer viewport collision clamping; demo-realism and usability QA
-  passes across the app.
-
-### Added
-- Production service bootstrap: `/health` + `/ready`, structured `slog` logging,
-  `RequestID`/`Logger`/`Recovery`/CORS middleware, and graceful shutdown.
-- Local Docker stack: root `docker-compose.yml` (mongo, redis, api-common:8080,
-  web:3000), compose-driven `Makefile`, and `.env.example`.
-- Standardized repository structure and shared CueLABS™ community-health files
-  (SECURITY, CODE_OF_CONDUCT, CONTRIBUTING, CODEOWNERS, PR/issue templates), a
-  scoped Dependabot config, `deploy/{docker,helm,terraform}`, and
-  `docs/overview.md` + `docs/setup.md`.
-- Optional `envFrom` secret hook in the Helm deployment template so real
-  deployments can inject `JWT_SECRET`/SMTP credentials from Kubernetes Secrets.
-
-### Changed
 - Canonical Go module path `github.com/cuesoftinc/expendit/api/common`; SMTP_*
   env vars upper-cased; web components renamed to PascalCase files with
   kebab-case routes (`/forgot-password`); eslint flat config; jest wired with
@@ -139,6 +101,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the shared standard; `income.go` renamed to `income_model.go`.
 
 ### Removed
+
+- The legacy MUI-era dashboard and marketing app, and the redirect stubs for
+  its old routes (which now 404).
+
 - Dead gRPC surface (unwired Go proto/interceptor and the web grpc-methods/
   proto chain whose deps were never installed), dead util/model files, stale
   api Makefile, orphan template/marketing assets, debug console/print logging.
@@ -150,6 +116,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sign-in/sign-up hooks.
 
 ### Fixed
+
+- Ratio gauges format the period delta (2dp ratio convention, or the
+  metric's own style — days stay integer) instead of printing the raw
+  float (#262).
+- Accessibility closeout: valid tab IDREFs in code snippets, date-picker
+  popover focus containment, named table headers, a skip-to-content link,
+  distinct nav landmark labels, and deferred below-the-fold demo panels
+  cutting home mobile blocking time; overview layout shift drops to ~0
+  (#260).
+- Contrast-token canon: AA-compliant `-text` variants for the tinted-chip
+  recipe so tinted text clears 4.5:1 in both themes (#254).
+- Signin's legal links now point at the canonical Cuesoft policies, and the
+  onboarding AI-consent sheet's "privacy hub" mention is now a real link
+  (#258).
+
+- Figma↔code convergence pass: settings uniques, Wordmark parity, full-ledger
+  explain comparables, `Select` `aria-label` wiring, how-it-works thumbnail
+  sizing, landing typography, and the `DatePicker` popover placement/
+  modal-safe merge `Select`/mid-band balance (#230, #232, #233, #238, #241,
+  #242).
+- Accessibility: checkboxes now carry accessible names (axe critical errors
+  ×60 → 0) and overlays restore focus to their trigger on close (#252).
+
+- An unset theme preference now boots the design default instead of forcing
+  a theme choice; the `/docs/api` header now coexists cleanly with the rest
+  of the app shell.
+- Floating-layer viewport collision clamping; demo-realism and usability QA
+  passes across the app.
+
 - Change-password verified against the wrong argument order (always failed);
   reset-password email linked a 404 path; request-path `log.Fatal`/`log.Panic`
   could kill the server; JWT/SMTP env read at call time (empty-key signing).
@@ -160,6 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `expendit-server` module references in README/docs.
 
 ### Security
+
 - Removed the `X-UserID` header-trust middleware (IDOR) — identity comes only
   from the JWT `uid` claim; `UpdateUser` no longer accepts `user_type` from the
   request body (self privilege-escalation); expense reads now require auth.
