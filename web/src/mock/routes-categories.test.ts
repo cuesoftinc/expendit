@@ -17,9 +17,7 @@ import { resetDb } from "./db";
 import { json, mockRequest, params } from "./test-helpers";
 
 const listIds = async (query = ""): Promise<string[]> => {
-  const res = await listCategories(
-    mockRequest(`/api/mock/categories${query}`),
-  );
+  const res = await listCategories(mockRequest(`/api/mock/categories${query}`));
   const { items } = await json<{ items: Category[] }>(res);
   return items.map((cat) => cat.id);
 };

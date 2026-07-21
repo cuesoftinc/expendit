@@ -109,7 +109,8 @@ test("archive tab deep-links", async ({ page }) => {
     page.locator("li", { hasText: "Print & stationery" }),
   ).toContainText("Archived 5 Jan 2026");
   // The dashboard nav keeps Categories highlighted on the sub-route.
-  await expect(
-    page.getByRole("link", { name: "Categories" }),
-  ).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "Categories" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
 });

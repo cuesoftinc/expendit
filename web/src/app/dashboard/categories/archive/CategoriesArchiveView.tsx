@@ -72,8 +72,8 @@ export const CategoriesArchiveView: React.FC = () => {
             </header>
             {categories.items.length === 0 ? (
               <p className="px-4 py-6 text-center text-[13px] text-text-2">
-                Nothing archived yet — archiving hides a category from
-                pickers and new imports without touching history.
+                Nothing archived yet — archiving hides a category from pickers
+                and new imports without touching history.
               </p>
             ) : (
               <ul className="list-none">
