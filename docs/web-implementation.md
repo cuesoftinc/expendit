@@ -628,7 +628,10 @@ on it:
    first-run journey runs on the fresh-identity fixture (§6). The interface
    is identical to the future `FirebaseAuthProvider` (X-1 Google-only,
    bearer-token shape preserved — flows/auth.md §2), so backend integration
-   swaps the provider, not the views.
+   swaps the provider, not the views. The test session persists as
+   `expendit.test-session` in **sessionStorage** (JSON user payload) — the
+   fleet key convention (P16): `<product>.test-session`, per-tab, gone on
+   close.
 2. **API client**: the models layer's base URL targets the in-app mock
    server — `/api/mock/v1/*` mirrors the `/api/v1/*` surface path-for-path
    (incl. the `X-Org-Id` context header), so repositories are identical in

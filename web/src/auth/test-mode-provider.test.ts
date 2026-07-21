@@ -11,6 +11,18 @@ describe("TestModeAuthProvider (X-1, TEST_MODE)", () => {
     expect(await provider.getIdToken()).toBe("test-mode-token");
   });
 
+  it("persists under `expendit.test-session` in sessionStorage (fleet P16)", async () => {
+    const provider = new TestModeAuthProvider();
+    await provider.signInWithGoogle();
+    // Dictated canon 2026-07-21: `<product>.test-session`, sessionStorage,
+    // JSON user payload — one shape across the fleet's e2e tooling.
+    expect(
+      JSON.parse(window.sessionStorage.getItem("expendit.test-session")!),
+    ).toEqual(TEST_USER);
+    expect(window.localStorage.getItem("expendit.test-session")).toBeNull();
+    await provider.signOut();
+  });
+
   it("sign-out clears both the session and the legacy flag", async () => {
     const provider = new TestModeAuthProvider();
     await provider.signInWithGoogle();
