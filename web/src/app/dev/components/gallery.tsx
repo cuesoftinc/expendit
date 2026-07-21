@@ -371,7 +371,11 @@ export const ComponentGallery: React.FC = () => {
         </button>
       </header>
 
-      <main className="mx-auto max-w-5xl space-y-2 px-6 pb-24">
+      <main
+        id="main"
+        tabIndex={-1}
+        className="mx-auto max-w-5xl space-y-2 px-6 pb-24"
+      >
         <Section title="Button">
           <Variant label="kind × md">
             <Button kind="primary">Primary</Button>

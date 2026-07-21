@@ -45,7 +45,11 @@ export const OnboardingView: React.FC = () => {
   const canSubmit = kind === "personal" || name.trim().length > 0;
 
   return (
-    <main className="flex min-h-screen items-start justify-center bg-bg px-6 py-16">
+    <main
+      id="main"
+      tabIndex={-1}
+      className="flex min-h-screen items-start justify-center bg-bg px-6 py-16"
+    >
       <div className="w-full max-w-lg">
         <Wordmark className="font-display text-2xl font-bold text-text" />
         <h1 className="mt-8 font-display text-xl font-semibold tracking-tight text-text">
