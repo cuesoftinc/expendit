@@ -61,6 +61,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
+  // Focus restore (2026-07-21 a11y audit, fleet P4): the palette opens
+  // programmatically (⌘K), so closing must hand focus back to whatever
+  // element had it before the palette autofocused its input — Escape
+  // previously dropped focus on <body>.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // MI-1: global ⌘K / Ctrl+K toggle.
   useEffect(() => {
@@ -84,6 +90,24 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       setActiveIndex(0);
     }
   }
+
+  // Opening snapshots the opener, then moves focus into the search input
+  // (the input carries no autoFocus so document.activeElement is still the
+  // trigger when this runs); closing sends focus back to the opener after
+  // the palette's DOM is gone.
+  useEffect(() => {
+    if (open) {
+      returnFocusRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      inputRef.current?.focus();
+    } else {
+      const opener = returnFocusRef.current;
+      returnFocusRef.current = null;
+      if (opener?.isConnected) opener.focus();
+    }
+  }, [open]);
 
   const filtered = useMemo(() => {
     const matched = query
@@ -137,7 +161,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <div className="flex items-center gap-2 border-b border-border px-3">
           <Search aria-hidden className="h-4 w-4 text-text-2" />
           <input
-            autoFocus
+            ref={inputRef}
             role="combobox"
             aria-expanded="true"
             aria-controls="command-palette-list"

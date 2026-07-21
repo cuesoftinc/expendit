@@ -7,7 +7,7 @@
  * supplies focus trap + ESC semantics (reuse policy).
  */
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -54,6 +54,12 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const [typed, setTyped] = useState("");
   const confirmReady = !confirmPhrase || typed === confirmPhrase;
+  // Focus restore (2026-07-21 a11y audit, fleet P4): modals are controlled
+  // dialogs with no Radix Trigger, so Radix's default close autofocus
+  // targets a null triggerRef and focus falls to <body>. Capture the opener
+  // ourselves (onOpenAutoFocus fires before Radix moves focus in) and
+  // return focus on close.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   return (
     <Dialog.Root
@@ -67,6 +73,20 @@ export const Modal: React.FC<ModalProps> = ({
         <Dialog.Overlay className="fixed inset-0 z-overlay bg-bg-editorial/60 animate-fade-in motion-reduce:animate-none" />
         <Dialog.Content
           aria-describedby={undefined}
+          aria-modal="true"
+          onOpenAutoFocus={() => {
+            returnFocusRef.current =
+              document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            // preventDefault also skips Radix's own (null-trigger) handler.
+            event.preventDefault();
+            const opener = returnFocusRef.current;
+            returnFocusRef.current = null;
+            if (opener?.isConnected) opener.focus();
+          }}
           // App floating layers (portaled Select menus) live under
           // <body>, outside the Radix content subtree — without this
           // guard a click inside one dismisses the whole dialog
