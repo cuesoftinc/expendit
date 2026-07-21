@@ -444,6 +444,30 @@ method-neutral "self-host"). Unit: `CodeSnippet.test.tsx` tabbed cases
 reset); e2e: `home.spec.ts` pins helm-tab copy → the clipboard payload,
 caption persistence and the 1440/390 container fit.
 
+**Categories Archive tab as-built (2026-07-21, ratified — resolves the
+deferred Archive proposal).** The archive surface ships on the category
+registry, not the B6 hub (B6 keeps its adjudicated two-page IA; the
+ratified canvas frame is "B8b — Categories (Archive)").
+`/dashboard/categories` carries the routed tab pair **Active | Archive**
+(RouteTabs idiom — every tab a real sub-route, deep-linkable; `RouteTabs`
+resolves the most specific matching href, so the bare Active route no
+longer captures its child). Rows gain a quiet **Archive** action (danger
+ladder: reversible moves are never danger and take no confirm);
+`/dashboard/categories/archive` lists archived rows as chip + "Archived
+d MMM yyyy · N transactions this year" (absolute finance dates) + quiet
+**Unarchive**. Model: `Category.archived_at` (ISO datetime, null/absent
+= active). Mock API: `GET /categories` serves the active registry only —
+pickers, merge targets, and recategorize menus never see archived rows —
+with `?archived=1` for the archive; idempotent `POST
+/categories/{id}/archive` / `.../unarchive`; merge refuses an archived
+target (`422 merge_target_archived`). Seed: "Conferences & travel" +
+"Print & stationery" archived on the Cuesoft org (the B8b narrative).
+Unit: `routes-categories.test.ts`, `use-categories.test.ts`,
+`CategoriesArchiveView.test.tsx`, and a RouteTabs nested-href case; e2e:
+`categories-archive.spec.ts` (archive → Archive tab → unarchive →
+delete-cleanup, plus the deep-link) and the 390 sweep gains the archive
+route.
+
 ## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `expendit/tokens` collection
@@ -513,7 +537,7 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | B6b | `/dashboard/company/ratios` | Ratio grid (RatioGauge groups, trends; traces open in the Inspector) |
 | B7 | `/dashboard/taxes` | Tax center (profile, calendar, estimates with RemitToCard, filing history) |
 | B7b | `/dashboard/taxes/file` | Filing wizard (MI-10) |
-| B8 | `/dashboard/categories` | Categories (CRUD, color, merge) |
+| B8 | `/dashboard/categories` · `/dashboard/categories/archive` | Categories — routed Active/Archive registry tabs (CRUD, color, merge; quiet archive/unarchive, absolute archive dates) |
 | B9 | `/dashboard/settings` → `/dashboard/settings/organization` | Settings shell — page title + routed tab bar (underline grammar, tablist-of-links with `aria-current`); the bare route redirects to the first tab (live IA, **[User-ratified 2026-07-20]**) |
 | B9 | `/dashboard/settings/organization` | Organization tab — org profile (name, registered address, fiscal year end) + Appearance card tail (theme control) |
 | B9 | `/dashboard/settings/members` | Members tab — members & roles (invite → pending until first sign-in) |

@@ -191,7 +191,7 @@ only. Per the rule above, the page and this doc must never diverge.
 | 1 Atoms | Button, Input, MoneyCell, CategoryChip, AnomalyBadge, Toast/Banner + primitive kit (§8.2b): Checkbox, Radio, Switch, Tag/Badge, Tooltip, Avatar, Kbd, ProgressBar, Skeleton set | molecules |
 | 2 Molecules | StatCard, TxnTableRow, UploadDropzone, LinkAccountCard, RatioGauge, Inspector chrome, CommandPalette, WizardShell chrome, FormRow, ManualStatementRow, RemitToCard, TaxCalendarRow + form/overlay kit (§8.2b): Select/Menu, DatePicker/PeriodPicker, Modal/Dialog chrome, SegmentedControl, Tabs, Accordion, WizardStep, StampedCheck, ColorSwatchPicker · app chrome (AppNav/NavItem, OrgSwitcher) · GoogleAuthButton · product rows (MemberRow, ImportJobRow, ReportArtifactRow, FilingHistoryRow) | tables + flows |
 | 3 Assemblies | TxnTable (full), staged-review table, ratio grid, StatementView, filing wizard steps, EmptyState set + table chrome (TableHeader, BulkActionBar, StagedReviewHeader) · chart kit (Chart/Line, Chart/Donut) | screens |
-| 4 Screen templates | dashboard, transactions, import review, accounts, company statements+ratios, tax center+wizard, settings/rights, signin (the single X-1 auth screen), reports (B5), categories (B8) | dashboard design |
+| 4 Screen templates | dashboard, transactions, import review, accounts, company statements+ratios, tax center+wizard, settings/rights, signin (the single X-1 auth screen), reports (B5), categories (B8 — routed Active/Archive registry tabs) | dashboard design |
 | 5 Home page | A1–A11 Brex-editorial sections + marketing kit (§8.2b): MarketingNav, MarketingFooter, EditorialCard, CodeSnippet, ComparisonTable | landing redesign |
 
 **Stage 0 icon set (extended 2026-07-16).** The parity audit fixes the Lucide
