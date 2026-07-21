@@ -72,6 +72,23 @@ describe("CodeSnippet (design.md §8.2b)", () => {
     ).toBeInTheDocument();
   });
 
+  it("tabbed mode: multi-word labels produce valid IDREFs (slugified values)", () => {
+    // 2026-07-21 a11y audit: `value={tab.label}` put the "Docker Compose"
+    // space into Radix's trigger/panel ids — aria-controls became an
+    // invalid IDREF (axe `aria-valid-attr-value` critical on home).
+    render(<CodeSnippet tabs={TABS} />);
+    for (const tab of screen.getAllByRole("tab")) {
+      const controls = tab.getAttribute("aria-controls");
+      expect(controls).toBeTruthy();
+      // A single valid IDREF: no whitespace anywhere in the id.
+      expect(controls).not.toMatch(/\s/);
+      expect(tab.id).not.toMatch(/\s/);
+    }
+    const panel = screen.getByRole("tabpanel");
+    expect(panel.id).not.toMatch(/\s/);
+    expect(panel.getAttribute("aria-labelledby")).not.toMatch(/\s/);
+  });
+
   it("tabbed mode: arrow keys rove focus across the tablist (Radix)", async () => {
     render(<CodeSnippet tabs={TABS} />);
     const docker = screen.getByRole("tab", { name: "Docker Compose" });

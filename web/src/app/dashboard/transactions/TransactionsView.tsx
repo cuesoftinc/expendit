@@ -685,7 +685,14 @@ export const TransactionsView: React.FC = () => {
                   sortable: true,
                   widthClass: "w-32",
                 },
-                { id: "actions", label: "", widthClass: "w-20" },
+                // sr-only name (axe `empty-table-header`): the hover
+                // action cluster needs a named column, not a blank th.
+                {
+                  id: "actions",
+                  label: "Actions",
+                  srOnly: true,
+                  widthClass: "w-20",
+                },
               ]}
               sort={sort}
               onSortChange={(columnId, direction) =>

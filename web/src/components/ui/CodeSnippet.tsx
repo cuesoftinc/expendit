@@ -22,6 +22,19 @@ export interface CodeSnippetTab {
   code: string;
 }
 
+/**
+ * Stable Tabs `value` for a tab label. Radix builds trigger/panel ids
+ * (and the aria-controls IDREF between them) from the value — a display
+ * label like "Docker Compose" put a space into the IDREF, an axe
+ * `aria-valid-attr-value` critical (2026-07-21 audit). Slugified values
+ * keep the ids valid while the label stays free-form for display.
+ */
+const tabValue = (label: string): string =>
+  label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
 export interface CodeSnippetProps {
   /** Single-block mode. */
   code?: string;
@@ -42,7 +55,9 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({
   className,
 }) => {
   const [copied, setCopied] = useState(false);
-  const [activeLabel, setActiveLabel] = useState(tabs?.[0]?.label ?? "");
+  const [activeValue, setActiveValue] = useState(
+    tabs?.[0] ? tabValue(tabs[0].label) : "",
+  );
 
   useEffect(() => {
     if (!copied) return;
@@ -51,7 +66,7 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({
   }, [copied]);
 
   const activeCode = tabs?.length
-    ? (tabs.find((tab) => tab.label === activeLabel) ?? tabs[0]).code
+    ? (tabs.find((tab) => tabValue(tab.label) === activeValue) ?? tabs[0]).code
     : (code ?? "");
 
   const onCopy = async () => {
@@ -73,9 +88,9 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({
         )}
       >
         <RadixTabs.Root
-          value={activeLabel}
+          value={activeValue}
           onValueChange={(value) => {
-            setActiveLabel(value);
+            setActiveValue(value);
             setCopied(false);
           }}
         >
@@ -87,7 +102,7 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({
               {tabs.map((tab) => (
                 <RadixTabs.Trigger
                   key={tab.label}
-                  value={tab.label}
+                  value={tabValue(tab.label)}
                   className={cn(
                     "group flex flex-col gap-1 text-[13px] font-medium",
                     "text-text-2 transition-colors duration-fast ease-standard",
@@ -124,7 +139,7 @@ export const CodeSnippet: React.FC<CodeSnippetProps> = ({
           {tabs.map((tab) => (
             <RadixTabs.Content
               key={tab.label}
-              value={tab.label}
+              value={tabValue(tab.label)}
               className="focus:outline-none"
             >
               <pre

@@ -21,6 +21,12 @@ export interface TableColumn {
   sortable?: boolean;
   /** Fixed width class, e.g. "w-32". */
   widthClass?: string;
+  /**
+   * Visually hidden label (a11y audit: the actions column shipped an
+   * empty `<th>` — axe `empty-table-header`). The column keeps its
+   * width; the name reads to AT only.
+   */
+  srOnly?: boolean;
 }
 
 export interface TableHeaderProps {
@@ -35,6 +41,14 @@ export interface TableHeaderProps {
     onCheckedChange: (checked: boolean | "indeterminate") => void;
     label: string;
   };
+  /**
+   * Presentational select-column header (sr-only name, checkbox-width
+   * spacer) for tables whose rows carry select cells but no select-all
+   * control — the demo/read-only TxnTableRow surfaces. Without it the
+   * leading checkbox cell shifts every row one column past the header
+   * (axe `td-has-header` on the home demo table, 2026-07-21 audit).
+   */
+  selectHeader?: string;
   sticky?: boolean;
   className?: string;
 }
@@ -48,6 +62,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
   sort = null,
   onSortChange,
   selectAll,
+  selectHeader,
   sticky = false,
   className,
 }) => (
@@ -66,11 +81,20 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
     >
       {selectAll ? (
         <th scope="col" className="flex shrink-0 items-center">
+          {/* sr-only text names the th itself (axe `empty-table-header`:
+              the checkbox's aria-label doesn't reach the cell). */}
+          <span className="sr-only">{selectAll.label}</span>
           <Checkbox
             aria-label={selectAll.label}
             checked={selectAll.checked}
             onCheckedChange={selectAll.onCheckedChange}
           />
+        </th>
+      ) : selectHeader ? (
+        // Checkbox-width spacer (h-4/w-4 Checkbox root) keeps the header
+        // grid aligned with the rows' leading select cells.
+        <th scope="col" className="flex w-4 shrink-0 items-center">
+          <span className="sr-only">{selectHeader}</span>
         </th>
       ) : null}
       {columns.map((column) => {
@@ -79,7 +103,9 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
         const label = (
           <span
             className={cn(
-              "text-[11px] font-medium uppercase tracking-wide text-text-2",
+              column.srOnly
+                ? "sr-only"
+                : "text-[11px] font-medium uppercase tracking-wide text-text-2",
               column.numeric && "tabular-nums",
             )}
           >

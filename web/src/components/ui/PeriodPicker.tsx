@@ -180,6 +180,7 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   // Master collision contract (467:11039): flip above when room below
   // runs out (never cover the field), cap + scroll when neither side
   // fits, keep right-anchored triggers right-anchored (the Overview
@@ -220,6 +221,51 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  // Focus moves INTO the panel on open (org overlay contract — dialog
+  // canon: focus in, contain Tab, Escape restores). The grammar input is
+  // the first stop (the typing path). A plain autoFocus can't do this:
+  // the panel mounts visibility:hidden for the placement measure and
+  // focus() on a hidden element is a no-op — so focus lands once the
+  // placement paints. The contains() guard keeps resize re-measures from
+  // re-stealing focus the user has since moved within the panel.
+  useEffect(() => {
+    if (!open || placement === null) return;
+    if (panelRef.current?.contains(document.activeElement)) return;
+    inputRef.current?.focus();
+  }, [open, placement]);
+
+  /**
+   * Tab containment (org overlay contract): while open, the popover is a
+   * focus boundary — Tab from the last control wraps to the first and
+   * Shift+Tab mirrors it, never walking out into the page behind (a11y
+   * audit: 6 of 14 tabs escaped the open panel). The roving day grid
+   * keeps its single tab stop via the tabIndex filter.
+   */
+  const onPanelKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key !== "Tab") return;
+    const panel = panelRef.current;
+    if (!panel) return;
+    const focusables = Array.from(
+      panel.querySelectorAll<HTMLElement>(
+        "button:not([disabled]), input:not([disabled]), [tabindex]",
+      ),
+    ).filter((el) => el.tabIndex >= 0);
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !panel.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (
+      !event.shiftKey &&
+      (active === last || !panel.contains(active))
+    ) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   const commit = (next: string) => {
     if (!isValidPeriod(mode, next)) {
@@ -304,6 +350,7 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
           ref={panelRef}
           role="dialog"
           aria-label={`Pick ${mode}`}
+          onKeyDown={onPanelKeyDown}
           style={{
             // Cap + internal scroll when neither side fits the panel —
             // it must never exceed the viewport or grow the document.
@@ -373,7 +420,7 @@ export const PeriodPicker: React.FC<PeriodPickerProps> = ({
           <label className="mt-2.5 block border-t border-border pt-2 text-[11px] font-medium uppercase tracking-wide text-text-2">
             {mode}
             <input
-              autoFocus
+              ref={inputRef}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {

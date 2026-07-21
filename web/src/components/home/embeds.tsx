@@ -331,6 +331,9 @@ export const DashboardEmbed: React.FC = () => {
             <TableHeader
               columns={TXN_COLUMNS}
               density="compact"
+              // Rows lead with a select cell — the sr-only header keeps
+              // every td under a named th (axe `td-has-header`).
+              selectHeader="Select"
               sort={{ columnId: "date", direction: "desc" }}
             />
             <tbody className="contents">
@@ -373,6 +376,8 @@ export const ImportReviewEmbed: React.FC = () => {
             <TableHeader
               columns={TXN_COLUMNS}
               density="compact"
+              // Same select-cell alignment as the hero embed's table.
+              selectHeader="Select"
               sort={{ columnId: "date", direction: "desc" }}
             />
             <tbody className="contents">
