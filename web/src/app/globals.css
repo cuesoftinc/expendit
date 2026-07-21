@@ -52,11 +52,14 @@
   --text-2xl--line-height: 2rem;
   --text-4xl--line-height: 2.5rem;
 
-  /* radii — product radius is 6px (`rounded` → --radius); rounded-lg is
-     the marketing hero device frame; rounded-full for pills/discs/dots. */
+  /* radii — product radius is 6px (`rounded` → --radius); rounded-md is
+     the same 6px under the fleet-shared utility name (byte-identical
+     shared files like SkipLink use it); rounded-lg is the marketing hero
+     device frame; rounded-full for pills/discs/dots. */
   --radius-*: initial;
   --radius: var(--radius);
   --radius-none: 0;
+  --radius-md: var(--radius);
   --radius-lg: 0.5rem;
   --radius-full: 9999px;
 
