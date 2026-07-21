@@ -13,8 +13,13 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
+  // Absolute base for og/twitter images, canonicals and other metadata
+  // URLs (SEO plumbing, fleet canon).
+  metadataBase: new URL("https://expendit.cuesoft.io"),
   title: "Expendit",
   description: "Expense tracker App",
+  // Every route's canonical is its own path, resolved against metadataBase.
+  alternates: { canonical: "./" },
 };
 
 export default function RootLayout({

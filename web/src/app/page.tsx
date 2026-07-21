@@ -7,7 +7,6 @@ import HomeView from "@/components/home/HomeView";
  */
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://expendit.cuesoft.io"),
   title: "Expendit — See every naira. File every tax.",
   description:
     "Open-source financial intelligence for Nigerian freelancers, SMEs and companies: upload statements or link your bank, AI categorizes and flags what's off, then see your P&L, ratios and filing-ready taxes. MIT licensed — self-host with one command.",
@@ -18,10 +17,9 @@ export const metadata: Metadata = {
     url: "https://expendit.cuesoft.io",
     siteName: "Expendit",
     type: "website",
-    images: [{ url: "/logo.png" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Expendit — See every naira. File every tax.",
     description:
       "Open-source financial intelligence: statements → categorized ledger → ratios → filing-ready taxes. Free forever if you self-host.",

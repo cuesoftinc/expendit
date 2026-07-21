@@ -731,3 +731,34 @@ including its own application of the quarantine policy — when it opens.
       repo-wide; `src/legacy/` stays empty
 - [ ] Playwright §8.4 journeys green in CI, incl. the keyboard-first path
       (⌘K + table nav); merge-to-main never deploys (X-6)
+
+## 10. SEO plumbing (as-built, 2026-07-21)
+
+Fleet-uniform discoverability layer (same construction in all three
+products; per-product values only):
+
+- **`src/app/sitemap.ts`** — public marketing routes only: `/` and
+  `/docs/api`. No `/dashboard/*`, no `/signin`, no onboarding.
+- **`src/app/robots.ts`** — allow `/`, disallow `/dashboard` and `/api`;
+  references `https://expendit.cuesoft.io/sitemap.xml`.
+- **Canonical** — root layout sets
+  `metadataBase = https://expendit.cuesoft.io` and
+  `alternates.canonical = "./"`, so every route emits its own path as the
+  canonical URL.
+- **og/twitter card** — `src/app/opengraph-image.png` (1200×630, App Router
+  file convention): the "expendit·" wordmark + tagline on the editorial
+  token canvas — replaces the 1500×371 `/logo.png` wordmark (wrong aspect
+  for 1.91:1 cards); `twitter:card = summary_large_image`. `/signin` title
+  standardized to "Sign in — Expendit" (fleet separator).
+- **Icons** — `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO — was 16×16
+  only) and `src/app/apple-icon.png` (180×180): the "e·" mark on the
+  editorial tile.
+- **Provenance** — all three binaries are generated from the design tokens
+  by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
+  config keyed by package name; Inter via `INTER_WOFF2` or the official
+  distribution).
+- **Lock** — `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
+  sitemap 200 + exact route set, robots policy + sitemap reference,
+  canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
+  the served favicon's sha256 equals expendit's mark while differing from
+  both siblings'.
