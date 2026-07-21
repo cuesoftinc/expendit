@@ -14,6 +14,12 @@ describe("Button (design.md §8.2)", () => {
     expect(screen.getByRole("button")).not.toHaveClass("border-border");
     rerender(<Button kind="destructive">Delete</Button>);
     expect(screen.getByRole("button")).toHaveClass("bg-expense");
+    // Danger ladder (SKILL.md 2026-07-20): quiet-danger = danger TEXT on
+    // quiet chrome — row-level destructive actions never render filled.
+    rerender(<Button kind="quiet-danger">Unlink</Button>);
+    expect(screen.getByRole("button")).toHaveClass("bg-transparent");
+    expect(screen.getByRole("button")).toHaveClass("text-expense");
+    expect(screen.getByRole("button")).not.toHaveClass("bg-expense");
   });
 
   it("supports md/sm sizes (Figma: 36px / 28px)", () => {
