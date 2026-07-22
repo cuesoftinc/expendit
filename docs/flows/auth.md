@@ -25,6 +25,15 @@ tokens (both cataloged in engineering.md §1). Upsert `USER` by
 throttling replaces the Redis auth rate limiters; Redis limits remain for
 non-auth routes.
 
+**Session restore [Decided 2026-07-22, platform-neutral]**: restore
+resolves **before either surface routes** — the web resolves the
+provider's restored session before dashboard routes render (the
+`DashboardShell` gate), and the mobile app, when its phase opens, runs
+the same silent restore behind its boot gate. A failed restore reads as
+**signed out** (never an error interstitial) — providers resolve `null`
+and never throw past the seam; a signed-in user never sees the auth
+screen (`/signin` carries the reverse guard).
+
 ## 3. Migration of legacy password users
 
 ```mermaid

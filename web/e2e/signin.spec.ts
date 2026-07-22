@@ -39,6 +39,40 @@ test("TEST_MODE: Continue with Google goes straight to /dashboard", async ({
   await expect(page).toHaveURL(/\/dashboard$/);
 });
 
+/**
+ * Cold-start matrix (flows/auth.md §2, ratified 2026-07-22): restore
+ * resolves before either surface routes, and each surface guards its
+ * wrong-state visitor.
+ */
+test("cold start signed out: /dashboard replaces to /signin with no dashboard paint", async ({
+  page,
+}) => {
+  await page.goto("/dashboard");
+  await page.waitForURL("**/signin");
+  await expect(
+    page.getByRole("button", { name: "Continue with Google" }),
+  ).toBeVisible();
+  // The dashboard never painted content for the signed-out visitor.
+  await expect(page.getByTestId("overview-mid-band")).toHaveCount(0);
+});
+
+test("reverse guard: a signed-in visit to /signin is replaced to /dashboard", async ({
+  page,
+}) => {
+  await page.goto("/signin");
+  await page.getByRole("button", { name: "Continue with Google" }).click();
+  await page.waitForURL("**/dashboard", { timeout: 15_000 });
+
+  // Same tab (the TEST_MODE session is sessionStorage-held, per-tab):
+  // /signin is not a reachable surface while signed in — the SignInGate
+  // replaces to the app and the CTA never paints.
+  await page.goto("/signin");
+  await page.waitForURL("**/dashboard");
+  await expect(
+    page.getByRole("button", { name: "Continue with Google" }),
+  ).toHaveCount(0);
+});
+
 test("retired password routes 404 on the branded page", async ({ page }) => {
   for (const path of ["/signup", "/forgot-password", "/change-password"]) {
     const response = await page.goto(path);

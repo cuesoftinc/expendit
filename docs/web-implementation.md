@@ -621,6 +621,18 @@ stubs — they 404 on the branded page (route canon, above): the only
 routes are `/`, `/signin`, `/onboarding`, and `/dashboard/<area>`
 (X-1, flows/auth.md §1).
 
+**Session gate (flows/auth.md §2, ratified 2026-07-22).** Restore
+resolves before either surface routes: `DashboardShell` holds rendering
+behind `useRequireAuth` (nothing dashboard-side paints until the session
+read settles; signed-out visitors replace to `/signin`), and `/signin`
+carries the reverse guard — `SignInGate` wraps the screen content
+(`useRedirectAuthed`; the page stays a server component with its
+metadata) so a signed-in visitor is replaced to `/dashboard` and never
+sees the CTA, with an aria-busy hold while the read is in flight. A
+failed restore reads as signed out: providers return `null`, never throw
+(the `AuthProvider.currentUser()` contract), and the controllers catch
+as a second net. Locked by the e2e cold-start pair in `signin.spec.ts`.
+
 ## 5. TEST_MODE contract
 
 `NEXT_PUBLIC_TEST_MODE=1` (build-time inlined, like all `NEXT_PUBLIC_*` —
