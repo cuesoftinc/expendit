@@ -122,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   as signed out instead of stranding the auth guards at their loading
   state; the provider contract (return `null`, never throw) is documented
   on `AuthProvider.currentUser()`, and the e2e cold-start pair locks both
-  directions.
+  directions (#266).
 - Demo embeds highlight the surface they depict in the nav rail (Overview /
   Imports / Tax center) instead of always marking Overview active — canvas
   parity for the hero and walkthrough thumbs (#265).
