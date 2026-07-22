@@ -13,7 +13,14 @@ export interface AuthUser {
 }
 
 export interface AuthProvider {
-  /** Synchronous snapshot of the current session (null = signed out). */
+  /**
+   * Synchronous snapshot of the current session (null = signed out).
+   * Contract (flows/auth.md §2, ratified 2026-07-22): a failed session
+   * read reads as **signed out** — implementations return `null` on any
+   * failure and MUST NOT throw; the controllers still catch as a second
+   * net so a misbehaving provider can never strand a guard at its
+   * loading state.
+   */
   currentUser(): AuthUser | null;
   /** The single X-1 sign-in path. Resolves with the signed-in user. */
   signInWithGoogle(): Promise<AuthUser>;

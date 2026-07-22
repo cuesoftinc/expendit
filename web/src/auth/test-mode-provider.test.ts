@@ -23,6 +23,13 @@ describe("TestModeAuthProvider (X-1, TEST_MODE)", () => {
     await provider.signOut();
   });
 
+  it("reads a corrupted session as signed out (flows/auth.md §2: null, never throw)", () => {
+    window.sessionStorage.setItem("expendit.test-session", "{not json");
+    const provider = new TestModeAuthProvider();
+    expect(provider.currentUser()).toBeNull();
+    window.sessionStorage.removeItem("expendit.test-session");
+  });
+
   it("sign-out clears both the session and the legacy flag", async () => {
     const provider = new TestModeAuthProvider();
     await provider.signInWithGoogle();

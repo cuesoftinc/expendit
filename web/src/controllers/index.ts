@@ -1,4 +1,8 @@
-export { useAuthController, useRequireAuth } from "./use-auth";
+export {
+  useAuthController,
+  useRedirectAuthed,
+  useRequireAuth,
+} from "./use-auth";
 export { useOrgController } from "./use-org";
 export { OrgProvider, useOrg } from "./org-context";
 export { useOverviewController } from "./use-overview";

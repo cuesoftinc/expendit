@@ -20,6 +20,20 @@ export interface AuthController {
   signOut: () => Promise<void>;
 }
 
+/**
+ * Session read with the flows/auth.md §2 failure net: a failed restore
+ * reads as **signed out** — a throwing provider can never strand a guard
+ * at its loading state. Providers already contract to return null
+ * (auth/types.ts); this is the second net.
+ */
+const readSession = (): AuthUser | null => {
+  try {
+    return getAuthProvider().currentUser();
+  } catch {
+    return null;
+  }
+};
+
 export const useAuthController = (): AuthController => {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -31,7 +45,7 @@ export const useAuthController = (): AuthController => {
     // (react-hooks/set-state-in-effect) and off the hydration pass.
     let cancelled = false;
     queueMicrotask(() => {
-      if (!cancelled) setUser(getAuthProvider().currentUser());
+      if (!cancelled) setUser(readSession());
     });
     return () => {
       cancelled = true;
@@ -77,10 +91,43 @@ export const useRequireAuth = (): {
     let cancelled = false;
     queueMicrotask(() => {
       if (cancelled) return;
-      const current = getAuthProvider().currentUser();
+      const current = readSession();
       setUser(current);
       setChecked(true);
       if (!current) router.replace("/signin");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  return { user, checked };
+};
+
+/**
+ * Reverse guard for /signin (flows/auth.md §2, ratified 2026-07-22): a
+ * signed-in user never sees the auth screen — the gate replaces to
+ * /dashboard. `checked` distinguishes "still reading the session" from
+ * "signed out" so the view (SignInGate) can hold its loading state; a
+ * failed read is signed out (readSession), which lands on the sign-in
+ * screen itself.
+ */
+export const useRedirectAuthed = (): {
+  user: AuthUser | null;
+  checked: boolean;
+} => {
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const current = readSession();
+      setUser(current);
+      setChecked(true);
+      if (current) router.replace("/dashboard");
     });
     return () => {
       cancelled = true;
