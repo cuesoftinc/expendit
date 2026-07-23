@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { isTestMode } from "@/config/env";
+import { env } from "@/config/env";
 
 export const GITHUB_REPO = "cuesoftinc/expendit";
 
@@ -35,7 +35,7 @@ export const useGithubStarsController = (
 
   useEffect(() => {
     if (
-      isTestMode() ||
+      env.testMode ||
       cachedStars !== undefined ||
       typeof fetch !== "function"
     )

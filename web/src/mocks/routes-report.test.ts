@@ -1,15 +1,15 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { GET as monthlyReport } from "@/app/api/mock/report/monthly/route";
-import { GET as categoryReport } from "@/app/api/mock/report/category/route";
-import { POST as mergeCategory } from "@/app/api/mock/categories/[id]/merge/route";
+import { GET as monthlyReport } from "@/app/api/mock/v1/report/monthly/route";
+import { GET as categoryReport } from "@/app/api/mock/v1/report/category/route";
+import { POST as mergeCategory } from "@/app/api/mock/v1/categories/[id]/merge/route";
 import type {
   Category,
   CategoryTotalsReport,
   MonthlyFlowReport,
 } from "@/models";
-import { getDb, resetDb } from "./db";
+import { getDb, resetDb } from "./store";
 import { ORG_PERSONAL } from "./seed";
 import { json, mockRequest, params } from "./test-helpers";
 
@@ -23,7 +23,7 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
     // back to Aug 2025. Pre-onset months must not be emitted as zeros —
     // they drew a fabricated flat segment on the B1 chart.
     const report = await json<MonthlyFlowReport>(
-      await monthlyReport(mockRequest("/api/mock/report/monthly")),
+      await monthlyReport(mockRequest("/api/mock/v1/report/monthly")),
     );
     expect(report.items).toHaveLength(7);
     expect(report.items[0].month).toBe("2026-01");
@@ -34,7 +34,7 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
   it("personal series covers the full trailing 12 months, every month with real data", async () => {
     const report = await json<MonthlyFlowReport>(
       await monthlyReport(
-        mockRequest("/api/mock/report/monthly", { orgId: ORG_PERSONAL }),
+        mockRequest("/api/mock/v1/report/monthly", { orgId: ORG_PERSONAL }),
       ),
     );
     expect(report.items).toHaveLength(12);
@@ -49,7 +49,7 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
   it("personal 2025 backfill months sum to the seed-comment totals", async () => {
     const report = await json<MonthlyFlowReport>(
       await monthlyReport(
-        mockRequest("/api/mock/report/monthly", { orgId: ORG_PERSONAL }),
+        mockRequest("/api/mock/v1/report/monthly", { orgId: ORG_PERSONAL }),
       ),
     );
     const byMonth = new Map(report.items.map((point) => [point.month, point]));
@@ -78,7 +78,7 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
   it("personal stat-card delta stays coherent (Jul net −1,134,650 vs Jun +1,529,700 → −174.2%)", async () => {
     const report = await json<MonthlyFlowReport>(
       await monthlyReport(
-        mockRequest("/api/mock/report/monthly", { orgId: ORG_PERSONAL }),
+        mockRequest("/api/mock/v1/report/monthly", { orgId: ORG_PERSONAL }),
       ),
     );
     const jun = report.items.find((point) => point.month === "2026-06")!;
@@ -92,7 +92,7 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
 
   it("MTD sums match the seed narrative (income ₦8,435,200 / expenses ₦3,614,800)", async () => {
     const report = await json<MonthlyFlowReport>(
-      await monthlyReport(mockRequest("/api/mock/report/monthly")),
+      await monthlyReport(mockRequest("/api/mock/v1/report/monthly")),
     );
     const current = report.items.at(-1)!;
     expect(current.month).toBe("2026-07");
@@ -102,7 +102,7 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
 
   it("runway: 7.2 months for the company org (ledger-burn rule)", async () => {
     const report = await json<MonthlyFlowReport>(
-      await monthlyReport(mockRequest("/api/mock/report/monthly")),
+      await monthlyReport(mockRequest("/api/mock/v1/report/monthly")),
     );
     expect(report.runway.months).toBe(7.2);
     expect(report.runway.na_reason).toBeNull();
@@ -111,7 +111,7 @@ describe("mock /report/monthly (B1 aggregates, api.md §1 v1-consolidated)", () 
   it("runway: n/a with a reason for the personal org", async () => {
     const report = await json<MonthlyFlowReport>(
       await monthlyReport(
-        mockRequest("/api/mock/report/monthly", { orgId: ORG_PERSONAL }),
+        mockRequest("/api/mock/v1/report/monthly", { orgId: ORG_PERSONAL }),
       ),
     );
     expect(report.runway.months).toBeNull();
@@ -126,7 +126,7 @@ describe("mock /report/category (B1 donut totals)", () => {
 
   it("returns expense totals by category, largest first, for the month", async () => {
     const report = await json<CategoryTotalsReport>(
-      await categoryReport(mockRequest("/api/mock/report/category")),
+      await categoryReport(mockRequest("/api/mock/v1/report/category")),
     );
     expect(report.month).toBe("2026-07");
     expect(report.items.length).toBeGreaterThan(0);
@@ -137,7 +137,7 @@ describe("mock /report/category (B1 donut totals)", () => {
 
   it("422 validation_failed on a malformed month", async () => {
     const response = await categoryReport(
-      mockRequest("/api/mock/report/category?month=july"),
+      mockRequest("/api/mock/v1/report/category?month=july"),
     );
     expect(response.status).toBe(422);
   });
@@ -156,7 +156,7 @@ describe("mock /categories/{id}/merge (B8 merge tool)", () => {
     expect(before).toBeGreaterThan(0);
 
     const response = await mergeCategory(
-      mockRequest("/api/mock/categories/cat-meals/merge", {
+      mockRequest("/api/mock/v1/categories/cat-meals/merge", {
         method: "POST",
         body: { into: "cat-ops" },
       }),
@@ -177,7 +177,7 @@ describe("mock /categories/{id}/merge (B8 merge tool)", () => {
 
   it("422 merge_self and 422 merge_type_mismatch guard the tool", async () => {
     const self = await mergeCategory(
-      mockRequest("/api/mock/categories/cat-meals/merge", {
+      mockRequest("/api/mock/v1/categories/cat-meals/merge", {
         method: "POST",
         body: { into: "cat-meals" },
       }),
@@ -187,7 +187,7 @@ describe("mock /categories/{id}/merge (B8 merge tool)", () => {
 
     // cat-consulting is an income category; cat-meals is expense.
     const mismatch = await mergeCategory(
-      mockRequest("/api/mock/categories/cat-meals/merge", {
+      mockRequest("/api/mock/v1/categories/cat-meals/merge", {
         method: "POST",
         body: { into: "cat-consulting" },
       }),
@@ -200,7 +200,7 @@ describe("mock /categories/{id}/merge (B8 merge tool)", () => {
 
   it("404 for a category in another org (no existence leaks)", async () => {
     const response = await mergeCategory(
-      mockRequest("/api/mock/categories/cat-meals/merge", {
+      mockRequest("/api/mock/v1/categories/cat-meals/merge", {
         method: "POST",
         orgId: ORG_PERSONAL,
         body: { into: "cat-personal-living" },

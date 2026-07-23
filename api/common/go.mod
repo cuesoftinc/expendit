@@ -1,6 +1,6 @@
 module github.com/cuesoftinc/expendit/api/common
 
-go 1.25.8
+go 1.26
 
 require (
 	github.com/gin-gonic/gin v1.12.0

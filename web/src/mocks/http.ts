@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { getDb } from "./db";
+import { getDb } from "./store";
 
 export const ok = <T>(body: T, status = 200): NextResponse =>
   NextResponse.json(body as object, { status });

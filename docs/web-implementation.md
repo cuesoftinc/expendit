@@ -40,7 +40,7 @@
   (`TestModeAuthProvider` now; `FirebaseAuthProvider` added at
   backend-integration time — X-1 Google-only either way,
   [flows/auth.md](flows/auth.md)).
-- **Mock server**: Next route handlers under `web/src/app/api/mock/*`
+- **Mock server**: Next route handlers under `web/src/app/api/mock/v1/*`
   implementing the documented API surface the web needs (paths, snake_case
   error codes, and taxonomies from api.md/openapi.yaml), backed by a seeded
   in-memory store with full CRUD (dev-persistent via a module singleton);
@@ -180,12 +180,12 @@ design-phase QA loops, design.md §8).
   `npm run lint`
   alongside prettier/eslint — the CI build-and-test workflow needed no
   changes.
-- **New mock endpoints:** `GET /api/mock/report/monthly` (12-month
-  income-vs-expense + runway snapshot) and `GET /api/mock/report/category`
+- **New mock endpoints:** `GET /api/mock/v1/report/monthly` (12-month
+  income-vs-expense + runway snapshot) and `GET /api/mock/v1/report/category`
   (per-category donut totals) back the B1 aggregates; `POST
-  /api/mock/categories/{id}/merge` is the B8 merge tool (same-type only,
+  /api/mock/v1/categories/{id}/merge` is the B8 merge tool (same-type only,
   `422 merge_type_mismatch`/`merge_self`); `GET
-  /api/mock/reports/{id}/download` serves the signed-URL artifact body for
+  /api/mock/v1/reports/{id}/download` serves the signed-URL artifact body for
   B5.
 - W2.1 live-site QA (PR #205) rides separately from this stage — it is a
   post-launch visual/semantic sweep of the marketing site against the
@@ -663,7 +663,7 @@ developed before the v1 backend consolidation lands.
 
 ## 6. Mock server & seed narrative
 
-Route handlers under `web/src/app/api/mock/*` implement the api.md surface
+Route handlers under `web/src/app/api/mock/v1/*` implement the api.md surface
 the web consumes — the v1-consolidated current surface (§1→§2: one auth
 path, JWT-scoped paths without `:userID`, envelope, cursor pagination) plus
 the 2026-07-16 expansion (§5) — with the engineering.md §1 error envelope,

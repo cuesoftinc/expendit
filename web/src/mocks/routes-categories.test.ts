@@ -8,16 +8,18 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { GET as listCategories } from "@/app/api/mock/categories/route";
-import { POST as archiveCategory } from "@/app/api/mock/categories/[id]/archive/route";
-import { POST as unarchiveCategory } from "@/app/api/mock/categories/[id]/unarchive/route";
-import { POST as mergeCategory } from "@/app/api/mock/categories/[id]/merge/route";
+import { GET as listCategories } from "@/app/api/mock/v1/categories/route";
+import { POST as archiveCategory } from "@/app/api/mock/v1/categories/[id]/archive/route";
+import { POST as unarchiveCategory } from "@/app/api/mock/v1/categories/[id]/unarchive/route";
+import { POST as mergeCategory } from "@/app/api/mock/v1/categories/[id]/merge/route";
 import type { Category } from "@/models";
-import { resetDb } from "./db";
+import { resetDb } from "./store";
 import { json, mockRequest, params } from "./test-helpers";
 
 const listIds = async (query = ""): Promise<string[]> => {
-  const res = await listCategories(mockRequest(`/api/mock/categories${query}`));
+  const res = await listCategories(
+    mockRequest(`/api/mock/v1/categories${query}`),
+  );
   const { items } = await json<{ items: Category[] }>(res);
   return items.map((cat) => cat.id);
 };
@@ -42,7 +44,7 @@ describe("mock /categories archive (B8 Archive tab)", () => {
 
   it("archive stamps archived_at (idempotently) and moves the row between lists", async () => {
     const first = await archiveCategory(
-      mockRequest("/api/mock/categories/cat-meals/archive", {
+      mockRequest("/api/mock/v1/categories/cat-meals/archive", {
         method: "POST",
       }),
       params({ id: "cat-meals" }),
@@ -55,7 +57,7 @@ describe("mock /categories archive (B8 Archive tab)", () => {
     // Idempotent: a second archive keeps the original stamp.
     const again = await json<Category>(
       await archiveCategory(
-        mockRequest("/api/mock/categories/cat-meals/archive", {
+        mockRequest("/api/mock/v1/categories/cat-meals/archive", {
           method: "POST",
         }),
         params({ id: "cat-meals" }),
@@ -69,7 +71,7 @@ describe("mock /categories archive (B8 Archive tab)", () => {
 
   it("unarchive clears the stamp and restores the row to the active list", async () => {
     const res = await unarchiveCategory(
-      mockRequest("/api/mock/categories/cat-conferences/unarchive", {
+      mockRequest("/api/mock/v1/categories/cat-conferences/unarchive", {
         method: "POST",
       }),
       params({ id: "cat-conferences" }),
@@ -83,14 +85,16 @@ describe("mock /categories archive (B8 Archive tab)", () => {
 
   it("404s on unknown ids and other-org categories", async () => {
     const unknown = await archiveCategory(
-      mockRequest("/api/mock/categories/cat-nope/archive", { method: "POST" }),
+      mockRequest("/api/mock/v1/categories/cat-nope/archive", {
+        method: "POST",
+      }),
       params({ id: "cat-nope" }),
     );
     expect(unknown.status).toBe(404);
 
     // cat-personal-living belongs to the personal org, not Cuesoft.
     const crossOrg = await archiveCategory(
-      mockRequest("/api/mock/categories/cat-personal-living/archive", {
+      mockRequest("/api/mock/v1/categories/cat-personal-living/archive", {
         method: "POST",
       }),
       params({ id: "cat-personal-living" }),
@@ -100,7 +104,7 @@ describe("mock /categories archive (B8 Archive tab)", () => {
 
   it("merge refuses an archived target (merge_target_archived)", async () => {
     const res = await mergeCategory(
-      mockRequest("/api/mock/categories/cat-meals/merge", {
+      mockRequest("/api/mock/v1/categories/cat-meals/merge", {
         method: "POST",
         body: { into: "cat-conferences" },
       }),

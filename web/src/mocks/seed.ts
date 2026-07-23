@@ -61,7 +61,7 @@ import type {
 } from "@/models";
 import type { CanonicalKey } from "@/models/registry/line-items";
 import { FIRS } from "@/models/registry/authorities";
-import type { MockDb } from "./db";
+import type { MockDb } from "./store";
 
 export const ORG_PERSONAL = "org-personal";
 export const ORG_CUESOFT = "org-cuesoft";
@@ -2849,7 +2849,7 @@ const artifacts: ReportArtifact[] = [
     period: "2026-06",
     params: { category: "cat-cloud" },
     status: "ready",
-    signed_url: "/api/mock/reports/artifact-deepdive-cloud/download",
+    signed_url: "/api/mock/v1/reports/artifact-deepdive-cloud/download",
     created_at: "2026-07-20T09:40:00.000Z", // NEW ≤24h (MI-14)
     expires_at: "2026-08-19T09:40:00.000Z",
   },
@@ -2861,7 +2861,7 @@ const artifacts: ReportArtifact[] = [
     period: "2026-06",
     params: {},
     status: "ready",
-    signed_url: "/api/mock/reports/artifact-monthly-jun/download",
+    signed_url: "/api/mock/v1/reports/artifact-monthly-jun/download",
     created_at: "2026-07-02T08:15:00.000Z",
     expires_at: "2026-08-01T08:15:00.000Z",
   },
@@ -2873,7 +2873,7 @@ const artifacts: ReportArtifact[] = [
     period: "FY2025",
     params: { statement_kind: "balance_sheet" },
     status: "ready",
-    signed_url: "/api/mock/reports/artifact-fs-fy2025/download",
+    signed_url: "/api/mock/v1/reports/artifact-fs-fy2025/download",
     created_at: "2026-07-01T12:00:00.000Z",
     expires_at: "2026-07-31T12:00:00.000Z",
   },
@@ -2885,7 +2885,7 @@ const artifacts: ReportArtifact[] = [
     period: "2026-03",
     params: {},
     status: "ready", // expires_at < today → served as expired
-    signed_url: "/api/mock/reports/artifact-monthly-mar/download",
+    signed_url: "/api/mock/v1/reports/artifact-monthly-mar/download",
     created_at: "2026-04-02T09:20:00.000Z",
     expires_at: "2026-05-02T09:20:00.000Z",
   },

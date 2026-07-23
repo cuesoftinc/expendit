@@ -1,12 +1,12 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { GET as getEstimates } from "@/app/api/mock/tax/estimates/route";
-import { PUT as putProfile } from "@/app/api/mock/tax/profile/route";
-import { POST as createFiling } from "@/app/api/mock/tax/filings/route";
-import { POST as generateFiling } from "@/app/api/mock/tax/filings/[id]/generate/route";
+import { GET as getEstimates } from "@/app/api/mock/v1/tax/estimates/route";
+import { PUT as putProfile } from "@/app/api/mock/v1/tax/profile/route";
+import { POST as createFiling } from "@/app/api/mock/v1/tax/filings/route";
+import { POST as generateFiling } from "@/app/api/mock/v1/tax/filings/[id]/generate/route";
 import type { TaxEstimate, TaxFiling } from "@/models";
-import { resetDb } from "./db";
+import { resetDb } from "./store";
 import { ORG_PERSONAL } from "./seed";
 import { json, mockRequest, params } from "./test-helpers";
 
@@ -17,7 +17,7 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
 
   it("estimates carry resolved authorities (FIRS company / LIRS personal)", async () => {
     const company = await json<{ items: TaxEstimate[] }>(
-      await getEstimates(mockRequest("/api/mock/tax/estimates")),
+      await getEstimates(mockRequest("/api/mock/v1/tax/estimates")),
     );
     // June (complete, due 21 Jul) + July (in progress, due 21 Aug) + CIT.
     expect(company.items.map((estimate) => estimate.kind).sort()).toEqual([
@@ -36,7 +36,7 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
 
     const personal = await json<{ items: TaxEstimate[] }>(
       await getEstimates(
-        mockRequest("/api/mock/tax/estimates", { orgId: ORG_PERSONAL }),
+        mockRequest("/api/mock/v1/tax/estimates", { orgId: ORG_PERSONAL }),
       ),
     );
     expect(personal.items[0]?.authority.code).toBe("LIRS");
@@ -47,7 +47,7 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
 
   it("draft creation gates on complete periods (422 period_incomplete)", async () => {
     const incomplete = await createFiling(
-      mockRequest("/api/mock/tax/filings", {
+      mockRequest("/api/mock/v1/tax/filings", {
         method: "POST",
         body: { kind: "vat", period: "2026-07" },
       }),
@@ -57,7 +57,7 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
     expect(body.error.code).toBe("period_incomplete");
 
     const complete = await createFiling(
-      mockRequest("/api/mock/tax/filings", {
+      mockRequest("/api/mock/v1/tax/filings", {
         method: "POST",
         body: { kind: "vat", period: "2026-06" },
       }),
@@ -71,14 +71,14 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
   it("generate succeeds for VAT with complete identity, adds the remittance sheet", async () => {
     const filing = await json<TaxFiling>(
       await createFiling(
-        mockRequest("/api/mock/tax/filings", {
+        mockRequest("/api/mock/v1/tax/filings", {
           method: "POST",
           body: { kind: "vat", period: "2026-06" },
         }),
       ),
     );
     const response = await generateFiling(
-      mockRequest(`/api/mock/tax/filings/${filing.id}/generate`, {
+      mockRequest(`/api/mock/v1/tax/filings/${filing.id}/generate`, {
         method: "POST",
       }),
       params({ id: filing.id }),
@@ -97,14 +97,14 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
   it("CIT generate blocks on staged statements (422 mapping_unconfirmed)", async () => {
     const filing = await json<TaxFiling>(
       await createFiling(
-        mockRequest("/api/mock/tax/filings", {
+        mockRequest("/api/mock/v1/tax/filings", {
           method: "POST",
           body: { kind: "cit", period: "FY2025" },
         }),
       ),
     );
     const response = await generateFiling(
-      mockRequest(`/api/mock/tax/filings/${filing.id}/generate`, {
+      mockRequest(`/api/mock/v1/tax/filings/${filing.id}/generate`, {
         method: "POST",
       }),
       params({ id: filing.id }),
@@ -117,7 +117,7 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
   it("unsigned rule set blocks generation (409 ruleset_unsigned)", async () => {
     const filing = await json<TaxFiling>(
       await createFiling(
-        mockRequest("/api/mock/tax/filings", {
+        mockRequest("/api/mock/v1/tax/filings", {
           method: "POST",
           body: { kind: "pit", period: "2025" },
         }),
@@ -125,7 +125,7 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
       ),
     );
     const response = await generateFiling(
-      mockRequest(`/api/mock/tax/filings/${filing.id}/generate`, {
+      mockRequest(`/api/mock/v1/tax/filings/${filing.id}/generate`, {
         method: "POST",
       }),
       params({ id: filing.id }),
@@ -138,21 +138,21 @@ describe("mock tax routes (tax-engine.md §5/§5.5 gates)", () => {
   it("incomplete tax identity blocks generation (422 tax_identity_incomplete)", async () => {
     // Drop the TIN from the company profile, then try VAT generation.
     await putProfile(
-      mockRequest("/api/mock/tax/profile", {
+      mockRequest("/api/mock/v1/tax/profile", {
         method: "PUT",
         body: { tin: null },
       }),
     );
     const filing = await json<TaxFiling>(
       await createFiling(
-        mockRequest("/api/mock/tax/filings", {
+        mockRequest("/api/mock/v1/tax/filings", {
           method: "POST",
           body: { kind: "vat", period: "2026-06" },
         }),
       ),
     );
     const response = await generateFiling(
-      mockRequest(`/api/mock/tax/filings/${filing.id}/generate`, {
+      mockRequest(`/api/mock/v1/tax/filings/${filing.id}/generate`, {
         method: "POST",
       }),
       params({ id: filing.id }),

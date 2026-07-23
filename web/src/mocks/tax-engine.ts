@@ -10,7 +10,7 @@ import { missingTaxIdentifiers } from "@/models/tax";
 import type { ComputedField, TaxEstimate, TaxKind, TaxProfile } from "@/models";
 import { resolveAuthority } from "@/models/registry/authorities";
 import { mockNow } from "./clock";
-import { getDb, nextId, type MockDb } from "./db";
+import { getDb, nextId, type MockDb } from "./store";
 
 /** Rule-set registry (versioned, sign-off-gated — tax-engine.md §1). */
 export const RULESETS: Record<

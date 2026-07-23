@@ -1,17 +1,17 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { GET as listLinks } from "@/app/api/mock/bank-links/route";
+import { GET as listLinks } from "@/app/api/mock/v1/bank-links/route";
 import {
   DELETE as unlink,
   PATCH as patchLink,
-} from "@/app/api/mock/bank-links/[id]/route";
-import { PUT as exchange } from "@/app/api/mock/bank-links/[id]/exchange/route";
-import { POST as syncNow } from "@/app/api/mock/bank-links/[id]/sync/route";
-import { GET as pollJob } from "@/app/api/mock/import/[jobId]/route";
-import { POST as confirmJob } from "@/app/api/mock/import/[jobId]/confirm/route";
+} from "@/app/api/mock/v1/bank-links/[id]/route";
+import { PUT as exchange } from "@/app/api/mock/v1/bank-links/[id]/exchange/route";
+import { POST as syncNow } from "@/app/api/mock/v1/bank-links/[id]/sync/route";
+import { GET as pollJob } from "@/app/api/mock/v1/import/[jobId]/route";
+import { POST as confirmJob } from "@/app/api/mock/v1/import/[jobId]/confirm/route";
 import type { BankLink } from "@/models";
-import { getDb, resetDb } from "./db";
+import { getDb, resetDb } from "./store";
 import { json, mockRequest, params } from "./test-helpers";
 
 describe("mock bank links (flows/bank-link.md)", () => {
@@ -21,7 +21,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
 
   it("seeds six company links covering all five BANK_LINK states", async () => {
     const { items } = await json<{ items: BankLink[] }>(
-      await listLinks(mockRequest("/api/mock/bank-links")),
+      await listLinks(mockRequest("/api/mock/v1/bank-links")),
     );
     expect(items.map((link) => link.masked_account)).toEqual([
       "···0482", // GTBank — active
@@ -45,12 +45,12 @@ describe("mock bank links (flows/bank-link.md)", () => {
 
   it("manual sync: 202 job, then 429 rate_limited within the window", async () => {
     const first = await syncNow(
-      mockRequest("/api/mock/bank-links/link-gtb/sync", { method: "POST" }),
+      mockRequest("/api/mock/v1/bank-links/link-gtb/sync", { method: "POST" }),
       params({ id: "link-gtb" }),
     );
     expect(first.status).toBe(202);
     const second = await syncNow(
-      mockRequest("/api/mock/bank-links/link-gtb/sync", { method: "POST" }),
+      mockRequest("/api/mock/v1/bank-links/link-gtb/sync", { method: "POST" }),
       params({ id: "link-gtb" }),
     );
     expect(second.status).toBe(429);
@@ -61,7 +61,9 @@ describe("mock bank links (flows/bank-link.md)", () => {
 
   it("reauth_required links refuse manual sync", async () => {
     const response = await syncNow(
-      mockRequest("/api/mock/bank-links/link-access/sync", { method: "POST" }),
+      mockRequest("/api/mock/v1/bank-links/link-access/sync", {
+        method: "POST",
+      }),
       params({ id: "link-access" }),
     );
     expect(response.status).toBe(409);
@@ -72,7 +74,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
   it("pause and resume transitions (data-model.md §6.2)", async () => {
     const paused = await json<BankLink>(
       await patchLink(
-        mockRequest("/api/mock/bank-links/link-gtb", {
+        mockRequest("/api/mock/v1/bank-links/link-gtb", {
           method: "PATCH",
           body: { status: "paused" },
         }),
@@ -81,7 +83,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
     );
     expect(paused.status).toBe("paused");
     const invalid = await patchLink(
-      mockRequest("/api/mock/bank-links/link-gtb", {
+      mockRequest("/api/mock/v1/bank-links/link-gtb", {
         method: "PATCH",
         body: { status: "reauth_required" },
       }),
@@ -93,7 +95,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
   it("auto-confirm trust gate: enabling needs ≥3 confirmed clean syncs (flows/import.md §5)", async () => {
     // GTBank has ONE seeded confirmed clean sync — enabling is blocked.
     const blocked = await patchLink(
-      mockRequest("/api/mock/bank-links/link-gtb", {
+      mockRequest("/api/mock/v1/bank-links/link-gtb", {
         method: "PATCH",
         body: { auto_confirm: true },
       }),
@@ -118,7 +120,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
     }
     const enabled = await json<BankLink>(
       await patchLink(
-        mockRequest("/api/mock/bank-links/link-gtb", {
+        mockRequest("/api/mock/v1/bank-links/link-gtb", {
           method: "PATCH",
           body: { auto_confirm: true },
         }),
@@ -130,7 +132,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
     // Disabling is never gated (turning review back ON is always safe).
     const disabled = await json<BankLink>(
       await patchLink(
-        mockRequest("/api/mock/bank-links/link-zenith", {
+        mockRequest("/api/mock/v1/bank-links/link-zenith", {
           method: "PATCH",
           body: { auto_confirm: false },
         }),
@@ -143,7 +145,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
 
   it("exchange: stale code → 422 link_expired; success activates", async () => {
     const expired = await exchange(
-      mockRequest("/api/mock/bank-links/link-gtb/exchange", {
+      mockRequest("/api/mock/v1/bank-links/link-gtb/exchange", {
         method: "PUT",
         body: { code: "expired" },
       }),
@@ -163,7 +165,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
     const total = db.transactions.length;
 
     const response = await unlink(
-      mockRequest("/api/mock/bank-links/link-access?purge=true", {
+      mockRequest("/api/mock/v1/bank-links/link-access?purge=true", {
         method: "DELETE",
       }),
       params({ id: "link-access" }),
@@ -174,7 +176,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
     // keep (default): transactions stay.
     const before = getDb().transactions.length;
     await unlink(
-      mockRequest("/api/mock/bank-links/link-zenith", { method: "DELETE" }),
+      mockRequest("/api/mock/v1/bank-links/link-zenith", { method: "DELETE" }),
       params({ id: "link-zenith" }),
     );
     expect(getDb().transactions.length).toBe(before);
@@ -184,7 +186,9 @@ describe("mock bank links (flows/bank-link.md)", () => {
     const runSync = async (linkId: string) => {
       const db = getDb();
       const response = await syncNow(
-        mockRequest(`/api/mock/bank-links/${linkId}/sync`, { method: "POST" }),
+        mockRequest(`/api/mock/v1/bank-links/${linkId}/sync`, {
+          method: "POST",
+        }),
         params({ id: linkId }),
       );
       expect(response.status).toBe(202);
@@ -200,7 +204,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
         };
         staged: unknown[];
       }>(
-        await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+        await pollJob(mockRequest(`/api/mock/v1/import/${job_id}`), {
           params: Promise.resolve({ jobId: job_id }),
         }),
       );
@@ -240,7 +244,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
     // Manually confirming the staged sync keeps link provenance so
     // unlink-with-purge can remove the rows (Codex round 3).
     const confirmed = await confirmJob(
-      mockRequest(`/api/mock/import/${manual.jobId}/confirm`, {
+      mockRequest(`/api/mock/v1/import/${manual.jobId}/confirm`, {
         method: "POST",
       }),
       { params: Promise.resolve({ jobId: manual.jobId }) },
@@ -263,7 +267,9 @@ describe("mock bank links (flows/bank-link.md)", () => {
     };
     // The sync POST itself is write-blocked during grace.
     const blocked = await syncNow(
-      mockRequest("/api/mock/bank-links/link-zenith/sync", { method: "POST" }),
+      mockRequest("/api/mock/v1/bank-links/link-zenith/sync", {
+        method: "POST",
+      }),
       params({ id: "link-zenith" }),
     );
     expect(blocked.status).toBe(409);
@@ -272,7 +278,9 @@ describe("mock bank links (flows/bank-link.md)", () => {
     // async completion path either: simulate one mid-processing.
     db.purgeRequest = null;
     const started = await syncNow(
-      mockRequest("/api/mock/bank-links/link-zenith/sync", { method: "POST" }),
+      mockRequest("/api/mock/v1/bank-links/link-zenith/sync", {
+        method: "POST",
+      }),
       params({ id: "link-zenith" }),
     );
     const { job_id } = await json<{ job_id: string }>(started);
@@ -289,7 +297,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
       job: { confirmed: boolean; imported: number };
       staged: unknown[];
     }>(
-      await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+      await pollJob(mockRequest(`/api/mock/v1/import/${job_id}`), {
         params: Promise.resolve({ jobId: job_id }),
       }),
     );
@@ -304,19 +312,19 @@ describe("mock bank links (flows/bank-link.md)", () => {
     const db = getDb();
     // Park a clean sync in staged review on the GTBank link.
     const started = await syncNow(
-      mockRequest("/api/mock/bank-links/link-gtb/sync", { method: "POST" }),
+      mockRequest("/api/mock/v1/bank-links/link-gtb/sync", { method: "POST" }),
       params({ id: "link-gtb" }),
     );
     const { job_id } = await json<{ job_id: string }>(started);
     db.processingSince[job_id] = Date.now() - 5_000;
-    await pollJob(mockRequest(`/api/mock/import/${job_id}`), {
+    await pollJob(mockRequest(`/api/mock/v1/import/${job_id}`), {
       params: Promise.resolve({ jobId: job_id }),
     });
     expect(db.stagedTxns.some((row) => row.job_id === job_id)).toBe(true);
 
     // Unlink with purge: the parked job + staged rows go with the link.
     const removed = await unlink(
-      mockRequest("/api/mock/bank-links/link-gtb?purge=true", {
+      mockRequest("/api/mock/v1/bank-links/link-gtb?purge=true", {
         method: "DELETE",
       }),
       params({ id: "link-gtb" }),
@@ -328,7 +336,7 @@ describe("mock bank links (flows/bank-link.md)", () => {
 
     // Confirming the vanished job 404s instead of writing purged rows.
     const confirmed = await confirmJob(
-      mockRequest(`/api/mock/import/${job_id}/confirm`, { method: "POST" }),
+      mockRequest(`/api/mock/v1/import/${job_id}/confirm`, { method: "POST" }),
       { params: Promise.resolve({ jobId: job_id }) },
     );
     expect(confirmed.status).toBe(404);

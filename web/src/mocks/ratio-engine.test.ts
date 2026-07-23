@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { resetDb } from "./db";
+import { resetDb } from "./store";
 import { computeRatioReport, previousPeriod } from "./ratio-engine";
 import { ORG_CUESOFT, ORG_PERSONAL } from "./seed";
 import { RATIO_REGISTRY } from "@/models/registry/ratios";

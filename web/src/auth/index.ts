@@ -4,7 +4,7 @@
  * backend-integration time — X-1 either way.
  */
 
-import { isTestMode } from "@/config/env";
+import { env } from "@/config/env";
 import type { AuthProvider } from "./types";
 import { TestModeAuthProvider } from "./test-mode-provider";
 
@@ -12,7 +12,7 @@ let provider: AuthProvider | null = null;
 
 export const getAuthProvider = (): AuthProvider => {
   if (!provider) {
-    if (!isTestMode()) {
+    if (!env.testMode) {
       // Firebase provider lands with backend integration; until then the
       // only wired mode is TEST_MODE (mock server + instant session).
       throw new Error(

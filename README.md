@@ -5,17 +5,17 @@ business expenses. Record expenses on the go, categorize them, import statements
 and generate real-time reports for better financial management.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![build-and-test](https://github.com/cuesoftinc/expendit/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cuesoftinc/expendit/actions/workflows/build-and-test.yml)
 
 ## Overview
 
-Expendit is a monorepo made up of three application surfaces backed by a single
-API:
-
-- A **Go REST API** that handles authentication, expenses, income, categories,
-  statement imports, AI-assisted summaries, and reporting.
-- A **Next.js web application** with a marketing site and an authenticated
-  dashboard.
-- A **Flutter mobile application** (planned) that shares the same API.
+Expendit is a monorepo containing the clients, backend services, deployment
+configuration, and documentation for the platform. A Go REST API owns
+authentication, expenses, income, categories, statement imports, AI-assisted
+summaries, and reporting; a Next.js frontend serves the marketing site and the
+authenticated dashboard; and a Flutter mobile app (planned) shares the same
+API. For a deeper description of the components and how they fit together, see
+[docs/overview.md](docs/overview.md).
 
 ## Architecture
 
@@ -34,7 +34,7 @@ flowchart LR
 
 | Layer          | Technology                                             |
 | -------------- | ------------------------------------------------------ |
-| Backend API    | Go 1.25, Gin, MongoDB, JWT, Redis                      |
+| Backend API    | Go 1.26, Gin, MongoDB, JWT, Redis                      |
 | Web            | Next.js, React, TypeScript                             |
 | Mobile         | Flutter (planned)                                      |
 | AI             | Google Gemini, Groq (summaries & categorization)       |
@@ -43,49 +43,40 @@ flowchart LR
 ## Repository structure
 
 ```
-expendit/
-├── api/
-│   └── common/          # Go backend API (Gin, MongoDB) — module: github.com/cuesoftinc/expendit/api/common
-├── web/                 # Next.js web application (marketing + dashboard)
-├── mobile/
-│   ├── flutter/         # Flutter cross-platform app (planned)
-│   ├── android/         # Native Android (planned)
-│   └── ios/             # Native iOS (planned)
-├── deploy/
-│   ├── docker/          # Container / Docker Compose configuration
-│   ├── helm/            # Kubernetes Helm charts
-│   └── terraform/       # Infrastructure as Code
-├── docs/                # Architecture, setup, and reference documentation
-├── scripts/             # Developer and CI scripts
-└── (root config)        # README, LICENSE, Makefile, .editorconfig, etc.
+api/
+  common/      Go backend API (Gin, MongoDB) — module: github.com/cuesoftinc/expendit/api/common
+web/           Next.js web application (marketing + dashboard)
+mobile/
+  flutter/     Flutter cross-platform app (planned)
+  android/     Native Android (planned)
+  ios/         Native iOS (planned)
+deploy/
+  docker/      Container / Docker Compose configuration
+  helm/        Kubernetes Helm charts
+  terraform/   Infrastructure as code
+docs/          Architecture, setup, and reference documentation
+scripts/       Developer and CI scripts
 ```
 
-> Backend services live under `api/`. The current backend is `api/common`;
-> additional services would be added as `api/<function>` (named by role, never by
-> language).
+Additional services follow the same convention: `api/common` is the shared Go
+backend, and every other service lives under `api/<service-name>` named by its
+function (never by its language).
 
 ## Getting started
 
 ### Prerequisites
 
-- [Git](https://git-scm.com)
-- [Go](https://go.dev/) 1.25+ (for the API)
-- [Node.js](https://nodejs.org/) 20+ (for the web app)
-- [MongoDB](https://www.mongodb.com/) and [Redis](https://redis.io/) (locally or via Docker)
-- [Docker](https://www.docker.com/) & Docker Compose (optional, for containers)
+- [Docker](https://www.docker.com/) & Docker Compose (recommended path)
+- For native development: [Go](https://go.dev/) 1.26, [Node.js](https://nodejs.org/) 24,
+  and [MongoDB](https://www.mongodb.com/) + [Redis](https://redis.io/) (if not using Docker)
 
 ### Quick start
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/cuesoftinc/expendit.git
-cd expendit
-
-# 2. Configure environment
 cp .env.example .env   # fill in secrets as needed
-
-# 3. Build and start the full stack (mongo, redis, api, web)
-make up
+make up      # build + start the full stack (mongo, redis, api, web)
+make logs    # follow logs
+make down    # stop
 ```
 
 The API listens on `http://localhost:8080` and the web app on

@@ -9,7 +9,7 @@ import {
   IDENTITY_TOLERANCE,
   UNMAPPED_VALUE_THRESHOLD,
 } from "@/models/registry/line-items";
-import { getDb, nextId } from "./db";
+import { getDb, nextId } from "./store";
 
 export const statementLineItems = (statementId: string): LineItem[] =>
   getDb().lineItems.filter((item) => item.statement_id === statementId);

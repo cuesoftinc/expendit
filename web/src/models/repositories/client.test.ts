@@ -24,7 +24,7 @@ describe("api client (repositories' single network seam)", () => {
       { orgId: "org-cuesoft", idempotencyKey: "key-1" },
     );
     const [url, init] = fetchSpy.mock.calls[0];
-    expect(String(url)).toBe("/api/mock/transactions");
+    expect(String(url)).toBe("/api/mock/v1/transactions");
     const headers = init?.headers as Record<string, string>;
     expect(headers["X-Org-Id"]).toBe("org-cuesoft");
     expect(headers["Idempotency-Key"]).toBe("key-1");
@@ -38,7 +38,7 @@ describe("api client (repositories' single network seam)", () => {
       query: { direction: "income", cursor: undefined, limit: 5 },
     });
     expect(String(fetchSpy.mock.calls[0][0])).toBe(
-      "/api/mock/transactions?direction=income&limit=5",
+      "/api/mock/v1/transactions?direction=income&limit=5",
     );
   });
 
