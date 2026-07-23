@@ -25,15 +25,19 @@ describe("useSavedViewsController (B2 saved filter views)", () => {
   });
 
   it("scopes views to the org and removes them", async () => {
-    const first = renderHook(() => useSavedViewsController("org-a"));
+    const { result: first } = renderHook(() =>
+      useSavedViewsController("org-a"),
+    );
     act(() => {
-      first.result.current.save("A view", {});
+      first.current.save("A view", {});
     });
-    const second = renderHook(() => useSavedViewsController("org-b"));
-    await waitFor(() => expect(second.result.current.views).toHaveLength(0));
+    const { result: second } = renderHook(() =>
+      useSavedViewsController("org-b"),
+    );
+    await waitFor(() => expect(second.current.views).toHaveLength(0));
 
-    const id = first.result.current.views[0].id;
-    act(() => first.result.current.remove(id));
-    await waitFor(() => expect(first.result.current.views).toHaveLength(0));
+    const id = first.current.views[0].id;
+    act(() => first.current.remove(id));
+    await waitFor(() => expect(first.current.views).toHaveLength(0));
   });
 });
