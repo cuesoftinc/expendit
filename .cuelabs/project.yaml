@@ -1,0 +1,22 @@
+schemaVersion: 1
+name: expendit
+profile: cuelabs
+
+surfaces:
+  web: active
+  backend:
+    common: planned
+  mobile:
+    flutter: planned
+
+capabilities:
+  grpc: absent
+  firebaseAuth: planned
+
+deployment:
+  web: firebase-app-hosting
+  api: none
+  selfHost: helm
+  infrastructure: terraform
+
+deviations: []
