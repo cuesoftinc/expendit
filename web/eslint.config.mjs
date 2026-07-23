@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import testingLibrary from "eslint-plugin-testing-library";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -48,6 +49,22 @@ const eslintConfig = defineConfig([
           ],
         },
       ],
+    },
+  },
+  // Testing Library lint (org web standard): the flat/react preset, scoped
+  // to the co-located unit/component tests.
+  {
+    files: ["src/**/*.test.{ts,tsx}"],
+    ...testingLibrary.configs["flat/react"],
+    rules: {
+      ...testingLibrary.configs["flat/react"].rules,
+      // The component-reuse policy (web-implementation.md) builds all visual
+      // components bespoke from the token layer — their tests assert
+      // non-semantic structure (SVG geometry, token classes) that has no
+      // role/label to query, so container/node access is the intended
+      // pattern, not a smell.
+      "testing-library/no-container": "off",
+      "testing-library/no-node-access": "off",
     },
   },
 ]);

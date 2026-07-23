@@ -46,6 +46,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Web eslint wires `eslint-plugin-testing-library` (flat/react preset)
+  over the co-located tests — it was declared as a dev dep but never
+  configured. `no-container`/`no-node-access` stay off (the
+  component-reuse policy builds visual components bespoke from the token
+  layer, so their tests assert non-semantic structure by design); the
+  genuine findings it surfaced are fixed (`renderHook` results
+  destructured in `use-saved-views.test.ts`, an empty-callback `act()`
+  around a clipboard-promise flush replaced with a real fake-timer
+  advance in `CodeSnippet.test.tsx`).
 - Fleet-parity wave: mock server routes move under the versioned
   `/api/mock/v1/*` path (client base path, tests, e2e fixtures, and docs
   updated to match); `src/mocks/db.ts` renames to `store.ts`;

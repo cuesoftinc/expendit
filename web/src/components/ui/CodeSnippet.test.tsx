@@ -107,8 +107,10 @@ describe("CodeSnippet (design.md §8.2b)", () => {
     const button = screen.getByRole("button", { name: "Copy code" });
     expect(button).toHaveAttribute("data-state", "idle");
     fireEvent.click(button);
+    // flush the clipboard promise (advancing by 0ms still steps through
+    // the pending microtask queue under fake timers).
     await act(async () => {
-      // flush the clipboard promise
+      await vi.advanceTimersByTimeAsync(0);
     });
     expect(writeText).toHaveBeenCalledWith("make run");
     expect(screen.getByRole("button", { name: "Copied" })).toHaveAttribute(
