@@ -43,17 +43,18 @@ met (downloadable summaries + cash movement).
 anomalies visible on the dashboard; categorization measurably improves from
 corrections.
 
-## Phase 3 — Ecosystem + acquisition channels
+## Phase 3 — Bank linking + identity
 
 | Item | Requirement | Notes |
 | --- | --- | --- |
+| Mono (E-1 ratified) link/sync/re-auth flows into the shared staged-review pipeline | BNK-001/002 | NG-first; Plaid layers on later for international (E-1) |
+| Firebase Google-only identity migration | E3-1, X-1 | `account.cuesoft.io` facade is a later cosmetic cutover — **not** blocked by D1 |
 | Upstat events: `upload_success`, `report_generation` | ECO-ANALYTICS | **Blocked by D2**; ship behind the same no-op client wrapper pattern as apparule |
-| `account.cuesoft.io` sign-in + user linking (migration per data-model.md §3) | ECO-AUTH | **Blocked by D1** |
 | Support routing to clients.cuesoft.io | ECO-SUPPORT | Link-outs |
-| Direct bank/SMS ingestion research spike | PRD §5 roadmap | Explicitly post-file-upload; regional aggregator landscape (e.g. Mono/Okra-class providers) is its own investigation |
 
-**Exit criteria:** ecosystem events flowing; central identity live with
-migration path proven; bank-integration decision documented.
+**Exit criteria:** bank linking live end-to-end (Mono connect → sync →
+staged review); identity migration shipped; ecosystem events flowing once
+D2 lands.
 
 ## Dependencies
 
@@ -67,21 +68,14 @@ migration path proven; bank-integration decision documented.
 
 Phases 0–1 close every **Must** with the least engineering (the engine already
 exists) and make the privacy story real before growth work; Phase 2 pays the
-scaling debt in the pipeline the PRD's traffic assumes; Phase 3 waits on
-external contracts (D1/D2) and the deliberately-deferred bank integration.
+scaling debt in the pipeline the PRD's traffic assumes; Phase 3 ships bank
+linking (Mono, E-1 ratified) and the identity migration (X-1) — neither waits
+on D1, and only the ecosystem-events row waits on D2.
 
 ---
 
-## Revision — scope expansion (2026-07-16)
+## Phase 4+ — Company financials, tax, mobile parity
 
-Phases 0–2 stand as written (trust surface → downloadables/rights → pipeline
-hardening). The expansion appends:
-
-- **Phase 3 (revised) — Bank linking + identity**: Mono (E-1 ratified)
-  link/sync/re-auth flows into the shared staged-review pipeline
-  (BNK-001/002); identity = Firebase Google-only migration (E3-1, X-1 — D1
-  does NOT block this; the facade is a later cosmetic cutover). Upstat events
-  move here unchanged.
 - **Phase 4 — Company financials**: org model migration (personal org
   auto-create), statement upload + line-item mapping review, ratio engine +
   trends (CMP-001…003).
@@ -91,5 +85,5 @@ hardening). The expansion appends:
 - **Phase 6 — Mobile parity** (receipt capture first) + Brex-system dashboard
   restyle completes (design.md rolls out progressively from Phase 3).
 
-Gates: aggregator + tax-jurisdiction decisions are Phase 3/5 entry criteria;
-company features require the org migration to ship first.
+Gates: the tax-jurisdiction decision (E-2) is Phase 5 entry criteria; company
+features require the org migration to ship first.

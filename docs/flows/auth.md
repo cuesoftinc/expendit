@@ -2,9 +2,10 @@
 
 > Implements decision X-1 as hardened 2026-07-16: **Google sign-in only** —
 > no username/password, product-wide. Firebase Auth on `sandbox-e306a`.
-> Replaces the entire local credential system (signup/signin/forgot/reset/
+> Will retire the entire local credential system (signup/signin/forgot/reset/
 > change-password in `user_controller.go` + their rate limiters and email
-> templates) after the migration window.
+> templates) at the migration window — the Go password system still ships
+> today.
 
 ## 1. Hard rule & enforcement
 
