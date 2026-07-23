@@ -148,7 +148,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the web manifest's drop the leftover "Expense tracker App" for the
   ratified tagline, and the home page's og:description and
   twitter:description — previously two different strings — now share one
-  constant (#NNN).
+  constant (#272).
 - Docs currency pass: `web/README.md`'s test command and app-area list now
   match the shipped app (Vitest/Playwright, not retired Jest); the
   `web/src/legacy/` and `mobile/` claims in `web-implementation.md` describe
