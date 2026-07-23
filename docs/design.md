@@ -263,7 +263,7 @@ never on screens.
 | CategoryChip | confirmed / AI-suggested (✨) / editing (combobox open) |
 | AnomalyBadge | large_transaction / spending_spike / abnormal_category / duplicate_charge · inline / feed |
 | StatCard | with/without delta chip · with/without sparkline · loading (as built: a single loading variant, delta + sparkline off — 5 of 8 combos, matching row intent) |
-| TxnTableRow | default / hover (actions revealed — cluster docks at the description cell's right edge, MI-6) / selected / editing / staged-duplicate · density ×2 (renamed from `TxnTable row` — §8.1 naming standards) |
+| TxnTableRow | default / hover (actions revealed — cluster docks at the description cell's right edge, MI-6) / selected / editing / staged-duplicate · density ×2 |
 | UploadDropzone | idle / drag-over / per-file progress / AI-sweep / complete / error |
 | LinkAccountCard | pending / active (breathing dot) / reauth_required / degraded / paused |
 | RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band (as built: n-a ships band=off only — no benchmark band on missing input) |
@@ -339,7 +339,7 @@ never on screens.
 
 | Component | Variants × states |
 | --- | --- |
-| GoogleAuthButton | **blocking** · default / hover / pressed / loading / disabled · Google mark + "Continue with Google" (the single X-1 auth CTA) · theme ×2 (renamed from `AuthGoogleCTA` — §8.1 naming standards; canonical name in every product) |
+| GoogleAuthButton | **blocking** · default / hover / pressed / loading / disabled · Google mark + "Continue with Google" (the single X-1 auth CTA) · theme ×2 (canonical name in every product) |
 | MappingReviewRow | **blocking** · state: suggested / confirmed / unmapped · source text → mono canonical-key chip + confidence Tag (✨ n% / Confirmed / Unmapped <60%) + tabular amount (in build 2026-07-18 — the B6 mapping-review screen, flows/statement-mapping.md) |
 | MemberRow | **important** · avatar + name + email + role select + remove · default / hover / pending-invite / owner |
 | ImportJobRow | **important** · status: processing / completed / completed-empty / completed-bank / failed · counts + anomalies-found — as built: the source axis folds into status (`completed-bank` = bank_sync; processing/failed render as upload-source) |

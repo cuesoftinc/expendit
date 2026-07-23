@@ -17,7 +17,7 @@ setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTA
 
 | # | Section | Content & components | Interactions |
 | --- | --- | --- | --- |
-| A1 | Nav | logo · Product · Solutions (Individuals/SMEs/Companies) · Docs (GitBook) · Community · GitHub badge · Sign in · **Try Cloud** | sticky; dark-on-light after hero scroll |
+| A1 | Nav | logo · Features · Pricing · Docs · GitHub badge (live star count) · ThemeToggle · Sign in · **Try Cloud** | sticky; dark-on-light after hero scroll |
 | A2 | Hero (dark editorial) | display-type H1 "Financial intelligence for modern growth"; sub; dual CTA **Try Cloud** / **Self Host**; hero visual: dashboard in device frame with animated categorization chips | chips animate once; pauses reduced-motion |
 | A3 | Logos/social proof strip | placeholder for case-study logos (PRD §6) | |
 | A4 | Product pillars | 3 editorial cards: **Statements → intelligence** (upload/link), **Company financials** (ratios), **Taxes** (calculate + file) | card hover: 2px lift + accent underline draw |
@@ -44,6 +44,9 @@ Events → Upstat (D2): `page_view`, `try_cloud_click`, `self_host_click`,
 **[Directive 2026-07-18 additions]**.
 
 ## Part B — Dashboard (app)
+
+Section headers below use `/<area>` shorthand for the real
+`/dashboard/<area>` routes (web-implementation.md §4 route map).
 
 Left nav groups **[Proposed]**: Overview · Transactions · Imports · Accounts
 (bank links) · Reports · **Company** (statements, ratios) · **Taxes** ·

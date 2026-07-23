@@ -1,8 +1,8 @@
 # Expendit Web (`web`)
 
 Next.js 16 (App Router, TypeScript) front-end for the Expendit expense
-tracker: marketing site plus the authenticated app (expenses, income,
-categories, reports, imports, settings).
+tracker: marketing site plus the authenticated app (transactions, imports,
+accounts, reports, company, taxes, categories, settings).
 
 ## Run
 
@@ -21,5 +21,6 @@ npm run dev
 ## Test
 
 ```bash
-npx jest
+npm test
+npm run test:e2e
 ```

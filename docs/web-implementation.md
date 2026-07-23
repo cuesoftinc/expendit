@@ -54,8 +54,10 @@
   `git mv`-ed into `web/src/legacy/` (structure preserved, excluded from
   build & routing) — live paths carry zero dead code; after the replacement
   passes QA + Playwright, the legacy subtree is deleted in a dedicated
-  `chore(web): retire legacy <area>` PR. No dead code outside `src/legacy/`,
-  ever; `src/legacy/` itself trends to empty. Expendit's application of the
+  `chore(web): retire legacy <area>` PR. No dead code lives outside
+  `src/legacy/`, ever — the eslint `no-restricted-imports` rule and
+  `scripts/check-boundaries.mjs` keep `legacy/` imports banned regardless of
+  whether the tree currently holds anything. Expendit's application of the
   policy: §8.
 - **Mobile responsiveness canon [Directive 2026-07-19]**: the home page and
   every dashboard route are fully responsive at 390 (768 sanity) — the
@@ -758,22 +760,25 @@ release.yml) reuses the same Playwright journeys **[Proposed]**.
 
 ## 8. Legacy quarantine (dead-code policy)
 
-The §1 policy, applied: **live paths carry zero dead code**, and
-`web/src/legacy/` + the boundary gates are the standing mechanism.
-`src/legacy/` is the quarantine tree — excluded from the TS build, lint,
-and both test runners, and unrouted by construction (App Router is
-filesystem-based; nothing under `src/legacy/` is a route). The gates hold
-in CI (`scripts/check-boundaries.mjs` + the eslint
-`no-restricted-imports` rules, both wired into `npm run lint`):
-**styled-kit imports (`@mui/*`, `@emotion/*`) fail repo-wide** — the
-packages left package.json with the MUI retirement — and live code never
-imports from `src/legacy/`. `src/legacy/` is **currently empty** — the
+The §1 policy, applied: **live paths carry zero dead code**.
+`web/src/legacy/` is the reserved quarantine path — excluded from the TS
+build, lint, and both test runners, and unrouted by construction (App
+Router is filesystem-based; nothing under `src/legacy/` would be a route)
+— standing ready for whenever a replacement needs it. The boundary gates
+are the standing mechanism that keep it that way regardless of whether the
+tree currently holds anything: `scripts/check-boundaries.mjs` + the eslint
+`no-restricted-imports` rules (both wired into `npm run lint`) fail
+**styled-kit imports (`@mui/*`, `@emotion/*`) repo-wide** — the packages
+left package.json with the MUI retirement — and ban live code from
+importing `src/legacy/`. The tree does not exist in the current repo — the
 app runs entirely on the token-layer registry (§1), and retired paths 404
 on the branded page rather than carrying redirect stubs forward (§4).
 
-The **mobile app is a later phase** (pages.md Part C): no `mobile/` tree
-exists yet, and that phase gets its own implementation standard —
-including its own application of the quarantine policy — when it opens.
+The **mobile app is a later phase** (pages.md Part C): `mobile/{flutter,
+android,ios}` are placeholder directories only (README.md repository
+structure) — no implementation exists yet, and that phase gets its own
+implementation standard — including its own application of the quarantine
+policy — when it opens.
 
 ## 9. Acceptance
 
@@ -789,7 +794,7 @@ including its own application of the quarantine policy — when it opens.
 - [ ] Views contain no fetch calls (MVC boundary enforced by review + lint
       rule)
 - [x] Styled-kit packages pruned from package.json; imports CI-gated
-      repo-wide; `src/legacy/` stays empty
+      repo-wide; `src/legacy/` does not exist in the current tree
 - [ ] Playwright §8.4 journeys green in CI, incl. the keyboard-first path
       (⌘K + table nav); merge-to-main never deploys (X-6)
 

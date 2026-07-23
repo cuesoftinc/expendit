@@ -54,6 +54,12 @@ removes them from paths. **[Proposed]**)
 | `GET /report/chart/category/:userID` | totals by category |
 | `GET /report/chart/category/expenses/:userID` | expense breakdown by category |
 
+### AI
+
+| Method & path | Purpose |
+| --- | --- |
+| `GET /ai/summary/:userID` | protected; 3-month income/expense narrative summary (AI-generated when a key is configured, else a rule-based fallback) — registered directly in `api/common/cmd/server/main.go`, not a `router/*.go` file |
+
 ## 2. Target surface **[Proposed]** — deltas only, under `/api/v1`
 
 The v1 exercise is mostly *consolidation* (one signup path, JWT-scoped paths

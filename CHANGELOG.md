@@ -116,6 +116,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sign-in/sign-up hooks.
 
 ### Fixed
+- Docs currency pass: `web/README.md`'s test command and app-area list now
+  match the shipped app (Vitest/Playwright, not retired Jest); the
+  `web/src/legacy/` and `mobile/` claims in `web-implementation.md` describe
+  the standing guardrail without asserting trees that aren't there yet;
+  `pages.md`'s A1 nav copy matches `MarketingNav`/`HomeView`; `roadmap.md`'s
+  Phase 3 collapses into the ratified Mono/Firebase state (no longer
+  blocked by D1); `api.md` documents `GET /ai/summary/:userID`;
+  `flows/auth.md` future-tenses the credential-system retirement;
+  `design.md` drops stale rename parentheticals.
+
 - Session-restore gate hardening (flows/auth.md §2, ratified 2026-07-22):
   `/signin` gains the reverse guard — a signed-in visitor is replaced to
   `/dashboard` and never sees the CTA — and a failed session read now reads
