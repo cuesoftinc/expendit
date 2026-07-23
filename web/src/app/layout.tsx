@@ -1,4 +1,5 @@
 import React from "react";
+import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider, themeInitScript } from "@/design/ThemeProvider";
 import SkipLink from "@/components/ui/SkipLink";
@@ -13,12 +14,17 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   // Absolute base for og/twitter images, canonicals and other metadata
   // URLs (SEO plumbing, fleet canon).
   metadataBase: new URL("https://expendit.cuesoft.io"),
-  title: "Expendit",
-  description: "Expense tracker App",
+  // Brand line — same title the home og/twitter card already carries
+  // (page.tsx), so routes without their own metadata (fleet fallback)
+  // never regress to the bare product name.
+  title: "Expendit — See every naira. File every tax.",
+  // The ratified tagline (web/scripts/generate-brand-assets.mjs, the
+  // og-image source of truth) — not the placeholder "Expense tracker App".
+  description: "See every naira. File every tax.",
   // Every route's canonical is its own path, resolved against metadataBase.
   alternates: { canonical: "./" },
 };

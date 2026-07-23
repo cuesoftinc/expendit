@@ -18,7 +18,7 @@ setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTA
 | # | Section | Content & components | Interactions |
 | --- | --- | --- | --- |
 | A1 | Nav | logo · Features · Pricing · Docs · GitHub badge (live star count) · ThemeToggle · Sign in · **Try Cloud** | sticky; dark-on-light after hero scroll |
-| A2 | Hero (dark editorial) | display-type H1 "Financial intelligence for modern growth"; sub; dual CTA **Try Cloud** / **Self Host**; hero visual: dashboard in device frame with animated categorization chips | chips animate once; pauses reduced-motion |
+| A2 | Hero (dark editorial) | display-type H1 "See every naira. File every tax."; sub; dual CTA **Try Cloud** / **Self Host**; hero visual: dashboard in device frame with animated categorization chips | chips animate once; static under reduced-motion |
 | A3 | Logos/social proof strip | placeholder for case-study logos (PRD §6) | |
 | A4 | Product pillars | 3 editorial cards: **Statements → intelligence** (upload/link), **Company financials** (ratios), **Taxes** (calculate + file) | card hover: 2px lift + accent underline draw |
 | A4a | Feature deep-dives **[Directive 2026-07-18]** | benefit-led deep-dive per pillar, alternating editorial split (claim → outcome copy → product still): categorized ledger in minutes · company health at a glance (ratios + trends) · filing-ready taxes with a named authority | stills swap on scroll-into-view; static under reduced-motion |
@@ -32,7 +32,7 @@ setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTA
 | A10 | Cloud vs Self-host | comparison table; per-column CTAs | |
 | A10a | FAQ **[Directive 2026-07-18]** | 4–5 product Q&As (Accordion): is my bank data safe (read-only via Mono) · does AI see my data (consent-gated, providers disclosed) · can I self-host everything · what does "filing" mean in v1 (filing-ready documents + guided handoff) · which banks/jurisdictions (NG-first) | accordion open/close, one open at a time |
 | A10b | Final CTA band **[Directive 2026-07-18]** | dark editorial band: one-line close + dual CTA **Try Cloud** / **Self Host** (mirrors A2) | CTAs re-emit the A2 events |
-| A11 | Footer | standard + "View Security Policy" CTA (PRD §6) | |
+| A11 | Footer | standard + brand caption "Financial intelligence for modern growth." + "View Security Policy" CTA (PRD §6) | |
 
 As built (2026-07-18 QA loop): the section register above matches the built
 Home page frame order — A1 → A11 with the 2026-07-18 additions interleaved

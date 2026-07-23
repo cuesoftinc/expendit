@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Expendit",
     short_name: "Expendit",
-    description: "Expense tracker App",
+    description: "See every naira. File every tax.",
     start_url: "/",
     display: "standalone",
     background_color: "#0c0c0e",
