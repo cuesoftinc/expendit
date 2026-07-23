@@ -124,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   Phase 3 collapses into the ratified Mono/Firebase state (no longer
   blocked by D1); `api.md` documents `GET /ai/summary/:userID`;
   `flows/auth.md` future-tenses the credential-system retirement;
-  `design.md` drops stale rename parentheticals.
+  `design.md` drops stale rename parentheticals (#267).
 
 - Session-restore gate hardening (flows/auth.md §2, ratified 2026-07-22):
   `/signin` gains the reverse guard — a signed-in visitor is replaced to
