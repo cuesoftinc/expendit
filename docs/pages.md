@@ -18,7 +18,7 @@ setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTA
 | # | Section | Content & components | Interactions |
 | --- | --- | --- | --- |
 | A1 | Nav | logo · Features · Pricing · Docs · GitHub badge (live star count) · ThemeToggle · Sign in · **Try Cloud** | sticky; dark-on-light after hero scroll |
-| A2 | Hero (dark editorial) | display-type H1 "Financial intelligence for modern growth"; sub; dual CTA **Try Cloud** / **Self Host**; hero visual: dashboard in device frame with animated categorization chips | chips animate once; pauses reduced-motion |
+| A2 | Hero (dark editorial) | display-type H1 "See every naira. File every tax."; sub; dual CTA **Try Cloud** / **Self Host**; hero visual: dashboard in device frame with animated categorization chips | chips animate once; static under reduced-motion |
 | A3 | Logos/social proof strip | placeholder for case-study logos (PRD §6) | |
 | A4 | Product pillars | 3 editorial cards: **Statements → intelligence** (upload/link), **Company financials** (ratios), **Taxes** (calculate + file) | card hover: 2px lift + accent underline draw |
 | A4a | Feature deep-dives **[Directive 2026-07-18]** | benefit-led deep-dive per pillar, alternating editorial split (claim → outcome copy → product still): categorized ledger in minutes · company health at a glance (ratios + trends) · filing-ready taxes with a named authority | stills swap on scroll-into-view; static under reduced-motion |
