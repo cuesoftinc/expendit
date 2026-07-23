@@ -2,7 +2,7 @@
 
 import { missingTaxIdentifiers } from "@/models/tax";
 import { beforeEach, describe, expect, it } from "vitest";
-import { getDb, resetDb } from "./db";
+import { getDb, resetDb } from "./store";
 import {
   computeEstimates,
   identityIncomplete,

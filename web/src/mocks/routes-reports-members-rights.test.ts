@@ -4,26 +4,29 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   GET as listReports,
   POST as createReport,
-} from "@/app/api/mock/reports/route";
-import { GET as listOrgs, POST as createOrg } from "@/app/api/mock/orgs/route";
+} from "@/app/api/mock/v1/reports/route";
+import {
+  GET as listOrgs,
+  POST as createOrg,
+} from "@/app/api/mock/v1/orgs/route";
 import {
   GET as listMembers,
   POST as inviteMember,
-} from "@/app/api/mock/orgs/[id]/members/route";
+} from "@/app/api/mock/v1/orgs/[id]/members/route";
 import {
   DELETE as removeMember,
   PATCH as setRole,
-} from "@/app/api/mock/orgs/[id]/members/[userId]/route";
+} from "@/app/api/mock/v1/orgs/[id]/members/[userId]/route";
 import {
   DELETE as cancelPurge,
   GET as purgeStatus,
   POST as requestPurge,
-} from "@/app/api/mock/account/purge/route";
-import { POST as requestExport } from "@/app/api/mock/account/export/route";
-import { GET as exportStatus } from "@/app/api/mock/account/export/[jobId]/route";
-import { POST as createTxn } from "@/app/api/mock/transactions/route";
+} from "@/app/api/mock/v1/account/purge/route";
+import { POST as requestExport } from "@/app/api/mock/v1/account/export/route";
+import { GET as exportStatus } from "@/app/api/mock/v1/account/export/[jobId]/route";
+import { POST as createTxn } from "@/app/api/mock/v1/transactions/route";
 import type { Member, Org, ReportArtifact } from "@/models";
-import { resetDb } from "./db";
+import { resetDb } from "./store";
 import { ORG_CUESOFT } from "./seed";
 import { json, mockRequest, params } from "./test-helpers";
 
@@ -34,7 +37,7 @@ describe("mock reports (api.md §2, MI-14)", () => {
 
   it("generates artifacts with a 30-day TTL and validates params", async () => {
     const missingCategory = await createReport(
-      mockRequest("/api/mock/reports", {
+      mockRequest("/api/mock/v1/reports", {
         method: "POST",
         body: { kind: "category_deep_dive", period: "2026-06", format: "csv" },
       }),
@@ -43,7 +46,7 @@ describe("mock reports (api.md §2, MI-14)", () => {
 
     const created = await json<ReportArtifact>(
       await createReport(
-        mockRequest("/api/mock/reports", {
+        mockRequest("/api/mock/v1/reports", {
           method: "POST",
           body: { kind: "monthly_summary", period: "2026-06", format: "pdf" },
         }),
@@ -57,7 +60,7 @@ describe("mock reports (api.md §2, MI-14)", () => {
     ).toBe(30 * 24 * 60 * 60 * 1000);
 
     const { items } = await json<{ items: ReportArtifact[] }>(
-      await listReports(mockRequest("/api/mock/reports")),
+      await listReports(mockRequest("/api/mock/v1/reports")),
     );
     expect(items.some((artifact) => artifact.id === created.id)).toBe(true);
   });
@@ -81,7 +84,7 @@ describe("mock orgs + members (engineering.md §2)", () => {
 
   it("company orgs require a registered address state", async () => {
     const response = await createOrg(
-      mockRequest("/api/mock/orgs", {
+      mockRequest("/api/mock/v1/orgs", {
         method: "POST",
         body: { name: "Shellco", kind: "company" },
       }),
@@ -92,7 +95,7 @@ describe("mock orgs + members (engineering.md §2)", () => {
   it("member lifecycle: invite pending → role change → remove", async () => {
     const seeded = await json<{ items: Member[] }>(
       await listMembers(
-        mockRequest(`/api/mock/orgs/${ORG_CUESOFT}/members`),
+        mockRequest(`/api/mock/v1/orgs/${ORG_CUESOFT}/members`),
         params({ id: ORG_CUESOFT }),
       ),
     );
@@ -101,7 +104,7 @@ describe("mock orgs + members (engineering.md §2)", () => {
 
     const invited = await json<Member>(
       await inviteMember(
-        mockRequest(`/api/mock/orgs/${ORG_CUESOFT}/members`, {
+        mockRequest(`/api/mock/v1/orgs/${ORG_CUESOFT}/members`, {
           method: "POST",
           body: { email: "new@cuesoft.io", role: "member" },
         }),
@@ -113,7 +116,7 @@ describe("mock orgs + members (engineering.md §2)", () => {
     const promoted = await json<Member>(
       await setRole(
         mockRequest(
-          `/api/mock/orgs/${ORG_CUESOFT}/members/${invited.user_id}`,
+          `/api/mock/v1/orgs/${ORG_CUESOFT}/members/${invited.user_id}`,
           { method: "PATCH", body: { role: "admin" } },
         ),
         params({ id: ORG_CUESOFT, userId: invited.user_id }),
@@ -122,16 +125,19 @@ describe("mock orgs + members (engineering.md §2)", () => {
     expect(promoted.role).toBe("admin");
 
     const removed = await removeMember(
-      mockRequest(`/api/mock/orgs/${ORG_CUESOFT}/members/${invited.user_id}`, {
-        method: "DELETE",
-      }),
+      mockRequest(
+        `/api/mock/v1/orgs/${ORG_CUESOFT}/members/${invited.user_id}`,
+        {
+          method: "DELETE",
+        },
+      ),
       params({ id: ORG_CUESOFT, userId: invited.user_id }),
     );
     expect(removed.status).toBe(204);
 
     // The sole owner cannot be demoted.
     const demoteOwner = await setRole(
-      mockRequest(`/api/mock/orgs/${ORG_CUESOFT}/members/user-ibukun`, {
+      mockRequest(`/api/mock/v1/orgs/${ORG_CUESOFT}/members/user-ibukun`, {
         method: "PATCH",
         body: { role: "member" },
       }),
@@ -151,7 +157,7 @@ describe("mock data rights (flows/rights.md)", () => {
     expect(requested.status).toBe(202);
 
     const write = await createTxn(
-      mockRequest("/api/mock/transactions", {
+      mockRequest("/api/mock/v1/transactions", {
         method: "POST",
         body: {
           description: "blocked",
@@ -181,7 +187,7 @@ describe("mock data rights (flows/rights.md)", () => {
     const cancelled = await cancelPurge();
     expect(cancelled.status).toBe(204);
     const writeAfter = await createTxn(
-      mockRequest("/api/mock/transactions", {
+      mockRequest("/api/mock/v1/transactions", {
         method: "POST",
         body: {
           description: "unblocked",
@@ -211,7 +217,7 @@ describe("mock data rights (flows/rights.md)", () => {
         progress?: number;
       }>(
         await exportStatus(
-          mockRequest(`/api/mock/account/export/${job_id}`),
+          mockRequest(`/api/mock/v1/account/export/${job_id}`),
           params({ jobId: job_id }),
         ),
       );

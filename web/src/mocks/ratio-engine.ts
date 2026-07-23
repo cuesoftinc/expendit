@@ -14,7 +14,7 @@ import {
 } from "@/models/registry/line-items";
 import { classify, RATIO_REGISTRY } from "@/models/registry/ratios";
 import { mockNow } from "./clock";
-import { getDb, nextId, type MockDb } from "./db";
+import { getDb, nextId, type MockDb } from "./store";
 
 interface ValueRef {
   amount: number;

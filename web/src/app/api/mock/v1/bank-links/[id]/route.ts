@@ -1,0 +1,112 @@
+/**
+ * Mock: bank-link lifecycle — pause/resume/auto-confirm (PATCH) and unlink
+ * with keep-or-purge (DELETE ?purge=) — flows/bank-link.md §3,
+ * data-model.md §6.2 state machine.
+ */
+
+import type { BankLink } from "@/models";
+import { getDb } from "@/mocks/store";
+import {
+  fail,
+  noContent,
+  notFound,
+  ok,
+  resolveOrgId,
+  writeBlocked,
+} from "@/mocks/http";
+
+type Context = { params: Promise<{ id: string }> };
+
+const find = (request: Request, id: string): BankLink | null => {
+  const orgId = resolveOrgId(request);
+  if (!orgId) return null;
+  return (
+    getDb().bankLinks.find((link) => link.id === id && link.org_id === orgId) ??
+    null
+  );
+};
+
+export async function PATCH(request: Request, context: Context) {
+  const blocked = writeBlocked();
+  if (blocked) return blocked;
+  const { id } = await context.params;
+  const link = find(request, id);
+  if (!link) return notFound();
+  const body = (await request.json()) as Partial<
+    Pick<BankLink, "status" | "auto_confirm">
+  >;
+
+  if (body.status !== undefined) {
+    // User-drivable transitions only: active ⇄ paused (§6.2).
+    const allowed =
+      (link.status === "active" && body.status === "paused") ||
+      (link.status === "paused" && body.status === "active");
+    if (!allowed) {
+      return fail(
+        422,
+        "invalid_transition",
+        `Cannot move link from ${link.status} to ${body.status}`,
+      );
+    }
+    link.status = body.status;
+  }
+  if (body.auto_confirm !== undefined) {
+    // Trust path (flows/import.md §5 [Decided default]): auto-confirm is
+    // opt-in only after ≥3 manually confirmed clean syncs on this link —
+    // enabling earlier bypasses review entirely (PR #217 review).
+    if (body.auto_confirm && !link.auto_confirm) {
+      const db = getDb();
+      const cleanSyncs = db.importJobs.filter(
+        (job) =>
+          db.jobLinks[job.id] === link.id &&
+          job.source === "bank_sync" &&
+          job.confirmed &&
+          job.duplicates_found === 0 &&
+          job.anomalies.length === 0,
+      ).length;
+      if (cleanSyncs < 3) {
+        return fail(
+          422,
+          "validation_failed",
+          `Auto-confirm opens after 3 manually confirmed clean syncs — this link has ${cleanSyncs}.`,
+          { clean_syncs: cleanSyncs, required: 3 },
+        );
+      }
+    }
+    link.auto_confirm = body.auto_confirm;
+  }
+  return ok(link);
+}
+
+export async function DELETE(request: Request, context: Context) {
+  const blocked = writeBlocked();
+  if (blocked) return blocked;
+  const { id } = await context.params;
+  const link = find(request, id);
+  if (!link) return notFound();
+  const db = getDb();
+  const purge = new URL(request.url).searchParams.get("purge") === "true";
+
+  if (purge) {
+    // Hard-delete transactions originating from this link (+staged rows).
+    db.transactions = db.transactions.filter(
+      (txn) => txn.source_link_id !== id,
+    );
+    // Pending staged syncs go with them — otherwise confirming a parked
+    // bank job later would re-create rows for the purged link that the
+    // purge can no longer delete (Codex round 4 on PR #209).
+    const linkedJobs = Object.entries(db.jobLinks)
+      .filter(([, linkId]) => linkId === id)
+      .map(([jobId]) => jobId);
+    db.importJobs = db.importJobs.filter(
+      (job) => !(linkedJobs.includes(job.id) && !job.confirmed),
+    );
+    db.stagedTxns = db.stagedTxns.filter(
+      (row) => !linkedJobs.includes(row.job_id),
+    );
+    for (const jobId of linkedJobs) delete db.jobLinks[jobId];
+  }
+  // purge=false (default): imported transactions stay — the user's records.
+  db.bankLinks = db.bankLinks.filter((item) => item.id !== id);
+  return noContent();
+}

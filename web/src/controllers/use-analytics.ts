@@ -14,7 +14,7 @@
  */
 
 import { useCallback, useEffect } from "react";
-import { isTestMode } from "@/config/env";
+import { env } from "@/config/env";
 
 export type AnalyticsEvent =
   | "page_view"
@@ -57,7 +57,7 @@ export const trackEvent = (
   if (queue.length > QUEUE_LIMIT) queue.splice(0, queue.length - QUEUE_LIMIT);
 
   const url = upstatUrl();
-  if (!isTestMode() && url && typeof navigator.sendBeacon === "function") {
+  if (!env.testMode && url && typeof navigator.sendBeacon === "function") {
     navigator.sendBeacon(url, JSON.stringify(record));
   }
 };

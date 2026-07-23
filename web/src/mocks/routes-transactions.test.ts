@@ -4,13 +4,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   GET as listTxns,
   POST as createTxn,
-} from "@/app/api/mock/transactions/route";
+} from "@/app/api/mock/v1/transactions/route";
 import {
   DELETE as deleteTxn,
   PUT as updateTxn,
-} from "@/app/api/mock/transactions/[id]/route";
+} from "@/app/api/mock/v1/transactions/[id]/route";
 import type { Page, TxnEntry } from "@/models";
-import { resetDb } from "./db";
+import { resetDb } from "./store";
 import { json, mockRequest, params } from "./test-helpers";
 
 describe("mock /transactions (docs-coherent ledger)", () => {
@@ -21,7 +21,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
   it("July MTD sums match the narrative: income ₦8,435,200 / expenses ₦3,614,800", async () => {
     const query = "date_from=2026-07-01&date_to=2026-07-20&limit=100";
     const incomeRes = await listTxns(
-      mockRequest(`/api/mock/transactions?${query}&direction=income`),
+      mockRequest(`/api/mock/v1/transactions?${query}&direction=income`),
     );
     const income = await json<Page<TxnEntry>>(incomeRes);
     expect(income.items.reduce((sum, txn) => sum + txn.amount, 0)).toBe(
@@ -29,7 +29,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
     );
 
     const expenseRes = await listTxns(
-      mockRequest(`/api/mock/transactions?${query}&direction=expense`),
+      mockRequest(`/api/mock/v1/transactions?${query}&direction=expense`),
     );
     const expenses = await json<Page<TxnEntry>>(expenseRes);
     expect(expenses.items.reduce((sum, txn) => sum + txn.amount, 0)).toBe(
@@ -40,7 +40,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
   it("filters: anomaly_only, category, search, amount range", async () => {
     const anomalies = await json<Page<TxnEntry>>(
       await listTxns(
-        mockRequest("/api/mock/transactions?anomaly_only=true&limit=100"),
+        mockRequest("/api/mock/v1/transactions?anomaly_only=true&limit=100"),
       ),
     );
     expect(anomalies.items.length).toBeGreaterThanOrEqual(3);
@@ -48,14 +48,14 @@ describe("mock /transactions (docs-coherent ledger)", () => {
 
     const search = await json<Page<TxnEntry>>(
       await listTxns(
-        mockRequest("/api/mock/transactions?search=kudaworks&limit=100"),
+        mockRequest("/api/mock/v1/transactions?search=kudaworks&limit=100"),
       ),
     );
     expect(search.items.length).toBeGreaterThanOrEqual(4);
 
     const large = await json<Page<TxnEntry>>(
       await listTxns(
-        mockRequest("/api/mock/transactions?amount_min=6000000&limit=100"),
+        mockRequest("/api/mock/v1/transactions?amount_min=6000000&limit=100"),
       ),
     );
     expect(large.items.every((txn) => txn.amount >= 6_000_000)).toBe(true);
@@ -63,14 +63,14 @@ describe("mock /transactions (docs-coherent ledger)", () => {
 
   it("paginates with a cursor", async () => {
     const first = await json<Page<TxnEntry>>(
-      await listTxns(mockRequest("/api/mock/transactions?limit=5")),
+      await listTxns(mockRequest("/api/mock/v1/transactions?limit=5")),
     );
     expect(first.items).toHaveLength(5);
     expect(first.next_cursor).not.toBeNull();
     const second = await json<Page<TxnEntry>>(
       await listTxns(
         mockRequest(
-          `/api/mock/transactions?limit=5&cursor=${first.next_cursor}`,
+          `/api/mock/v1/transactions?limit=5&cursor=${first.next_cursor}`,
         ),
       ),
     );
@@ -80,7 +80,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
   it("creates, updates (category edit clears ✨), and deletes", async () => {
     const created = await json<TxnEntry>(
       await createTxn(
-        mockRequest("/api/mock/transactions", {
+        mockRequest("/api/mock/v1/transactions", {
           method: "POST",
           body: {
             description: "Team offsite deposit",
@@ -96,7 +96,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
 
     const updated = await json<TxnEntry>(
       await updateTxn(
-        mockRequest(`/api/mock/transactions/${created.id}`, {
+        mockRequest(`/api/mock/v1/transactions/${created.id}`, {
           method: "PUT",
           body: { category_id: "cat-meals" },
         }),
@@ -107,7 +107,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
     expect(updated.ai_categorized).toBe(false);
 
     const deleted = await deleteTxn(
-      mockRequest(`/api/mock/transactions/${created.id}`, {
+      mockRequest(`/api/mock/v1/transactions/${created.id}`, {
         method: "DELETE",
       }),
       params({ id: created.id }),
@@ -117,7 +117,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
 
   it("cross-org access is 404, never 403 (engineering.md §2)", async () => {
     const response = await listTxns(
-      mockRequest("/api/mock/transactions", { orgId: "org-imposter" }),
+      mockRequest("/api/mock/v1/transactions", { orgId: "org-imposter" }),
     );
     expect(response.status).toBe(404);
     const body = await json<{ error: { code: string } }>(response);
@@ -140,7 +140,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
     ];
     for (const [param, value] of cases) {
       const response = await listTxns(
-        mockRequest(`/api/mock/transactions?${param}=${value}`),
+        mockRequest(`/api/mock/v1/transactions?${param}=${value}`),
       );
       expect(response.status, `${param}=${value}`).toBe(422);
       const body = await json<{ error: { code: string; details: unknown } }>(
@@ -151,7 +151,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
     // Well-formed values still work.
     const good = await listTxns(
       mockRequest(
-        "/api/mock/transactions?amount_min=100&date_from=2026-07-01&direction=expense&source=bank&limit=5",
+        "/api/mock/v1/transactions?amount_min=100&date_from=2026-07-01&direction=expense&source=bank&limit=5",
       ),
     );
     expect(good.status).toBe(200);
@@ -159,7 +159,7 @@ describe("mock /transactions (docs-coherent ledger)", () => {
 
   it("unknown cursors 422 instead of silently restarting from page one", async () => {
     const response = await listTxns(
-      mockRequest("/api/mock/transactions?cursor=txn-nope"),
+      mockRequest("/api/mock/v1/transactions?cursor=txn-nope"),
     );
     expect(response.status).toBe(422);
   });

@@ -181,7 +181,7 @@ for (const viewport of [
       }
 
       // Detail drill-ins: the seeded staged import job and a statement.
-      const orgs = await request.get("/api/mock/orgs").then(
+      const orgs = await request.get("/api/mock/v1/orgs").then(
         (res) =>
           res.json() as Promise<{
             items: Array<{ id: string; kind: string }>;
@@ -192,7 +192,7 @@ for (const viewport of [
       const headers = { "X-Org-Id": companyOrg!.id };
 
       const jobs = await request
-        .get("/api/mock/import", { headers })
+        .get("/api/mock/v1/import", { headers })
         .then((res) => res.json() as Promise<{ items: Array<{ id: string }> }>);
       if (jobs.items.length > 0) {
         const route = `/dashboard/imports/${jobs.items[0].id}`;
@@ -202,7 +202,7 @@ for (const viewport of [
       }
 
       const statements = await request
-        .get("/api/mock/statements", { headers })
+        .get("/api/mock/v1/statements", { headers })
         .then((res) => res.json() as Promise<{ items: Array<{ id: string }> }>);
       if (statements.items.length > 0) {
         const route = `/dashboard/company/statements/${statements.items[0].id}`;

@@ -5,7 +5,7 @@
  * envelope {"error": {code, message, details}} into ApiError.
  */
 
-import { apiBase } from "@/config/env";
+import { env } from "@/config/env";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -36,7 +36,7 @@ export interface RequestOptions {
 }
 
 const buildUrl = (path: string, query?: RequestOptions["query"]): string => {
-  const url = `${apiBase()}${path}`;
+  const url = `${env.apiBase}${path}`;
   if (!query) return url;
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {

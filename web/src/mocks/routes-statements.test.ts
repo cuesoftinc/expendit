@@ -1,11 +1,11 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { POST as createStatement } from "@/app/api/mock/statements/route";
-import { PATCH as patchMapping } from "@/app/api/mock/statements/[id]/mapping/route";
-import { POST as confirmStatement } from "@/app/api/mock/statements/[id]/confirm/route";
+import { POST as createStatement } from "@/app/api/mock/v1/statements/route";
+import { PATCH as patchMapping } from "@/app/api/mock/v1/statements/[id]/mapping/route";
+import { POST as confirmStatement } from "@/app/api/mock/v1/statements/[id]/confirm/route";
 import type { FinStatement } from "@/models";
-import { getDb, resetDb } from "./db";
+import { getDb, resetDb } from "./store";
 import { json, mockRequest, params } from "./test-helpers";
 
 const manualBalanceSheet = (
@@ -35,7 +35,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
 
   it("manual entry lands directly in staged (no parse, no AI)", async () => {
     const response = await createStatement(
-      mockRequest("/api/mock/statements", {
+      mockRequest("/api/mock/v1/statements", {
         method: "POST",
         body: manualBalanceSheet("2026-Q1", [
           { canonical_key: "cash_and_equivalents", amount: 10_000_000 },
@@ -53,7 +53,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
 
   it("rejects monthly periods (closed grammar) and free-form keys", async () => {
     const monthly = await createStatement(
-      mockRequest("/api/mock/statements", {
+      mockRequest("/api/mock/v1/statements", {
         method: "POST",
         body: manualBalanceSheet("2026-07", [
           { canonical_key: "cash_and_equivalents", amount: 1 },
@@ -63,7 +63,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
     expect(monthly.status).toBe(422);
 
     const freeform = await createStatement(
-      mockRequest("/api/mock/statements", {
+      mockRequest("/api/mock/v1/statements", {
         method: "POST",
         body: manualBalanceSheet("2026-Q1", [
           { canonical_key: "petty_cash_jar", amount: 1 },
@@ -75,7 +75,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
 
   it("currency mismatch vs the org is rejected (E-6, no FX in v1)", async () => {
     const response = await createStatement(
-      mockRequest("/api/mock/statements", {
+      mockRequest("/api/mock/v1/statements", {
         method: "POST",
         body: {
           ...manualBalanceSheet("2026-Q1", [
@@ -92,7 +92,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
 
   it("409 period_exists for a confirmed same kind+period", async () => {
     const response = await createStatement(
-      mockRequest("/api/mock/statements", {
+      mockRequest("/api/mock/v1/statements", {
         method: "POST",
         body: manualBalanceSheet("FY2025", [
           { canonical_key: "cash_and_equivalents", amount: 1 },
@@ -107,7 +107,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
   it("confirm: identity violation → 422 mapping_identity_violation", async () => {
     const created = await json<{ statement_id: string }>(
       await createStatement(
-        mockRequest("/api/mock/statements", {
+        mockRequest("/api/mock/v1/statements", {
           method: "POST",
           body: manualBalanceSheet("2026-Q1", [
             { canonical_key: "cash_and_equivalents", amount: 10_000_000 },
@@ -118,7 +118,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
       ),
     );
     const response = await confirmStatement(
-      mockRequest(`/api/mock/statements/${created.statement_id}/confirm`, {
+      mockRequest(`/api/mock/v1/statements/${created.statement_id}/confirm`, {
         method: "POST",
       }),
       params({ id: created.statement_id }),
@@ -131,7 +131,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
   it("confirm: missing ASSET side counts as 0 too — liabilities+equity alone cannot confirm (Codex review regression)", async () => {
     const created = await json<{ statement_id: string }>(
       await createStatement(
-        mockRequest("/api/mock/statements", {
+        mockRequest("/api/mock/v1/statements", {
           method: "POST",
           body: manualBalanceSheet("2026-Q1", [
             { canonical_key: "payables", amount: 1_000_000 },
@@ -141,7 +141,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
       ),
     );
     const response = await confirmStatement(
-      mockRequest(`/api/mock/statements/${created.statement_id}/confirm`, {
+      mockRequest(`/api/mock/v1/statements/${created.statement_id}/confirm`, {
         method: "POST",
       }),
       params({ id: created.statement_id }),
@@ -156,7 +156,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
     // identity must be treated as violated, not skipped (line-items.md §4).
     const created = await json<{ statement_id: string }>(
       await createStatement(
-        mockRequest("/api/mock/statements", {
+        mockRequest("/api/mock/v1/statements", {
           method: "POST",
           body: manualBalanceSheet("2026-Q1", [
             { canonical_key: "cash_and_equivalents", amount: 10_000_000 },
@@ -166,7 +166,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
       ),
     );
     const response = await confirmStatement(
-      mockRequest(`/api/mock/statements/${created.statement_id}/confirm`, {
+      mockRequest(`/api/mock/v1/statements/${created.statement_id}/confirm`, {
         method: "POST",
       }),
       params({ id: created.statement_id }),
@@ -182,7 +182,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
   it("confirm: identity-consistent statement derives rows and computes ratios", async () => {
     const created = await json<{ statement_id: string }>(
       await createStatement(
-        mockRequest("/api/mock/statements", {
+        mockRequest("/api/mock/v1/statements", {
           method: "POST",
           body: manualBalanceSheet("2026-Q1", [
             { canonical_key: "cash_and_equivalents", amount: 8_000_000 },
@@ -195,7 +195,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
       ),
     );
     const response = await confirmStatement(
-      mockRequest(`/api/mock/statements/${created.statement_id}/confirm`, {
+      mockRequest(`/api/mock/v1/statements/${created.statement_id}/confirm`, {
         method: "POST",
       }),
       params({ id: created.statement_id }),
@@ -229,7 +229,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
     expect(unmapped).toBeDefined();
 
     const response = await patchMapping(
-      mockRequest(`/api/mock/statements/${statementId}/mapping`, {
+      mockRequest(`/api/mock/v1/statements/${statementId}/mapping`, {
         method: "PATCH",
         body: {
           updates: [
@@ -262,7 +262,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
   it("confirm blocks when >20% of value is unmapped", async () => {
     const created = await json<{ statement_id: string }>(
       await createStatement(
-        mockRequest("/api/mock/statements", {
+        mockRequest("/api/mock/v1/statements", {
           method: "POST",
           body: manualBalanceSheet("2026-Q1", [
             { canonical_key: "cash_and_equivalents", amount: 1_000_000 },
@@ -276,7 +276,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
       (item) => item.statement_id === created.statement_id,
     );
     await patchMapping(
-      mockRequest(`/api/mock/statements/${created.statement_id}/mapping`, {
+      mockRequest(`/api/mock/v1/statements/${created.statement_id}/mapping`, {
         method: "PATCH",
         body: {
           updates: [{ line_item_id: items[0].id, canonical_key: null }],
@@ -285,7 +285,7 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
       params({ id: created.statement_id }),
     );
     const response = await confirmStatement(
-      mockRequest(`/api/mock/statements/${created.statement_id}/confirm`, {
+      mockRequest(`/api/mock/v1/statements/${created.statement_id}/confirm`, {
         method: "POST",
       }),
       params({ id: created.statement_id }),
@@ -303,12 +303,14 @@ describe("mock statements (flows/statement-mapping.md, line-items.md §4)", () =
     const post = async (body: object) =>
       json<{ statement_id: string }>(
         await createStatement(
-          mockRequest("/api/mock/statements", { method: "POST", body }),
+          mockRequest("/api/mock/v1/statements", { method: "POST", body }),
         ),
       );
     const confirm = async (id: string) =>
       confirmStatement(
-        mockRequest(`/api/mock/statements/${id}/confirm`, { method: "POST" }),
+        mockRequest(`/api/mock/v1/statements/${id}/confirm`, {
+          method: "POST",
+        }),
         params({ id }),
       );
 

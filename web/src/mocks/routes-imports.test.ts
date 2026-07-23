@@ -1,15 +1,15 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { POST as upload } from "@/app/api/mock/import/upload/route";
+import { POST as upload } from "@/app/api/mock/v1/import/upload/route";
 import {
   DELETE as discardJob,
   GET as getJob,
-} from "@/app/api/mock/import/[jobId]/route";
-import { POST as confirmJob } from "@/app/api/mock/import/[jobId]/confirm/route";
-import { PUT as correctCategory } from "@/app/api/mock/import/transactions/[id]/category/route";
+} from "@/app/api/mock/v1/import/[jobId]/route";
+import { POST as confirmJob } from "@/app/api/mock/v1/import/[jobId]/confirm/route";
+import { PUT as correctCategory } from "@/app/api/mock/v1/import/transactions/[id]/category/route";
 import type { ImportJob, StagedTransaction } from "@/models";
-import { getDb, resetDb } from "./db";
+import { getDb, resetDb } from "./store";
 import { STAGED_JOB_ID } from "./seed";
 import { json, mockRequest, params } from "./test-helpers";
 
@@ -23,7 +23,7 @@ describe("mock import pipeline (flows/import.md)", () => {
   it("seeds the 214/209/5 staged-review narrative", async () => {
     const detail = await json<JobDetail>(
       await getJob(
-        mockRequest(`/api/mock/import/${STAGED_JOB_ID}`),
+        mockRequest(`/api/mock/v1/import/${STAGED_JOB_ID}`),
         params({ jobId: STAGED_JOB_ID }),
       ),
     );
@@ -37,7 +37,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     const before = getDb().transactions.length;
     const result = await json<{ imported: number; discarded: number }>(
       await confirmJob(
-        mockRequest(`/api/mock/import/${STAGED_JOB_ID}/confirm`, {
+        mockRequest(`/api/mock/v1/import/${STAGED_JOB_ID}/confirm`, {
           method: "POST",
         }),
         params({ jobId: STAGED_JOB_ID }),
@@ -49,7 +49,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     // Double confirm: idempotent success, no double import.
     const again = await json<{ imported: number; discarded: number }>(
       await confirmJob(
-        mockRequest(`/api/mock/import/${STAGED_JOB_ID}/confirm`, {
+        mockRequest(`/api/mock/v1/import/${STAGED_JOB_ID}/confirm`, {
           method: "POST",
         }),
         params({ jobId: STAGED_JOB_ID }),
@@ -64,7 +64,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     expect(row).toBeDefined();
     const updated = await json<StagedTransaction>(
       await correctCategory(
-        mockRequest(`/api/mock/import/transactions/${row!.id}/category`, {
+        mockRequest(`/api/mock/v1/import/transactions/${row!.id}/category`, {
           method: "PUT",
           body: { category_id: "cat-meals" },
         }),
@@ -81,7 +81,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     });
     const first = await json<{ job_id: string }>(
       await upload(
-        mockRequest("/api/mock/import/upload", {
+        mockRequest("/api/mock/v1/import/upload", {
           method: "POST",
           form: { file },
           idempotencyKey: "11111111-1111-1111-1111-111111111111",
@@ -90,7 +90,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     );
     const retry = await json<{ job_id: string }>(
       await upload(
-        mockRequest("/api/mock/import/upload", {
+        mockRequest("/api/mock/v1/import/upload", {
           method: "POST",
           form: { file },
           idempotencyKey: "11111111-1111-1111-1111-111111111111",
@@ -106,7 +106,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     });
     const { job_id } = await json<{ job_id: string }>(
       await upload(
-        mockRequest("/api/mock/import/upload", {
+        mockRequest("/api/mock/v1/import/upload", {
           method: "POST",
           form: { file },
         }),
@@ -116,7 +116,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     getDb().processingSince[job_id] = Date.now() - 5_000;
     const detail = await json<JobDetail>(
       await getJob(
-        mockRequest(`/api/mock/import/${job_id}`),
+        mockRequest(`/api/mock/v1/import/${job_id}`),
         params({ jobId: job_id }),
       ),
     );
@@ -127,7 +127,7 @@ describe("mock import pipeline (flows/import.md)", () => {
   it("failure taxonomy: 415 unsupported_type; password-protected pdf fails the job", async () => {
     const exe = new File(["MZ"], "malware.exe");
     const unsupported = await upload(
-      mockRequest("/api/mock/import/upload", {
+      mockRequest("/api/mock/v1/import/upload", {
         method: "POST",
         form: { file: exe },
       }),
@@ -139,7 +139,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     const locked = new File(["%PDF"], "password-protected-statement.pdf");
     const { job_id } = await json<{ job_id: string }>(
       await upload(
-        mockRequest("/api/mock/import/upload", {
+        mockRequest("/api/mock/v1/import/upload", {
           method: "POST",
           form: { file: locked },
         }),
@@ -148,7 +148,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     getDb().processingSince[job_id] = Date.now() - 5_000;
     const detail = await json<JobDetail>(
       await getJob(
-        mockRequest(`/api/mock/import/${job_id}`),
+        mockRequest(`/api/mock/v1/import/${job_id}`),
         params({ jobId: job_id }),
       ),
     );
@@ -158,7 +158,7 @@ describe("mock import pipeline (flows/import.md)", () => {
 
   it("discard purges the job and its staging", async () => {
     const response = await discardJob(
-      mockRequest(`/api/mock/import/${STAGED_JOB_ID}`, { method: "DELETE" }),
+      mockRequest(`/api/mock/v1/import/${STAGED_JOB_ID}`, { method: "DELETE" }),
       params({ jobId: STAGED_JOB_ID }),
     );
     expect(response.status).toBe(204);
@@ -171,7 +171,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     const db = getDb();
     const image = () =>
       upload(
-        mockRequest("/api/mock/import/upload", {
+        mockRequest("/api/mock/v1/import/upload", {
           method: "POST",
           form: {
             file: new File(["fake"], "receipt.jpg", { type: "image/jpeg" }),
@@ -194,7 +194,7 @@ describe("mock import pipeline (flows/import.md)", () => {
     expect(body.error.code).toBe("consent_required");
 
     const csv = await upload(
-      mockRequest("/api/mock/import/upload", {
+      mockRequest("/api/mock/v1/import/upload", {
         method: "POST",
         form: { file: new File(["a,b"], "ledger.csv", { type: "text/csv" }) },
       }),
