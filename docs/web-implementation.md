@@ -596,7 +596,7 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | pages.md | Route | Screen |
 | --- | --- | --- |
 | Part A (A1–A11 + A4a/A5a/A8a/A10a/A10b) | `/` | Public home page (Brex-editorial) |
-| flows/auth.md §1 | `/signin` | Single auth screen — GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab; the one X-1 auth screen; Stage-4 `signin` template) |
+| flows/auth.md §1 | `/signin` | Single auth screen — wordmark + "Sign in" heading + brand subtitle "Financial intelligence for modern growth." + GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab; the one X-1 auth screen; Stage-4 `signin` template) |
 | X-2 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B0 | `/onboarding` | First-run: org create (personal/company kind picker) + AI-consent sheet |
 | B1 | `/dashboard` | Overview (StatCards, cash-flow chart, category donut, anomaly feed, latest txns) |

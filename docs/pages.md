@@ -32,7 +32,7 @@ setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTA
 | A10 | Cloud vs Self-host | comparison table; per-column CTAs | |
 | A10a | FAQ **[Directive 2026-07-18]** | 4–5 product Q&As (Accordion): is my bank data safe (read-only via Mono) · does AI see my data (consent-gated, providers disclosed) · can I self-host everything · what does "filing" mean in v1 (filing-ready documents + guided handoff) · which banks/jurisdictions (NG-first) | accordion open/close, one open at a time |
 | A10b | Final CTA band **[Directive 2026-07-18]** | dark editorial band: one-line close + dual CTA **Try Cloud** / **Self Host** (mirrors A2) | CTAs re-emit the A2 events |
-| A11 | Footer | standard + "View Security Policy" CTA (PRD §6) | |
+| A11 | Footer | standard + brand caption "Financial intelligence for modern growth." + "View Security Policy" CTA (PRD §6) | |
 
 As built (2026-07-18 QA loop): the section register above matches the built
 Home page frame order — A1 → A11 with the 2026-07-18 additions interleaved
