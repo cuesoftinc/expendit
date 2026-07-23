@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Fleet mock reset endpoint `POST /api/mock/v1/testing/reset` (reseeds the
   in-memory store to seed state), matching the sibling repos' e2e
-  test-harness convention.
+  test-harness convention (#268).
 - Web app manifest at `/manifest.webmanifest`: product identity, token
   colors and the brand icons; the fleet SEO spec now locks it (#262).
 - Settings goes route-backed tabs: Organization | Members | Data & privacy |
@@ -59,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   of being disabled; and the root README + `.env.example` files converge
   on the shared CueLABS™ template (prose overview, plain-indent repo tree,
   `make`-target quick start, `── section ──` headers, license/build
-  badges).
+  badges) (#268).
 - Dashboard rail prefetch is intent-based: a pillar's chunks load on the
   first hover/focus of its nav item instead of on viewport entry, so a cold
   dashboard route ships only its own chunk set (~204K vs ~355K settled JS
