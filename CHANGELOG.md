@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Optional `envFrom` secret hook in the Helm deployment template so real
   deployments can inject `JWT_SECRET`/SMTP credentials from Kubernetes Secrets.
 
+- `.cuelabs/project.yaml` — the CueLABS project manifest (standards
+  catalog v2): declares surface truth — web active; `api/common` and mobile flutter planned —
+  so standards tooling audits declared state instead of inferring it.
+
 ### Changed
 
 - Web eslint wires `eslint-plugin-testing-library` (flat/react preset)
@@ -125,6 +129,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Helm values now document the external MongoDB/Redis requirement (the chart
   does not deploy databases); `web/.gitignore` + `web/.env.example` aligned to
   the shared standard; `income.go` renamed to `income_model.go`.
+
+- `SECURITY.md` and `CONTRIBUTING.md` synced to the v2 standards
+  templates: the security policy gains the private-vulnerability-reporting
+  flow with the dedicated `security@cuesoft.io` mailbox, and contributor
+  setup routes through the README, `.env.example`, and `make help`.
 
 ### Removed
 

@@ -7,8 +7,11 @@ repositories, which share a common structure and conventions.
 
 1. Fork and clone the repository.
 2. Create a feature branch: `git checkout -b feature/short-description`.
-3. Install dependencies for the area you're working on — see the repository's
-   [docs/setup.md](docs/setup.md).
+3. Read `README.md` for repository-specific prerequisites.
+4. Copy `.env.example` to `.env` when the repository provides one, then supply
+   development-safe values. Never reuse production secrets.
+5. Run `make help` to discover the supported setup, development, lint, and test
+   targets, then run the targets relevant to your change.
 
 ## Repository layout
 
