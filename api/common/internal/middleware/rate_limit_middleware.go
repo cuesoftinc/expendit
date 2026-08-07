@@ -171,10 +171,11 @@ var (
 	passwordLimiter = newLimiter("ratelimit:password", 3, 15*time.Minute)
 )
 
-// LoginRateLimit allows 5 login attempts per IP per 15 minutes.
+// LoginRateLimit allows 5 login attempts per 15 minutes per IPv4 address or
+// IPv6 /64 — see clientip.BucketKey for why IPv6 is bucketed by network.
 func LoginRateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !loginLimiter.allow(clientip.Resolve(c)) {
+		if !loginLimiter.allow(clientip.BucketKey(c)) {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "too many login attempts, please try again in 15 minutes"})
 			c.Abort()
 			return
@@ -183,10 +184,11 @@ func LoginRateLimit() gin.HandlerFunc {
 	}
 }
 
-// PasswordRateLimit allows 3 password reset attempts per IP per 15 minutes.
+// PasswordRateLimit allows 3 password reset attempts per 15 minutes per IPv4
+// address or IPv6 /64.
 func PasswordRateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !passwordLimiter.allow(clientip.Resolve(c)) {
+		if !passwordLimiter.allow(clientip.BucketKey(c)) {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "too many password reset attempts, please try again in 15 minutes"})
 			c.Abort()
 			return

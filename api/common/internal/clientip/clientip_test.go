@@ -1,6 +1,7 @@
 package clientip
 
 import (
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -30,6 +31,21 @@ const (
 	cloudflareCIDR = "172.71.0.0/16"
 )
 
+// One IPv6 end site and its bucket. A single host holding this /64 can source
+// every ipv6Client* address below at will, so they must all share a bucket.
+const (
+	ipv6Client     = "2001:db8:abcd:1234::1"
+	ipv6ClientLow  = "2001:db8:abcd:1234::2"
+	ipv6ClientMid  = "2001:db8:abcd:1234:dead:beef:0:9"
+	ipv6ClientHigh = "2001:db8:abcd:1234:ffff:ffff:ffff:ffff"
+	ipv6Bucket     = "2001:db8:abcd:1234::/64"
+
+	// Adjacent /64 out of the same /48 — a different bucket, and the reason
+	// masking stops at /64 rather than /56 or /48.
+	ipv6Neighbour       = "2001:db8:abcd:1235::1"
+	ipv6NeighbourBucket = "2001:db8:abcd:1235::/64"
+)
+
 // forgeries are the header shapes a caller can put in front of an honest chain.
 var forgeries = []struct {
 	name   string
@@ -43,6 +59,7 @@ var forgeries = []struct {
 	{"unparseable padding", "not-an-ip"},
 	{"empty padding", "unknown, ,"},
 	{"loopback", "127.0.0.1"},
+	{"impersonating an ipv6 end site", ipv6Neighbour},
 }
 
 type deployment struct {
@@ -88,6 +105,18 @@ func deployments() []deployment {
 			peer:    frontEndPeer,
 			headers: http.Header{"X-Forwarded-For": []string{attacker}},
 			want:    attacker,
+		},
+		{
+			// Same topology with an IPv6 client, so the whole forgery matrix
+			// runs against an attributed address that gets masked to its /64.
+			name: "ipv6 client via cloud run front end",
+			env: map[string]string{
+				"TRUST_PROXY_HEADERS": "true",
+				"TRUSTED_PROXY_CIDRS": frontEndCIDR + "," + cloudflareCIDR,
+			},
+			peer:    frontEndPeer,
+			headers: http.Header{"X-Forwarded-For": []string{ipv6Client + ", " + cloudflarePeer}},
+			want:    ipv6Bucket,
 		},
 		{
 			// Cloudflare is the immediate peer (the helm/k8s path), so
@@ -150,6 +179,114 @@ func TestForgedForwardedPrefixCannotChangeClientIP(t *testing.T) {
 				})
 			}
 		})
+	}
+}
+
+// TestIPv6BucketsCollapseToTheEndSite is the regression for the /128 key: on
+// the shipped default configuration, every address a /64 holder can source has
+// to land in one bucket, and a neighbouring /64 has to land in another.
+func TestIPv6BucketsCollapseToTheEndSite(t *testing.T) {
+	engine := configuredEngine(t, nil) // TRUST_PROXY_HEADERS unset, as shipped
+
+	sameEndSite := []string{ipv6Client, ipv6ClientLow, ipv6ClientMid, ipv6ClientHigh}
+	for _, peer := range sameEndSite {
+		// The bracketed host:port form is what net/http actually sets.
+		remoteAddr := "[" + peer + "]:54321"
+		if got := resolveViaRemoteAddr(t, engine, remoteAddr, nil); got != ipv6Bucket {
+			t.Errorf("peer %s bucketed as %q, want the end site %q", remoteAddr, got, ipv6Bucket)
+		}
+	}
+
+	if got := resolveViaRemoteAddr(t, engine, "["+ipv6Neighbour+"]:54321", nil); got != ipv6NeighbourBucket {
+		t.Errorf("neighbouring /64 bucketed as %q, want %q", got, ipv6NeighbourBucket)
+	}
+
+	// Restate it as the attack: N addresses from one /64 must buy 1 bucket.
+	buckets := map[string]bool{}
+	for _, peer := range sameEndSite {
+		buckets[resolveViaRemoteAddr(t, engine, "["+peer+"]:54321", nil)] = true
+	}
+	if len(buckets) != 1 {
+		t.Errorf("%d addresses from one /64 minted %d buckets, want 1", len(sameEndSite), len(buckets))
+	}
+}
+
+// TestIPv6MaskingAppliesToAttributedAddresses covers the other derivation path:
+// an address read out of a trusted forwarding chain is masked too, not just a
+// direct peer.
+func TestIPv6MaskingAppliesToAttributedAddresses(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		env     map[string]string
+		peer    string
+		headers http.Header
+	}{
+		{
+			name: "x-forwarded-for via the front end",
+			env: map[string]string{
+				"TRUST_PROXY_HEADERS": "true",
+				"TRUSTED_PROXY_CIDRS": frontEndCIDR + "," + cloudflareCIDR,
+			},
+			peer:    frontEndPeer,
+			headers: http.Header{"X-Forwarded-For": []string{"%s, " + cloudflarePeer}},
+		},
+		{
+			name: "cf-connecting-ip from a cloudflare peer",
+			env: map[string]string{
+				"TRUST_PROXY_HEADERS":    "true",
+				"CLOUDFLARE_PROXY_CIDRS": cloudflareCIDR,
+			},
+			peer:    cloudflarePeer,
+			headers: http.Header{"Cf-Connecting-Ip": []string{"%s"}},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			engine := configuredEngine(t, tc.env)
+
+			for _, client := range []string{ipv6Client, ipv6ClientMid, ipv6ClientHigh} {
+				headers := http.Header{}
+				for key, values := range tc.headers {
+					headers.Set(key, strings.ReplaceAll(values[0], "%s", client))
+				}
+				if got := resolveVia(t, engine, tc.peer, headers); got != ipv6Bucket {
+					t.Errorf("attributed client %s bucketed as %q, want %q", client, got, ipv6Bucket)
+				}
+			}
+		})
+	}
+}
+
+// TestIPv4BucketKeysAreNotMasked pins the other half of the contract: a /32 is
+// already one host, so coarsening it would only over-group real callers.
+func TestIPv4BucketKeysAreNotMasked(t *testing.T) {
+	engine := configuredEngine(t, nil)
+
+	for _, peer := range []string{realClient, attacker, "203.0.113.8", "127.0.0.1"} {
+		got := resolveVia(t, engine, peer, nil)
+		if got != peer {
+			t.Errorf("IPv4 peer %s bucketed as %q, want the whole address", peer, got)
+		}
+		if strings.Contains(got, "/") {
+			t.Errorf("IPv4 peer %s bucketed as a network %q", peer, got)
+		}
+	}
+
+	// Neighbours in one /24 stay in separate buckets.
+	if resolveVia(t, engine, "203.0.113.7", nil) == resolveVia(t, engine, "203.0.113.8", nil) {
+		t.Error("two IPv4 addresses in one /24 shared a bucket")
+	}
+}
+
+// TestBucketKeyDoesNotCoarsenWhatGetsLogged keeps the split honest: the bucket
+// key is masked, but c.ClientIP() — what handlers log and audit — is not.
+func TestBucketKeyDoesNotCoarsenWhatGetsLogged(t *testing.T) {
+	engine := configuredEngine(t, nil)
+
+	if got := ginClientIPVia(t, engine, ipv6ClientMid, nil); got != ipv6ClientMid {
+		t.Errorf("c.ClientIP() = %q, want the full address %q", got, ipv6ClientMid)
+	}
+	if got := resolveVia(t, engine, ipv6ClientMid, nil); got != ipv6Bucket {
+		t.Errorf("BucketKey() = %q, want the masked %q", got, ipv6Bucket)
 	}
 }
 
@@ -273,17 +410,26 @@ func restoreConfigured(t *testing.T) {
 // gin wiring, not just the resolver in isolation.
 func resolveVia(t *testing.T, engine *gin.Engine, peer string, headers http.Header) string {
 	t.Helper()
-	return serve(t, engine, peer, headers, func(c *gin.Context) string { return Resolve(c) })
+	return resolveViaRemoteAddr(t, engine, net.JoinHostPort(peer, "54321"), headers)
+}
+
+// resolveViaRemoteAddr takes RemoteAddr verbatim so a test can pin the exact
+// wire form net/http hands us, including bracketed IPv6.
+func resolveViaRemoteAddr(t *testing.T, engine *gin.Engine, remoteAddr string, headers http.Header) string {
+	t.Helper()
+	return serve(t, engine, remoteAddr, headers, func(c *gin.Context) string { return BucketKey(c) })
 }
 
 func ginClientIPVia(t *testing.T, engine *gin.Engine, peer string, headers http.Header) string {
 	t.Helper()
-	return serve(t, engine, peer, headers, func(c *gin.Context) string { return c.ClientIP() })
+	return serve(t, engine, net.JoinHostPort(peer, "54321"), headers, func(c *gin.Context) string { return c.ClientIP() })
 }
 
 var probeCounter atomic.Int64
 
-func serve(t *testing.T, engine *gin.Engine, peer string, headers http.Header, read func(*gin.Context) string) string {
+// serve takes a full RemoteAddr; callers build it with net.JoinHostPort so an
+// IPv6 peer gets bracketed instead of concatenated into an unparseable string.
+func serve(t *testing.T, engine *gin.Engine, remoteAddr string, headers http.Header, read func(*gin.Context) string) string {
 	t.Helper()
 
 	var got string
@@ -294,7 +440,7 @@ func serve(t *testing.T, engine *gin.Engine, peer string, headers http.Header, r
 	})
 
 	req := httptest.NewRequest(http.MethodGet, path, nil)
-	req.RemoteAddr = peer + ":54321"
+	req.RemoteAddr = remoteAddr
 	for key, values := range headers {
 		for _, value := range values {
 			req.Header.Add(key, value)

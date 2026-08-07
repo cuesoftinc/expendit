@@ -1,5 +1,6 @@
 // Package clientip attributes a request to a client address that a caller
-// cannot forge, for use as a rate-limit bucket key.
+// cannot forge, then coarsens it into a rate-limit bucket key. Only the key is
+// coarsened; anything that logs or audits the address still sees it whole.
 package clientip
 
 import (
@@ -47,9 +48,10 @@ func Configure(engine *gin.Engine) error {
 	return engine.SetTrustedProxies(nil)
 }
 
-// Resolve returns the rate-limit bucket key for a request: the attributed
-// client address, or the network peer when the chain cannot be trusted.
-func Resolve(c *gin.Context) string {
+// BucketKey returns the rate-limit bucket key for a request. It is a coarsened
+// address, not the client address: do not log or audit it. Use c.ClientIP() for
+// that — Configure makes it report the network peer in full.
+func BucketKey(c *gin.Context) string {
 	return configured.bucketKey(c.Request)
 }
 
@@ -91,32 +93,58 @@ func (r resolver) validate() error {
 	return nil
 }
 
+// IPv6 buckets key on the /64, not the /128: one end site holds 2^64 addresses,
+// so a /128 key lets a single cheap VPS mint unlimited buckets. /64 is the
+// smallest block guaranteed to be one end site, so it never merges subscribers
+// the way /56 or /48 would on ISPs that delegate a /64 each.
+const ipv6BucketBits = 64
+
 // bucketKey never returns a caller-controlled value: an unattributable request
 // falls back to the network peer, which over-groups but cannot be varied.
 func (r resolver) bucketKey(req *http.Request) string {
-	if ip, ok := r.resolve(req); ok {
-		return ip
+	addr, ok := r.address(req)
+	if !ok {
+		return "unattributed"
 	}
-	if peer, ok := parseRequestIP(req.RemoteAddr); ok {
-		return peer.String()
-	}
-	return "unattributed"
+	return bucketKeyFor(addr)
 }
 
-func (r resolver) resolve(req *http.Request) (string, bool) {
+// address is the attributed client address in full, before any coarsening.
+func (r resolver) address(req *http.Request) (netip.Addr, bool) {
+	if addr, ok := r.resolve(req); ok {
+		return addr, true
+	}
+	return parseRequestIP(req.RemoteAddr)
+}
+
+// bucketKeyFor masks IPv6 to its network prefix. IPv4 is returned whole: a /32
+// is already a single host, and masking it would over-group real callers.
+func bucketKeyFor(addr netip.Addr) string {
+	addr = addr.Unmap()
+	if !addr.Is6() { // IPv4, or an invalid address we cannot mask
+		return addr.String()
+	}
+	prefix, err := addr.Prefix(ipv6BucketBits)
+	if err != nil {
+		return addr.String()
+	}
+	return prefix.String()
+}
+
+func (r resolver) resolve(req *http.Request) (netip.Addr, bool) {
 	peer, ok := parseRequestIP(req.RemoteAddr)
 	if !ok {
-		return "", false
+		return netip.Addr{}, false
 	}
 	if !r.trustHeaders {
-		return peer.String(), true
+		return peer, true
 	}
 
 	if prefixContains(r.cloudflareCIDRs, peer) {
 		if connectingIP, valid := parseRequestIP(strings.TrimSpace(req.Header.Get("CF-Connecting-IP"))); valid {
-			return connectingIP.String(), true
+			return connectingIP, true
 		}
-		return "", false
+		return netip.Addr{}, false
 	}
 
 	// Repeated field lines are one comma-joined value in receipt order
@@ -125,9 +153,9 @@ func (r resolver) resolve(req *http.Request) (string, bool) {
 	rawXFF := strings.TrimSpace(strings.Join(req.Header.Values("X-Forwarded-For"), ","))
 	if rawXFF == "" {
 		if prefixContains(r.trustedCIDRs, peer) || r.hops > 0 {
-			return "", false
+			return netip.Addr{}, false
 		}
-		return peer.String(), true
+		return peer, true
 	}
 	parts := strings.Split(rawXFF, ",")
 
@@ -142,18 +170,18 @@ func (r resolver) resolve(req *http.Request) (string, bool) {
 		}
 		hop, valid := parseRequestIP(strings.TrimSpace(parts[i]))
 		if !valid {
-			return "", false
+			return netip.Addr{}, false
 		}
 		current = hop
 		trustedHops++
 	}
 	if trustedHops == 0 {
-		return peer.String(), true
+		return peer, true
 	}
 	if trustedHops < r.hops || prefixContains(r.trustedCIDRs, current) {
-		return "", false
+		return netip.Addr{}, false
 	}
-	return current.String(), true
+	return current, true
 }
 
 func parseRequestIP(raw string) (netip.Addr, bool) {
