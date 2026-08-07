@@ -59,6 +59,11 @@ environments exist.
 | import worker (same image) | 1 vCPU / 1 GiB | 1 (AI-budget isolation) | 0–3 | 300 s |
 
 - Domain: `api.expendit.cuesoft.io` → api/common.
+- Ingress is open, so the origin is reachable both through Cloudflare and
+  directly — a chain one hop shorter. Client-IP attribution for rate limits is
+  therefore CIDR-validated, never hop-counted: set `TRUSTED_PROXY_CIDRS` from
+  verified ranges and leave `TRUSTED_PROXY_HOPS` at `0`
+  (api/common/README.md §Trusted proxies).
 - Rollback: redeploy the previous image digest (recorded in the release run).
 - Web env: `NEXT_PUBLIC_*` flows Doppler → `apphosting.yaml` at rollout.
 

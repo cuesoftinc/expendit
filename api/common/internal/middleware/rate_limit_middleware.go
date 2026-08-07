@@ -11,6 +11,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/cuesoftinc/expendit/api/common/internal/clientip"
 )
 
 // limiterBackend is the shared interface for in-memory and Redis backends.
@@ -172,7 +174,7 @@ var (
 // LoginRateLimit allows 5 login attempts per IP per 15 minutes.
 func LoginRateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !loginLimiter.allow(c.ClientIP()) {
+		if !loginLimiter.allow(clientip.Resolve(c)) {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "too many login attempts, please try again in 15 minutes"})
 			c.Abort()
 			return
@@ -184,7 +186,7 @@ func LoginRateLimit() gin.HandlerFunc {
 // PasswordRateLimit allows 3 password reset attempts per IP per 15 minutes.
 func PasswordRateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !passwordLimiter.allow(c.ClientIP()) {
+		if !passwordLimiter.allow(clientip.Resolve(c)) {
 			c.JSON(http.StatusTooManyRequests, gin.H{"error": "too many password reset attempts, please try again in 15 minutes"})
 			c.Abort()
 			return
