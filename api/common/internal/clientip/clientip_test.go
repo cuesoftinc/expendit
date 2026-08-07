@@ -277,6 +277,33 @@ func TestIPv4BucketKeysAreNotMasked(t *testing.T) {
 	}
 }
 
+// Dual-stack servers write IPv4-mapped IPv6 (::ffff:a.b.c.d) into X-Forwarded-For
+// — Node, Tomcat/Jetty and some Envoy/HAProxy configs all do. Masking made
+// unmapping security-critical: without it every mapped client collapses to
+// ::/64, i.e. one bucket for the whole IPv4 population, which is a global
+// lockout at 5 attempts/15min rather than a bypass.
+func TestIPv4MappedAddressesAreNotCollapsedIntoOneBucket(t *testing.T) {
+	engine := configuredEngine(t, nil)
+
+	mapped := []string{"::ffff:1.2.3.4", "::ffff:5.6.7.8", "::ffff:203.0.113.7"}
+	seen := map[string]string{}
+	for _, peer := range mapped {
+		got := resolveVia(t, engine, peer, nil)
+		if strings.Contains(got, "/") {
+			t.Errorf("IPv4-mapped peer %s bucketed as a network %q — every mapped client shares it", peer, got)
+		}
+		if prev, dup := seen[got]; dup {
+			t.Errorf("IPv4-mapped peers %s and %s shared bucket %q", prev, peer, got)
+		}
+		seen[got] = peer
+	}
+
+	// A mapped address must key identically to its plain IPv4 form.
+	if got, want := resolveVia(t, engine, "::ffff:203.0.113.7", nil), resolveVia(t, engine, "203.0.113.7", nil); got != want {
+		t.Errorf("::ffff:203.0.113.7 bucketed as %q but 203.0.113.7 as %q — same client, two buckets", got, want)
+	}
+}
+
 // TestBucketKeyDoesNotCoarsenWhatGetsLogged keeps the split honest: the bucket
 // key is masked, but c.ClientIP() — what handlers log and audit — is not.
 func TestBucketKeyDoesNotCoarsenWhatGetsLogged(t *testing.T) {
