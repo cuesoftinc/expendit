@@ -17,6 +17,7 @@ WORKDIR /app/web
 COPY --from=deps /app/web/node_modules ./node_modules
 COPY web/ ./
 COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
+RUN mkdir -p public
 RUN npm run build
 
 # ---- runner ----
