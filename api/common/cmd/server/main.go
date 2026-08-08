@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/cuesoftinc/expendit/api/common/internal/clientip"
 	"github.com/cuesoftinc/expendit/api/common/internal/handler"
 	"github.com/cuesoftinc/expendit/api/common/internal/middleware"
 	"github.com/cuesoftinc/expendit/api/common/internal/router"
@@ -26,6 +27,14 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
+
+	// Must run before any route is served: gin.New() trusts every proxy, so
+	// until this lands c.ClientIP() is a caller-controlled header.
+	if err := clientip.Configure(engine); err != nil {
+		slog.Error("invalid trusted-proxy configuration", "error", err)
+		os.Exit(1)
+	}
+
 	engine.Use(gin.Recovery(), middleware.RequestID(), middleware.Logger(), middleware.CORSMiddleware())
 
 	// Liveness + readiness — public endpoints.

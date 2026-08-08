@@ -218,6 +218,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Security
 
+- Rate limiting is no longer bypassable by varying `X-Forwarded-For`.
+  `gin.New()` trusts every proxy, so `c.ClientIP()` returned the caller's own
+  leftmost forwarded entry and a fresh header meant a fresh bucket. The engine
+  now sets no trusted proxies, and `internal/clientip` attributes requests
+  against verified proxy CIDRs (`TRUST_PROXY_HEADERS`, `TRUSTED_PROXY_CIDRS`,
+  `TRUSTED_PROXY_HOPS`, `CLOUDFLARE_PROXY_CIDRS` — the cueprise contract),
+  falling back to the network peer when the chain cannot be trusted. CIDRs
+  rather than a hop count because Cloud Run ingress is open: the
+  direct-to-origin chain is one hop shorter than the Cloudflare one.
 - Removed the `X-UserID` header-trust middleware (IDOR) — identity comes only
   from the JWT `uid` claim; `UpdateUser` no longer accepts `user_type` from the
   request body (self privilege-escalation); expense reads now require auth.
