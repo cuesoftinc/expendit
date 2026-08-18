@@ -1,0 +1,46 @@
+# Local Kubernetes overlay: frontend only, no backends.
+#
+# The backends are deliberately absent — they are what's under active
+# development, so running them here would mean rebuilding an image per edit and
+# every frontend breaking on each restart. The web app is self-contained in
+# TEST_MODE: auth resolves to the TestModeAuthProvider and the API client targets
+# the in-app mock server at /api/mock/v1/*, so nothing outbound is required.
+#
+# NOTE: NEXT_PUBLIC_TEST_MODE is NOT set here on purpose. Next inlines
+# NEXT_PUBLIC_* at `next build`, so a runtime env var would be silently ignored.
+# It is baked into the image instead:
+#   docker build -f web/Dockerfile -t cuesoft/expendit-web:testmode --build-arg NEXT_PUBLIC_TEST_MODE=1 .
+#
+#   helm upgrade --install expendit deploy/helm -n expendit --create-namespace \
+#     -f deploy/helm/values.yaml -f deploy/helm/values-local.yaml
+
+services:
+  # Backends removed, not merely omitted: Helm deep-merges maps, so a key
+  # left out of this overlay would still come through from values.yaml.
+  # `null` is what actually deletes it.
+  api-common: null
+  web:
+    image: cuesoft/expendit-web:testmode
+    imagePullPolicy: IfNotPresent   # image is imported into the cluster, never pulled
+    port: 3000
+    runAsUser: 1000                 # the node user in the web image
+    replicas: 1
+    env:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    # Sized to coexist with the Postiz stack on a ~8GB host. Next standalone
+    # idles well under 128Mi; the limit is headroom for a traffic spike, not a
+    # target.
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+ingress:
+  enabled: true
+  className: traefik
+  host: expendit.localtest.me
+  service: web
