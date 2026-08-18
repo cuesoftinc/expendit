@@ -1,0 +1,58 @@
+# Local Kubernetes overlay: frontend only, no backends.
+#
+# The backends are deliberately absent — they are what's under active
+# development, so running them here would mean rebuilding an image per edit and
+# every frontend breaking on each restart. The web app is self-contained in
+# TEST_MODE: auth resolves to the TestModeAuthProvider and the API client targets
+# the in-app mock server at /api/mock/v1/*, so nothing outbound is required.
+#
+# NOTE: NEXT_PUBLIC_TEST_MODE is NOT set here on purpose. Next inlines
+# NEXT_PUBLIC_* at `next build`, so a runtime env var would be silently ignored.
+# It is baked into the image instead:
+#   docker build -f web/Dockerfile -t cuesoft/expendit-web:testmode --build-arg NEXT_PUBLIC_TEST_MODE=1 .
+#
+# Then load it into the cluster. kind/k3d/minikube/k3s nodes run their own
+# container runtime and cannot see the host Docker image store, so with
+# imagePullPolicy: IfNotPresent the node would try to pull this unpublished
+# tag and land in ImagePullBackOff. For k3d:
+#   k3d image import cuesoft/expendit-web:testmode -c <cluster>
+# (kind: `kind load docker-image`; minikube: `minikube image load`.)
+#
+#   helm upgrade --install expendit deploy/helm -n expendit --create-namespace \
+#     -f deploy/helm/values.yaml -f deploy/helm/values-local.yaml
+
+services:
+  # Backends removed, not merely omitted: Helm deep-merges maps, so a key
+  # left out of this overlay would still come through from values.yaml.
+  # `null` is what actually deletes it.
+  api-common: null
+  web:
+    image: cuesoft/expendit-web:testmode
+    imagePullPolicy: IfNotPresent   # image is imported into the cluster, never pulled
+    port: 3000
+    runAsUser: 1000                 # the node user in the web image
+    # templates/deployment.yaml reads $svc.replicaCount (falling back to the
+    # global replicaCount) — `replicas` here would be silently ignored.
+    # Pinning to 1 is required, not cosmetic: the TEST_MODE mock server keeps
+    # its seeded store in process memory, so a second replica would serve a
+    # separate database and reads after writes would be inconsistent.
+    replicaCount: 1
+    env:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+    # Sized to coexist with the Postiz stack on a ~8GB host. Next standalone
+    # idles well under 128Mi; the limit is headroom for a traffic spike, not a
+    # target.
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+ingress:
+  enabled: true
+  className: traefik
+  host: expendit.localtest.me
+  service: web

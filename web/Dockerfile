@@ -17,6 +17,11 @@ WORKDIR /app/web
 COPY --from=deps /app/web/node_modules ./node_modules
 COPY web/ ./
 COPY docs/api/openapi.yaml /app/docs/api/openapi.yaml
+# TEST_MODE is a build-time switch like every other NEXT_PUBLIC_*: Next inlines
+# it at `next build`, so a container env var at runtime would be ignored. Unset
+# by default, so production images are byte-identical to before.
+ARG NEXT_PUBLIC_TEST_MODE
+ENV NEXT_PUBLIC_TEST_MODE=$NEXT_PUBLIC_TEST_MODE
 RUN mkdir -p public
 RUN npm run build
 

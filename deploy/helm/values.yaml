@@ -35,3 +35,15 @@ services:
     healthPath: /
     env:
       PORT: "3000"
+
+# Optional Ingress (see templates/ingress.yaml). Disabled by default: the chart's
+# existing consumers publish through Cloud Run / App Hosting, not an ingress
+# controller. Enable per-environment via a values overlay, e.g. values-local.yaml.
+ingress:
+  enabled: false
+  # className: traefik
+  # host: example.localtest.me
+  # service: web          # must be a key under `services` above
+  # path: /
+  # pathType: Prefix
+  # annotations: {}
