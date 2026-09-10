@@ -88,13 +88,18 @@ export default function TransactionLedger({
                   id: "date",
                   label: "Date",
                   sortable: true,
-                  widthClass: "w-14",
+                  widthClass: "w-24 shrink-0 text-left",
                 },
-                { id: "source", label: "Src", widthClass: "w-8" },
+                {
+                  id: "source",
+                  label: "Src",
+                  widthClass: "w-28 shrink-0 text-left",
+                },
                 {
                   id: "description",
                   label: "Description",
                   sortable: true,
+                  widthClass: "flex-1 text-left",
                 },
                 { id: "category", label: "Category", widthClass: "w-40" },
                 {
@@ -141,6 +146,8 @@ export default function TransactionLedger({
                 <TxnTableRow
                   key={txn.id}
                   txn={txn}
+                  showYear
+                  showSourceLabel
                   density={density}
                   category={
                     categoryById.get(txn.category_id) ?? {
