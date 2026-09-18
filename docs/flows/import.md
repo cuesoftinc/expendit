@@ -1,8 +1,10 @@
 # Flow: Statement / Receipt Import
 
 > The staged-review pipeline (architecture.md §4) from the user's side, with
-> every edge case. Target shape is the **async** model (202 + polling,
-> roadmap P2); differences from today's synchronous behaviour are marked.
+> every edge case. The **async** model (202 + polling) below is shipped —
+> `POST /receipts` on api/intake, processed by api/process, persisted by
+> api/common. Rows not yet built (timeout reaper, typed failure codes,
+> consent gating) are marked **[Proposed]**.
 > Preconditions: authed; `ai_processing` consent for PDF-AI/receipt paths
 > (flows/auth.md §4).
 
@@ -12,7 +14,7 @@
 flowchart TD
     UP[/imports: drop file MI-2/] --> VAL{client checks}
     VAL -->|type/size fail| E0[inline error, no upload]
-    VAL --> POST[POST /import/upload → 202 job_id]
+    VAL --> POST[POST /receipts → 202 job_id]
     POST --> POLL[GET /import/:jobId — processing]
     POLL --> DONE{completed?}
     DONE -->|failed| FAIL[job error state + guidance]
@@ -26,14 +28,14 @@ flowchart TD
 
 | Step | Contract |
 | --- | --- |
-| Client checks | CSV/XLSX/TXT/PDF/JPG/PNG/WEBP/HEIC; ≤ 15 MB **[Decided — the binding limit; roadmap exit criteria reference it]**; images client-compressed ≤ 2048px, **server re-validates** (oversize → `413`, oversized-dimension images server-downscaled) |
-| Upload | multipart + `Idempotency-Key` (UUID per file selection) — retries never double-import; same key returns the same `job_id` **while the job is processing or completed; a `failed` job releases its key** (retry = same key allowed, new job) |
-| Processing | async worker; job status `processing → completed \| failed`; poll every 2s with backoff, or SSE later; UI shows the MI-2 AI-sparkle stage |
+| Client checks | CSV/XLSX/TXT/PDF/JPG/PNG/WEBP/HEIC; ≤ 15 MB **[Decided — the binding limit; roadmap exit criteria reference it. `api/intake` currently enforces 10 MB — not yet reconciled, architecture.md §4.2]**; images client-compressed ≤ 2048px, **server re-validates** (oversize → `413`, oversized-dimension images server-downscaled) **[server-side re-validation and downscaling not yet built]** |
+| Upload | multipart + `Idempotency-Key` (UUID per file selection) — retries never double-import; same key returns the same `job_id` **while the job is processing or completed; a `failed` job releases its key** (retry = same key allowed, new job) — `api/intake`'s cache is in-process only, so this holds per-instance, not yet across replicas |
+| Processing | `api/process` consumes over Kafka; job status `processing → completed \| failed`; poll every 2s with backoff, or SSE later; UI shows the MI-2 AI-sparkle stage |
 | Staged review | duplicates pre-flagged (`is_duplicate`) and excluded from the confirm count by default — user can re-include (false positives happen with recurring identical payments); AI categories carry the ✨ mark until touched |
 | Confirm | `POST /import/:jobId/confirm` idempotent (second call → 200 no-op); writes ledger rows atomically — partial confirm is impossible: all-or-error |
 | Discard | purges staging + job summary immediately |
 
-## 3. Failure taxonomy
+## 3. Failure taxonomy **[Proposed — the typed codes below are the target contract; `api/intake` today only enforces the multipart size cap via a generic 400, none of the other rows are implemented yet]**
 
 | Code | Cause | UX |
 | --- | --- | --- |

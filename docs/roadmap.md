@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | Example-report preview section on `/` with synthetic data | EXP-001 | Reuses existing chart components; a small committed demo dataset — never real personal bank data (PRD §5) |
 | `/privacy` page: retention, storage, deletion rights, **third-party AI processing disclosure** | EXP-005 | Links to Expendit clause on privacy.cuesoft.io (D3); content mirrors data-model.md §4 |
-| Remove financial data from logs (`[pdf] sample:` line) | EXP-005 credibility | Small code change but scheduled here because the privacy hub's claims must be true the day it ships |
+| Remove financial data from logs (`[pdf] sample:` line) | EXP-005 credibility | **Already true**: the line did not carry over to `api/process` during the intake/process migration (architecture.md §4.2) — verify via the flows/import.md §6 acceptance checklist before claiming it in the privacy hub |
 | CTAs aligned to PRD ("Open Expendit", "Upload Statement", "View Security Policy") | PRD §6 | Copy/design pass |
 
 **Exit criteria:** a visitor understands the product and its privacy posture
@@ -31,10 +31,15 @@ met (downloadable summaries + cash movement).
 
 ## Phase 2 — Pipeline hardening & intelligence UX
 
+**Shipped ahead of schedule:** the async pipeline landed as a real
+`api/intake` → `api/process` → `api/common` split over Aiven Kafka
+(organization-policy.md's pub/sub standard), not the Redis-backed
+single-worker queue originally sketched here — architecture.md §4.
+
 | Item | Requirement / driver |
 | --- | --- |
-| Async import worker (202 + job polling; Redis-backed queue) | EXP-002 scale — the 120 s synchronous AI budget can't live inside requests |
-| Upload limits + typed errors | EXP-002 hardening |
+| Reconcile `api/intake`'s 10 MB cap with the decided 15 MB limit; typed upload-failure errors (`413`/`415`/`422`) | EXP-002 hardening (architecture.md §4.2) |
+| Shared idempotency-cache store (Redis) + graceful Kafka producer drain for multi-replica `api/intake` | EXP-002 scale — today's cache/producer are in-process only |
 | Anomaly surfacing beyond import: dashboard feed/badges | EXP-003 "alerts" |
 | Correction feedback loop (corrections inform future categorization) | EXP-003 quality |
 | Import→confirm conversion + correction-rate metrics | prd.md §7 metrics |

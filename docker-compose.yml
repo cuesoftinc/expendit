@@ -45,11 +45,45 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_PORT: ${SMTP_PORT:-587}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-}
+      KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+      KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+      KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
     depends_on:
       mongo:
         condition: service_healthy
       redis:
         condition: service_healthy
+    restart: unless-stopped
+
+  api-intake:
+    build: ./api/intake
+    image: cuesoft/expendit-api-intake:latest
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: "8081"
+      CORS_ORIGINS: ${FRONTEND_URL:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-}
+      KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+      KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+      KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
+    restart: unless-stopped
+
+  api-process:
+    build: ./api/process
+    image: cuesoft/expendit-api-process:latest
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: "8082"
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-}
+      KAFKA_USERNAME: ${KAFKA_USERNAME:-}
+      KAFKA_PASSWORD: ${KAFKA_PASSWORD:-}
+      KAFKA_SSL_CA: ${KAFKA_SSL_CA:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     restart: unless-stopped
 
   web:

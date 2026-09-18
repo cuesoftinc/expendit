@@ -15,6 +15,7 @@ import (
 	"github.com/cuesoftinc/expendit/api/common/internal/handler"
 	"github.com/cuesoftinc/expendit/api/common/internal/middleware"
 	"github.com/cuesoftinc/expendit/api/common/internal/router"
+	"github.com/cuesoftinc/expendit/api/common/internal/service"
 )
 
 func main() {
@@ -66,6 +67,13 @@ func main() {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
+	// Graceful shutdown on SIGINT/SIGTERM; the receipt-pipeline consumers
+	// share this context so they stop alongside the HTTP server.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	service.StartConsumers(ctx)
+
 	go func() {
 		slog.Info("server listening", "addr", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -74,9 +82,6 @@ func main() {
 		}
 	}()
 
-	// Graceful shutdown on SIGINT/SIGTERM.
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
 	<-ctx.Done()
 	slog.Info("shutting down server")
 

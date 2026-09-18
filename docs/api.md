@@ -3,12 +3,21 @@
 > Current surface verified against `internal/router/*.go`. Markers: **[Current]**,
 > **[PRD]**, **[Proposed]**.
 
-## 1. Current surface **[Current]** (api/common, :8080)
+## 1. Current surface **[Current]**
 
-`GET /health` + `GET /ready` — probes (unauthenticated).
+Three real services (repository-and-services.md's multi-service pipeline
+shape): `api/common` (Go, :8080) owns auth/ledger/CRUD and every persisted
+record; `api/intake` (Node, :8081) is the thin upload gateway; `api/process`
+(Python, :8082) owns every parse/categorize/dedup/anomaly decision and
+persists nothing. `api/intake` and `api/process` connect to `api/common`
+only via Aiven Kafka pub/sub — see §Import below.
+
+`GET /health` + `GET /ready` — probes (unauthenticated), on all three services.
 
 All routes JSON unless noted; protected routes require `Authorization: Bearer <JWT>`
-and scope data to the token's `uid` claim.
+and scope data to the token's `uid` claim. `api/intake` verifies the same
+JWT (signature + expiry only, not the DB-backed session api/common's
+`Authenticate()` middleware also checks).
 
 ### Auth & users
 
@@ -38,13 +47,21 @@ removes them from paths. **[Proposed]**)
 
 ### Import (EXP-002/003 core)
 
-| Method & path | Purpose |
-| --- | --- |
-| `POST /import/upload` | multipart file (CSV/tabular, PDF, receipt image) → creates job, parses, stages, categorizes, detects duplicates/anomalies, summarizes (synchronous today) |
-| `GET /import/:jobId` | job + staged transactions |
-| `PUT /import/transaction/:id/category` | user correction |
-| `POST /import/:jobId/confirm` | commit staged rows to ledger |
-| `DELETE /import/:jobId` | discard job + staging |
+| Method & path | Service | Purpose |
+| --- | --- | --- |
+| `POST /receipts` | api/intake | multipart file (CSV/tabular, PDF, receipt image) + `Idempotency-Key` header → `202 {jobId}` immediately; hands the raw file to `api/process` over Kafka. `api/intake` owns no persisted state — see architecture.md §4 |
+| `GET /import/:jobId` | api/common | job + staged transactions (poll until `status` leaves `processing`) |
+| `PUT /import/transaction/:id/category` | api/common | user correction |
+| `POST /import/:jobId/confirm` | api/common | commit staged rows to ledger |
+| `DELETE /import/:jobId` | api/common | discard job + staging |
+
+Between those two calls: `api/common` creates the job record and gathers
+reference data (existing categories, fingerprints, historical aggregates)
+it already owns, forwards both to `api/process` over Kafka; `api/process`
+parses/categorizes/dedups/flags anomalies/summarizes and publishes the full
+decision back; `api/common` persists it. `api/common` never parses a file
+or makes a categorization/duplicate/anomaly decision itself (architecture.md
+§4).
 
 ### Reports
 
@@ -85,11 +102,14 @@ without `:userID`, error envelope, pagination) plus these new capabilities:
 
 ### Import hardening
 
+The async pipeline (`POST /receipts` → `202`, poll `GET /import/:jobId`) has
+shipped — see §1 above — so this section is now deltas only:
+
 | Change | Why |
 | --- | --- |
-| `POST /import/upload` → `202 {job_id}` (v1 path: `/api/v1/import/upload`; the unprefixed route dies at v1 — no alias) | Synchronous AI budget (≤120 s) inside the request doesn't scale (architecture.md §4.2) |
-| `GET /import/:jobId` becomes the polling/streaming surface | Status field already models `processing/completed/failed` |
-| Explicit upload limits (size, MIME) with typed errors | Predictable failure surface |
+| `POST /receipts` under `/api/v1` (v1 path: `/api/v1/receipts`) | v1 consolidation; the unprefixed route dies at v1 — no alias |
+| Typed upload-failure errors (`413`/`415`/`422`) per flows/import.md §3 | Predictable failure surface — not yet implemented, `api/intake` only enforces the size cap today |
+| Reconcile `api/intake`'s 10 MB size cap with flows/import.md §2's decided 15 MB limit | Current code and the decided contract disagree — needs a ratification decision, not just a code change |
 
 ### Events (ECO-ANALYTICS)
 
@@ -102,7 +122,7 @@ Server-side emission to Upstat: `upload_success` (job completed),
 | Requirement | Current | Gap |
 | --- | --- | --- |
 | EXP-001 preview landing | Landing exists, no example-report section | Web-only: demo-data preview section |
-| EXP-002 uploads | CSV/PDF/receipt-image implemented | Async processing, limits (hardening) |
+| EXP-002 uploads | CSV/PDF/receipt-image implemented; async via `api/intake` → `api/process` → `api/common` (Kafka) | Typed failure surfaces, 10 MB vs. decided-15 MB limit reconciliation (hardening) |
 | EXP-003 AI categorization | Engine + correction + anomalies implemented | Anomaly UX outside import; correction feedback loop |
 | EXP-004 downloadable summaries | JSON aggregates only | `POST /api/v1/reports` + artifact rendering |
 | EXP-005 privacy hub | Nothing | Web page + D3 clause + AI-processing disclosure |

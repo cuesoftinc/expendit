@@ -25,3 +25,19 @@ updates:
       # @types/node tracks the runtime major (Node 24 in .nvmrc/Dockerfile).
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: npm
+    directory: /api/intake
+    schedule:
+      interval: weekly
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /api/process
+    schedule:
+      interval: weekly
+    groups:
+      pip-dependencies:
+        patterns: ["*"]

@@ -2,14 +2,21 @@ module github.com/cuesoftinc/expendit/api/common
 
 go 1.26
 
+// NOTE: this module was hand-edited (no Go toolchain in the editing
+// environment to run `go mod tidy`). segmentio/kafka-go is a new direct
+// dependency added for the receipt pipeline (see internal/kafka); its
+// go.sum entries are NOT present yet. ledongthuc/pdf and xuri/excelize/v2
+// were removed as direct requires (their only callers, csv_parser.go and
+// pdf_parser.go, moved to api/process), but their now-possibly-orphaned
+// indirect entries below were left alone rather than hand-pruned. Run
+// `go mod tidy` before this builds.
 require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/joho/godotenv v1.5.1
-	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/redis/go-redis/v9 v9.22.0
-	github.com/xuri/excelize/v2 v2.11.0
+	github.com/segmentio/kafka-go v0.4.47
 	go.mongodb.org/mongo-driver v1.17.9
 	golang.org/x/crypto v0.54.0
 	google.golang.org/api v0.292.0

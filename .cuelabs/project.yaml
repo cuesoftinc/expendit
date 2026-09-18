@@ -5,13 +5,16 @@ profile: cuelabs
 surfaces:
   web: active
   backend:
-    common: planned
+    common: active
+    intake: active
+    process: active
   mobile:
     flutter: planned
 
 capabilities:
   grpc: absent
   firebaseAuth: planned
+  kafka: active
 
 deployment:
   web: firebase-app-hosting

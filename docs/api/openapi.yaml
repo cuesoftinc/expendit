@@ -14,7 +14,7 @@ tags: [{ name: ledger }, { name: imports }, { name: banking }, { name: company }
 paths:
   /api/v1/expenses: { get: { tags: [ledger], summary: List expenses (filters, cursor), responses: { "200": { description: Page } } }, post: { tags: [ledger], summary: Create, responses: { "201": { description: Expense } } } }
   /api/v1/incomes: { get: { tags: [ledger], summary: List incomes, responses: { "200": { description: Page } } } }
-  /api/v1/import/upload: { post: { tags: [imports], summary: "Upload CSV/PDF/receipt (async; Idempotency-Key)", responses: { "202": { description: "{job_id}" }, "413": { description: file_too_large }, "422": { description: flows/import.md taxonomy } } } }
+  /api/v1/receipts: { post: { tags: [imports], summary: "Upload CSV/PDF/receipt (api/intake; async over Kafka to api/process/api/common; Idempotency-Key)", responses: { "202": { description: "{job_id}" }, "413": { description: file_too_large }, "422": { description: flows/import.md taxonomy } } } }
   /api/v1/import/{jobId}: { get: { tags: [imports], summary: Job + staged transactions, responses: { "200": { description: Job } } } }
   /api/v1/import/{jobId}/confirm: { post: { tags: [imports], summary: Commit staged rows (atomic, idempotent), responses: { "200": { description: Result } } } }
   /api/v1/bank-links: { post: { tags: [banking], summary: Init Mono link, responses: { "201": { description: Connect config } } }, get: { tags: [banking], summary: List links, responses: { "200": { description: Links } } } }

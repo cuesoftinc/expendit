@@ -26,6 +26,8 @@ services:
   # left out of this overlay would still come through from values.yaml.
   # `null` is what actually deletes it.
   api-common: null
+  api-intake: null
+  api-process: null
   web:
     image: cuesoft/expendit-web:testmode
     imagePullPolicy: IfNotPresent   # image is imported into the cluster, never pulled

@@ -10,7 +10,14 @@
 | Surface | Runs on | Provisioned by |
 | --- | --- | --- |
 | `api/common` (Go) | Cloud Run | cuesoft-iac stack `expendit` |
+| `api/intake` (Node) | Cloud Run | cuesoft-iac stack `expendit` |
+| `api/process` (Python) | Cloud Run | cuesoft-iac stack `expendit` |
 | `web` (Next.js) | **Firebase App Hosting** | App Hosting backend |
+
+`api/intake` and `api/process` connect to `api/common` only over Aiven
+Kafka pub/sub (organization-policy.md), never a direct s2s call — chosen
+specifically because Cloud Run scale-to-zero can silently drop a live gRPC
+connection between calls.
 
 ## 2. Provisioning (cuesoft-iac)
 
@@ -51,14 +58,21 @@ The single protected GitHub environment is **`Sandbox`** (X-6) — required
 reviewers + the sandbox URLs (`api.expendit.cuesoft.io`). No other deploy
 environments exist.
 
-## 4. Runtime contract (Cloud Run) **[Decided defaults]**
+## 4. Runtime contract (Cloud Run)
 
 | Service | CPU / mem | Concurrency | Min–max instances | Timeout |
 | --- | --- | --- | --- | --- |
 | api/common | 1 vCPU / 512 MiB | 80 | 0–5 | 60 s |
-| import worker (same image) | 1 vCPU / 1 GiB | 1 (AI-budget isolation) | 0–3 | 300 s |
 
-- Domain: `api.expendit.cuesoft.io` → api/common.
+**[Decided defaults]** for `api/common`. `api/intake` and `api/process`
+replace the single-worker/Redis-queue sketch this table used to carry —
+their own CPU/mem/concurrency/timeout defaults aren't ratified yet
+**[Proposed]**; `api/process` in particular needs isolation from the AI
+call budget the way the old worker row did.
+
+- Domain: `api.expendit.cuesoft.io` → api/common; `api/intake` needs its own
+  public domain/route for `POST /receipts` (not yet assigned). `api/process`
+  is never internet-facing — it's reached only over Kafka.
 - Ingress is open, so the origin is reachable both through Cloudflare and
   directly — a chain one hop shorter. Client-IP attribution for rate limits is
   therefore CIDR-validated, never hop-counted: set `TRUSTED_PROXY_CIDRS` from

@@ -144,7 +144,7 @@ the same Firebase project — no further migration.
 
 | Class | Data | Rules |
 | --- | --- | --- |
-| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address` — X-10 tier-1/tier-2 fields, §5) | Never in logs (the current `[pdf] sample:` log line must go — architecture.md §4.2); TLS in transit; third-party AI processing disclosed; raw files not at rest |
+| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address` — X-10 tier-1/tier-2 fields, §5) | Never in logs (the old monolith's `[pdf] sample:` line did not carry over to `api/process` — architecture.md §4.2); TLS in transit; third-party AI processing disclosed; raw files not at rest |
 | Sensitive | User identity, consent, purge requests | Standard PII handling; consent/purge rows immutable audit records |
 | Operational | Job status/counters, event counters to Upstat | Safe for logs/metrics; Upstat events are **counters only, never amounts or descriptions** |
 

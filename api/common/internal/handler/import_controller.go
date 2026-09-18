@@ -1,8 +1,11 @@
 package handler
 
+// The upload endpoint moved to api/intake (POST /receipts); it publishes to
+// Kafka instead of calling into this package directly. This file now only
+// keeps the CRUD-shaped handlers that read/mutate job state api/common owns.
+
 import (
 	"context"
-	"io"
 	"net/http"
 	"time"
 
@@ -10,47 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-const maxImportFileSize = 10 << 20 // 10 MB
-
-func UploadImport() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		uid, exists := c.Get("uid")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			return
-		}
-
-		file, header, err := c.Request.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "a file field named 'file' is required"})
-			return
-		}
-		defer file.Close()
-
-		if header.Size > maxImportFileSize {
-			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "file exceeds 10 MB limit"})
-			return
-		}
-
-		data, err := io.ReadAll(file)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read file"})
-			return
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
-		defer cancel()
-
-		result, err := service.ProcessImport(ctx, uid.(string), header.Filename, data)
-		if err != nil {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(http.StatusOK, result)
-	}
-}
 
 func GetImportJobHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
