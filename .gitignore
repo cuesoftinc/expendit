@@ -62,3 +62,4 @@ tmp/
 
 # NOTE: do NOT ignore .dockerignore; commit lockfiles (package-lock.json,
 # go.sum, pubspec.lock, .terraform.lock.hcl).
+.agents/

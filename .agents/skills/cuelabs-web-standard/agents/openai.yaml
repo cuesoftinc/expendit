@@ -1,4 +1,0 @@
-interface:
-  display_name: "CueLABS Web Standard"
-  short_description: "Build and review CueLABS web surfaces"
-  default_prompt: "Use $cuelabs-web-standard to implement or audit this CueLABS web surface."
