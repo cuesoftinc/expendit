@@ -28,8 +28,8 @@ import TableHeader from "@/components/ui/TableHeader";
 import Skeleton from "@/components/ui/Skeleton";
 import StatCard from "@/components/ui/StatCard";
 import Tag from "@/components/ui/Tag";
-import TxnTableRow from "@/components/ui/TxnTableRow";
 import PageHeader from "./PageHeader";
+import OverviewTxnTableRow from "./OverviewTxnTableRow";
 
 const Card: React.FC<{
   title: string;
@@ -227,14 +227,56 @@ export const OverviewView: React.FC = () => {
             />
           </Card>
         </div>
-        <Card title="Latest transactions" className="mt-4">
+        <Card title="Latest transactions" className="mt-4 min-w-0">
           {/* Mobile: the ledger table scrolls inside its container —
               the page itself never side-scrolls (mobile canon). */}
-          <div className="max-lg:overflow-x-auto">
-            <table className="w-full" aria-label="Demo transactions">
+          <div className="min-w-0 overflow-x-auto">
+            <table
+              className="min-w-[824px] w-full border-separate border-spacing-0"
+              aria-label="Demo transactions"
+            >
+              <TableHeader
+                columns={[
+                  {
+                    id: "date-time",
+                    label: "Date & Time",
+                    widthClass: "w-48",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "source",
+                    label: "Src",
+                    widthClass: "w-8",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "description",
+                    label: "Description",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "category",
+                    label: "Category",
+                    widthClass: "w-56",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "signals",
+                    label: "Signals",
+                    widthClass: "w-32",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "amount",
+                    label: "Amount",
+                    numeric: true,
+                    widthClass: "w-32",
+                  },
+                ]}
+              />
               <tbody className="contents">
                 {demo.txns.slice(0, 5).map((txn) => (
-                  <TxnTableRow
+                  <OverviewTxnTableRow
                     key={txn.id}
                     txn={{
                       id: txn.id,
@@ -599,7 +641,7 @@ export const OverviewView: React.FC = () => {
 
       <Card
         title="Latest transactions"
-        className="mt-4 lg:min-h-(--widget-h-latest-card)"
+        className="mt-4 min-w-0 lg:min-h-(--widget-h-latest-card)"
         action={
           <Link
             href="/dashboard/transactions"
@@ -613,20 +655,42 @@ export const OverviewView: React.FC = () => {
           <p className="text-[13px] text-text-2">No transactions yet.</p>
         ) : (
           // Mobile canon: the ledger table scrolls inside its container.
-          <div className="max-lg:overflow-x-auto">
+          <div className="min-w-0 overflow-x-auto">
             <table
-              className="w-full border-separate border-spacing-0"
+              className="min-w-[824px] w-full border-separate border-spacing-0"
               aria-label="Latest transactions"
             >
               <TableHeader
-                // Rows lead with a select cell — the sr-only header keeps
-                // every td under a named th (axe `td-has-header` class).
-                selectHeader="Select"
                 columns={[
-                  { id: "date", label: "Date", widthClass: "w-14" },
-                  { id: "source", label: "Src", widthClass: "w-8" },
-                  { id: "description", label: "Description" },
-                  { id: "category", label: "Category", widthClass: "w-40" },
+                  {
+                    id: "date-time",
+                    label: "Date & Time",
+                    widthClass: "w-48",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "source",
+                    label: "Src",
+                    widthClass: "w-8",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "description",
+                    label: "Description",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "category",
+                    label: "Category",
+                    widthClass: "w-56",
+                    headerAlign: "left",
+                  },
+                  {
+                    id: "signals",
+                    label: "Signals",
+                    widthClass: "w-32",
+                    headerAlign: "left",
+                  },
                   {
                     id: "amount",
                     label: "Amount",
@@ -637,7 +701,7 @@ export const OverviewView: React.FC = () => {
               />
               <tbody className="contents">
                 {latest.map((txn) => (
-                  <TxnTableRow
+                  <OverviewTxnTableRow
                     key={txn.id}
                     txn={txn}
                     category={
@@ -649,6 +713,11 @@ export const OverviewView: React.FC = () => {
                     }
                     onOpen={() =>
                       router.push(`/dashboard/transactions?record=${txn.id}`)
+                    }
+                    onExplainAnomaly={() =>
+                      router.push(
+                        `/dashboard/transactions?record=${txn.id}&explain=1`,
+                      )
                     }
                   />
                 ))}

@@ -18,6 +18,8 @@ export interface TableColumn {
   label: string;
   /** numeric-right alignment (money columns). */
   numeric?: boolean;
+  /** Optional header-only alignment; defaults preserve existing table behavior. */
+  headerAlign?: "left" | "right" | "center";
   sortable?: boolean;
   /** Fixed width class, e.g. "w-32". */
   widthClass?: string;
@@ -127,6 +129,9 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
               column.widthClass ?? "flex-1",
               "min-w-0 font-normal",
               column.numeric && "text-right",
+              column.headerAlign === "left" && "text-left",
+              column.headerAlign === "right" && "text-right",
+              column.headerAlign === "center" && "text-center",
             )}
           >
             {column.sortable ? (
