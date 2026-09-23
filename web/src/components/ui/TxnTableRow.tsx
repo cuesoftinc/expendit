@@ -42,6 +42,8 @@ export interface TxnTableRowProps {
   txn: TxnEntry;
   category: CategoryOption;
   categoryOptions?: CategoryOption[];
+  showYear?: boolean;
+  showSourceLabel?: boolean;
   density?: "compact" | "comfortable";
   selected?: boolean;
   /** Staged-review duplicate flag (MI-3 discard set). */
@@ -60,6 +62,8 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   txn,
   category,
   categoryOptions = [],
+  showYear = false,
+  showSourceLabel = false,
   density = "comfortable",
   selected = false,
   stagedDuplicate = false,
@@ -113,7 +117,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           // selects were an axe button-name critical ×50).
           aria-label={`Select transaction ${txn.description}, ${formatIso(
             txn.txn_date,
-            "d MMM",
+            showYear ? "d MMM yyyy" : "d MMM",
           )}`}
           checked={selected}
           onCheckedChange={
@@ -123,16 +127,28 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           }
         />
       </td>
-      {/* Figma date column: short date, Table/13, text-2 (e.g. "12 Jan"). */}
-      <td className="w-14 shrink-0 whitespace-nowrap tabular-nums text-text-2">
-        {formatIso(txn.txn_date, "d MMM")}
+      {/* Use the transaction date; the ledger also includes its year. */}
+      <td
+        className={cn(
+          "shrink-0 whitespace-nowrap tabular-nums text-text-2",
+          showYear ? "w-24" : "w-14",
+        )}
+      >
+        {formatIso(txn.txn_date, showYear ? "d MMM yyyy" : "d MMM")}
       </td>
       {/* Figma: source icon sits between date and description. */}
-      <td className="flex shrink-0 items-center">
+      <td
+        className={cn(
+          "flex shrink-0 items-center",
+          showSourceLabel ? "w-32 gap-1.5" : "w-8",
+        )}
+      >
         <SourceIcon
-          aria-label={sourceLabel}
+          aria-label={showSourceLabel ? undefined : sourceLabel}
+          aria-hidden={showSourceLabel || undefined}
           className="h-3.5 w-3.5 shrink-0 text-text-2"
         />
+        {showSourceLabel ? <span>{sourceLabel}</span> : null}
       </td>
       {/* Description cell hosts the MI-6 hover actions at ITS right edge
           (adjudicated 2026-07-19): they overlay only truncation

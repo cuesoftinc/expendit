@@ -75,11 +75,10 @@ export default function TransactionLedger({
           className="mx-auto mt-16 max-w-md"
         />
       ) : (
-        // Mobile canon: below lg the ledger scrolls horizontally inside
-        // this container — the page itself never side-scrolls; ≥lg keeps
-        // the sticky header against the main scroll.
+        // Only mobile uses a horizontal scrollport; desktop headers stick
+        // to the dashboard main scroll.
         <section aria-label="Ledger" className="max-lg:overflow-x-auto">
-          <table className="w-full border-separate border-spacing-0">
+          <table className="w-full lg:table-fixed border-separate border-spacing-0">
             <TableHeader
               density={density}
               sticky
@@ -88,13 +87,18 @@ export default function TransactionLedger({
                   id: "date",
                   label: "Date",
                   sortable: true,
-                  widthClass: "w-14",
+                  widthClass: "w-24 shrink-0 text-left",
                 },
-                { id: "source", label: "Src", widthClass: "w-8" },
+                {
+                  id: "source",
+                  label: "Src",
+                  widthClass: "w-32 shrink-0 text-left",
+                },
                 {
                   id: "description",
                   label: "Description",
                   sortable: true,
+                  widthClass: "flex-1 text-left",
                 },
                 { id: "category", label: "Category", widthClass: "w-40" },
                 {
@@ -141,6 +145,8 @@ export default function TransactionLedger({
                 <TxnTableRow
                   key={txn.id}
                   txn={txn}
+                  showYear
+                  showSourceLabel
                   density={density}
                   category={
                     categoryById.get(txn.category_id) ?? {
