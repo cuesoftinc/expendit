@@ -107,7 +107,7 @@ export const OverviewSidePanels: React.FC<OverviewSidePanelsProps> = ({
         ) : (
           <>
             <ul className="space-y-3">
-              {anomalies.slice(0, 4).map((txn) => (
+              {anomalies.slice(0, 3).map((txn) => (
                 <li key={txn.id}>
                   <AnomalyBadge
                     type={txn.anomalies[0].rule_id}
