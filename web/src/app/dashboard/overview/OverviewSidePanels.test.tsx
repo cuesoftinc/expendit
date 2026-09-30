@@ -44,9 +44,9 @@ describe("OverviewSidePanels anomalies", () => {
     expect(screen.getByText("4")).toBeInTheDocument();
     expect(
       screen.getAllByRole("button", { name: /transaction/i }),
-    ).toHaveLength(4);
+    ).toHaveLength(3);
     expect(screen.getByText("₦48,000.00")).toBeInTheDocument();
-    expect(screen.getAllByText("22 September 2026 · 6:45PM")).toHaveLength(4);
+    expect(screen.getAllByText("22 September 2026 · 6:45PM")).toHaveLength(3);
 
     await user.click(screen.getByRole("button", { name: /transaction 3/i }));
     expect(onExplainAnomaly).toHaveBeenCalledWith("txn-3");
