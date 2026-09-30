@@ -107,14 +107,15 @@ export const OverviewSidePanels: React.FC<OverviewSidePanelsProps> = ({
         ) : (
           <>
             <ul className="space-y-3">
-              {anomalies.slice(0, 3).map((txn) => (
+              {anomalies.slice(0, 4).map((txn) => (
                 <li key={txn.id}>
                   <AnomalyBadge
                     type={txn.anomalies[0].rule_id}
                     severity={txn.anomalies[0].severity}
-                    variant="feed"
-                    description={`${txn.description} — ${formatMoney(txn.amount, currency)}`}
-                    timestamp={formatIso(txn.txn_date, "d MMM")}
+                    variant="overview"
+                    description={txn.description}
+                    amount={formatMoney(txn.amount, currency)}
+                    timestamp={formatIso(txn.txn_date, "d MMMM yyyy · h:mma")}
                     onClick={() => onExplainAnomaly(txn.id)}
                   />
                 </li>
