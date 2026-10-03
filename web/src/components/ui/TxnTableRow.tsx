@@ -1,27 +1,29 @@
 "use client";
 
 /**
- * TxnTableRow — design.md §8.2: default / hover (actions revealed) /
- * selected / editing / staged-duplicate · density ×2. MI-6: 60ms bg tint,
- * action icons fade in absolutely positioned at the right edge of the
- * DESCRIPTION cell — no layout shift, and the amount stays legible during
- * hover (adjudicated 2026-07-19; the Figma hover variant follows).
+ * TxnTableRow — design.md §8.2: default / selected / editing /
+ * staged-duplicate · density ×2. Row actions live in an always-visible
+ * overflow menu so they remain discoverable on touch and keyboard input.
  * Row-level keyboard: `e` opens category edit (design.md §5).
  */
 
 import React from "react";
+import { createPortal } from "react-dom";
 import {
   Camera,
+  EllipsisVertical,
   EyeOff,
   FileSpreadsheet,
   FileText,
   Landmark,
   Pencil,
+  Sparkles,
   Split,
 } from "lucide-react";
 import { formatIso } from "@/lib/dates";
 import type { TxnEntry, TxnSource } from "@/models";
 import { cn } from "@/lib/cn";
+import { useAnchoredLayer } from "@/lib/use-anchored-layer";
 import AnomalyBadge from "./AnomalyBadge";
 import CategoryChip, { type CategoryOption } from "./CategoryChip";
 import Checkbox from "./Checkbox";
@@ -43,6 +45,8 @@ export interface TxnTableRowProps {
   category: CategoryOption;
   categoryOptions?: CategoryOption[];
   showYear?: boolean;
+  /** Ledger date column also includes the transaction time. */
+  showTime?: boolean;
   showSourceLabel?: boolean;
   density?: "compact" | "comfortable";
   selected?: boolean;
@@ -63,6 +67,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   category,
   categoryOptions = [],
   showYear = false,
+  showTime = false,
   showSourceLabel = false,
   density = "comfortable",
   selected = false,
@@ -77,6 +82,38 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
 }) => {
   const { Icon: SourceIcon, label: sourceLabel } = SOURCE_ICON[txn.source];
   const anomaly = txn.anomalies[0];
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRootRef = React.useRef<HTMLTableCellElement>(null);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const menuStyle = useAnchoredLayer(menuOpen, menuRootRef, menuRef);
+  const dateFormat = showTime
+    ? "dd-MM-yyyy • hh:mm aa"
+    : showYear
+      ? "d MMM yyyy"
+      : "d MMM";
+  const dateWidth = showTime ? "w-44" : showYear ? "w-24" : "w-14";
+
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    const closeMenu = (event: MouseEvent | KeyboardEvent) => {
+      if (
+        event instanceof MouseEvent &&
+        (menuRootRef.current?.contains(event.target as Node) ||
+          menuRef.current?.contains(event.target as Node))
+      ) {
+        return;
+      }
+      if (!(event instanceof KeyboardEvent) || event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", closeMenu);
+    document.addEventListener("keydown", closeMenu);
+    return () => {
+      document.removeEventListener("mousedown", closeMenu);
+      document.removeEventListener("keydown", closeMenu);
+    };
+  }, [menuOpen]);
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.target !== event.currentTarget) return;
@@ -109,6 +146,8 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         // Figma: selected = accent tint row; staged-duplicate = warn tint.
         selected && "bg-accent/[0.08]",
         stagedDuplicate && "bg-warn/[0.08]",
+        // Keep an open menu above the subsequent rows in the ledger.
+        menuOpen && "z-50",
       )}
     >
       <td className="flex shrink-0 items-center">
@@ -117,7 +156,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           // selects were an axe button-name critical ×50).
           aria-label={`Select transaction ${txn.description}, ${formatIso(
             txn.txn_date,
-            showYear ? "d MMM yyyy" : "d MMM",
+            dateFormat,
           )}`}
           checked={selected}
           onCheckedChange={
@@ -131,10 +170,10 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       <td
         className={cn(
           "shrink-0 whitespace-nowrap tabular-nums text-text-2",
-          showYear ? "w-24" : "w-14",
+          dateWidth,
         )}
       >
-        {formatIso(txn.txn_date, showYear ? "d MMM yyyy" : "d MMM")}
+        {formatIso(txn.txn_date, dateFormat)}
       </td>
       {/* Figma: source icon sits between date and description. */}
       <td
@@ -150,71 +189,21 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         />
         {showSourceLabel ? <span>{sourceLabel}</span> : null}
       </td>
-      {/* Description cell hosts the MI-6 hover actions at ITS right edge
-          (adjudicated 2026-07-19): they overlay only truncation
-          whitespace, so the amount stays legible during hover — the
-          Figma TxnTableRow hover variant follows this construction.
-          Truncation lives on an inner span: `truncate` on the cell
-          itself would overflow-hide the action cluster once the cell
-          squeezes below its ~80px width (PR #217 review). */}
-      <td className="relative min-w-0 flex-1">
+      <td className="min-w-0 flex-1">
         <span className="block truncate">{txn.description}</span>
-        <span
-          data-testid="row-actions"
-          className={cn(
-            // pointer-events gating keeps the hidden cluster
-            // hit-transparent — without it the invisible strip swallowed
-            // clicks on cells beneath it (system QA 2026-07-19).
-            "absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1 bg-bg-elev pl-2",
-            "pointer-events-none opacity-0 transition-opacity duration-[60ms] ease-standard",
-            "group-hover:pointer-events-auto group-hover:opacity-100",
-            "group-focus-within:pointer-events-auto group-focus-within:opacity-100",
-          )}
-        >
-          <button
-            type="button"
-            aria-label="Edit category"
-            onClick={onEdit}
-            className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Split"
-            onClick={onSplit}
-            className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <Split className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Exclude from reports"
-            onClick={onExclude}
-            className="rounded p-1 text-text-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <EyeOff className="h-3.5 w-3.5" />
-          </button>
-        </span>
       </td>
-      {stagedDuplicate ? (
-        // Figma staged-duplicate: the inline Duplicate anomaly pill.
-        <td className="flex shrink-0 items-center">
+      <td className="flex w-64 shrink-0 items-center gap-2 whitespace-nowrap">
+        {stagedDuplicate ? (
+          // Figma staged-duplicate: the inline Duplicate anomaly pill.
           <AnomalyBadge type="duplicate_charge" severity="info" />
-        </td>
-      ) : anomaly ? (
-        <td className="flex shrink-0 items-center">
-          {/* Clickable: opens the anomaly-explain inspector (B2b) — the
-              panel is reachable from the row, not deep-link-only. */}
+        ) : anomaly ? (
           <AnomalyBadge
             type={anomaly.rule_id}
             severity={anomaly.severity}
             variant="inline"
             onClick={onExplainAnomaly}
           />
-        </td>
-      ) : null}
-      <td className="flex shrink-0 items-center">
+        ) : null}
         <CategoryChip
           category={category}
           aiSuggested={txn.ai_categorized}
@@ -228,6 +217,83 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           direction={txn.direction}
           withIcon={false}
         />
+      </td>
+      <td ref={menuRootRef} className="relative flex w-8 shrink-0 justify-end">
+        <button
+          type="button"
+          aria-label={`Actions for ${txn.description}`}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+          className="rounded p-1 text-text-2 hover:bg-bg-elev hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <EllipsisVertical aria-hidden className="h-4 w-4" />
+        </button>
+        {menuOpen && typeof document !== "undefined"
+          ? createPortal(
+              <div
+                ref={menuRef}
+                role="menu"
+                aria-label={`Actions for ${txn.description}`}
+                style={menuStyle ?? { position: "fixed", visibility: "hidden" }}
+                className="z-modal w-44 overflow-hidden rounded-md border border-border bg-bg p-1 shadow-[0_12px_32px_rgba(0,0,0,0.32)]"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onEdit?.();
+                    setMenuOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <Pencil aria-hidden className="h-3.5 w-3.5 text-text-2" />
+                  Edit transaction
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onSplit?.();
+                    setMenuOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <Split aria-hidden className="h-3.5 w-3.5 text-text-2" />
+                  Split transaction
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onExclude?.();
+                    setMenuOpen(false);
+                  }}
+                  className="mt-1 flex w-full items-center gap-2 border-t border-border px-2 py-1.5 text-left text-[12px] font-medium text-text-2 hover:bg-bg hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <EyeOff aria-hidden className="h-3.5 w-3.5" />
+                  {txn.excluded_from_reports
+                    ? "Include in reports"
+                    : "Exclude from reports"}
+                </button>
+                {onExplainAnomaly ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      onExplainAnomaly();
+                      setMenuOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  >
+                    <Sparkles aria-hidden className="h-3.5 w-3.5 text-info" />
+                    Explain anomaly
+                  </button>
+                ) : null}
+              </div>,
+              document.body,
+            )
+          : null}
       </td>
     </tr>
   );
