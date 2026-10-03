@@ -193,6 +193,12 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         <span className="block truncate">{txn.description}</span>
       </td>
       <td className="flex w-64 shrink-0 items-center gap-2 whitespace-nowrap">
+        <CategoryChip
+          category={category}
+          aiSuggested={txn.ai_categorized}
+          options={categoryOptions}
+          onSelect={onCategorySelect}
+        />
         {stagedDuplicate ? (
           // Figma staged-duplicate: the inline Duplicate anomaly pill.
           <AnomalyBadge type="duplicate_charge" severity="info" />
@@ -204,12 +210,6 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
             onClick={onExplainAnomaly}
           />
         ) : null}
-        <CategoryChip
-          category={category}
-          aiSuggested={txn.ai_categorized}
-          options={categoryOptions}
-          onSelect={onCategorySelect}
-        />
       </td>
       <td className="w-32 shrink-0 text-right">
         <MoneyCell
