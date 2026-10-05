@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/defs.schema.json",
+  "title": "Shared definitions",
+  "$defs": {
+    "id": { "type": "string", "format": "uuid" },
+    "date": { "type": "string", "format": "date" },
+    "money": { "type": "number", "description": "Major units in the org currency." },
+    "direction": { "enum": ["income", "expense"] },
+    "file_type": { "enum": ["csv", "pdf", "image"] },
+    "object_ref": {
+      "type": "object",
+      "description": "A Cloud Storage (or MinIO) object. `key` is relative to the bucket and starts with the env prefix, e.g. expendit/stg/tmp/...",
+      "required": ["bucket", "key"],
+      "additionalProperties": false,
+      "properties": {
+        "bucket": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 },
+        "size": { "type": "integer", "minimum": 0 },
+        "content_type": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "anomaly": {
+      "type": "object",
+      "required": ["rule_id", "severity", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": { "enum": ["large_transaction", "spending_spike", "abnormal_category", "duplicate_charge"] },
+        "severity": { "enum": ["info", "warn"] },
+        "note": { "type": "string" },
+        "rule_version": { "type": "string" },
+        "txn_index": { "type": "integer", "minimum": 0, "description": "Index into `transactions` when the flag is on one row; absent for job-level flags." }
+      }
+    },
+    "category_ref": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string" },
+        "type": { "$ref": "#/$defs/direction" }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "description": "tax-engine.md §5 / line-items.md: every computed figure carries how it was produced.",
+      "required": ["value"],
+      "properties": {
+        "value": { "type": ["number", "null"] },
+        "formula": { "type": "string" },
+        "inputs": { "type": "object" },
+        "ruleset_id": { "type": "string" }
+      }
+    }
+  }
+}

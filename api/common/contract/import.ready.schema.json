@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/import.ready.schema.json",
+  "title": "expendit.import.ready",
+  "description": "common (outbox) -> analytics extract. Either a file to parse (uploads) or already-fetched rows (bank sync). Reference data is everything analytics needs to decide; it never queries a database. Key: job id.",
+  "type": "object",
+  "required": ["job_id", "org_id", "source", "ai_allowed", "currency", "reference"],
+  "additionalProperties": false,
+  "properties": {
+    "job_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "source": { "enum": ["upload", "bank_sync"] },
+    "file_name": { "type": "string" },
+    "file_type": { "$ref": "defs.schema.json#/$defs/file_type" },
+    "file": { "$ref": "defs.schema.json#/$defs/object_ref" },
+    "rows": {
+      "type": "array",
+      "description": "bank_sync only: provider rows, already normalized to the ledger shape.",
+      "items": {
+        "type": "object",
+        "required": ["txn_date", "amount", "direction", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "txn_date": { "$ref": "defs.schema.json#/$defs/date" },
+          "amount": { "$ref": "defs.schema.json#/$defs/money" },
+          "direction": { "$ref": "defs.schema.json#/$defs/direction" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "ai_allowed": { "type": "boolean", "description": "Set by common from the ai_processing consent (E-3)." },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "reference": {
+      "type": "object",
+      "required": ["categories", "ledger", "aggregates"],
+      "additionalProperties": false,
+      "properties": {
+        "categories": { "type": "array", "items": { "$ref": "defs.schema.json#/$defs/category_ref" } },
+        "ledger": {
+          "type": "array",
+          "description": "Confirmed and staged rows from the lookback window, for the flows/import.md §4 duplicate comparison.",
+          "items": {
+            "type": "object",
+            "required": ["txn_date", "amount", "direction", "description"],
+            "additionalProperties": false,
+            "properties": {
+              "txn_date": { "$ref": "defs.schema.json#/$defs/date" },
+              "amount": { "$ref": "defs.schema.json#/$defs/money" },
+              "direction": { "$ref": "defs.schema.json#/$defs/direction" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "aggregates": {
+          "type": "object",
+          "description": "Inputs for the anomaly rules (flows/import.md §7).",
+          "required": ["median_90d", "category_monthly", "category_mean"],
+          "additionalProperties": false,
+          "properties": {
+            "median_90d": {
+              "type": "object",
+              "required": ["income", "expense"],
+              "additionalProperties": false,
+              "properties": { "income": { "type": "number" }, "expense": { "type": "number" } }
+            },
+            "category_monthly": {
+              "type": "object",
+              "description": "category name -> expense totals per month, oldest first, trailing 6 complete months.",
+              "additionalProperties": { "type": "array", "items": { "type": "number" } }
+            },
+            "category_mean": {
+              "type": "object",
+              "description": "category name -> mean and count of prior confirmed transactions in that category.",
+              "additionalProperties": {
+                "type": "object",
+                "required": ["mean", "count"],
+                "additionalProperties": false,
+                "properties": { "mean": { "type": "number" }, "count": { "type": "integer", "minimum": 0 } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "oneOf": [
+    { "properties": { "source": { "const": "upload" } }, "required": ["file", "file_type"] },
+    { "properties": { "source": { "const": "bank_sync" } }, "required": ["rows"] }
+  ]
+}

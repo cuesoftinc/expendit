@@ -1,0 +1,21 @@
+{
+  "type": "expendit.config.rulesets",
+  "version": 1,
+  "id": "a0000000-0000-4000-8000-000000022026",
+  "produced_at": "2026-10-05T00:00:00Z",
+  "data": {
+    "ruleset_id": "ng-vat-2026",
+    "jurisdiction": "NG",
+    "tax_kind": "vat",
+    "effective_from": "2020-02-01",
+    "effective_to": null,
+    "signed_off": false,
+    "signed_off_by": null,
+    "estimate_only": true,
+    "rules": {
+      "rate": 0.075,
+      "registration_threshold_ngn": 25000000,
+      "filing": { "frequency": "monthly", "due_day": 21 }
+    }
+  }
+}

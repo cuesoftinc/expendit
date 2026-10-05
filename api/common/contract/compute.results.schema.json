@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/compute.results.schema.json",
+  "title": "expendit.compute.results",
+  "description": "analytics -> common. Computed figures with their traces, stored exactly as computed (D5). Key: org id.",
+  "type": "object",
+  "required": ["request_id", "org_id", "kind", "data_version", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "kind": { "enum": ["statement_validation", "ratios", "tax_estimate", "filing", "dashboard_summary"] },
+    "data_version": { "type": "integer", "minimum": 0 },
+    "status": { "enum": ["ok", "failed"] },
+    "error_code": { "type": "string" },
+    "validation": { "$ref": "#/$defs/validation" },
+    "ratios": {
+      "type": "array",
+      "description": "web/src/models/ratio.ts RatioResult, one per registry metric.",
+      "items": { "type": "object", "required": ["key", "value", "status", "formula", "inputs"] }
+    },
+    "estimates": {
+      "type": "array",
+      "description": "web/src/models/tax.ts TaxEstimate minus the ids common assigns.",
+      "items": { "type": "object", "required": ["kind", "period", "amount_due", "computed_fields", "authority", "ruleset_id"] }
+    },
+    "summary": { "type": ["string", "null"] }
+  },
+  "$defs": {
+    "validation": {
+      "type": "object",
+      "required": ["ok", "codes", "mapping_version"],
+      "additionalProperties": false,
+      "properties": {
+        "ok": { "type": "boolean" },
+        "codes": { "type": "array", "items": { "enum": ["mapping_identity_violation", "unmapped_threshold_exceeded", "currency_mismatch"] } },
+        "mapping_version": { "type": "integer", "minimum": 1 },
+        "derived": { "type": "array", "description": "Line items the derivation added (line-items.md §4).", "items": { "type": "object" } },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

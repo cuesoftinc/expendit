@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/statement.ready.schema.json",
+  "title": "expendit.statement.ready",
+  "description": "common (outbox) -> analytics extract. A company financial statement to parse and map onto the canonical line-item vocabulary (line-items.md). Manual entries skip this topic and go straight to compute.requested. Key: statement id.",
+  "type": "object",
+  "required": ["statement_id", "org_id", "kind", "period", "currency", "file", "file_type", "ai_allowed"],
+  "additionalProperties": false,
+  "properties": {
+    "statement_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "kind": { "enum": ["balance_sheet", "income_statement", "cash_flow"] },
+    "period": { "type": "string", "pattern": "^(\\d{4}-Q[1-4]|\\d{4}-H[12]|FY\\d{4})$" },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "file_name": { "type": "string" },
+    "file_type": { "enum": ["csv", "xlsx", "pdf", "image"] },
+    "file": { "$ref": "defs.schema.json#/$defs/object_ref" },
+    "ai_allowed": { "type": "boolean" }
+  }
+}

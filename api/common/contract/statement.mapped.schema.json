@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/statement.mapped.schema.json",
+  "title": "expendit.statement.mapped",
+  "description": "analytics -> common. Parsed rows with a suggested canonical key each (below 0.6 confidence arrives unmapped), plus the derivation and validation result for mapping_version 1. Key: statement id.",
+  "type": "object",
+  "required": ["statement_id", "org_id", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "statement_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "status": { "enum": ["staged", "failed"] },
+    "error_code": { "enum": ["no_line_items_found", "password_protected_pdf", "unsupported_type", "ai_unavailable", "consent_required", "processing_error"] },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_label", "amount", "canonical_key", "confidence", "mapped_by", "derived"],
+        "additionalProperties": false,
+        "properties": {
+          "source_label": { "type": "string" },
+          "amount": { "$ref": "defs.schema.json#/$defs/money" },
+          "canonical_key": { "type": ["string", "null"] },
+          "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "mapped_by": { "enum": ["ai", "user"] },
+          "derived": { "type": "boolean" }
+        }
+      }
+    },
+    "validation": { "$ref": "compute.results.schema.json#/$defs/validation" }
+  }
+}

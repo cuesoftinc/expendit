@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/config.rulesets.schema.json",
+  "title": "expendit.config.rulesets",
+  "description": "common (outbox) -> analytics. Compacted: the latest message per ruleset id is the current rule set. analytics rebuilds its map from offset 0 on start. Unsigned rule sets are published with estimate_only = true and never used for filings (S-10). Key: ruleset id.",
+  "type": "object",
+  "required": ["ruleset_id", "jurisdiction", "tax_kind", "effective_from", "signed_off", "estimate_only", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "ruleset_id": { "type": "string", "minLength": 1 },
+    "jurisdiction": { "const": "NG" },
+    "tax_kind": { "enum": ["pit", "cit", "vat"] },
+    "effective_from": { "$ref": "defs.schema.json#/$defs/date" },
+    "effective_to": { "anyOf": [{ "$ref": "defs.schema.json#/$defs/date" }, { "type": "null" }] },
+    "signed_off": { "type": "boolean" },
+    "signed_off_by": { "type": ["string", "null"] },
+    "estimate_only": { "type": "boolean" },
+    "rules": { "type": "object", "description": "Rules-as-data per tax-engine.md (bands, rates, reliefs, thresholds)." }
+  }
+}

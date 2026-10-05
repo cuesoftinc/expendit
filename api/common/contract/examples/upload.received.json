@@ -1,0 +1,20 @@
+{
+  "type": "expendit.upload.received",
+  "version": 1,
+  "id": "0b8f3c2e-6a1d-4c5e-9f7a-1d2e3f4a5b6c",
+  "produced_at": "2026-10-05T10:00:03Z",
+  "data": {
+    "ticket_id": "tkt_01J9ZK7Q4M",
+    "org_id": "3f6e2b1a-9c8d-4e7f-a6b5-c4d3e2f1a0b9",
+    "target": { "kind": "import_job", "id": "7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f" },
+    "file_name": "gtbank-september.csv",
+    "file_type": "csv",
+    "object": {
+      "bucket": "expendit-local",
+      "key": "expendit/local/tmp/7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f/gtbank-september.csv",
+      "size": 18342,
+      "content_type": "text/csv",
+      "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+    }
+  }
+}
