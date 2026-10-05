@@ -11,6 +11,7 @@ import type {
 } from "../statement";
 import type { CanonicalKey } from "../registry/line-items";
 import { api, type RequestOptions } from "./client";
+import { sendFile, type UploadGrant } from "./uploads";
 
 export interface MappingDetail {
   statement: FinStatement;
@@ -41,24 +42,30 @@ export const statementsRepo = {
     api.get<MappingDetail>(`/statements/${id}`, options),
 
   /** Multipart upload → 202 {statement_id, mapping_status: processing}. */
-  upload: (
+  /** Create-then-upload (docs/system-design.md §6.3); see importsRepo.upload. */
+  upload: async (
     file: File,
     kind: StatementKind,
     period: string,
     options: RequestOptions,
   ) => {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("kind", kind);
-    form.append("period", period);
-    return api.post<{ statement_id: string; mapping_status: string }>(
+    const created = await api.post<
+      UploadGrant & { statement_id: string; mapping_status: string }
+    >(
       "/statements",
-      form,
+      { kind, period, file_name: file.name, size: file.size },
       options,
     );
+    if (!created.upload_ticket) {
+      return {
+        statement_id: created.statement_id,
+        mapping_status: created.mapping_status,
+      };
+    }
+    await sendFile(file, created.upload_ticket);
+    return { statement_id: created.statement_id, mapping_status: "processing" };
   },
 
-  /** Manual JSON entry → 201, staged directly (no parse, no AI). */
   manualEntry: (entry: ManualStatementEntry, options?: RequestOptions) =>
     api.post<{ statement_id: string; mapping_status: string }>(
       "/statements",

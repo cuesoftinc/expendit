@@ -25,6 +25,7 @@ import type {
   TxnEntry,
 } from "@/models";
 import { buildSeed } from "./seed";
+import type { PendingUpload } from "./uploads";
 
 export interface MockDb {
   orgs: Org[];
@@ -52,6 +53,8 @@ export interface MockDb {
   jobLinks: Record<string, string>;
   /** Real-clock ms a processing job/statement was created (lifecycle). */
   processingSince: Record<string, number>;
+  /** Upload tickets issued but not yet used (create-then-upload, system-design.md §6.1). */
+  uploadTickets: Record<string, PendingUpload>;
   seq: number;
 }
 

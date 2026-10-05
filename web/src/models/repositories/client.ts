@@ -31,6 +31,8 @@ export interface RequestOptions {
   orgId?: string;
   /** Idempotency key for upload/purge/report creation (api.md §4). */
   idempotencyKey?: string;
+  /** Extra headers, e.g. Upload-Ticket on POST /uploads (system-design.md §6.1). */
+  headers?: Record<string, string>;
   query?: Record<string, string | number | boolean | undefined>;
   signal?: AbortSignal;
 }
@@ -52,7 +54,7 @@ const request = async <T>(
   body?: unknown,
   options: RequestOptions = {},
 ): Promise<T> => {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...options.headers };
   if (options.orgId) headers["X-Org-Id"] = options.orgId;
   if (options.idempotencyKey)
     headers["Idempotency-Key"] = options.idempotencyKey;
