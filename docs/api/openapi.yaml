@@ -1,29 +1,32 @@
 openapi: 3.1.0
 info:
   title: Expendit API
-  version: 0.1.0-draft
+  version: 0.2.0-draft
   description: >-
     Draft contract for /api/v1 (docs/api.md is the narrative source). Auth:
     Firebase ID tokens (Google-only). Org-scoped authorization
-    (engineering.md §2); errors use the ecosystem envelope.
+    (engineering.md §2); errors use the ecosystem envelope. Uploads are
+    create-then-upload (system-design.md §6.1): POST /import or
+    POST /statements returns an upload ticket, and the file goes to
+    POST /uploads (api/statements) with an Upload-Ticket header.
 servers:
   - url: https://api.expendit.cuesoft.io
   - url: http://localhost:8080
 security: [{ firebase: [] }]
 tags: [{ name: ledger }, { name: imports }, { name: banking }, { name: company }, { name: taxes }, { name: rights }]
 paths:
-  /api/v1/expenses: { get: { tags: [ledger], summary: List expenses (filters, cursor), responses: { "200": { description: Page } } }, post: { tags: [ledger], summary: Create, responses: { "201": { description: Expense } } } }
-  /api/v1/incomes: { get: { tags: [ledger], summary: List incomes, responses: { "200": { description: Page } } } }
-  /api/v1/receipts: { post: { tags: [imports], summary: "Upload CSV/PDF/receipt (api/intake; async over Kafka to api/process/api/common; Idempotency-Key)", responses: { "202": { description: "{job_id}" }, "413": { description: file_too_large }, "422": { description: flows/import.md taxonomy } } } }
+  /api/v1/transactions: { get: { tags: [ledger], summary: "List ledger entries (filters: date_from, date_to, category_id, source, direction, amount_min, amount_max, anomaly_only, search; cursor)", responses: { "200": { description: Page } } }, post: { tags: [ledger], summary: Create a manual entry, responses: { "201": { description: TxnEntry } } } }
+  /api/v1/import: { get: { tags: [imports], summary: Import-job history, responses: { "200": { description: "{items}" } } }, post: { tags: [imports], summary: "Authorize an upload {file_name, size, file_type?} (role, ai_processing consent, rate limits, quota; Idempotency-Key)", responses: { "201": { description: "{job_id, upload_ticket, expires_at, max_bytes}" }, "403": { description: consent_required }, "413": { description: file_too_large }, "415": { description: unsupported_type }, "429": { description: rate_limited or quota_exceeded } } } }
+  /api/v1/uploads: { post: { tags: [imports], summary: "Send the file (api/statements). Auth is the Upload-Ticket header, not the session.", security: [], responses: { "202": { description: "{id, kind, status: processing}" }, "401": { description: invalid_ticket or ticket_expired }, "413": { description: file_too_large }, "415": { description: unsupported_type } } } }
   /api/v1/import/{jobId}: { get: { tags: [imports], summary: Job + staged transactions, responses: { "200": { description: Job } } } }
   /api/v1/import/{jobId}/confirm: { post: { tags: [imports], summary: Commit staged rows (atomic, idempotent), responses: { "200": { description: Result } } } }
   /api/v1/bank-links: { post: { tags: [banking], summary: Init Mono link, responses: { "201": { description: Connect config } } }, get: { tags: [banking], summary: List links, responses: { "200": { description: Links } } } }
   /api/v1/bank-links/{id}/sync: { post: { tags: [banking], summary: Manual sync (rate-limited), responses: { "202": { description: Job } } } }
   /api/v1/orgs: { post: { tags: [company], summary: Create org, responses: { "201": { description: Org } } }, get: { tags: [company], summary: List my orgs, responses: { "200": { description: Orgs } } } }
   /api/v1/orgs/{id}: { patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Update org (name, registered_address, fiscal_year_end — data-model.md §5)", responses: { "200": { description: Org } } } }
-  /api/v1/statements: { post: { tags: [company], summary: "Upload financial statement (multipart) OR manual JSON entry {kind, period, currency, line_items[]} staged directly (flows/statement-mapping.md §2)", responses: { "202": { description: "Upload accepted (mapping_status: processing)" }, "201": { description: "Staged (manual entry)" } } } }
-  /api/v1/statements/{id}/confirm: { post: { tags: [company], summary: Confirm mapping (identity-checked), responses: { "200": { description: Statement }, "422": { description: mapping_identity_violation } } } }
-  /api/v1/ratios: { get: { tags: [company], summary: Ratio report for period, responses: { "200": { description: Ratios + traces } } } }
+  /api/v1/statements: { post: { tags: [company], summary: "Authorize a statement upload {kind, period, file_name, size} (returns an upload ticket) OR manual JSON entry {kind, period, currency, line_items[]} staged directly (flows/statement-mapping.md §2)", responses: { "201": { description: "{statement_id, upload_ticket} or staged manual entry" } } } }
+  /api/v1/statements/{id}/confirm: { post: { tags: [company], summary: Confirm mapping (checks the stored, versioned validation), responses: { "200": { description: Statement }, "409": { description: validation_pending }, "422": { description: mapping_identity_violation or unmapped_threshold_exceeded } } } }
+  /api/v1/ratios: { get: { tags: [company], summary: "Stored ratio report for period, with status current | recomputing", responses: { "200": { description: Ratios + traces } } } }
   /api/v1/tax/estimates: { get: { tags: [taxes], summary: "Current estimates (rule-set versioned; incl. resolved remittance authority — tax-engine.md §5.5)", responses: { "200": { description: Estimates } } } }
   /api/v1/tax/filings: { post: { tags: [taxes], summary: Start filing draft, responses: { "201": { description: Draft } } } }
   /api/v1/account/export: { post: { tags: [rights], summary: Full-history export (owner), responses: { "202": { description: Archive job } } } }

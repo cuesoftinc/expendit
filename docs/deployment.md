@@ -5,19 +5,25 @@
 > **cuesoft-iac** Pulumi ecosystem — never ad-hoc gcloud. Self-hosting via
 > `deploy/` (compose/helm/terraform) is unchanged and shares only images.
 
-## 1. Topology
+## 1. Topology **[Decided — system-design.md §10, S-12]**
 
-| Surface | Runs on | Provisioned by |
-| --- | --- | --- |
-| `api/common` (Go) | Cloud Run | cuesoft-iac stack `expendit` |
-| `api/intake` (Node) | Cloud Run | cuesoft-iac stack `expendit` |
-| `api/process` (Python) | Cloud Run | cuesoft-iac stack `expendit` |
-| `web` (Next.js) | **Firebase App Hosting** | App Hosting backend |
+| Unit | Runs on | Scaling | Provisioned by |
+| --- | --- | --- | --- |
+| `api/common` (Go) `./server` | Cloud Run **service** | **min 1**, max 5: it consumes Kafka and publishes the outbox | cuesoft-iac stack `expendit` |
+| `api/common` `./jobs <name>` | Cloud Run **jobs** + Cloud Scheduler | reaper every minute, tmp-cleanup every 15 min, retention daily | cuesoft-iac stack `expendit` |
+| `api/statements` (Node) | Cloud Run **service** | 0–5 | cuesoft-iac stack `expendit` |
+| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run **worker pool** | 1–3, capped by the Vertex quota | cuesoft-iac stack `expendit` |
+| `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run **worker pool** | 1–2 | cuesoft-iac stack `expendit` |
+| `web` (Next.js) | **Firebase App Hosting** | managed | App Hosting backend |
+| Postgres, Kafka, Redis | Aiven | — | Aiven console / IaC |
+| Object storage | default bucket, `expendit/stg/…`, 1-day lifecycle rule on `tmp/` | — | cuesoft-iac |
 
-`api/intake` and `api/process` connect to `api/common` only over Aiven
-Kafka pub/sub (organization-policy.md), never a direct s2s call — chosen
-specifically because Cloud Run scale-to-zero can silently drop a live gRPC
-connection between calls.
+Services talk only over Aiven Kafka, never with direct service-to-service
+calls (D4). Each service has its own SASL user with topic-level ACLs, and
+each has Storage IAM on its prefixes only (S-11): `statements` can write
+`tmp/`, `analytics` can read `tmp/` and `compute/`, and `common` can do
+everything. Topics are created up front (`deploy/docker/kafka/create-topics.sh`
+lists them; `config.rulesets` is compacted, every other topic keeps 24 h).
 
 ## 2. Provisioning (cuesoft-iac)
 
@@ -60,29 +66,36 @@ environments exist.
 
 ## 4. Runtime contract (Cloud Run)
 
-| Service | CPU / mem | Concurrency | Min–max instances | Timeout |
+| Unit | CPU / mem | Concurrency | Instances | Timeout |
 | --- | --- | --- | --- | --- |
-| api/common | 1 vCPU / 512 MiB | 80 | 0–5 | 60 s |
+| api/common | 1 vCPU / 512 MiB | 80 | 1–5 | 60 s |
+| api/statements | 1 vCPU / 512 MiB | 20 (15 MB bodies in memory) | 0–5 | 60 s |
+| api/analytics extract | 1 vCPU / 1 GiB | n/a (worker pool) | 1–3 | n/a |
+| api/analytics compute | 1 vCPU / 512 MiB | n/a (worker pool) | 1–2 | n/a |
 
-**[Decided defaults]** for `api/common`. `api/intake` and `api/process`
-replace the single-worker/Redis-queue sketch this table used to carry —
-their own CPU/mem/concurrency/timeout defaults aren't ratified yet
-**[Proposed]**; `api/process` in particular needs isolation from the AI
-call budget the way the old worker row did.
+**[Decided defaults]** for common; the other rows are **[Proposed]** until
+the first load test.
 
-- Domain: `api.expendit.cuesoft.io` → api/common; `api/intake` needs its own
-  public domain/route for `POST /receipts` (not yet assigned). `api/process`
-  is never internet-facing — it's reached only over Kafka.
-- Ingress is open, so the origin is reachable both through Cloudflare and
-  directly — a chain one hop shorter. Client-IP attribution for rate limits is
-  therefore CIDR-validated, never hop-counted: set `TRUSTED_PROXY_CIDRS` from
-  verified ranges and leave `TRUSTED_PROXY_HOPS` at `0`
-  (api/common/README.md §Trusted proxies).
+- Domain (S-14): `api.expendit.cuesoft.io` is one load balancer.
+  `/api/v1/uploads` routes to `api/statements` and every other path to
+  `api/common`. `api/analytics` has no ingress.
+- Rate limits are per org, enforced by `common` before a ticket exists, so
+  no client-IP attribution is needed (the trusted-proxy settings are gone).
+- Postgres: connect as a **non-superuser** that owns the database, because
+  superusers bypass row-level security. Migrations run at `server` start
+  under an advisory lock; `./jobs migrate` runs them on their own.
+- Upload-ticket keys: `common` gets `UPLOAD_TICKET_PRIVATE_KEY`, and
+  `statements` gets every live public key in `UPLOAD_TICKET_PUBLIC_KEYS`.
+  To rotate, add the new public key, switch the private key, then drop the
+  old public key after 5 minutes.
 - Rollback: redeploy the previous image digest (recorded in the release run).
 - Web env: `NEXT_PUBLIC_*` flows Doppler → `apphosting.yaml` at rollout.
+- Variable names: system-design.md §10.3 and each service's `.env.example`.
 
 ## 5. Not in this phase
 
-Writing these workflows + the Pulumi stack is **implementation work**, out of
-scope for the docs phase — this document is the contract they'll be built
-against. Docker Hub repos already exist for every image name above.
+`release.yml` and the Pulumi stack are still to be written; this document is
+the contract they'll be built against. The images now exist as
+`cuesoft/expendit-api-common`, `cuesoft/expendit-api-statements`,
+`cuesoft/expendit-api-analytics` and `cuesoft/expendit-web`. The
+`intake`/`process` Docker Hub repos can be retired.

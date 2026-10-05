@@ -59,6 +59,8 @@ Cross-org access is `404 not_found`, never `403` (no existence leaks).
 | Tax filing generation | 6/hr per org |
 | Auth | Firebase-managed; Redis limiter retired from auth routes only |
 
+Upload limits are enforced by api/common when it issues the upload ticket, before any bytes move (S-5). Redis counts them and fails open.
+
 ## 4. Testing strategy
 
 | Layer | Scope | Non-negotiables |
@@ -94,8 +96,10 @@ tokens, generated tax documents' contents, AI prompts containing user data
   `Allow-Credentials: false` (bearer auth — no cookies);
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
-  with `Access-Control-Max-Age: 600`.
-- **Current middleware is a flagged DEFECT: it reflects any origin with `Allow-Credentials: true` — must adopt the contract below at first touch (tracked as a Phase 0 hardening item).**
+  with `Access-Control-Max-Age: 600`. The upload gateway (api/statements)
+  allows only `POST`, `Content-Type` and `Upload-Ticket`.
+- **[Built 2026-10-05]** in api/common's and api/statements' middleware; the
+  old reflect-any-origin defect went with the rewrite.
 
 ## Telemetry (OpenTelemetry, X-9)
 

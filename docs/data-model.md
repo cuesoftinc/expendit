@@ -3,12 +3,14 @@
 > Companion to [prd.md](prd.md) / [architecture.md](architecture.md).
 > Markers: **[Current]**, **[PRD]**, **[Proposed]**.
 
-> **X-5 alignment (2026-07-16):** cloud system of record is **Aiven
-> Postgres**; the Mongo entities below describe the *current* code and the
-> self-host default until the Mongo→Postgres migration executes with E-4.
-> Entity shapes are store-agnostic.
+> **Postgres since 2026-10-05 (X-5, S-2).** The schema is
+> `api/common/migrations/` and api/common is its only client. Every
+> org-scoped table has row-level security on `org_id` (S-11). §1 records the
+> original MongoDB shapes for the migration runbook (§6.3); §2 and §5 are the
+> entities as built, with the same names as tables. Entity shapes are
+> store-agnostic.
 
-## 1. Current entities **[Current]** (MongoDB)
+## 1. Original entities (MongoDB, retired 2026-10-05)
 
 ```mermaid
 erDiagram
@@ -87,8 +89,11 @@ Notes:
 - Anomaly vocabulary **[Current]**: `large_transaction`, `spending_spike`,
   `abnormal_category`, `duplicate_charge`. Computational contract (formulas,
   v1 constants, severities): flows/import.md §7.
-- Raw uploaded file bytes are **not persisted** — parsed in-memory only.
-  This is a privacy feature to keep, and to document (prd.md §8.3).
+- Raw uploaded file bytes: **at rest only until parsed** (S-4, amending
+  E-5). They sit in object storage `tmp/` between upload and
+  `import.processed`, normally seconds, and are then deleted by api/common;
+  a sweep removes anything older than 1 hour. Document this in the privacy
+  hub (prd.md §8.3).
 
 ## 2. Target additions **[Proposed]**
 
@@ -144,13 +149,13 @@ the same Firebase project — no further migration.
 
 | Class | Data | Rules |
 | --- | --- | --- |
-| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address` — X-10 tier-1/tier-2 fields, §5) | Never in logs (the old monolith's `[pdf] sample:` line did not carry over to `api/process` — architecture.md §4.2); TLS in transit; third-party AI processing disclosed; raw files not at rest |
+| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address` — X-10 tier-1/tier-2 fields, §5) | Never in logs (the old monolith's `[pdf] sample:` line did not carry over); TLS in transit; third-party AI processing disclosed; raw files at rest only until parsed (S-4) |
 | Sensitive | User identity, consent, purge requests | Standard PII handling; consent/purge rows immutable audit records |
 | Operational | Job status/counters, event counters to Upstat | Safe for logs/metrics; Upstat events are **counters only, never amounts or descriptions** |
 
 Retention defaults **[Proposed, to ratify]**: ledger data until user deletion
 (USR-002); import jobs + staging 90 days after confirm/discard; report
-artifacts 30 days (regenerable); raw uploads never at rest.
+artifacts 30 days (regenerable); raw uploads at rest only until parsed (S-4).
 
 ---
 

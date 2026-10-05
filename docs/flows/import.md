@@ -1,12 +1,12 @@
 # Flow: Statement / Receipt Import
 
-> The staged-review pipeline (architecture.md §4) from the user's side, with
-> every edge case. The **async** model (202 + polling) below is shipped —
-> `POST /receipts` on api/intake, processed by api/process, persisted by
-> api/common. Rows not yet built (timeout reaper, typed failure codes,
-> consent gating) are marked **[Proposed]**.
-> Preconditions: authed; `ai_processing` consent for PDF-AI/receipt paths
-> (flows/auth.md §4).
+> The staged-review pipeline (architecture.md §4, system-design.md §6.1)
+> from the user's side, with every edge case. **[Built 2026-10-05]**:
+> create-then-upload with a ticket. `POST /api/v1/import` on api/common
+> authorizes and returns an upload ticket, the file goes to api/statements
+> (`POST /api/v1/uploads`), api/analytics decides, and api/common stores the
+> result. Preconditions: authed; `ai_processing` consent for image imports,
+> and for AI on PDFs (flows/auth.md §4).
 
 ## 1. Happy path
 
@@ -14,8 +14,10 @@
 flowchart TD
     UP[/imports: drop file MI-2/] --> VAL{client checks}
     VAL -->|type/size fail| E0[inline error, no upload]
-    VAL --> POST[POST /receipts → 202 job_id]
-    POST --> POLL[GET /import/:jobId — processing]
+    VAL --> CREATE[POST /import → 201 job_id + upload_ticket]
+    CREATE -->|403 consent · 413 · 415 · 429| E0
+    CREATE --> SEND[POST /uploads with Upload-Ticket → 202]
+    SEND --> POLL[GET /import/:jobId — processing]
     POLL --> DONE{completed?}
     DONE -->|failed| FAIL[job error state + guidance]
     DONE -->|completed| REVIEW[staged review table]
@@ -28,14 +30,15 @@ flowchart TD
 
 | Step | Contract |
 | --- | --- |
-| Client checks | CSV/XLSX/TXT/PDF/JPG/PNG/WEBP/HEIC; ≤ 15 MB **[Decided — the binding limit; roadmap exit criteria reference it. `api/intake` currently enforces 10 MB — not yet reconciled, architecture.md §4.2]**; images client-compressed ≤ 2048px, **server re-validates** (oversize → `413`, oversized-dimension images server-downscaled) **[server-side re-validation and downscaling not yet built]** |
-| Upload | multipart + `Idempotency-Key` (UUID per file selection) — retries never double-import; same key returns the same `job_id` **while the job is processing or completed; a `failed` job releases its key** (retry = same key allowed, new job) — `api/intake`'s cache is in-process only, so this holds per-instance, not yet across replicas |
-| Processing | `api/process` consumes over Kafka; job status `processing → completed \| failed`; poll every 2s with backoff, or SSE later; UI shows the MI-2 AI-sparkle stage |
+| Client checks | CSV/XLSX/TXT/PDF/JPG/PNG/WEBP/HEIC; ≤ 15 MB **[Decided, S-6: the ticket carries the limit]**; images client-compressed ≤ 2048px, **server re-validates** (oversize → `413`; images over 2048px are downscaled by api/statements) |
+| Create | `POST /import {file_name, size}` + `Idempotency-Key` (UUID per file selection). api/common checks role, `ai_processing` consent (images), the 10/hr and 30/day limits and the daily byte quota **before any bytes move**, then returns `201 {job_id, upload_ticket}`. The same key returns the same `job_id` **while the job is pending, processing or completed; a `failed` job releases its key**. Keys are stored in Postgres, so this holds across replicas. |
+| Upload | `POST /uploads` (multipart `file`) with `Upload-Ticket`: a single-use, 5-minute Ed25519 ticket (S-5). The gateway checks the signature and size before reading the body, then the magic bytes against the declared type. It writes the file to `tmp/` and answers `202`. |
+| Processing | api/analytics consumes `import.ready` (a pointer plus reference data) over Kafka. Job status goes `processing → completed \| failed`; poll every 2s with backoff, or SSE later. The UI shows the MI-2 AI-sparkle stage. The raw file is deleted once api/common stores the result (S-4). |
 | Staged review | duplicates pre-flagged (`is_duplicate`) and excluded from the confirm count by default — user can re-include (false positives happen with recurring identical payments); AI categories carry the ✨ mark until touched |
 | Confirm | `POST /import/:jobId/confirm` idempotent (second call → 200 no-op); writes ledger rows atomically — partial confirm is impossible: all-or-error |
 | Discard | purges staging + job summary immediately |
 
-## 3. Failure taxonomy **[Proposed — the typed codes below are the target contract; `api/intake` today only enforces the multipart size cap via a generic 400, none of the other rows are implemented yet]**
+## 3. Failure taxonomy **[Built 2026-10-05]**
 
 | Code | Cause | UX |
 | --- | --- | --- |
@@ -79,7 +82,7 @@ Events: `upload_success{file_type}` (job completed), `import_confirmed`,
 - [ ] AI-down leaves CSV imports fully functional
 - [ ] No transaction contents in logs (the `[pdf] sample:` class of leak, gone)
 
-## 7. Anomaly rules registry **[Proposed — ratify; capture the actual current-code thresholds during E2-4 and correct this table]**
+## 7. Anomaly rules registry **[Built 2026-10-05 in api/analytics `extract/anomaly/rules.py`, rule_version v1]**
 
 The computational contract behind the anomaly vocabulary (data-model.md §1,
 architecture.md §4.1) — rules-as-data like line-items.md §5, so a threshold

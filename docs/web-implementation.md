@@ -484,8 +484,8 @@ compose up --build -d` (the repo's `make up`) vs `cd expendit && helm
 install expendit deploy/helm` (the real chart path). The rendered `$ `
 prompts are decorative (select-none) and stay out of the payload. The
 shared muted caption renders once under the block — "Compose ships
-MongoDB + Redis — the Helm chart expects reachable instances
-(MONGODB_URL, REDIS_URL)." — visible in both tab states, so switching
+Postgres, Kafka, Redis + MinIO — the Helm chart expects reachable instances
+(DATABASE_URL, KAFKA_BROKERS)." — visible in both tab states, so switching
 never shifts layout. The section eyebrow reads method-neutral "self-host".
 Unit: `CodeSnippet.test.tsx` tabbed cases
 (tab state, per-tab copy payload, Radix roving focus, copied-morph
@@ -676,7 +676,7 @@ with full CRUD; contract types shared with `src/models/`.
 | --- | --- |
 | Ledger | `/expense` · `/income` · `/category` CRUD + search (v1-consolidated: JWT-scoped, enveloped, cursor-paginated) |
 | Dashboard aggregates | monthly income-vs-expense + category totals (the api.md §1 report endpoints, v1-consolidated) — B1 charts and StatCards; the monthly series is the trailing-12-month window trimmed to ledger onset (months before the org's first transaction are never emitted — no fabricated zero points; zero months after onset are true zeros); the anomaly feed reads anomaly-flagged transactions (flows/import.md §7 registry), no separate endpoint |
-| Import | `POST /import/upload` (`202 {job_id}`, scripted processing → completed) · `GET /import/{job_id}` (polling) · `PUT /import/transaction/{id}/category` · `POST /import/{job_id}/confirm` · `DELETE /import/{job_id}` — every flows/import.md §3 failure-taxonomy code reproducible via designated fixture files |
+| Import | `POST /import` (`201 {job_id, upload_ticket}`) → `POST /uploads` with `Upload-Ticket` (`202`, scripted processing → completed; system-design.md §6.1) · `GET /import/{job_id}` (polling) · `PUT /import/transaction/{id}/category` · `POST /import/{job_id}/confirm` · `DELETE /import/{job_id}` — every flows/import.md §3 failure-taxonomy code reproducible via designated fixture files |
 | Reports & artifacts | `POST /reports` (`201 {artifact_id, signed_url, expires_at}` — mock-served file URL) · `GET /reports` (TTL'd history) |
 | Data rights | `POST /account/export` (`202 {job_id}` → poll → signed_url) · `POST /account/purge` · `DELETE /account/purge` (grace; `409 purge_pending` on writes while open) |
 | Consent | `GET/POST /consent` (`tos` / `privacy` / `ai_processing`) |

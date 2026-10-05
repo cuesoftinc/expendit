@@ -2,52 +2,74 @@
 
 ## Prerequisites
 
-- [Docker](https://www.docker.com/) & Docker Compose (recommended path)
-- For native development: [Go](https://go.dev/) 1.25+ (`api/common`),
-  [Node.js](https://nodejs.org/) 20+ (`web`), [MongoDB](https://www.mongodb.com/),
-  and [Redis](https://redis.io/) (optional — rate limiting falls back to in-memory)
+- [Docker](https://www.docker.com/) and Docker Compose (the recommended path)
+- For native development: [Go](https://go.dev/) 1.26+ (`api/common`),
+  [Node.js](https://nodejs.org/) 24+ (`web`, `api/statements`),
+  [Python](https://www.python.org/) 3.12+ (`api/analytics`)
 
 ## Configuration
 
-Each service ships an `.env.example`; copy it and fill in real values. Never
-commit real `.env` files — `make up` reads the root `.env`.
+Every service ships an `.env.example` with its native-run variables (names
+per [system-design.md §10.3](system-design.md#103-environment-variables-fleet-names-only)).
+Compose reads the root `.env`; never commit a real one.
 
-### Backend (`api/common`)
+```bash
+cp .env.example .env
+```
 
-| Variable | Description |
-| -------- | ----------- |
-| `PORT` | API port (default `8080`) |
-| `MONGODB_URL` | MongoDB connection string |
-| `JWT_SECRET` | Secret used to sign JWTs |
-| `EMAIL_FROM` | From address for outbound email |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_PORT` | SMTP credentials |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GEMINI_API_KEY` | Google Gemini API key (AI summaries) |
-| `GROQ_API_KEY` | Groq API key (AI categorization) |
-| `REDIS_URL` | Redis connection string (optional) |
-| `FRONTEND_URL` | Web app URL for CORS/redirects |
+The root example already holds a **local-only** upload-ticket key pair, so
+compose works as is. For anything else, generate a pair with
+`cd api/common && go run ./cmd/ticketkey <kid>`.
 
 ## Quick start (Docker)
 
 ```bash
-cp .env.example .env
-make up        # build + start mongo, redis, api-common (:8080), web (:3000)
+make up        # build + start the stack below
 make logs      # follow logs
 make down      # stop and remove
 ```
 
-- API: http://localhost:8080 — health `/health`, readiness `/ready`
-- Web: http://localhost:3000
+| Service | URL | What |
+| --- | --- | --- |
+| web | http://localhost:3000 | Next.js app |
+| common | http://localhost:8080 | API (`/health`, `/ready`, `/api/v1/*`) |
+| statements | http://localhost:8081 | upload gateway (`POST /api/v1/uploads`) |
+| analytics | http://localhost:8082 | health only; works over Kafka |
+| postgres | localhost:5432 | app role `expendit_app` / `expendit_app`, db `expendit` |
+| kafka | localhost:9094 | topics created by `kafka-init` |
+| minio | http://localhost:9001 | console (`minioadmin` / `minioadmin`) |
+| firebase-auth | localhost:9099 | auth emulator (Google sign-in) |
 
-## Running natively (without Docker)
+A `jobs` container runs the sweeps (reaper, tmp-cleanup, retention) on a
+loop. Cloud runs them on Cloud Scheduler.
 
-Start MongoDB and Redis (e.g. `docker run -d -p 27017:27017 mongo:7` and
-`docker run -d -p 6379:6379 redis:7`), then:
+AI is optional locally. Set `GROQ_API_KEY` or `GEMINI_API_KEY` in `.env` to
+enable AI categorization, PDF extraction and receipt images. Without one,
+CSV and PDF (regex) imports still work.
+
+## Running a service natively
+
+Start the dependencies with `docker compose up -d postgres kafka kafka-init redis minio firebase-auth`, then:
 
 ```bash
-# Backend — listens on :8080 (override with PORT)
-cd api/common && go run ./cmd/server
+# api/common, :8080 (migrations run at start)
+cd api/common && cp .env.example .env && set -a && . ./.env && set +a && go run ./cmd/server
 
-# Web
+# api/statements, :8081
+cd api/statements && cp .env.example .env && npm install && npm run dev
+
+# api/analytics, :8082
+cd api/analytics && cp .env.example .env && pip install -r requirements.txt && uvicorn app.main:app --port 8082
+
+# web, :3000 (TEST_MODE uses the in-app mock API and needs no backend)
 cd web && npm install && npm run dev
 ```
+
+## Tests
+
+| Service | Command |
+| --- | --- |
+| api/common | `go vet ./... && go test ./...` (`-short` skips the Postgres integration test) |
+| api/statements | `npm run typecheck && npm run lint && npm test` |
+| api/analytics | `pytest && ruff check .` |
+| web | `npm run lint && npm run typecheck && npm test`; e2e: `npm run test:e2e` |

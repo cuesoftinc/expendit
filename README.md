@@ -10,9 +10,9 @@ and generate real-time reports for better financial management.
 ## Overview
 
 Expendit is a monorepo containing the clients, backend services, deployment
-configuration, and documentation for the platform. A Go REST API owns
-authentication, expenses, income, categories, statement imports, AI-assisted
-summaries, and reporting; a Next.js frontend serves the marketing site and the
+configuration, and documentation for the platform. Three backend services
+(Go for data, Node for uploads, Python for every financial decision) sit
+behind one API host; a Next.js frontend serves the marketing site and the
 authenticated dashboard; and a Flutter mobile app (planned) shares the same
 API. For a deeper description of the components and how they fit together, see
 [docs/overview.md](docs/overview.md).
@@ -21,46 +21,57 @@ API. For a deeper description of the components and how they fit together, see
 
 ```mermaid
 flowchart LR
-    WEB[Next.js web app<br/>web/] -->|HTTPS REST| API[Go REST API — Gin<br/>api/common/]
-    MOB[Flutter mobile<br/>mobile/, planned] --> API
-    API --> MG[(MongoDB)]
-    API --> RD[(Redis<br/>rate limits)]
-    API --> GAUTH[Google OAuth]
-    API --> AI[AI extraction/categorization<br/>Vertex in cloud · BYO keys self-host]
-    API --> SMTP[SMTP email]
+    WEB[Next.js web app<br/>web/] -->|HTTPS| COM[api/common — Go<br/>CRUD owner]
+    WEB -->|file + upload ticket| ST[api/statements — Node<br/>upload gateway]
+    MOB[Flutter mobile<br/>mobile/, planned] --> COM
+    COM --> PG[(Postgres)]
+    COM <-->|Kafka| AN[api/analytics — Python<br/>every decision]
+    ST -->|tmp/ + Kafka| AN
+    AN --> AI[AI: Vertex in cloud · BYO keys self-host]
+    COM --> FB[Firebase Auth]
 ```
+
+Go does CRUD, Python makes every decision, and the Node gateway validates
+uploads and hands them off. The full design is
+[docs/system-design.md](docs/system-design.md).
 
 ### Tech stack
 
-| Layer          | Technology                                             |
-| -------------- | ------------------------------------------------------ |
-| Backend API    | Go 1.26, Gin, MongoDB, JWT, Redis                      |
-| Web            | Next.js, React, TypeScript                             |
-| Mobile         | Flutter (planned)                                      |
-| AI             | Google Gemini, Groq (summaries & categorization)       |
-| Infrastructure | Docker, Helm, Terraform                                |
+| Layer          | Technology                                                       |
+| -------------- | ---------------------------------------------------------------- |
+| api/common     | Go 1.26, net/http, Postgres (pgx, row-level security), Redis     |
+| api/statements | Node 24, NestJS 11                                               |
+| api/analytics  | Python 3.12, FastAPI, aiokafka                                   |
+| Messaging      | Kafka (Aiven), JSON Schema contract in `api/common/contract/`    |
+| Auth           | Firebase, Google sign-in only                                    |
+| Web            | Next.js, React, TypeScript                                       |
+| Mobile         | Flutter (planned)                                                |
+| AI             | Vertex AI in cloud; Groq or Gemini keys for self-host            |
+| Infrastructure | Docker Compose, Helm, Terraform                                  |
 
 ## Repository structure
 
 ```
 api/
-  common/      Go backend API (Gin, MongoDB) — module: github.com/cuesoftinc/expendit/api/common
-web/           Next.js web application (marketing + dashboard)
+  common/       Go CRUD owner: auth, orgs, ledger, imports, tickets, outbox (Postgres)
+  statements/   Node upload gateway (POST /api/v1/uploads)
+  analytics/    Python processing: extract pool + compute pool
+web/            Next.js web application (marketing + dashboard)
 mobile/
-  flutter/     Flutter cross-platform app (planned)
-  android/     Native Android (planned)
-  ios/         Native iOS (planned)
+  flutter/      Flutter cross-platform app (planned)
+  android/      Native Android (planned)
+  ios/          Native iOS (planned)
 deploy/
-  docker/      Container / Docker Compose configuration
-  helm/        Kubernetes Helm charts
-  terraform/   Infrastructure as code
-docs/          Architecture, setup, and reference documentation
-scripts/       Developer and CI scripts
+  docker/       Compose support files (Postgres init, Kafka topics, Firebase emulator)
+  helm/         Kubernetes Helm chart (all services + sweeps)
+  terraform/    Infrastructure as code
+docs/           Architecture, setup, and reference documentation
+scripts/        Developer and CI scripts
 ```
 
-Additional services follow the same convention: `api/common` is the shared Go
-backend, and every other service lives under `api/<service-name>` named by its
-function (never by its language).
+Every backend service lives under `api/<service-name>`, named by its
+function (never by its language), and shares one base layout (config,
+health, kafka, storage, contract, telemetry).
 
 ## Getting started
 
@@ -68,24 +79,23 @@ function (never by its language).
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
 - For native development: [Go](https://go.dev/) 1.26, [Node.js](https://nodejs.org/) 24,
-  and [MongoDB](https://www.mongodb.com/) + [Redis](https://redis.io/) (if not using Docker)
+  [Python](https://www.python.org/) 3.12 (compose provides Postgres, Kafka, Redis and MinIO)
 
 ### Quick start
 
 ```bash
-cp .env.example .env   # fill in secrets as needed
-make up      # build + start the full stack (mongo, redis, api, web)
+cp .env.example .env   # ships a local-only upload-ticket key pair
+make up      # build + start the full stack (postgres, kafka, redis, minio, firebase emulator, 3 APIs, web)
 make logs    # follow logs
 make down    # stop
 ```
 
-The API listens on `http://localhost:8080` and the web app on
-`http://localhost:3000` by default.
+The API listens on `http://localhost:8080`, the upload gateway on `:8081`
+and the web app on `http://localhost:3000`.
 
 Run `make help` to see all available targets. For a detailed walkthrough, see
 [docs/setup.md](./docs/setup.md).
 
-> **Where this is heading:** the ratified target stack (Firebase Google-only auth, Aiven Postgres, Vertex AI, Cloud Run) lives in [docs/decisions.md](docs/decisions.md) — the diagram above is current state.
 
 ## Documentation
 - [Hosted docs](https://cuesoft.gitbook.io/expendit) — the full documentation site (auto-synced from `docs/`)

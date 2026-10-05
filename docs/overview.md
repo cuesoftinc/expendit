@@ -9,28 +9,38 @@ responsibilities. To run the stack locally, see [setup.md](setup.md).
 
 ```mermaid
 flowchart LR
-    WEB[Next.js web app<br/>web/] -->|HTTPS REST| API[Go REST API — Gin<br/>api/common/]
-    MOB[Flutter mobile<br/>mobile/, planned] --> API
-    API --> MG[(MongoDB)]
-    API --> RD[(Redis<br/>rate limits)]
-    API --> GAUTH[Google OAuth]
-    API --> AI[AI extraction/categorization<br/>Vertex in cloud · BYO keys self-host]
-    API --> SMTP[SMTP email]
+    WEB[Next.js web app<br/>web/] -->|HTTPS| COM[api/common — Go<br/>CRUD owner]
+    WEB -->|file + upload ticket| ST[api/statements — Node<br/>upload gateway]
+    MOB[Flutter mobile<br/>mobile/, planned] --> COM
+    COM --> PG[(Postgres)]
+    COM --> RD[(Redis<br/>rate limits)]
+    COM <-->|Kafka| AN[api/analytics — Python<br/>every decision]
+    ST -->|tmp/ + Kafka| AN
+    AN --> AI[AI extraction/categorization<br/>Vertex in cloud · BYO keys self-host]
+    COM --> FB[Firebase Auth<br/>Google sign-in]
 ```
 
-- **`web`** — Next.js marketing site + authenticated dashboard (React,
-  TypeScript). Talks to the API over HTTP (REST).
-- **`mobile`** — Flutter app + native shells (`mobile/{flutter,android,ios}`),
+- **`web`**: Next.js marketing site and authenticated dashboard (React,
+  TypeScript). Talks to `api/common` over HTTP, and sends upload files to
+  `api/statements` with a ticket.
+- **`mobile`**: Flutter app and native shells (`mobile/{flutter,android,ios}`),
   placeholders today, consuming the same API.
-- **`api/common`** — Go service (module `github.com/cuesoftinc/expendit/api/common`, Gin): the source of
-  truth for auth/users, expenses/income/categories, statement imports (CSV/PDF
-  parsing, dedup, categorization), AI-assisted summaries (Gemini/Groq), and
-  reporting.
-- **Auth** — JWT (`golang-jwt`) plus Google OAuth.
-- **Data** — MongoDB (records); Redis for rate limiting (in-memory fallback).
+- **`api/common`** (Go): the CRUD owner and the only service that touches
+  Postgres. It handles auth (Firebase), orgs and roles, the ledger, imports,
+  statements, stored ratios and tax figures, upload tickets, and the outbox.
+- **`api/statements`** (Node, NestJS): the thin upload gateway. It checks the
+  ticket and the file, stores the file temporarily, and hands a pointer to
+  Kafka.
+- **`api/analytics`** (Python): every decision. Parsing, duplicates,
+  categories, anomalies, summaries, statement mapping, ratios and tax.
+- **Data**: Postgres (records), object storage for uploads until parsed,
+  Kafka between services, Redis for rate limits.
 
-Backend services are named by **function**, never by language: the current
-service is `api/common`; a future one would be `api/<function>`. See the
+The full design is [system-design.md](system-design.md); the as-built view
+is [architecture.md](architecture.md).
+
+Backend services are named by **function**, never by language:
+`api/common`, `api/statements`, `api/analytics`. See the
 [repository structure](https://github.com/cuesoftinc/expendit#repository-structure) in the README.
 
 ## Product & design documentation

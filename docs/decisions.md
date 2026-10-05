@@ -68,6 +68,12 @@ until user deletion · purge grace window **7 days**.
 
 ☑ Ratified as recommended
 
+**Amended 2026-10-05 by S-4:** raw uploads are now at rest **only until
+parsed**: in Cloud Storage `tmp/`, deleted by `api/common` as soon as
+`api/analytics` reports back (normally seconds), swept after 1 hour, with a
+1-day bucket lifecycle rule as the backstop. Every other retention default
+above stands. The privacy hub copy changes with it.
+
 ## E-6 · Currency handling
 
 **Recommendation ⭐:** v1 = **single currency per org** (₦ default, set at org
@@ -195,3 +201,30 @@ until a real customer needs it.
   the template); tier-2 fields are high-sensitivity in every data-model §4
   classification; verification is delegated to the money/filing provider —
   no in-house document review. ☑
+
+## System design (S-1 … S-14)
+
+> **RATIFIED 2026-10-05.** The decisions in [system-design.md §13](system-design.md#13-decisions-to-ratify),
+> approved as recommended. S-2 was signed off by the product lead on
+> 2026-10-05: only Go accesses Postgres, and statements and processing use
+> temporary storage only. That replaces the earlier ask for SQL in common,
+> NoSQL in statements and both in analytics. These supersede the system-shape
+> parts of architecture.md, data-model.md §4 and deployment.md that
+> contradicted them; those docs were rewritten the same day.
+
+| ID | Decision | Status |
+| --- | --- | --- |
+| S-1 | Units: `web` · `api/common` (Go, CRUD) · `api/statements` (Node, thin gateway; was `intake`) · `api/analytics` (Python; was `process`), two worker pools | ☑ |
+| S-2 | Only `api/common` touches Postgres. `statements` and `analytics` have no database; they use temporary object storage, and `analytics` gets reference data inside messages | ☑ signed off |
+| S-3 | Claim-check: files in Cloud Storage `tmp/`, pointers on Kafka; payloads over 512 KB by reference | ☑ |
+| S-4 | Raw files at rest only until parsed (amends E-5) | ☑ |
+| S-5 | Upload tickets: `common` authorizes first (role, AI consent, limits, quota) and issues a single-use, 5-minute Ed25519 ticket; the gateway is stateless | ☑ |
+| S-6 | 15 MB upload cap, carried in the ticket | ☑ |
+| S-7 | All computation in `analytics`: statement derivations and checks, ratios, tax, the dashboard AI summary; `common` stores results with traces | ☑ |
+| S-8 | Statement confirm checks the stored, versioned validation (`409 validation_pending` while recomputing) | ☑ |
+| S-9 | Bank sync fetch stays in `common` (lookup, fetch, relay); decisions go through the import pipeline | ☑ |
+| S-10 | Rule sets propagate by outbox → compacted topic; unsigned sets are `estimate_only` | ☑ |
+| S-11 | Postgres row-level security by `org_id`; per-prefix Storage IAM; per-service Kafka ACLs | ☑ |
+| S-12 | `common` min 1 instance; `analytics` as two worker pools; sweeps as Cloud Run jobs | ☑ |
+| S-13 | Topics `expendit.<domain>.<event>`; JSON Schemas in `api/common/contract/` | ☑ |
+| S-14 | The gateway sits behind `api.expendit.cuesoft.io/api/v1/uploads` | ☑ |
