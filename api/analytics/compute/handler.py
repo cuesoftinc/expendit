@@ -29,6 +29,11 @@ class ComputeHandler:
             "data_version": msg["data_version"],
         }
         inputs = msg["inputs"]
+        # Echo what common needs to file the result.
+        if "period" in msg:
+            result["period"] = msg["period"]
+        if msg["kind"] == "statement_validation":
+            result["statement_id"] = inputs["statement_id"]
         try:
             match msg["kind"]:
                 case "statement_validation":

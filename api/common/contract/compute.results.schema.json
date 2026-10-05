@@ -11,6 +11,8 @@
     "org_id": { "$ref": "defs.schema.json#/$defs/id" },
     "kind": { "enum": ["statement_validation", "ratios", "tax_estimate", "filing", "dashboard_summary"] },
     "data_version": { "type": "integer", "minimum": 0 },
+    "period": { "type": "string", "description": "Echoed from the request." },
+    "statement_id": { "$ref": "defs.schema.json#/$defs/id", "description": "statement_validation: echoed from inputs.statement_id." },
     "status": { "enum": ["ok", "failed"] },
     "error_code": { "type": "string" },
     "validation": { "$ref": "#/$defs/validation" },

@@ -3,6 +3,9 @@
 !.env.example
 
 # local build output
-/app
+/server
+/jobs
+/ticketkey
+*.exe
 tmp/
 *.log

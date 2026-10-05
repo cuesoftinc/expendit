@@ -229,12 +229,19 @@ async def test_handler_round_trips_through_the_contract(contract, book):
         "org_id": str(uuid.uuid4()),
         "kind": "statement_validation",
         "data_version": 7,
-        "inputs": {"kind": "income_statement", "mapping_version": 2, "line_items": [_item("revenue", 100), _item("cogs", 40)]},
+        "period": "FY2025",
+        "inputs": {
+            "statement_id": str(uuid.uuid4()),
+            "kind": "income_statement",
+            "mapping_version": 2,
+            "line_items": [_item("revenue", 100), _item("cogs", 40)],
+        },
     }
     contract.validate_data(topics.COMPUTE_REQUESTED, request)
     result = await handler.run(request)
     contract.validate_data(topics.COMPUTE_RESULTS, result)
     assert result["status"] == "ok" and result["data_version"] == 7
+    assert result["period"] == "FY2025" and result["statement_id"] == request["inputs"]["statement_id"]
     assert result["validation"]["derived"][0]["canonical_key"] == "gross_profit"
 
     summary = await handler.run(request | {"kind": "dashboard_summary", "inputs": {"totals": {"income": 1, "expense": 1}}})
