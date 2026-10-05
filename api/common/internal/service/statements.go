@@ -89,7 +89,7 @@ func (s *Statements) Create(ctx context.Context, p *middleware.Principal, in Sta
 			}
 		}
 	} else {
-		in.FileType = strings.ToLower(in.FileType)
+		in.FileType = declaredType(in.FileType, in.FileName)
 		if !oneOf(in.FileType, "csv", "xlsx", "pdf", "image") {
 			return nil, newErr(http.StatusUnsupportedMediaType, "unsupported_type", "Upload a CSV, XLSX or PDF statement")
 		}

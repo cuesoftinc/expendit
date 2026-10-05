@@ -238,13 +238,13 @@ func TestIntegration(t *testing.T) {
 	}
 
 	// ── Import: create → upload.received → import.processed → confirm ──
-	if _, err := e.imports.Create(ctx, alice, service.CreateImport{FileName: "r.jpg", FileType: "image", Size: 100}, ""); code(err) != "consent_required" {
+	if _, err := e.imports.Create(ctx, alice, service.CreateImport{FileName: "r.jpg", Size: 100}, ""); code(err) != "consent_required" {
 		t.Fatalf("image without AI consent: %v", err)
 	}
 	if _, err := e.imports.Create(ctx, alice, service.CreateImport{FileName: "big.pdf", FileType: "pdf", Size: 16 << 20}, ""); code(err) != "file_too_large" {
 		t.Fatalf("oversize: %v", err)
 	}
-	created, err := e.imports.Create(ctx, alice, service.CreateImport{FileName: "gtb.csv", FileType: "csv", Size: 100}, "key-1")
+	created, err := e.imports.Create(ctx, alice, service.CreateImport{FileName: "gtb.csv", Size: 100}, "key-1") // type from the name, as the web sends
 	if err != nil || created.UploadTicket == "" {
 		t.Fatalf("create import: %+v %v", created, err)
 	}

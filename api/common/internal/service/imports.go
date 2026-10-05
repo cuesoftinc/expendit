@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"path"
 	"strings"
 	"time"
 
@@ -38,6 +39,27 @@ type CreateImport struct {
 	Size     int64  `json:"size"`
 }
 
+// declaredType is the client's declared type, else the one the file name
+// implies (the web sends only name and size). The gateway still checks the
+// bytes against it.
+func declaredType(fileType, fileName string) string {
+	if t := strings.ToLower(strings.TrimSpace(fileType)); t != "" {
+		return t
+	}
+	ext := strings.ToLower(path.Ext(fileName))
+	switch ext {
+	case ".csv", ".txt":
+		return "csv"
+	case ".xlsx":
+		return "xlsx"
+	case ".pdf":
+		return "pdf"
+	case ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif":
+		return "image"
+	}
+	return ""
+}
+
 type ImportCreated struct {
 	ID           string `json:"id"`
 	JobID        string `json:"job_id"`
@@ -50,7 +72,7 @@ type ImportCreated struct {
 // ai_processing consent for types that need AI, rate limits and the daily
 // byte quota. Then it creates the job (awaiting_upload) and a ticket.
 func (s *Imports) Create(ctx context.Context, p *middleware.Principal, in CreateImport, idemKey string) (*ImportCreated, error) {
-	in.FileType = strings.ToLower(strings.TrimSpace(in.FileType))
+	in.FileType = declaredType(in.FileType, in.FileName)
 	if !oneOf(in.FileType, "csv", "xlsx", "pdf", "image") {
 		return nil, newErr(http.StatusUnsupportedMediaType, "unsupported_type", "Upload a CSV, PDF, or receipt image")
 	}
