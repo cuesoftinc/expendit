@@ -43,6 +43,14 @@ func Open(ctx context.Context, cfg config.Storage) (Store, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Compose and self-host: common owns the bucket, so it creates it.
+		if exists, err := client.BucketExists(ctx, cfg.Bucket); err != nil {
+			return nil, err
+		} else if !exists {
+			if err := client.MakeBucket(ctx, cfg.Bucket, minio.MakeBucketOptions{}); err != nil {
+				return nil, err
+			}
+		}
 		return &s3Store{client: client, bucket: cfg.Bucket, prefix: cfg.Prefix}, nil
 	}
 	client, err := gcs.NewClient(ctx)

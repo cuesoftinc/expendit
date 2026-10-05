@@ -25,9 +25,9 @@ services:
   # Backends removed, not merely omitted: Helm deep-merges maps, so a key
   # left out of this overlay would still come through from values.yaml.
   # `null` is what actually deletes it.
-  api-common: null
-  api-intake: null
-  api-process: null
+  common: null
+  statements: null
+  analytics: null
   web:
     image: cuesoft/expendit-web:testmode
     imagePullPolicy: IfNotPresent   # image is imported into the cluster, never pulled
@@ -58,3 +58,6 @@ ingress:
   className: traefik
   host: expendit.localtest.me
   service: web
+
+# No sweeps without the backends.
+jobs: null

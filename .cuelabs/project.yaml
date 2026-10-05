@@ -6,14 +6,14 @@ surfaces:
   web: active
   backend:
     common: active
-    intake: active
-    process: active
+    statements: active
+    analytics: active
   mobile:
     flutter: planned
 
 capabilities:
   grpc: absent
-  firebaseAuth: planned
+  firebaseAuth: active
   kafka: active
 
 deployment:

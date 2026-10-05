@@ -1,6 +1,6 @@
 apiVersion: v2
 name: expendit
-description: Deploys the Expendit stack — api-common (Go), api-intake (Node), api-process (Python), and web (Next.js).
+description: Deploys the Expendit stack — common (Go), statements (Node), analytics (Python), web (Next.js), and the scheduled sweeps.
 type: application
-version: 0.3.0
-appVersion: "0.1.0"
+version: 0.4.0
+appVersion: "0.2.0"
