@@ -7,7 +7,7 @@
     "date": { "type": "string", "format": "date" },
     "money": { "type": "number", "description": "Major units in the org currency." },
     "direction": { "enum": ["income", "expense"] },
-    "file_type": { "enum": ["csv", "pdf", "image"] },
+    "file_type": { "enum": ["csv", "xlsx", "pdf", "image"] },
     "object_ref": {
       "type": "object",
       "description": "A Cloud Storage (or MinIO) object. `key` is relative to the bucket and starts with the env prefix, e.g. expendit/stg/tmp/...",

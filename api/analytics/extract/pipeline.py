@@ -141,7 +141,7 @@ class ImportPipeline:
         ai_allowed: bool,
         warnings: list[str],
     ) -> list[RawTransaction]:
-        if file_type == "csv":
+        if file_type in ("csv", "xlsx"):
             return parse_csv(data)
 
         if file_type == "pdf":
