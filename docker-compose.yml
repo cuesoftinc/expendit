@@ -215,11 +215,26 @@ services:
       # /docs/api); pruned by web/Dockerfile.dockerignore.
       context: .
       dockerfile: web/Dockerfile
+      args:
+        # Inlined at build: the browser signs in against the Auth emulator
+        # on the host's port 9099.
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-expendit}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
+        NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: ${NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST-localhost:9099}
     ports:
       - "3000:3000"
+    environment:
+      # The /api/v1 proxy forwards here (system-design.md §7.1).
+      API_ORIGIN: http://common:8080
+      UPLOADS_ORIGIN: http://statements:8081
     depends_on:
       common:
         condition: service_healthy
+      statements:
+        condition: service_healthy
+      firebase-auth:
+        condition: service_started
     restart: unless-stopped
 
 volumes:

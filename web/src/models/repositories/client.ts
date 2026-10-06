@@ -5,6 +5,7 @@
  * envelope {"error": {code, message, details}} into ApiError.
  */
 
+import { getAuthProvider } from "@/auth";
 import { env } from "@/config/env";
 
 export class ApiError extends Error {
@@ -48,6 +49,15 @@ const buildUrl = (path: string, query?: RequestOptions["query"]): string => {
   return qs ? `${url}?${qs}` : url;
 };
 
+/** The signed-in user's Firebase ID token (X-1); null when signed out. */
+const bearerToken = async (): Promise<string | null> => {
+  try {
+    return await getAuthProvider().getIdToken();
+  } catch {
+    return null;
+  }
+};
+
 const request = async <T>(
   method: string,
   path: string,
@@ -55,7 +65,13 @@ const request = async <T>(
   options: RequestOptions = {},
 ): Promise<T> => {
   const headers: Record<string, string> = { ...options.headers };
-  if (options.orgId) headers["X-Org-Id"] = options.orgId;
+  // The upload gateway authenticates by ticket only (S-5): requests that
+  // carry an Upload-Ticket get no session or org header.
+  if (!headers["Upload-Ticket"]) {
+    const token = await bearerToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (options.orgId) headers["X-Org-Id"] = options.orgId;
+  }
   if (options.idempotencyKey)
     headers["Idempotency-Key"] = options.idempotencyKey;
 

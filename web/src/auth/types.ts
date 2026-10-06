@@ -1,7 +1,7 @@
 /**
  * AuthProvider interface — X-1 Google-only auth behind a provider seam
- * (web standard): TestModeAuthProvider now; FirebaseAuthProvider lands at
- * backend-integration time. Views/controllers never import a concrete
+ * (web standard): TestModeAuthProvider under TEST_MODE, FirebaseAuthProvider
+ * against the real backend. Views/controllers never import a concrete
  * provider.
  */
 
@@ -13,6 +13,12 @@ export interface AuthUser {
 }
 
 export interface AuthProvider {
+  /**
+   * Resolves once the session snapshot is trustworthy. Firebase restores a
+   * persisted session asynchronously; guards await this before reading
+   * currentUser() so a returning user isn't bounced to /signin.
+   */
+  ready(): Promise<void>;
   /**
    * Synchronous snapshot of the current session (null = signed out).
    * Contract (flows/auth.md §2, ratified 2026-07-22): a failed session

@@ -1,25 +1,21 @@
 /**
  * Auth provider factory. TEST_MODE resolves the TestModeAuthProvider;
- * the FirebaseAuthProvider (Google-only, sandbox-e306a) is added at
- * backend-integration time — X-1 either way.
+ * otherwise the FirebaseAuthProvider (Google-only; the Auth emulator
+ * locally) — X-1 either way.
  */
 
 import { env } from "@/config/env";
 import type { AuthProvider } from "./types";
 import { TestModeAuthProvider } from "./test-mode-provider";
+import { FirebaseAuthProvider } from "./firebase-provider";
 
 let provider: AuthProvider | null = null;
 
 export const getAuthProvider = (): AuthProvider => {
   if (!provider) {
-    if (!env.testMode) {
-      // Firebase provider lands with backend integration; until then the
-      // only wired mode is TEST_MODE (mock server + instant session).
-      throw new Error(
-        "FirebaseAuthProvider not yet wired — run with NEXT_PUBLIC_TEST_MODE=1",
-      );
-    }
-    provider = new TestModeAuthProvider();
+    provider = env.testMode
+      ? new TestModeAuthProvider()
+      : new FirebaseAuthProvider();
   }
   return provider;
 };

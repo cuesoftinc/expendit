@@ -57,8 +57,9 @@ const REPO_RULES = {
         "src/models/repositories/client.ts",
         "src/controllers/use-github-stars.ts",
       ],
-      // The mock server is server-side route-handler code, not a view.
-      prefixes: ["src/app/api/mock", "src/mocks"],
+      // The mock server and the /api/v1 backend proxy are server-side
+      // route-handler code, not views.
+      prefixes: ["src/app/api/mock", "src/mocks", "src/app/api/v1"],
     }),
   ],
   upstat: [
