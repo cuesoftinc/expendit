@@ -1,0 +1,94 @@
+apiVersion: v3
+kind: service
+metadata:
+  name: expendit-website
+  displayName: expendit-website
+  description: Expendit Monorepo
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:website
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+    - name: Website
+      type: other
+      url: https://expendit.cuesoft.io
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - typescript
+---
+apiVersion: v3
+kind: repository
+metadata:
+  name: github.com/cuesoftinc/expendit
+  displayName: expendit
+  description: Expendit Monorepo
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:website
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+    - name: Website
+      type: other
+      url: https://expendit.cuesoft.io
+datadog:
+  codeLocations:
+    - repositoryURL: github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  componentOf:
+    - service:expendit-website
+---
+apiVersion: v3
+kind: system
+metadata:
+  name: expendit
+  displayName: expendit
+  description: Expendit platform
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:system
+  contacts:
+    - type: email
+      contact: cuehire-cuesoft@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+    - name: Website
+      type: other
+      url: https://expendit.cuesoft.io
+spec:
+  lifecycle: production
+  tier: "1"
+  components:
+    - service:expendit-website

@@ -24,6 +24,7 @@ export interface SelectOption {
 
 export interface SelectProps {
   options: SelectOption[];
+  trailingAction?: { label: string; onSelect: () => void };
   value: string | null;
   onValueChange?: (value: string) => void;
   placeholder?: string;
@@ -49,6 +50,7 @@ export interface SelectProps {
 
 export const Select: React.FC<SelectProps> = ({
   options,
+  trailingAction,
   value,
   onValueChange,
   placeholder = "Select…",
@@ -78,11 +80,16 @@ export const Select: React.FC<SelectProps> = ({
   const listboxId = useId();
   const selected = options.find((option) => option.value === value) ?? null;
 
-  const filtered = searchable
+  const matches = searchable
     ? options.filter((option) =>
         option.label.toLowerCase().includes(query.toLowerCase()),
       )
     : options;
+
+  const actionOption: SelectOption | null = trailingAction
+    ? { value: `${listboxId}-action`, label: trailingAction.label }
+    : null;
+  const filtered = actionOption ? [...matches, actionOption] : matches;
 
   useEffect(() => {
     if (!open) return;
@@ -116,7 +123,9 @@ export const Select: React.FC<SelectProps> = ({
 
   const commit = (option: SelectOption) => {
     if (option.disabled) return;
-    onValueChange?.(option.value);
+    if (actionOption && option.value === actionOption.value)
+      trailingAction?.onSelect();
+    else onValueChange?.(option.value);
     setOpen(false);
   };
 

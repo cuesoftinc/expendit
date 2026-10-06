@@ -67,3 +67,4 @@ tmp/
 # frontmatter when installed --from-local; not reproducible for other
 # clones/CI. Re-install from a real repo+ref once available and commit that.
 .claude/skills/
+.agents/

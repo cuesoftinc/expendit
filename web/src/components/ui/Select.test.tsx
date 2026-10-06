@@ -103,3 +103,26 @@ describe("Select/Menu (design.md §8.2b)", () => {
     });
   });
 });
+
+it("keeps its trailing action last after a search and does not select a value", async () => {
+  const action = vi.fn();
+  const change = vi.fn();
+  render(
+    <Select
+      options={[{ value: "food", label: "Food" }]}
+      value={null}
+      searchable
+      onValueChange={change}
+      trailingAction={{ label: "Create category", onSelect: action }}
+    />,
+  );
+  await userEvent.click(screen.getByRole("combobox"));
+  expect(screen.getAllByRole("option").at(-1)).toHaveTextContent(
+    "Create category",
+  );
+  await userEvent.type(screen.getByPlaceholderText("Search"), "Unmatched");
+  expect(screen.getAllByRole("option")).toHaveLength(1);
+  await userEvent.keyboard("{Enter}");
+  expect(action).toHaveBeenCalledTimes(1);
+  expect(change).not.toHaveBeenCalled();
+});

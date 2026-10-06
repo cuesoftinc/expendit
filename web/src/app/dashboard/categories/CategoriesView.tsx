@@ -13,39 +13,21 @@ import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { useCategoriesController, useOrg } from "@/controllers";
 import { ApiError } from "@/models/repositories";
-import type { Category, CategoryType } from "@/models";
+import type { Category } from "@/models";
 import Banner from "@/components/ui/Banner";
 import Button from "@/components/ui/Button";
 import CategoryChip from "@/components/ui/CategoryChip";
-import ColorSwatchPicker from "@/components/ui/ColorSwatchPicker";
-import Input from "@/components/ui/Input";
+import CategoryEditor, {
+  PRESET_COLORS,
+  type CategoryDraft,
+} from "@/components/ui/CategoryEditor";
 import Modal from "@/components/ui/Modal";
 import RouteTabs from "@/components/ui/RouteTabs";
-import SegmentedControl from "@/components/ui/SegmentedControl";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import PageHeader from "../PageHeader";
 import ToastLayer from "../ToastLayer";
 import { CATEGORY_TABS } from "./tabs";
-
-// Registry preset palette (data, not styling — B8 ColorSwatchPicker).
-const PRESET_COLORS = [
-  "#F46A1F",
-  "#1B7F4B",
-  "#C6373C",
-  "#2456D6",
-  "#B26A00",
-  "#6E4BD6",
-  "#0E8B8B",
-  "#6E6E76",
-];
-
-interface CategoryDraft {
-  id?: string;
-  name: string;
-  type: CategoryType;
-  color: string;
-}
 
 interface CategoryListProps {
   title: string;
@@ -148,7 +130,6 @@ export const CategoriesView: React.FC = () => {
       ? { name: "", type: "expense", color: PRESET_COLORS[0] }
       : null,
   );
-  const [draftError, setDraftError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [mergeSource, setMergeSource] = useState<Category | null>(null);
   const [mergeTarget, setMergeTarget] = useState<string | null>(null);
@@ -164,45 +145,6 @@ export const CategoriesView: React.FC = () => {
     () => categories.items.filter((cat) => cat.type === "income"),
     [categories.items],
   );
-
-  const saveDraft = async () => {
-    if (!draft || !draft.name.trim()) {
-      setDraftError("Name is required.");
-      return;
-    }
-    setBusy(true);
-    setDraftError(null);
-    try {
-      if (draft.id) {
-        await categories.update(draft.id, {
-          name: draft.name.trim(),
-          color: draft.color,
-        });
-        setToast("Category updated");
-      } else {
-        await categories.create({
-          name: draft.name.trim(),
-          type: draft.type,
-          color: draft.color,
-          tax_treatment: "taxable_income",
-          vat_treatment: "vatable",
-          vat_basis: "inclusive",
-        });
-        setToast("Category created");
-      }
-      setDraft(null);
-    } catch (err) {
-      setDraftError(
-        err instanceof ApiError && err.code === "category_exists"
-          ? "A category with this name already exists."
-          : err instanceof Error
-            ? err.message
-            : "Save failed",
-      );
-    } finally {
-      setBusy(false);
-    }
-  };
 
   // Quiet + reversible (no confirm): the row moves to the Archive tab.
   const archiveCategory = async (category: Category) => {
@@ -323,69 +265,17 @@ export const CategoriesView: React.FC = () => {
         )}
       </RouteTabs>
 
-      {/* Create / edit */}
-      <Modal
-        open={draft !== null}
-        onOpenChange={(open) => {
-          if (!open) setDraft(null);
-        }}
-        title={draft?.id ? "Edit category" : "New category"}
-        size="sm"
-        footer={
-          <div className="flex w-full justify-end gap-2">
-            <Button kind="quiet" onClick={() => setDraft(null)}>
-              Cancel
-            </Button>
-            <Button loading={busy} onClick={() => void saveDraft()}>
-              {draft?.id ? "Save" : "Create"}
-            </Button>
-          </div>
-        }
-      >
-        {draft ? (
-          <div className="space-y-4">
-            <Input
-              label="Name"
-              name="category-name"
-              value={draft.name}
-              onChange={(event) =>
-                setDraft(
-                  (prev) => prev && { ...prev, name: event.target.value },
-                )
-              }
-              placeholder="e.g. Software subscriptions"
-            />
-            {!draft.id ? (
-              <SegmentedControl
-                aria-label="Type"
-                options={[
-                  { value: "expense", label: "Expense" },
-                  { value: "income", label: "Income" },
-                ]}
-                value={draft.type}
-                onValueChange={(value) =>
-                  setDraft(
-                    (prev) => prev && { ...prev, type: value as CategoryType },
-                  )
-                }
-              />
-            ) : null}
-            <ColorSwatchPicker
-              aria-label="Color"
-              presets={PRESET_COLORS}
-              value={draft.color}
-              onValueChange={(color) =>
-                setDraft((prev) => prev && { ...prev, color })
-              }
-            />
-            {draftError ? (
-              <p role="alert" className="text-[13px] text-expense">
-                {draftError}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-      </Modal>
+      {draft ? (
+        <CategoryEditor
+          initialDraft={draft}
+          createCategory={categories.create}
+          updateCategory={categories.update}
+          onSaved={() =>
+            setToast(draft.id ? "Category updated" : "Category created")
+          }
+          onClose={() => setDraft(null)}
+        />
+      ) : null}
 
       {/* Delete confirm — the danger pattern applies to every
           destructive row action (B8 review; category_in_use pivots the

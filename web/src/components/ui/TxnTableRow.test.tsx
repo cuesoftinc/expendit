@@ -124,3 +124,36 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
     expect(onExclude).toHaveBeenCalled();
   });
 });
+
+it("hides the source icon from accessibility when its label is visible", () => {
+  render(<TxnTableRow txn={txn} category={category} showSourceLabel />);
+  const label = screen.getByText("CSV import");
+  expect(label.closest("td")?.querySelector("svg")).toHaveAttribute(
+    "aria-hidden",
+    "true",
+  );
+  expect(screen.queryByLabelText("CSV import")).not.toBeInTheDocument();
+});
+
+it("includes the visible year in selection names for multi-year transactions", () => {
+  render(
+    <>
+      <TxnTableRow txn={txn} category={category} showYear />
+      <TxnTableRow
+        txn={{ ...txn, id: "older", txn_date: "2025-06-14" }}
+        category={category}
+        showYear
+      />
+    </>,
+  );
+  expect(
+    screen.getByRole("checkbox", {
+      name: `Select transaction ${txn.description}, 14 Jun 2026`,
+    }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("checkbox", {
+      name: `Select transaction ${txn.description}, 14 Jun 2025`,
+    }),
+  ).toBeInTheDocument();
+});
