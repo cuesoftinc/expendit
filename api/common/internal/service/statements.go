@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -375,6 +376,10 @@ func (s *Statements) OnStatementMapped(ctx context.Context, raw json.RawMessage)
 		}
 		return nil
 	})
+	if err == nil {
+		slog.Info("statement mapping stored", "step", "statement.mapped", "statement_id", msg.StatementID,
+			"org_id", msg.OrgID, "status", msg.Status, "error_code", deref(msg.ErrorCode), "line_items", len(msg.LineItems))
+	}
 	if err == nil && objectKey != nil {
 		s.Imports.deleteObject(ctx, *objectKey)
 	}

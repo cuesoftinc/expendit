@@ -334,9 +334,20 @@ func (s *Imports) OnUploadReceived(ctx context.Context, raw json.RawMessage, sta
 		}
 		return s.enqueueReady(ctx, tx, job, msg)
 	})
-	if err == nil && discard {
-		slog.Info("upload discarded", "ticket", msg.TicketID)
+	switch {
+	case err != nil:
+	case discard:
+		slog.Info("upload discarded: ticket replayed, expired or mismatched", "step", "upload.received",
+			"ticket", msg.TicketID, "target", msg.Target.Kind, "target_id", msg.Target.ID)
 		s.deleteObject(ctx, msg.Object.Key)
+	default:
+		next := "import.ready"
+		if msg.Target.Kind == "fin_statement" {
+			next = "statement.ready"
+		}
+		slog.Info("upload received; queued for analytics", "step", "upload.received",
+			"target", msg.Target.Kind, "target_id", msg.Target.ID, "org_id", msg.OrgID,
+			"file_type", msg.FileType, "bytes", msg.Object.Size, "next", next)
 	}
 	return err
 }
@@ -458,8 +469,21 @@ func (s *Imports) OnImportProcessed(ctx context.Context, raw json.RawMessage) er
 			Summary: msg.Summary, AISummary: msg.AISummary, Anomalies: jobAnomalies, Warnings: msg.Warnings,
 		})
 	})
+	if err == nil {
+		slog.Info("import result stored", "step", "import.processed", "job_id", msg.JobID, "org_id", msg.OrgID,
+			"status", msg.Status, "error_code", deref(msg.ErrorCode), "rows", len(msg.Transactions),
+			"duplicates", msg.DuplicatesFound, "anomalies", len(msg.Anomalies))
+	}
 	if err == nil && objectKey != nil {
 		s.deleteObject(ctx, *objectKey)
+		slog.Info("upload deleted from tmp/", "step", "import.processed", "job_id", msg.JobID)
 	}
 	return err
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

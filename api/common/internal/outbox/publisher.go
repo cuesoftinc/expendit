@@ -74,7 +74,17 @@ func (p *Publisher) publishBatch(ctx context.Context) (int, error) {
 			return err
 		}
 		n = len(rows)
-		return repository.MarkPublished(ctx, tx, ids)
+		if err := repository.MarkPublished(ctx, tx, ids); err != nil {
+			return err
+		}
+		perTopic := map[string]int{}
+		for _, m := range msgs {
+			perTopic[m.Topic]++
+		}
+		for topic, count := range perTopic {
+			slog.Info("published to Kafka", "step", "outbox", "topic", topic, "messages", count)
+		}
+		return nil
 	})
 	return n, err
 }

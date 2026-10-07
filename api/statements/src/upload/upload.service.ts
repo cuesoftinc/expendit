@@ -62,7 +62,15 @@ export class UploadService {
       throw new ApiError(503, 'queue_unavailable', 'Uploads are temporarily unavailable; try again shortly');
     }
 
-    this.logger.log({ message: 'upload accepted', ticket: ticket.jti, target: ticket.target.kind, bytes: data.length });
+    this.logger.log({
+      message: 'upload accepted; stored in tmp/ and handed to common',
+      step: 'upload.received',
+      ticket: ticket.jti,
+      target: ticket.target.kind,
+      target_id: ticket.target.id,
+      file_type: detected.type,
+      bytes: data.length,
+    });
     return { id: ticket.target.id, kind: ticket.target.kind, status: 'processing' };
   }
 }

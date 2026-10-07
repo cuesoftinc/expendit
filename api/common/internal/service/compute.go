@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -44,7 +45,12 @@ func (s *Compute) request(ctx context.Context, tx pgx.Tx, orgID, kind string, ex
 	for k, v := range extra {
 		msg[k] = v
 	}
-	return repository.Enqueue(ctx, tx, kafka.TopicComputeRequested, orgID, msg)
+	if err := repository.Enqueue(ctx, tx, kafka.TopicComputeRequested, orgID, msg); err != nil {
+		return err
+	}
+	slog.Info("computation requested", "step", "compute.requested", "kind", kind, "org_id", orgID,
+		"request_id", msg["request_id"], "data_version", org.DataVersion)
+	return nil
 }
 
 // ── Statement validation ────────────────────────────────────────────────
@@ -368,6 +374,8 @@ func (s *Compute) OnComputeResults(ctx context.Context, raw json.RawMessage) err
 	if err := json.Unmarshal(raw, &msg); err != nil {
 		return nil
 	}
+	slog.Info("computation result received", "step", "compute.results", "kind", msg.Kind, "org_id", msg.OrgID,
+		"request_id", msg.RequestID, "status", msg.Status, "error_code", deref(msg.ErrorCode), "data_version", msg.DataVersion)
 	return s.DB.InOrg(ctx, msg.OrgID, func(tx pgx.Tx) error {
 		if msg.Status != "ok" {
 			return nil // reads keep reporting "recomputing"; the next change retries
