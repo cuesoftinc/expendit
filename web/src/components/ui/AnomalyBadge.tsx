@@ -10,7 +10,7 @@
 
 import React from "react";
 import { Receipt, Sparkles, TrendingUp, TriangleAlert } from "lucide-react";
-import type { AnomalySeverity, AnomalyType } from "@/models";
+import type { AnomalySeverity, AnomalyType, TxnDirection } from "@/models";
 import { cn } from "@/lib/cn";
 
 const TYPE_META: Record<
@@ -63,11 +63,15 @@ const TONE_TINT: Record<string, string> = {
 export interface AnomalyBadgeProps {
   type: AnomalyType;
   severity: AnomalySeverity;
-  variant?: "inline" | "feed";
+  variant?: "inline" | "feed" | "overview";
   /** Feed variant: explanation line under the title. */
   description?: string;
   /** Feed variant: relative timestamp, e.g. "2h". */
   timestamp?: string;
+  /** Overview variant: transaction amount displayed in the row's top-right. */
+  amount?: string;
+  /** Transaction direction controls the overview amount color. */
+  amountDirection?: TxnDirection;
   /** MI-5: pulse twice on first render. */
   pulse?: boolean;
   onClick?: () => void;
@@ -79,10 +83,61 @@ export const AnomalyBadge: React.FC<AnomalyBadgeProps> = ({
   variant = "inline",
   description,
   timestamp,
+  amount,
+  amountDirection,
   pulse = false,
   onClick,
 }) => {
   const { label, shortLabel, Icon, tone } = TYPE_META[type];
+
+  if (variant === "overview") {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        data-severity={severity}
+        className={cn(
+          "grid w-full grid-cols-[2rem_minmax(0,1fr)_auto] grid-rows-[auto_auto] gap-x-3 rounded border border-border bg-bg px-4 py-3 text-left",
+          "transition-colors duration-fast ease-standard hover:bg-bg-elev",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+          pulse &&
+            "animate-pulse [animation-iteration-count:2] motion-reduce:animate-none",
+        )}
+      >
+        <span
+          aria-hidden
+          className={cn(
+            "row-span-1 flex h-8 w-8 items-center justify-center rounded",
+            TONE_TINT[tone],
+            TONE_TEXT[tone],
+          )}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="min-w-0 text-[13px] leading-4">
+          <span className="block font-medium text-text">{label}</span>
+          {description ? (
+            <span className="mt-1 block text-text-2">{description}</span>
+          ) : null}
+        </span>
+        {amount ? (
+          <span
+            className={cn(
+              "whitespace-nowrap text-[13px] font-medium tabular-nums",
+              amountDirection === "income" ? "text-income" : "text-expense",
+            )}
+          >
+            {amount}
+          </span>
+        ) : null}
+        {timestamp ? (
+          <span className="col-span-3 mt-2 text-[12px] leading-4 text-text-2">
+            {timestamp}
+          </span>
+        ) : null}
+      </button>
+    );
+  }
 
   if (variant === "feed") {
     return (
