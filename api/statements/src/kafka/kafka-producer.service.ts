@@ -35,7 +35,8 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       idempotent: true,
       maxInFlightRequests: 1,
       allowAutoTopicCreation: false,
-      // Murmur2 keyed partitioning, the same as the Go and Python clients.
+      // Keyed partitioning (murmur2). Each topic has one producing service,
+      // so the clients' differing hash functions never split a key.
       createPartitioner: Partitioners.DefaultPartitioner,
     });
     this.producer.on('producer.disconnect', () => (this.connected = false));
