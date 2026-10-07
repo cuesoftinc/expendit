@@ -45,6 +45,19 @@ describe("OverviewTxnTableRow", () => {
     expect(cells[5]).toHaveTextContent("−₦18,000.00");
   });
 
+  it("does not render a made-up midnight time for date-only transactions", () => {
+    render(
+      <OverviewTxnTableRow
+        txn={{ ...txn, txn_date: "2026-07-15" }}
+        category={category}
+      />,
+      { wrapper: InTable },
+    );
+
+    expect(screen.getAllByRole("cell")[0]).toHaveTextContent("15-07-2026");
+    expect(screen.getAllByRole("cell")[0]).not.toHaveTextContent("12:00 AM");
+  });
+
   it("uses the dedicated Signals cell for anomaly badges", () => {
     render(
       <OverviewTxnTableRow

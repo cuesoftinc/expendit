@@ -18,7 +18,7 @@ const anomalies: TxnEntry[] = anomalyTypes.map((rule_id, index) => ({
   amount: 48_000 + index,
   direction: "expense",
   category_id: "equipment",
-  txn_date: "2026-09-22T18:45:00",
+  txn_date: "2026-09-22",
   source: "bank",
   source_link_id: null,
   ai_categorized: false,
@@ -28,7 +28,7 @@ const anomalies: TxnEntry[] = anomalyTypes.map((rule_id, index) => ({
 }));
 
 describe("OverviewSidePanels anomalies", () => {
-  it("shows four full anomaly rows with amounts and timestamps", async () => {
+  it("shows three anomaly rows with amounts and timestamps", async () => {
     const user = userEvent.setup();
     const onExplainAnomaly = vi.fn();
     render(
@@ -46,7 +46,7 @@ describe("OverviewSidePanels anomalies", () => {
       screen.getAllByRole("button", { name: /transaction/i }),
     ).toHaveLength(3);
     expect(screen.getByText("₦48,000.00")).toBeInTheDocument();
-    expect(screen.getAllByText("22 September 2026 · 6:45PM")).toHaveLength(3);
+    expect(screen.getAllByText("22 September 2026")).toHaveLength(3);
 
     await user.click(screen.getByRole("button", { name: /transaction 3/i }));
     expect(onExplainAnomaly).toHaveBeenCalledWith("txn-3");

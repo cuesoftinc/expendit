@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import type { Category, CategoryTotalsReport, TxnEntry } from "@/models";
-import { formatIso } from "@/lib/dates";
+import { formatIso, formatIsoWithOptionalTime } from "@/lib/dates";
 import { formatMoney, formatMoneyCompact } from "@/lib/format";
 import AnomalyBadge from "@/components/ui/AnomalyBadge";
 import ChartDonut from "@/components/ui/ChartDonut";
@@ -115,7 +115,12 @@ export const OverviewSidePanels: React.FC<OverviewSidePanelsProps> = ({
                     variant="overview"
                     description={txn.description}
                     amount={formatMoney(txn.amount, currency)}
-                    timestamp={formatIso(txn.txn_date, "d MMMM yyyy · h:mma")}
+                    amountDirection={txn.direction}
+                    timestamp={formatIsoWithOptionalTime(
+                      txn.txn_date,
+                      "d MMMM yyyy",
+                      "d MMMM yyyy · h:mma",
+                    )}
                     onClick={() => onExplainAnomaly(txn.id)}
                   />
                 </li>

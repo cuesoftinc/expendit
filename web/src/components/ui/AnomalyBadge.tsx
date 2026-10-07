@@ -10,7 +10,7 @@
 
 import React from "react";
 import { Receipt, Sparkles, TrendingUp, TriangleAlert } from "lucide-react";
-import type { AnomalySeverity, AnomalyType } from "@/models";
+import type { AnomalySeverity, AnomalyType, TxnDirection } from "@/models";
 import { cn } from "@/lib/cn";
 
 const TYPE_META: Record<
@@ -70,6 +70,8 @@ export interface AnomalyBadgeProps {
   timestamp?: string;
   /** Overview variant: transaction amount displayed in the row's top-right. */
   amount?: string;
+  /** Transaction direction controls the overview amount color. */
+  amountDirection?: TxnDirection;
   /** MI-5: pulse twice on first render. */
   pulse?: boolean;
   onClick?: () => void;
@@ -82,6 +84,7 @@ export const AnomalyBadge: React.FC<AnomalyBadgeProps> = ({
   description,
   timestamp,
   amount,
+  amountDirection,
   pulse = false,
   onClick,
 }) => {
@@ -118,7 +121,12 @@ export const AnomalyBadge: React.FC<AnomalyBadgeProps> = ({
           ) : null}
         </span>
         {amount ? (
-          <span className="whitespace-nowrap text-[13px] font-medium tabular-nums text-warn-text">
+          <span
+            className={cn(
+              "whitespace-nowrap text-[13px] font-medium tabular-nums",
+              amountDirection === "income" ? "text-income" : "text-expense",
+            )}
+          >
             {amount}
           </span>
         ) : null}
