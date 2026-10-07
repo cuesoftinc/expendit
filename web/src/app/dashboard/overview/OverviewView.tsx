@@ -53,7 +53,7 @@ export const OverviewView: React.FC = () => {
     .filter((estimate) => estimate.daysToDue >= 0 && estimate.daysToDue <= 30)
     .sort((a, b) => a.daysToDue - b.daysToDue)[0];
 
-  if (loading) return <OverviewLoading />;
+  if (loading) return <OverviewLoading orgKind={activeOrg?.kind} />;
   if (isEmpty)
     return (
       <>

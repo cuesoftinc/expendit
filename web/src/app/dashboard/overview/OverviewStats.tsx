@@ -8,7 +8,7 @@ import { monthLabel } from "./constants";
 interface OverviewStatsProps {
   flows: MonthlyFlowReport | null;
   currency: string;
-  orgKind?: OrgKind;
+  orgKind: OrgKind | undefined;
 }
 
 export const OverviewStats: React.FC<OverviewStatsProps> = ({
