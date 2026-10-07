@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
-import { Kafka, type Producer } from 'kafkajs';
+import { Kafka, Partitioners, type Producer } from 'kafkajs';
 import { CONFIG, type Config } from '../config/config';
 import { ContractService } from '../contract/contract.service';
 
@@ -31,7 +31,13 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
           }
         : {}),
     });
-    this.producer = kafkaClient.producer({ idempotent: true, maxInFlightRequests: 1, allowAutoTopicCreation: false });
+    this.producer = kafkaClient.producer({
+      idempotent: true,
+      maxInFlightRequests: 1,
+      allowAutoTopicCreation: false,
+      // Murmur2 keyed partitioning, the same as the Go and Python clients.
+      createPartitioner: Partitioners.DefaultPartitioner,
+    });
     this.producer.on('producer.disconnect', () => (this.connected = false));
   }
 
