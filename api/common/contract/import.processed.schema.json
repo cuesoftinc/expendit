@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/import.processed.schema.json",
+  "title": "expendit.import.processed",
+  "description": "analytics -> common. Every decision about the job; common only stores it. Key: job id.",
+  "type": "object",
+  "required": ["job_id", "org_id", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "job_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "status": { "enum": ["completed", "failed"] },
+    "error_code": {
+      "enum": ["no_transactions_found", "password_protected_pdf", "unsupported_type", "ai_unavailable", "consent_required", "processing_error"],
+      "description": "flows/import.md §3. Set when status = failed."
+    },
+    "file_type": { "$ref": "defs.schema.json#/$defs/file_type" },
+    "total_parsed": { "type": "integer", "minimum": 0 },
+    "duplicates_found": { "type": "integer", "minimum": 0 },
+    "transactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["txn_date", "amount", "direction", "description", "category_name", "ai_categorized", "is_duplicate"],
+        "additionalProperties": false,
+        "properties": {
+          "txn_date": { "$ref": "defs.schema.json#/$defs/date" },
+          "amount": { "$ref": "defs.schema.json#/$defs/money" },
+          "direction": { "$ref": "defs.schema.json#/$defs/direction" },
+          "description": { "type": "string" },
+          "category_id": { "$ref": "defs.schema.json#/$defs/id", "description": "Set when the category already exists." },
+          "category_name": { "type": "string", "description": "Always set; common creates the category when category_id is absent." },
+          "ai_categorized": { "type": "boolean" },
+          "is_duplicate": { "type": "boolean" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_income", "total_expense", "net", "by_category"],
+      "additionalProperties": false,
+      "properties": {
+        "total_income": { "type": "number" },
+        "total_expense": { "type": "number" },
+        "net": { "type": "number" },
+        "by_category": { "type": "object", "additionalProperties": { "type": "number" } }
+      }
+    },
+    "ai_summary": { "type": ["string", "null"] },
+    "anomalies": { "type": "array", "items": { "$ref": "defs.schema.json#/$defs/anomaly" } },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  }
+}

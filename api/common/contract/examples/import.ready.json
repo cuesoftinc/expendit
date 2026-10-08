@@ -1,0 +1,35 @@
+{
+  "type": "expendit.import.ready",
+  "version": 1,
+  "id": "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+  "produced_at": "2026-10-05T10:00:04Z",
+  "data": {
+    "job_id": "7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f",
+    "org_id": "3f6e2b1a-9c8d-4e7f-a6b5-c4d3e2f1a0b9",
+    "source": "upload",
+    "file_name": "gtbank-september.csv",
+    "file_type": "csv",
+    "file": {
+      "bucket": "expendit-local",
+      "key": "expendit/local/tmp/7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f/gtbank-september.csv",
+      "size": 18342,
+      "content_type": "text/csv"
+    },
+    "ai_allowed": false,
+    "currency": "NGN",
+    "reference": {
+      "categories": [
+        { "id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e", "name": "Food", "type": "expense" },
+        { "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f", "name": "Salary", "type": "income" }
+      ],
+      "ledger": [
+        { "txn_date": "2026-09-02", "amount": 4500, "direction": "expense", "description": "CHICKEN REPUBLIC IKEJA" }
+      ],
+      "aggregates": {
+        "median_90d": { "income": 350000, "expense": 6200 },
+        "category_monthly": { "Food": [42000, 38000, 51000, 47000, 39000, 44000] },
+        "category_mean": { "Food": { "mean": 5100, "count": 61 } }
+      }
+    }
+  }
+}

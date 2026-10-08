@@ -1,82 +1,110 @@
-# Expendit API (`api/common`)
+# api/common
 
-Go + Gin REST API backing the Expendit expense tracker: auth (JWT + Google
-sign-in), expenses, income, categories, reports, statement imports, and AI
-summaries. Data lives in MongoDB; rate limiting uses Redis with an in-memory
-fallback.
+Go: the **CRUD owner** (system-design.md §4, S-1, S-2). It is the only
+service that touches Postgres. It authenticates users (Firebase, X-1),
+enforces the org-role matrix, owns every write, and stores the decisions
+`api/analytics` makes exactly as made. It never decides anything about
+financial data itself (S-7).
+
+One image, two entry points:
+
+| Binary | Runs | Where |
+| --- | --- | --- |
+| `server` | HTTP API, Kafka consumers, outbox publisher | Cloud Run service, **min 1** (it consumes; S-12) |
+| `jobs <name>` | one sweep, then exits | Cloud Run jobs + Cloud Scheduler (§6.7) |
 
 ## Layout
 
+The base every service shares, then this service's own packages:
+
 ```
-cmd/server/main.go   entrypoint — slog JSON logging, /health + /ready, graceful shutdown
-internal/handler     HTTP handlers        internal/service   import/AI engines
-internal/router      route groups (auth scoped per group)
-internal/middleware  auth, CORS, rate limiting, request-id, logging
-internal/model       Mongo models         internal/database  Mongo client
-internal/helper      JWT session tokens   internal/util      JWT reset tokens, mail
-internal/validation  password policy
+cmd/server/            entry: config → deps → migrate → seed → serve + consume + publish
+cmd/jobs/              reaper | tmp-cleanup | retention | migrate | republish-rulesets
+cmd/ticketkey/         generates an upload-ticket key pair
+internal/config/       typed env config, fails fast on missing settings
+internal/kafka/        topics, envelope + claim-check, producer, consumers, contract validation
+internal/storage/      object store: gcs (cloud) | s3 (MinIO)
+contract/              JSON Schemas for every Kafka message (owned here; embedded)
+
+internal/app/          wiring shared by the binaries
+internal/auth/         Firebase ID-token verification
+internal/middleware/   request id, logs, recovery, CORS contract, auth + org resolution
+internal/router/       the HTTP surface (/api/v1, /health, /ready)
+internal/handler/      thin handlers: decode → service → encode
+internal/service/      CRUD rules, authorization, hand-offs to analytics
+internal/repository/   all SQL; every query runs org-scoped under RLS
+internal/model/        API shapes (mirrors web/src/models)
+internal/ticket/       Ed25519 upload-ticket issuer (S-5)
+internal/outbox/       transactional outbox publisher (§6.6)
+internal/ratelimit/    Redis fixed-window limits; fails open (§9.2)
+internal/sweep/        scheduled jobs (§6.7)
+migrations/            forward-only SQL, applied at start under an advisory lock
 ```
+
+## The HTTP surface
+
+Paths follow the web contract (`web/src/models/repositories`) under `/api/v1`.
+Every route needs `Authorization: Bearer <Firebase ID token>`. `X-Org-Id`
+picks the org; without it, the user's personal org is used. Another org's
+id answers `404`, never `403` (engineering.md §2).
+
+| Area | Routes |
+| --- | --- |
+| Identity | `GET /me` · `GET,POST /orgs` · `PATCH /orgs/{id}` · `GET,POST /orgs/{id}/members` · `PATCH,DELETE /orgs/{id}/members/{userId}` · `GET,POST /consent` |
+| Ledger | `GET,POST /categories` · `GET,PUT,DELETE /categories/{id}` · `POST /categories/{id}/merge,archive,unarchive` · `GET,POST /transactions` · `GET,PUT,DELETE /transactions/{id}` · `GET /report/monthly` · `GET /report/category` |
+| Imports | `POST /import` → `{job_id, upload_ticket}` · `GET /import` · `GET,DELETE /import/{jobId}` · `POST /import/{jobId}/confirm` · `PUT /import/transactions/{id}/category,include` |
+| Statements | `POST /statements` (upload → ticket, or manual line items) · `GET /statements` · `GET /statements/{id}` · `GET,PATCH /statements/{id}/mapping` · `POST /statements/{id}/confirm` |
+| Computed | `GET /ratios?period=` · `POST /ratios/compute` · `GET,PUT /tax/profile` · `GET /tax/estimates` |
+
+The file itself never comes here: `POST /import` and `POST /statements`
+return a ticket, and the client sends the file to `api/statements`
+(`POST /api/v1/uploads`). Ratios and tax estimates are computed by
+`api/analytics`, so reads return the stored figures with
+`"status": "current" | "recomputing"` and queue a recomputation when the
+org's data changed since (§6.5).
+
+## Kafka
+
+| Consumes | Does |
+| --- | --- |
+| `expendit.upload.received` | marks the ticket used, job → `processing`, queues `import.ready` / `statement.ready` with reference data |
+| `expendit.import.processed` | stores staged rows, summary and anomalies; deletes the raw file (S-4) |
+| `expendit.statement.mapped` | stores line items and the v1 validation; deletes the raw file |
+| `expendit.compute.results` | stores validation, ratio reports and tax estimates if computed from the current data version |
+
+Everything it produces goes through the transactional outbox, so a message
+is sent if and only if its write committed.
 
 ## Run
 
-From the repo root (recommended — starts MongoDB, Redis, API, and web):
-
-```bash
-cp .env.example .env
-make up            # api on http://localhost:8080
-```
-
-Natively (requires MongoDB reachable via MONGODB_URL, reads `.env` in this dir):
-
-```bash
+```sh
+cp .env.example .env      # then: go run ./cmd/ticketkey for the ticket key
+set -a; . ./.env; set +a
 go run ./cmd/server
 ```
 
-Health: `GET /health` · readiness: `GET /ready` — both public; all domain
-routes require a Bearer JWT.
+From the repo root, `docker compose up common` runs it with Postgres,
+Kafka, Redis, MinIO and the Firebase auth emulator.
 
-## Configuration
-
-Set via environment (see the root `.env.example`): `PORT` (default 8080),
-`MONGODB_URL`, `REDIS_URL`, `JWT_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`,
-`GEMINI_API_KEY`/`GROQ_API_KEY` (AI summaries), `EMAIL_FROM`, `SMTP_HOST`,
-`SMTP_USER`, `SMTP_PASSWORD`, `SMTP_PORT` (password reset email).
-
-### Trusted proxies
-
-Rate-limit buckets are keyed on a client IP, and behind a proxy that address
-comes from a forwarding header the caller can write. `gin.New()` trusts every
-proxy, so `c.ClientIP()` would hand back the caller's own leftmost
-`X-Forwarded-For` entry and one varied header per request would defeat every
-limit. `internal/clientip` replaces it, using the same contract as cueprise:
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `TRUST_PROXY_HEADERS` | `false` | Whether forwarding headers are read at all. |
-| `TRUSTED_PROXY_CIDRS` | empty | CIDRs whose `X-Forwarded-For` entries may be consumed, walked right to left until the chain leaves the trusted ranges. |
-| `TRUSTED_PROXY_HOPS` | `0` | Positional fallback for chains with no stable peer range. |
-| `CLOUDFLARE_PROXY_CIDRS` | empty | CIDRs where Cloudflare is the immediate peer and `CF-Connecting-IP` is authoritative. |
-
-- **Default is the network peer.** Unforgeable, but coarse behind shared
-  ingress — users on one egress address share a bucket. Enable the headers
-  once the ingress ranges are verified.
-- **Prefer CIDRs over hops.** Cloud Run ingress is open, so the same origin is
-  reachable both through Cloudflare and directly; the direct chain is one hop
-  shorter, and a count tuned for the Cloudflare path resolves to a forged entry
-  on the direct one. `TRUSTED_PROXY_HOPS` stays `0` unless every ingress path
-  is length-enforced by infrastructure.
-- On Cloud Run behind Cloudflare, set `TRUSTED_PROXY_CIDRS` to the front-end
-  range that terminates the connection plus Cloudflare's published ranges
-  (<https://www.cloudflare.com/ips/>); confirm the observed peer address before
-  trusting a range. Use `CLOUDFLARE_PROXY_CIDRS` on the self-hosted
-  helm/compose path, where Cloudflare is the immediate peer.
-- A chain that cannot be attributed (missing, malformed, or ending inside a
-  trusted range) falls back to the peer. That over-groups; it never lets a
-  caller mint a fresh bucket. Startup fails on a configuration that would
-  silently make attribution forgeable or dead.
+Use a **non-superuser** database role: superusers bypass row-level security.
 
 ## Test
 
-```bash
-go test ./...
+```sh
+go vet ./... && go test ./...
 ```
+
+`internal/service` has an integration test that runs the import and
+statement flows against a real Postgres as a non-superuser (so RLS is
+enforced). It uses `TEST_DATABASE_URL` (a superuser URL; the test creates
+its own role and database) or starts an embedded Postgres. `go test -short`
+skips it.
+
+## Not built yet
+
+- Bank linking (Mono exchange, KMS-encrypted tokens, sync sweep, webhooks;
+  migration phase C). The tables exist (`bank_link`, `provider_event`).
+- Tax filings (`/tax/filings`, TAX-002), reports and downloads
+  (`/reports`), and data rights (`/account/export`, `/account/purge`). Tables
+  exist; routes come with their phases.
+- OpenTelemetry export (X-9): logs are JSON on stdout today.

@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Release workflow and deploy runbook.** `.github/workflows/release.yml`
+  builds the three API images on a `v*` tag and points the Cloud Run
+  services and sweep jobs at the new digests via WIF in the `Sandbox`
+  environment, failing unless every revision is Ready.
+  `docs/deploy-runbook.md` is the operator's checklist for GCP, Firebase
+  Auth, Aiven (Postgres, Kafka topics and ACLs, Redis), IAM and the
+  website switch-over.
+- **The ratified system design, built (S-1…S-14, 2026-10-05).** Three
+  services on one base layout: `api/common` (Go, the only Postgres client,
+  with row-level security, Firebase auth, upload tickets, a transactional
+  outbox and sweeps), `api/statements` (Node, a stateless ticketed upload
+  gateway) and `api/analytics` (Python, every decision, in extract and
+  compute worker pools). JSON Schemas for all eight Kafka topics live in
+  `api/common/contract/` and are validated by every service. The compute
+  pool now runs statement validation, the 22 ratio metrics and PIT/CIT/VAT
+  (including the legacy regimes) from rule sets delivered as data.
+  docs/system-design.md, docs/decisions.md.
+
 - Datadog service catalog entry for the Expendit system.
 - Fleet mock reset endpoint `POST /api/mock/v1/testing/reset` (reseeds the
   in-memory store to seed state), matching the sibling repos' e2e
@@ -50,6 +68,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   so standards tooling audits declared state instead of inferring it (#274).
 
 ### Changed
+
+- `api/intake` → `api/statements`, `api/process` → `api/analytics` (S-1).
+  Uploads are create-then-upload: `POST /api/v1/import` (or
+  `/statements`) returns an upload ticket, and the file goes to
+  `POST /api/v1/uploads`. The cap is 15 MB, carried in the ticket. Files
+  travel by pointer through temporary storage instead of base64 in Kafka,
+  and are deleted once parsed (S-3, S-4, amending E-5).
+- Compose runs Postgres, Kafka (KRaft), Redis, MinIO and the Firebase auth
+  emulator; the Helm chart adds the sweeps as CronJobs and API ingress
+  routing; CI tests all three services.
 
 - Web eslint wires `eslint-plugin-testing-library` (flat/react preset)
   over the co-located tests — it was declared as a dev dep but never
@@ -137,6 +165,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   setup routes through the README, `.env.example`, and `make help` (#274).
 
 ### Removed
+
+- MongoDB, `JWT_SECRET` and the password/JWT auth routes, the gateway's
+  in-memory idempotency cache, and the trusted-proxy client-IP settings
+  (rate limits are per org now).
 
 - The legacy MUI-era dashboard and marketing app, and the redirect stubs for
   its old routes (which now 404).

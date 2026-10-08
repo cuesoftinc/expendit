@@ -1,0 +1,29 @@
+{
+  "type": "expendit.config.rulesets",
+  "version": 1,
+  "id": "a0000000-0000-4000-8000-000000012026",
+  "produced_at": "2026-10-05T00:00:00Z",
+  "data": {
+    "ruleset_id": "ng-cit-2026",
+    "jurisdiction": "NG",
+    "tax_kind": "cit",
+    "effective_from": "2026-01-01",
+    "effective_to": null,
+    "signed_off": false,
+    "signed_off_by": null,
+    "estimate_only": true,
+    "rules": {
+      "small_company": { "turnover_max_ngn": 100000000, "fixed_assets_max_ngn": 250000000 },
+      "rates": { "small": 0.0, "other": 0.3 },
+      "levy": {
+        "key": "development_levy",
+        "label": "Development levy",
+        "rate": 0.04,
+        "small_exempt": true,
+        "notes": ["consolidates the former education tax"]
+      },
+      "borderline_pct": 0.1,
+      "filing": { "frequency": "annual", "months_after_year_end": 6 }
+    }
+  }
+}

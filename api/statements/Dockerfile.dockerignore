@@ -1,0 +1,12 @@
+# BuildKit per-Dockerfile ignore (repo-root context: docker build -f
+# api/statements/Dockerfile .). Only this service and the contract schemas
+# ship into the context.
+*
+!api/statements
+!api/common/contract/*.schema.json
+
+api/statements/node_modules
+api/statements/dist
+api/statements/coverage
+api/statements/.env
+api/statements/.env.*

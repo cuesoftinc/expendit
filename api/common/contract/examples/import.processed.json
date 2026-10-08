@@ -1,0 +1,44 @@
+{
+  "type": "expendit.import.processed",
+  "version": 1,
+  "id": "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
+  "produced_at": "2026-10-05T10:00:09Z",
+  "data": {
+    "job_id": "7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f",
+    "org_id": "3f6e2b1a-9c8d-4e7f-a6b5-c4d3e2f1a0b9",
+    "status": "completed",
+    "file_type": "csv",
+    "total_parsed": 2,
+    "duplicates_found": 1,
+    "transactions": [
+      {
+        "txn_date": "2026-09-02",
+        "amount": 4500,
+        "direction": "expense",
+        "description": "CHICKEN REPUBLIC IKEJA",
+        "category_id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
+        "category_name": "Food",
+        "ai_categorized": false,
+        "is_duplicate": true
+      },
+      {
+        "txn_date": "2026-09-05",
+        "amount": 12000,
+        "direction": "expense",
+        "description": "BOLT RIDE LAGOS",
+        "category_name": "Transportation",
+        "ai_categorized": false,
+        "is_duplicate": false
+      }
+    ],
+    "summary": {
+      "total_income": 0,
+      "total_expense": 12000,
+      "net": -12000,
+      "by_category": { "Transportation": 12000 }
+    },
+    "ai_summary": null,
+    "anomalies": [],
+    "warnings": []
+  }
+}

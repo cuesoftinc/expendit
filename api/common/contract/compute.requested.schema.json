@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/compute.requested.schema.json",
+  "title": "expendit.compute.requested",
+  "description": "common (outbox) -> analytics compute. Every number the product shows that is not a plain sum: statement validation, ratios, tax estimates, filing figures, the dashboard AI summary. `inputs` carries everything the computation reads. Key: org id (so one org's requests stay ordered).",
+  "type": "object",
+  "required": ["request_id", "org_id", "kind", "data_version", "inputs"],
+  "additionalProperties": false,
+  "properties": {
+    "request_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "kind": { "enum": ["statement_validation", "ratios", "tax_estimate", "filing", "dashboard_summary"] },
+    "data_version": { "type": "integer", "minimum": 0, "description": "The org's data version when the request was made; results for an older version are dropped by common." },
+    "period": { "type": "string" },
+    "tax_kinds": { "type": "array", "items": { "enum": ["pit", "cit", "vat"] } },
+    "ai_allowed": { "type": "boolean" },
+    "inputs": {
+      "type": "object",
+      "description": "Kind-specific. statement_validation: {statement_id, kind, mapping_version, line_items[]}. ratios: {period, statements{kind: line_items[]}, previous?}. tax_estimate / filing: {profile, category_treatments, ledger_totals, period_bounds}. dashboard_summary: {totals, by_category, trends}."
+    }
+  }
+}

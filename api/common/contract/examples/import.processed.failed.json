@@ -1,0 +1,13 @@
+{
+  "type": "expendit.import.processed",
+  "version": 1,
+  "id": "3c4d5e6f-7a8b-4c9d-8e1f-2a3b4c5d6e7f",
+  "produced_at": "2026-10-05T10:00:09Z",
+  "data": {
+    "job_id": "7c1d2e3f-4a5b-4c6d-8e9f-0a1b2c3d4e5f",
+    "org_id": "3f6e2b1a-9c8d-4e7f-a6b5-c4d3e2f1a0b9",
+    "status": "failed",
+    "error_code": "password_protected_pdf",
+    "file_type": "pdf"
+  }
+}

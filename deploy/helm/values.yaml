@@ -1,32 +1,72 @@
-# One chart deploys all services. Images are built from this repo — push to a
-# registry and override per environment. Secrets (JWT_SECRET, SMTP, API keys)
-# should come from Kubernetes Secrets in real deployments, not plain values.
+# One chart deploys every service (docs/system-design.md §10.2). The same
+# images run in cloud; this chart is the self-host and cluster path.
 #
-# The chart does NOT deploy MongoDB or Redis. Point MONGODB_URL/REDIS_URL at
-# reachable instances (managed services, or e.g. the bitnami/mongodb and
-# bitnami/redis charts installed as `mongo`/`redis` in the same namespace —
-# the default URLs below assume those service names).
+# The chart does NOT deploy Postgres, Kafka, Redis or object storage. Point
+# them at managed services (Aiven, GCS) or at in-cluster charts, through a
+# Kubernetes Secret per service (envFrom). Secrets never go in plain values:
+#   common:     DATABASE_URL (a NON-superuser role: superusers bypass RLS),
+#               UPLOAD_TICKET_PRIVATE_KEY, KAFKA_*, REDIS_PASSWORD,
+#               STORAGE_ACCESS_KEY/STORAGE_SECRET_KEY (s3 driver)
+#   statements: UPLOAD_TICKET_PUBLIC_KEYS, KAFKA_*, STORAGE_* keys
+#   analytics:  KAFKA_*, STORAGE_* keys, GROQ_API_KEY/GEMINI_API_KEY
 replicaCount: 1
 
 services:
-  api-common:
+  common:
     image: cuesoft/expendit-api-common:latest
     port: 8080
     healthPath: /health
     readyPath: /ready
+    # Consumes Kafka and publishes the outbox: keep at least one running (S-12).
+    replicaCount: 1
     env:
+      STORAGE_DRIVER: s3
+      STORAGE_BUCKET: expendit
+      STORAGE_PREFIX: expendit/selfhost
+      STORAGE_ENDPOINT: minio:9000
+      STORAGE_USE_SSL: "false"
       PORT: "8080"
-      MONGODB_URL: mongodb://mongo:27017/expendit
-      REDIS_URL: redis://redis:6379
-      FRONTEND_URL: http://web:3000
-      # Rate-limit buckets key on the direct network peer until the ingress
-      # ranges are verified. Behind an ingress controller or Cloudflare, set
-      # TRUSTED_PROXY_CIDRS / CLOUDFLARE_PROXY_CIDRS to the real proxy ranges
-      # (api/common/README.md §Trusted proxies) — not a hop count.
-      TRUST_PROXY_HEADERS: "false"
-    # Inject secrets (e.g. JWT_SECRET, SMTP creds) from a Kubernetes Secret:
-    # envFrom:
-    #   - secretRef: api-common-secrets
+      CORS_ORIGINS: https://expendit.example.com
+      FIREBASE_PROJECT_ID: ""
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    envFrom:
+      - secretRef: expendit-common
+
+  statements:
+    image: cuesoft/expendit-api-statements:latest
+    port: 8081
+    runAsUser: 1000 # node user in the image
+    healthPath: /health
+    readyPath: /ready
+    env:
+      STORAGE_DRIVER: s3
+      STORAGE_BUCKET: expendit
+      STORAGE_PREFIX: expendit/selfhost
+      STORAGE_ENDPOINT: minio:9000
+      STORAGE_USE_SSL: "false"
+      PORT: "8081"
+      CORS_ORIGINS: https://expendit.example.com
+    envFrom:
+      - secretRef: expendit-statements
+
+  analytics:
+    image: cuesoft/expendit-api-analytics:latest
+    port: 8082
+    healthPath: /health
+    readyPath: /ready
+    env:
+      STORAGE_DRIVER: s3
+      STORAGE_BUCKET: expendit
+      STORAGE_PREFIX: expendit/selfhost
+      STORAGE_ENDPOINT: minio:9000
+      STORAGE_USE_SSL: "false"
+      PORT: "8082"
+      # Both pools in one process; split into two Deployments with
+      # extract/compute when the extract side needs to scale alone (D8).
+      ANALYTICS_POOL: all
+    envFrom:
+      - secretRef: expendit-analytics
 
   web:
     image: cuesoft/expendit-web:latest
@@ -36,14 +76,31 @@ services:
     env:
       PORT: "3000"
 
-# Optional Ingress (see templates/ingress.yaml). Disabled by default: the chart's
-# existing consumers publish through Cloud Run / App Hosting, not an ingress
-# controller. Enable per-environment via a values overlay, e.g. values-local.yaml.
+# Sweeps (§6.7), run as CronJobs from the common image.
+jobs:
+  image: cuesoft/expendit-api-common:latest
+  envFrom:
+    - secretRef: expendit-common
+  env:
+    STORAGE_DRIVER: s3
+    STORAGE_BUCKET: expendit
+    STORAGE_PREFIX: expendit/selfhost
+    STORAGE_ENDPOINT: minio:9000
+    STORAGE_USE_SSL: "false"
+  schedules:
+    reaper: "* * * * *"
+    tmp-cleanup: "*/15 * * * *"
+    retention: "17 3 * * *"
+
+# Optional Ingress (templates/ingress.yaml): `host` serves one service (the
+# web app); `apiHost` serves the API, sending /api/v1/uploads to statements
+# and every other path to common (S-14). analytics never gets ingress.
 ingress:
   enabled: false
   # className: traefik
-  # host: example.localtest.me
-  # service: web          # must be a key under `services` above
+  # host: expendit.example.com
+  # service: web
+  # apiHost: api.expendit.example.com
   # path: /
   # pathType: Prefix
   # annotations: {}

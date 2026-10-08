@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/envelope.schema.json",
+  "title": "Kafka message envelope",
+  "description": "Every expendit.* message. `data` is inline; when the serialized data would exceed 512 KB the producer writes it to Cloud Storage compute/ and sends `data_ref` instead (S-3 claim-check). Exactly one of the two is set.",
+  "type": "object",
+  "required": ["type", "version", "id", "produced_at"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "type": "string", "pattern": "^expendit\\.[a-z]+\\.[a-z]+$", "description": "The topic name." },
+    "version": { "type": "integer", "minimum": 1 },
+    "id": { "type": "string", "format": "uuid", "description": "Message id; consumers deduplicate on it." },
+    "produced_at": { "type": "string", "format": "date-time" },
+    "data": { "type": "object" },
+    "data_ref": { "$ref": "defs.schema.json#/$defs/object_ref" }
+  },
+  "oneOf": [
+    { "required": ["data"], "not": { "required": ["data_ref"] } },
+    { "required": ["data_ref"], "not": { "required": ["data"] } }
+  ]
+}

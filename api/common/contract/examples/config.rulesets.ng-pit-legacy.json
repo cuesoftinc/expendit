@@ -1,0 +1,29 @@
+{
+  "type": "expendit.config.rulesets",
+  "version": 1,
+  "id": "a0000000-0000-4000-8000-000000002025",
+  "produced_at": "2026-10-05T00:00:00Z",
+  "data": {
+    "ruleset_id": "ng-pit-legacy",
+    "jurisdiction": "NG",
+    "tax_kind": "pit",
+    "effective_from": "2011-01-01",
+    "effective_to": "2025-12-31",
+    "signed_off": false,
+    "signed_off_by": null,
+    "estimate_only": true,
+    "rules": {
+      "bands": [
+        { "up_to_annual_ngn": 300000, "rate": 0.07 },
+        { "up_to_annual_ngn": 600000, "rate": 0.11 },
+        { "up_to_annual_ngn": 1100000, "rate": 0.15 },
+        { "up_to_annual_ngn": 1600000, "rate": 0.19 },
+        { "up_to_annual_ngn": 3200000, "rate": 0.21 },
+        { "up_to_annual_ngn": null, "rate": 0.24 }
+      ],
+      "cra": { "floor_ngn": 200000, "pct_of_gross": 0.01, "plus_pct": 0.2 },
+      "minimum_tax": { "rate": 0.01, "exempt_below_gross_ngn": 30000 },
+      "filing": { "frequency": "annual", "due_month_day": "03-31" }
+    }
+  }
+}
