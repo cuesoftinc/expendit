@@ -75,7 +75,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
     <tr
       data-density={density}
       className={cn(
-        "flex w-full items-center gap-3 border-b border-border bg-bg-elev px-3",
+        "flex w-full items-center gap-3 border-b border-border bg-bg-elev px-3 lg:gap-2 xl:gap-3",
         density === "compact" ? "h-[32px]" : "h-[44px]",
         sticky && "sticky top-0 z-sticky",
         className,

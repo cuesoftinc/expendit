@@ -87,12 +87,12 @@ export default function TransactionLedger({
                   id: "date",
                   label: "Date & Time",
                   sortable: true,
-                  widthClass: "w-44 shrink-0 text-left",
+                  widthClass: "w-44 shrink-0 text-left lg:w-36 xl:w-44",
                 },
                 {
                   id: "source",
                   label: "Src",
-                  widthClass: "w-32 shrink-0 text-left",
+                  widthClass: "w-32 shrink-0 text-left lg:w-24 xl:w-32",
                 },
                 {
                   id: "description",
@@ -103,14 +103,14 @@ export default function TransactionLedger({
                 {
                   id: "category",
                   label: "Category",
-                  widthClass: "w-64 shrink-0 text-left",
+                  widthClass: "w-64 shrink-0 text-left lg:w-48 xl:w-64",
                 },
                 {
                   id: "amount",
                   label: "Amount",
                   numeric: true,
                   sortable: true,
-                  widthClass: "w-32 shrink-0 text-right",
+                  widthClass: "w-32 shrink-0 text-right lg:w-28 xl:w-32",
                 },
                 // sr-only name (axe `empty-table-header`): the overflow
                 // menu needs a named column, not a blank th.

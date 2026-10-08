@@ -91,7 +91,11 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
     : showYear
       ? "d MMM yyyy"
       : "d MMM";
-  const dateWidth = showTime ? "w-44" : showYear ? "w-24" : "w-14";
+  const dateWidth = showTime
+    ? "w-44 lg:w-36 xl:w-44"
+    : showYear
+      ? "w-24"
+      : "w-14";
 
   React.useEffect(() => {
     if (!menuOpen) return;
@@ -139,7 +143,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       onKeyDown={onKeyDown}
       onDoubleClick={onOpen}
       className={cn(
-        "group relative flex w-full items-center gap-3 border-b border-border px-3 text-[13px] text-text",
+        "group relative flex w-full items-center gap-3 border-b border-border px-3 text-[13px] text-text lg:gap-2 xl:gap-3",
         "transition-colors duration-[60ms] ease-standard",
         density === "compact" ? "h-[32px]" : "h-[44px]",
         "hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
@@ -179,7 +183,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       <td
         className={cn(
           "flex shrink-0 items-center",
-          showSourceLabel ? "w-32 gap-1.5" : "w-8",
+          showSourceLabel ? "w-32 gap-1.5 lg:w-24 xl:w-32" : "w-8",
         )}
       >
         <SourceIcon
@@ -192,7 +196,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       <td className="min-w-0 flex-1">
         <span className="block truncate">{txn.description}</span>
       </td>
-      <td className="flex w-64 shrink-0 items-center gap-2 whitespace-nowrap">
+      <td className="flex w-64 shrink-0 items-center gap-2 whitespace-nowrap lg:w-48 xl:w-64">
         <CategoryChip
           category={category}
           aiSuggested={txn.ai_categorized}
@@ -211,7 +215,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
           />
         ) : null}
       </td>
-      <td className="w-32 shrink-0 text-right">
+      <td className="w-32 shrink-0 text-right lg:w-28 xl:w-32">
         <MoneyCell
           amount={txn.amount}
           direction={txn.direction}
