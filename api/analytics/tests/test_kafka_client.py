@@ -4,7 +4,7 @@ from pathlib import Path
 from kafka.client import ssl_context
 
 # A throwaway self-signed CA (CN=test-ca) used only by this test.
-CA = Path(__file__).with_name("test-ca.pem")
+CA = Path(__file__).with_name("test-ca.crt")
 
 
 def _has_test_ca(context: ssl.SSLContext) -> bool:
