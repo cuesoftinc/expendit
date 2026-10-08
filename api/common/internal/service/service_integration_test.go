@@ -401,4 +401,12 @@ func TestIntegration(t *testing.T) {
 	if sets := e.outbox(t, kafka.TopicConfigRulesets); len(sets) != 5 {
 		t.Fatalf("rule sets queued: %d", len(sets))
 	}
+	// A restart republishes every rule set even though none changed, so an
+	// emptied or recreated topic is rebuilt from Postgres.
+	if err := service.SeedRulesets(ctx, e.db); err != nil {
+		t.Fatal(err)
+	}
+	if sets := e.outbox(t, kafka.TopicConfigRulesets); len(sets) != 10 {
+		t.Fatalf("rule sets after a restart: %d, want 10", len(sets))
+	}
 }

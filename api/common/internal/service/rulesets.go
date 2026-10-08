@@ -13,9 +13,12 @@ import (
 	"github.com/cuesoftinc/expendit/api/common/internal/repository"
 )
 
-// SeedRulesets stores the NG rule sets shipped in contract/examples and
-// queues any that changed for the compacted topic (S-10). Sign-off is never
-// taken from these files: it is recorded in tax_ruleset by a practitioner.
+// SeedRulesets stores the NG rule sets shipped in contract/examples, then
+// republishes every stored rule set to the compacted topic (S-10). Postgres
+// is the source of truth and the topic only a copy (§5.3), so publishing
+// all of them on every start rebuilds the topic whenever it was emptied or
+// recreated; compaction keeps only the latest message per rule set. Sign-off
+// is never taken from these files: it is recorded in tax_ruleset.
 func SeedRulesets(ctx context.Context, db *repository.DB) error {
 	names, err := fs.Glob(contract.Schemas, "examples/config.rulesets.*.json")
 	if err != nil {
@@ -33,14 +36,18 @@ func SeedRulesets(ctx context.Context, db *repository.DB) error {
 			if err := json.Unmarshal(raw, &env); err != nil {
 				return err
 			}
-			changed, err := repository.UpsertRuleset(ctx, tx, env.Data, kafka.TopicConfigRulesets)
+			changed, err := repository.UpsertRuleset(ctx, tx, env.Data, "")
 			if err != nil {
 				return err
 			}
 			if changed {
-				slog.Info("rule set published", "ruleset", env.Data.ID)
+				slog.Info("rule set stored", "ruleset", env.Data.ID)
 			}
 		}
+		if err := repository.RepublishRulesets(ctx, tx, kafka.TopicConfigRulesets); err != nil {
+			return err
+		}
+		slog.Info("rule sets queued for publishing", "step", "config.rulesets")
 		return nil
 	})
 }

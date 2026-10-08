@@ -60,8 +60,9 @@ type Ruleset struct {
 	Rules         json.RawMessage `json:"rules"`
 }
 
-// UpsertRuleset stores a rule set and, when it changed, queues it on the
-// compacted topic. Unsigned sets are published estimate_only (S-10).
+// UpsertRuleset stores a rule set and, when it changed and a topic is given,
+// queues it on the compacted topic. Unsigned sets are published
+// estimate_only (S-10).
 func UpsertRuleset(ctx context.Context, tx pgx.Tx, r Ruleset, topic string) (changed bool, err error) {
 	tag, err := tx.Exec(ctx, `INSERT INTO tax_ruleset (id, jurisdiction, tax_kind, effective_from, effective_to, signed_off, signed_off_by, rules)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -72,6 +73,9 @@ func UpsertRuleset(ctx context.Context, tx pgx.Tx, r Ruleset, topic string) (cha
 		r.ID, r.Jurisdiction, r.TaxKind, r.EffectiveFrom, r.EffectiveTo, r.SignedOff, r.SignedOffBy, []byte(r.Rules))
 	if err != nil || tag.RowsAffected() == 0 {
 		return false, err
+	}
+	if topic == "" {
+		return true, nil
 	}
 	// Sign-off is a legal event recorded in the table, never taken from seed
 	// data: re-read the stored state before publishing.
