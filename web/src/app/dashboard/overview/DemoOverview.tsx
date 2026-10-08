@@ -11,9 +11,9 @@ import OverviewTxnTableRow from "./OverviewTxnTableRow";
 
 const transactionColumns = [
   {
-    id: "date-time",
-    label: "Date & Time",
-    widthClass: "w-48",
+    id: "date",
+    label: "Date",
+    widthClass: "w-24",
     headerAlign: "left" as const,
   },
   {

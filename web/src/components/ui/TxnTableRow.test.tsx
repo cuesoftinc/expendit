@@ -48,16 +48,34 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
     expect(screen.getByLabelText("CSV import")).toBeInTheDocument();
   });
 
-  it("MI-6: hover actions are absolutely positioned (no layout shift)", () => {
-    render(<TxnTableRow txn={txn} category={category} />);
-    const actions = screen.getByTestId("row-actions");
-    expect(actions).toHaveClass("absolute", "opacity-0");
-    expect(actions).toHaveClass("group-hover:opacity-100");
-    // Adjudicated 2026-07-19: the cluster docks inside the DESCRIPTION
-    // cell (right edge), so it never covers the amount column.
-    const descriptionCell = screen.getByText(txn.description).closest("td");
-    expect(descriptionCell).toContainElement(actions);
-    expect(descriptionCell).toHaveClass("relative");
+  it("can include the year in the date column for the ledger", () => {
+    render(<TxnTableRow txn={txn} category={category} showYear />);
+
+    expect(screen.getByText("14 Jun 2026")).toBeInTheDocument();
+  });
+
+  it("opens the visible overflow menu instead of hiding actions on hover", async () => {
+    render(
+      <TxnTableRow txn={txn} category={category} onExplainAnomaly={vi.fn()} />,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: `Actions for ${txn.description}` }),
+    );
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByRole("row")).toHaveClass("z-50");
+    expect(screen.getByRole("menu")).toHaveClass("z-modal", "bg-bg");
+    expect(
+      screen.getByRole("menuitem", { name: "Edit transaction" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Split transaction" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Explain anomaly" }),
+    ).toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("density switches row height 32/44", () => {
@@ -105,7 +123,7 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
     expect(onEdit).toHaveBeenCalledTimes(1);
   });
 
-  it("row action buttons fire their handlers", async () => {
+  it("menu actions fire their handlers", async () => {
     const onSplit = vi.fn();
     const onExclude = vi.fn();
     render(
@@ -116,9 +134,17 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
         onExclude={onExclude}
       />,
     );
-    await userEvent.click(screen.getByRole("button", { name: "Split" }));
     await userEvent.click(
-      screen.getByRole("button", { name: "Exclude from reports" }),
+      screen.getByRole("button", { name: `Actions for ${txn.description}` }),
+    );
+    await userEvent.click(
+      screen.getByRole("menuitem", { name: "Split transaction" }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: `Actions for ${txn.description}` }),
+    );
+    await userEvent.click(
+      screen.getByRole("menuitem", { name: "Exclude from reports" }),
     );
     expect(onSplit).toHaveBeenCalled();
     expect(onExclude).toHaveBeenCalled();
