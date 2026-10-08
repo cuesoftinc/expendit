@@ -12,8 +12,8 @@
 | `api/common` (Go) `./server` | Cloud Run **service** | **min 1**, max 5: it consumes Kafka and publishes the outbox | cuesoft-iac stack `expendit` |
 | `api/common` `./jobs <name>` | Cloud Run **jobs** + Cloud Scheduler | reaper every minute, tmp-cleanup every 15 min, retention daily | cuesoft-iac stack `expendit` |
 | `api/statements` (Node) | Cloud Run **service** | 0–5 | cuesoft-iac stack `expendit` |
-| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run **worker pool** | 1–3, capped by the Vertex quota | cuesoft-iac stack `expendit` |
-| `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run **worker pool** | 1–2 | cuesoft-iac stack `expendit` |
+| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run service, always-on CPU, internal ingress (worker pool where the stack supports it) | 1–3, capped by the Vertex quota | cuesoft-iac stack `expendit` |
+| `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run service, always-on CPU, internal ingress (worker pool where supported) | 1–2 | cuesoft-iac stack `expendit` |
 | `web` (Next.js) | **Firebase App Hosting** | managed | App Hosting backend |
 | Postgres, Kafka, Redis | Aiven | — | Aiven console / IaC |
 | Object storage | default bucket, `expendit/stg/…`, 1-day lifecycle rule on `tmp/` | — | cuesoft-iac |
@@ -43,7 +43,7 @@ lists them; `config.rulesets` is compacted, every other topic keeps 24 h).
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `build-and-test.yml` | PRs **and** push to `main` | build + tests per service — **no deploy, no image push** (X-6: open-source repos; merges must be inert) |
-| `release.yml` | **tag `v*` created** | matrix over services: buildx (GHA cache) → push `cuesoft/expendit-<service>` (tags: `latest`, `sha`, version) → Cloud Run deploy **by image digest** via WIF → App Hosting rollout pinned to the tag commit |
+| `release.yml` | **tag `v*` created** | buildx (GHA cache) → push `cuesoft/expendit-api-{common,statements,analytics}` (tags: version, sha, `latest`) → Cloud Run services and sweep jobs updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready. The website is not in it: App Hosting rolls out from `main`. Step-by-step setup: [deploy-runbook.md](deploy-runbook.md) |
 
 **Gating (X-6):** `stg` (sandbox) is the only environment and is treated as
 production. Two independent gates: (1) a GitHub **tag ruleset** restricts
@@ -94,8 +94,8 @@ the first load test.
 
 ## 5. Not in this phase
 
-`release.yml` and the Pulumi stack are still to be written; this document is
-the contract they'll be built against. The images now exist as
+`release.yml` landed on 2026-10-08; the cuesoft-iac stack is still to be
+written, from [deploy-runbook.md](deploy-runbook.md) §7. The images now exist as
 `cuesoft/expendit-api-common`, `cuesoft/expendit-api-statements`,
 `cuesoft/expendit-api-analytics` and `cuesoft/expendit-web`. The
 `intake`/`process` Docker Hub repos can be retired.

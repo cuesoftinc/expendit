@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Release workflow and deploy runbook.** `.github/workflows/release.yml`
+  builds the three API images on a `v*` tag and points the Cloud Run
+  services and sweep jobs at the new digests via WIF in the `Sandbox`
+  environment, failing unless every revision is Ready.
+  `docs/deploy-runbook.md` is the operator's checklist for GCP, Firebase
+  Auth, Aiven (Postgres, Kafka topics and ACLs, Redis), IAM and the
+  website switch-over.
 - **The ratified system design, built (S-1…S-14, 2026-10-05).** Three
   services on one base layout: `api/common` (Go, the only Postgres client,
   with row-level security, Firebase auth, upload tickets, a transactional

@@ -18,7 +18,7 @@ capabilities:
 
 deployment:
   web: firebase-app-hosting
-  api: none
+  api: cloud-run
   selfHost: helm
   infrastructure: terraform
 
