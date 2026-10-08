@@ -66,8 +66,8 @@ export const OverviewTxnTableRow: React.FC<OverviewTxnTableRowProps> = ({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent",
       )}
     >
-      <td className="w-48 shrink-0 whitespace-nowrap tabular-nums text-text-2">
-        {formatIso(txn.txn_date, "dd-MM-yyyy • hh:mm aa")}
+      <td className="w-24 shrink-0 whitespace-nowrap tabular-nums text-text-2">
+        {formatIso(txn.txn_date, "dd-MM-yyyy")}
       </td>
       <td className="flex w-8 shrink-0 items-center">
         <SourceIcon

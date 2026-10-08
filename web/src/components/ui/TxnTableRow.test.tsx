@@ -48,10 +48,10 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
     expect(screen.getByLabelText("CSV import")).toBeInTheDocument();
   });
 
-  it("can include time in the date column for the ledger", () => {
-    render(<TxnTableRow txn={txn} category={category} showTime />);
+  it("can include the year in the date column for the ledger", () => {
+    render(<TxnTableRow txn={txn} category={category} showYear />);
 
-    expect(screen.getByText("14-06-2026 • 12:00 AM")).toBeInTheDocument();
+    expect(screen.getByText("14 Jun 2026")).toBeInTheDocument();
   });
 
   it("opens the visible overflow menu instead of hiding actions on hover", async () => {

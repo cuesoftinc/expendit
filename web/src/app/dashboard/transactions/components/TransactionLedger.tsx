@@ -85,9 +85,9 @@ export default function TransactionLedger({
               columns={[
                 {
                   id: "date",
-                  label: "Date & Time",
+                  label: "Date",
                   sortable: true,
-                  widthClass: "w-44 shrink-0 text-left lg:w-36 xl:w-44",
+                  widthClass: "w-24 shrink-0 text-left",
                 },
                 {
                   id: "source",
@@ -150,7 +150,6 @@ export default function TransactionLedger({
                   key={txn.id}
                   txn={txn}
                   showYear
-                  showTime
                   showSourceLabel
                   density={density}
                   category={

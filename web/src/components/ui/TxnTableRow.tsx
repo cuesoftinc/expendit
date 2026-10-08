@@ -45,8 +45,6 @@ export interface TxnTableRowProps {
   category: CategoryOption;
   categoryOptions?: CategoryOption[];
   showYear?: boolean;
-  /** Ledger date column also includes the transaction time. */
-  showTime?: boolean;
   showSourceLabel?: boolean;
   density?: "compact" | "comfortable";
   selected?: boolean;
@@ -67,7 +65,6 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   category,
   categoryOptions = [],
   showYear = false,
-  showTime = false,
   showSourceLabel = false,
   density = "comfortable",
   selected = false,
@@ -86,16 +83,8 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   const menuRootRef = React.useRef<HTMLTableCellElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const menuStyle = useAnchoredLayer(menuOpen, menuRootRef, menuRef);
-  const dateFormat = showTime
-    ? "dd-MM-yyyy • hh:mm aa"
-    : showYear
-      ? "d MMM yyyy"
-      : "d MMM";
-  const dateWidth = showTime
-    ? "w-44 lg:w-36 xl:w-44"
-    : showYear
-      ? "w-24"
-      : "w-14";
+  const dateFormat = showYear ? "d MMM yyyy" : "d MMM";
+  const dateWidth = showYear ? "w-24" : "w-14";
 
   React.useEffect(() => {
     if (!menuOpen) return;

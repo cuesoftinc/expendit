@@ -37,7 +37,7 @@ describe("OverviewTxnTableRow", () => {
 
     const cells = container.querySelectorAll("td");
     expect(cells).toHaveLength(6);
-    expect(cells[0]).toHaveTextContent("15-07-2026 • 07:00 PM");
+    expect(cells[0]).toHaveTextContent("15-07-2026");
     expect(cells[1]).toContainElement(screen.getByLabelText("CSV import"));
     expect(cells[2]).toHaveTextContent(txn.description);
     expect(cells[3]).toHaveTextContent(category.name);
