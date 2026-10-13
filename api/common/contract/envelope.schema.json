@@ -7,7 +7,7 @@
   "required": ["type", "version", "id", "produced_at"],
   "additionalProperties": false,
   "properties": {
-    "type": { "type": "string", "pattern": "^expendit\\.[a-z]+\\.[a-z]+$", "description": "The topic name." },
+    "type": { "type": "string", "pattern": "^expendit\\.[a-z]+\\.[a-z]+$", "description": "The event name, which is also the name of the schema `data` must match. A topic can carry several events (system-design.md §16 I-16)." },
     "version": { "type": "integer", "minimum": 1 },
     "id": { "type": "string", "format": "uuid", "description": "Message id; consumers deduplicate on it." },
     "produced_at": { "type": "string", "format": "date-time" },

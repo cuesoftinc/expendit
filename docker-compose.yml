@@ -70,9 +70,12 @@ services:
   # No identities are configured, so it accepts any local credentials.
   seaweedfs:
     image: chrislusf/seaweedfs:4.48
-    command: server -dir=/data -s3 -s3.port=8333 -master.volumeSizeLimitMB=1024
+    # Local-only credentials (the same minioadmin pair the services use), so
+    # every S3 signing style is accepted, as on a real bucket.
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=1024
     volumes:
       - expendit-objects:/data
+      - ./deploy/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
     ports:
       - "8333:8333"
     restart: unless-stopped
@@ -113,6 +116,11 @@ services:
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
+      # Scale-to-zero wakes (§16 I-16). Everything always runs here, so a
+      # wake is only a /health call, but it exercises the cloud path.
+      WAKE_COMMON_URL: http://common:8080
+      WAKE_EXTRACT_URL: http://analytics:8082
+      WAKE_COMPUTE_URL: http://analytics:8082
     depends_on:
       postgres:
         condition: service_healthy
@@ -147,6 +155,7 @@ services:
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-minioadmin}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-minioadmin}
       STORAGE_USE_SSL: ${STORAGE_USE_SSL:-false}
+      WAKE_COMMON_URL: http://common:8080
     depends_on:
       common:
         condition: service_healthy
@@ -177,6 +186,7 @@ services:
       # Self-host AI (X-4): one key, or none for CSV/PDF-regex only.
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      WAKE_COMMON_URL: http://common:8080
     depends_on:
       common:
         condition: service_healthy

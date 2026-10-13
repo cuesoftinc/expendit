@@ -6,6 +6,7 @@ from app.config import Settings
 from contract import Contract
 from kafka import envelope
 from kafka.client import connection_kwargs
+from kafka.topics import TOPIC_FOR
 from storage import ObjectStore
 
 
@@ -31,6 +32,6 @@ class Producer:
     async def stop(self) -> None:
         await self._producer.stop()
 
-    async def send(self, topic: str, key: str, data: dict) -> None:
-        message = await envelope.wrap(topic, data, self._contract, self._store, self._settings.storage_prefix)
-        await self._producer.send_and_wait(topic, message, key=key)
+    async def send(self, event: str, key: str, data: dict) -> None:
+        message = await envelope.wrap(event, data, self._contract, self._store, self._settings.storage_prefix)
+        await self._producer.send_and_wait(TOPIC_FOR[event], message, key=key)

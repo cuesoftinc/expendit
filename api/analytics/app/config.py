@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     kafka_ssl_ca: str = ""
     kafka_group_prefix: str = "expendit-analytics"
 
+    # api/common's base URL, woken after each result sent for it (scale to
+    # zero, system-design.md §16 I-16). Empty where common always runs.
+    wake_common_url: str = ""
+
     # Object storage (S-3). gcs in cloud (ADC); s3 for MinIO in compose/self-host.
     storage_driver: Literal["gcs", "s3"] = "gcs"
     storage_bucket: str = Field(min_length=1)

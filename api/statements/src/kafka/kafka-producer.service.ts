@@ -1,13 +1,16 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { Kafka, Partitioners, type Producer } from 'kafkajs';
 import { CONFIG, type Config } from '../config/config';
 import { ContractService } from '../contract/contract.service';
+import { StorageService } from '../storage/storage.service';
+import { UPLOADS_TOPIC } from './topics';
 
 /**
- * Publishes validated envelopes (api/common/contract/envelope.schema.json).
- * The gateway only ever sends upload.received, whose payload is a pointer,
- * so it never needs the 512 KB claim-check.
+ * Publishes validated envelopes (api/common/contract/envelope.schema.json) on
+ * the CueLABS shared bus. Every product can read its lanes, so the payload
+ * (it holds the file name) is written to tmp/ and the message carries only
+ * the pointer (S-3 claim-check, docs/system-design.md §16 I-18).
  */
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
@@ -18,6 +21,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(CONFIG) config: Config,
     private readonly contract: ContractService,
+    private readonly storage: StorageService,
   ) {
     const { kafka } = config;
     const kafkaClient = new Kafka({
@@ -55,18 +59,20 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     return this.connected;
   }
 
-  async send(topic: string, key: string, data: object): Promise<void> {
-    this.contract.validateData(topic, data);
-    const envelope = {
-      type: topic,
-      version: 1,
-      id: randomUUID(),
-      produced_at: new Date().toISOString(),
-      data,
-    };
+  async send(event: string, key: string, data: object): Promise<void> {
+    this.contract.validateData(event, data);
+    const id = randomUUID();
+    const body = Buffer.from(JSON.stringify(data));
+    const dataRef = await this.storage.store(
+      `${this.storage.prefix}/tmp/claims/${id}.json`,
+      body,
+      'application/json',
+      createHash('sha256').update(body).digest('hex'),
+    );
+    const envelope = { type: event, version: 1, id, produced_at: new Date().toISOString(), data_ref: dataRef };
     this.contract.validateEnvelope(envelope);
     await this.connect();
-    await this.producer.send({ topic, acks: -1, messages: [{ key, value: JSON.stringify(envelope) }] });
+    await this.producer.send({ topic: UPLOADS_TOPIC, acks: -1, messages: [{ key, value: JSON.stringify(envelope) }] });
   }
 
   private async connect(): Promise<void> {

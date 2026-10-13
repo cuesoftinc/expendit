@@ -222,8 +222,8 @@ def test_ratios_bands_traces_growth_and_delta():
     assert "interest_coverage_ebitda" not in results  # D&A not mapped
 
 
-async def test_handler_round_trips_through_the_contract(contract, book):
-    handler = ComputeHandler(book, ai=None)
+async def test_handler_round_trips_through_the_contract(contract):
+    handler = ComputeHandler(ai=None)
     request = {
         "request_id": str(uuid.uuid4()),
         "org_id": str(uuid.uuid4()),
@@ -247,3 +247,28 @@ async def test_handler_round_trips_through_the_contract(contract, book):
     summary = await handler.run(request | {"kind": "dashboard_summary", "inputs": {"totals": {"income": 1, "expense": 1}}})
     contract.validate_data(topics.COMPUTE_RESULTS, summary)
     assert summary["error_code"] == "ai_unavailable"
+
+
+async def test_tax_request_carries_its_rule_sets(contract):
+    """Rule sets arrive with each tax request (S-10, system-design.md §16 I-16)."""
+    handler = ComputeHandler(ai=None)
+    rulesets = [example(f"config.rulesets.{name}")["data"] for name in RULESETS]
+    income = [{"id": "t1", "amount": 5_000_000, "tax_treatment": "taxable_income"}]
+    request = {
+        "request_id": str(uuid.uuid4()),
+        "org_id": str(uuid.uuid4()),
+        "kind": "tax_estimate",
+        "data_version": 3,
+        "rulesets": rulesets,
+        "inputs": {"today": "2026-10-05", "taxpayer_kind": "individual",
+                   "requests": [{"kind": "pit", "period": "2026", "income": income}]},
+    }
+    contract.validate_data(topics.COMPUTE_REQUESTED, request)
+    result = await handler.run(request)
+    contract.validate_data(topics.COMPUTE_RESULTS, result)
+    assert result["status"] == "ok"
+    (pit,) = result["estimates"]
+    assert pit["ruleset_id"] == "ng-pit-2026" and pit["estimate_only"] is True
+
+    missing = await handler.run(request | {"rulesets": []})
+    assert missing["status"] == "failed" and missing["error_code"] == "ruleset_unavailable"

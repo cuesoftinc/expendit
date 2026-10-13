@@ -201,6 +201,26 @@ until a real customer needs it.
   the template); tier-2 fields are high-sensitivity in every data-model §4
   classification; verification is delegated to the money/filing provider —
   no in-house document review. ☑
+- **X-11 Shared message bus (RATIFIED, boss 2026-10-13)**: expendit, apparule
+  and upstat share **one Aiven Kafka service** under the CueLABS delivery
+  standard's `references/shared-messaging.md` (the contract; read it before
+  designing any Kafka use). Three topics ("lanes") serve every product:
+  `cuelabs.uploads` (gateway → control plane), `cuelabs.requests` (control
+  plane → processing), `cuelabs.results` (processing → control plane); two
+  more are held in reserve and need a decision. Event types are
+  `<product>.<domain>.<event>`; consumers read the type first and skip what
+  isn't theirs. **Payloads go by pointer** (claim-check in the product's own
+  storage prefix) because every product can read the lanes. No compacted
+  topics: config travels in requests or as a snapshot object. Retention is
+  the service's fixed setting, so nothing may depend on the bus keeping a
+  message for more than a day; each control plane re-sends overdue work
+  from its own store. One Kafka user per product (`expendit`, `apparule`,
+  `upstat`); consumer groups `<product>-<service>`. The service powers off
+  after 24 h with no traffic and drops its messages: **keep-alive owner is
+  expendit** (its `api/common` reaper sends a heartbeat every 6 h and powers
+  the service back on through the Aiven API); apparule and upstat run no
+  heartbeat or watchdog. Bulk data never rides the bus (upstat telemetry
+  goes through the OpenTelemetry Collector instead). ☑
 
 ## System design (S-1 … S-14)
 
@@ -223,8 +243,9 @@ until a real customer needs it.
 | S-7 | All computation in `analytics`: statement derivations and checks, ratios, tax, the dashboard AI summary; `common` stores results with traces | ☑ |
 | S-8 | Statement confirm checks the stored, versioned validation (`409 validation_pending` while recomputing) | ☑ |
 | S-9 | Bank sync fetch stays in `common` (lookup, fetch, relay); decisions go through the import pipeline | ☑ |
-| S-10 | Rule sets propagate by outbox → compacted topic; unsigned sets are `estimate_only` | ☑ |
+| S-10 | Rule sets propagate by outbox → compacted topic; unsigned sets are `estimate_only`. **Amended 2026-10-13:** tax `compute.requested` messages carry the stored rule sets instead of a topic (system-design.md §16 I-16) | ☑ |
 | S-11 | Postgres row-level security by `org_id`; per-prefix Storage IAM; per-service Kafka ACLs | ☑ |
-| S-12 | `common` min 1 instance; `analytics` as two worker pools; sweeps as Cloud Run jobs | ☑ |
-| S-13 | Topics `expendit.<domain>.<event>`; JSON Schemas in `api/common/contract/` | ☑ |
+| S-12 | `common` min 1 instance; `analytics` as two worker pools; sweeps as Cloud Run jobs. **Amended 2026-10-13 (boss):** every service scales to zero; publishers wake their consumers over HTTP, with Kafka kept and five topics (system-design.md §16 I-16; since I-18, the CueLABS shared bus's three lanes) | ☑ |
+| S-13 | Topics `expendit.<domain>.<event>`; JSON Schemas in `api/common/contract/`. **Amended 2026-10-13:** events keep those names, and travel on the CueLABS shared bus's lanes `cuelabs.uploads`, `cuelabs.requests`, `cuelabs.results` (system-design.md §16 I-18) | ☑ |
+| S-15 | **Shared message bus (2026-10-13, boss):** Expendit, Apparule and Upstat share one Kafka service under the CueLABS delivery standard's `shared-messaging.md`. Expendit's Kafka user is `expendit`; consumer groups `expendit-common`, `expendit-analytics-extract`, `expendit-analytics-compute`. Payloads go by pointer. **Keep-alive owner: Expendit** (`api/common` reaper: heartbeat and power-on watchdog); Apparule and Upstat run neither | ☑ |
 | S-14 | The gateway sits behind `api.expendit.cuesoft.io/api/v1/uploads` | ☑ |

@@ -1,9 +1,11 @@
 """api/analytics: every processing decision (system-design.md §4).
 
-No public ingress. HTTP serves only /health and /ready for the platform;
-the work arrives over Kafka. ANALYTICS_POOL picks the worker pool: extract
-(parsing, AI) or compute (ratios, tax, validation), or both in one process
-for compose and Helm (D8).
+No public ingress. HTTP serves only /health and /ready; the work arrives over
+Kafka. In cloud the pools scale to zero: common wakes a pool with a request
+after publishing for it, and the pool wakes common after sending a result
+(§16 I-16). ANALYTICS_POOL picks the worker pool: extract (parsing, AI) or
+compute (ratios, tax, validation), or both in one process for compose and
+Helm (D8).
 """
 
 import logging
@@ -14,7 +16,6 @@ from fastapi import FastAPI
 
 from app.config import get_settings
 from compute.handler import ComputeHandler
-from compute.tax.rulesets import RulesetBook
 from contract import Contract
 from extract.ai.enhancer import AIEnhancer
 from extract.mapping.pipeline import StatementPipeline
@@ -23,6 +24,7 @@ from health import router as health_router
 from kafka import topics
 from kafka.consumer import Consumer
 from kafka.producer import Producer
+from kafka.wake import Waker
 from storage import from_settings
 from telemetry import configure as configure_logging
 
@@ -38,6 +40,7 @@ async def lifespan(app: FastAPI):
     store = from_settings(settings)
     producer = Producer(settings, contract, store)
     ai = AIEnhancer.from_settings(settings)
+    waker = Waker(settings.wake_common_url)
     consumers: list[Consumer] = []
 
     if settings.runs_extract:
@@ -50,6 +53,7 @@ async def lifespan(app: FastAPI):
                                                "source": msg["source"], "file_type": msg.get("file_type"), "ai_allowed": msg["ai_allowed"]})
             result = await imports.run(msg)
             await producer.send(topics.IMPORT_PROCESSED, msg["job_id"], result)
+            waker.soon(topics.IMPORT_PROCESSED)
             log.info("import processed; result sent", extra={
                 "step": "import.processed", "job_id": msg["job_id"], "status": result["status"],
                 "error_code": result.get("error_code"), "parsed": result.get("total_parsed", 0),
@@ -62,6 +66,7 @@ async def lifespan(app: FastAPI):
                                                   "org_id": msg["org_id"], "kind": msg["kind"], "file_type": msg["file_type"]})
             result = await statements.run(msg)
             await producer.send(topics.STATEMENT_MAPPED, msg["statement_id"], result)
+            waker.soon(topics.STATEMENT_MAPPED)
             log.info("statement mapped; result sent", extra={
                 "step": "statement.mapped", "statement_id": msg["statement_id"], "status": result["status"],
                 "error_code": result.get("error_code"), "line_items": len(result.get("line_items", [])),
@@ -78,12 +83,7 @@ async def lifespan(app: FastAPI):
         )
 
     if settings.runs_compute:
-        compute = ComputeHandler(RulesetBook(), ai)
-
-        async def on_ruleset(msg: dict) -> None:
-            compute.rulesets.apply(msg)
-            log.info("rule set loaded", extra={"step": "config.rulesets", "ruleset_id": msg["ruleset_id"],
-                                               "signed_off": msg["signed_off"]})
+        compute = ComputeHandler(ai)
 
         async def on_compute_requested(msg: dict) -> None:
             start = time.monotonic()
@@ -91,13 +91,22 @@ async def lifespan(app: FastAPI):
                                                     "org_id": msg["org_id"], "request_id": msg["request_id"]})
             result = await compute.run(msg)
             await producer.send(topics.COMPUTE_RESULTS, msg["org_id"], result)
+            waker.soon(topics.COMPUTE_RESULTS)
             log.info("computation done; result sent", extra={
                 "step": "compute.results", "kind": msg["kind"], "request_id": msg["request_id"], "status": result["status"],
                 "error_code": result.get("error_code"), "ms": round((time.monotonic() - start) * 1000)})
 
-        consumers.append(Consumer(None, {topics.CONFIG_RULESETS: on_ruleset}, settings, contract, store))
+        async def on_heartbeat(msg: dict) -> None:
+            """Keep-alive traffic for Kafka only (§16 I-17): nothing to do."""
+
         consumers.append(
-            Consumer("compute", {topics.COMPUTE_REQUESTED: on_compute_requested}, settings, contract, store)
+            Consumer(
+                "compute",
+                {topics.COMPUTE_REQUESTED: on_compute_requested, topics.HEARTBEAT: on_heartbeat},
+                settings,
+                contract,
+                store,
+            )
         )
 
     await producer.start()
@@ -110,6 +119,7 @@ async def lifespan(app: FastAPI):
         for consumer in consumers:
             await consumer.stop()
         await producer.stop()
+        await waker.aclose()
         if ai is not None:
             await ai.aclose()
 

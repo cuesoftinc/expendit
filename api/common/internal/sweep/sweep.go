@@ -11,14 +11,29 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/cuesoftinc/expendit/api/common/internal/aiven"
+	"github.com/cuesoftinc/expendit/api/common/internal/config"
 	"github.com/cuesoftinc/expendit/api/common/internal/repository"
 	"github.com/cuesoftinc/expendit/api/common/internal/storage"
+	"github.com/cuesoftinc/expendit/api/common/internal/wake"
 )
 
 type Sweeper struct {
 	DB    *repository.DB
 	Store storage.Store
 	Now   func() time.Time
+	// Wake and WakeURLs let the reaper restart scaled-to-zero services
+	// while work is pending (§16 I-16). Nil/empty: nothing to wake.
+	Wake     *wake.Waker
+	WakeURLs config.Wake
+
+	// Keeping Aiven's free Kafka usable (§16 I-17); each is optional.
+	// Aiven powers Kafka back on when Aiven powered it off.
+	Aiven *aiven.Client
+	// Heartbeat sends a message so Kafka never sits idle for 24 hours.
+	Heartbeat func(context.Context) error
+	// Resend queues again, once, the work of items stuck in processing.
+	Resend func(context.Context) (int, error)
 }
 
 // Jobs maps the cmd/jobs names to their functions.
@@ -30,9 +45,60 @@ func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 	}
 }
 
-// Reaper: processing > 10 min -> failed (worker crash, flows/import.md §3);
-// awaiting_upload past ticket expiry -> deleted. Every minute.
+// Reaper runs every 5 minutes:
+//  1. powers Kafka back on if Aiven powered it off (I-17);
+//  2. processing > 10 min -> failed (worker crash, flows/import.md §3);
+//     awaiting_upload past ticket expiry -> deleted;
+//  3. re-sends, once, items processing for over 4 minutes (I-17);
+//  4. every 6 hours, a Kafka heartbeat (I-17);
+//  5. wakes the services while work is pending, the backstop for a
+//     missed wake (I-16).
+//
+// Only the database steps can fail the job; the rest log and carry on.
 func (s *Sweeper) Reaper(ctx context.Context) error {
+	s.ensureKafka(ctx)
+	if err := s.reap(ctx); err != nil {
+		return err
+	}
+	if s.Resend != nil {
+		if _, err := s.Resend(ctx); err != nil {
+			return err
+		}
+	}
+	if s.Heartbeat != nil && HeartbeatDue(s.Now()) {
+		if err := s.Heartbeat(ctx); err != nil {
+			slog.Warn("kafka heartbeat failed", "step", "kafka.heartbeat", "error", err)
+		} else {
+			slog.Info("kafka heartbeat sent", "step", "kafka.heartbeat")
+		}
+	}
+	return s.wakePending(ctx)
+}
+
+// HeartbeatDue is true in the first 5 minutes of every 6th UTC hour: one
+// reaper run in each window, four heartbeats a day, well inside Aiven's
+// 24-hour idle limit even if a run or two is missed.
+func HeartbeatDue(now time.Time) bool {
+	now = now.UTC()
+	return now.Hour()%6 == 0 && now.Minute() < 5
+}
+
+func (s *Sweeper) ensureKafka(ctx context.Context) {
+	if s.Aiven == nil {
+		return
+	}
+	state, poweredOn, err := s.Aiven.EnsurePowered(ctx)
+	switch {
+	case err != nil:
+		slog.Warn("could not check Kafka's power state", "step", "kafka.power", "error", err)
+	case poweredOn:
+		slog.Warn("Kafka was powered off; power-on requested", "step", "kafka.power")
+	case state != "RUNNING":
+		slog.Info("Kafka not running yet", "step", "kafka.power", "state", state)
+	}
+}
+
+func (s *Sweeper) reap(ctx context.Context) error {
 	return s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		failed, err := tx.Exec(ctx, `UPDATE import_job SET status = 'failed', error_code = 'processing_error', completed_at = now()
 			WHERE status = 'processing' AND processing_at < now() - interval '10 minutes'`)
@@ -58,24 +124,56 @@ func (s *Sweeper) Reaper(ctx context.Context) error {
 	})
 }
 
-// TmpCleanup deletes uploads older than 1 hour from tmp/ (S-4). The bucket's
-// 1-day lifecycle rule is the backstop. Every 15 minutes.
-func (s *Sweeper) TmpCleanup(ctx context.Context) error {
-	objects, err := s.Store.List(ctx, storage.TmpPrefix(s.Store))
+// wakePending wakes common when the outbox has unsent rows, and common plus
+// extract while an import or statement is processing (its request or its
+// result may be waiting in Kafka). A failed wake is logged, not fatal.
+func (s *Sweeper) wakePending(ctx context.Context) error {
+	if s.Wake == nil {
+		return nil
+	}
+	var outbox, extract bool
+	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT
+			EXISTS (SELECT 1 FROM outbox WHERE published_at IS NULL),
+			EXISTS (SELECT 1 FROM import_job WHERE status = 'processing')
+				OR EXISTS (SELECT 1 FROM fin_statement WHERE mapping_status = 'processing')`).Scan(&outbox, &extract)
+	})
 	if err != nil {
 		return err
 	}
-	cutoff := s.Now().Add(-time.Hour)
-	deleted := 0
-	for _, o := range objects {
-		if o.Created.Before(cutoff) {
-			if err := s.Store.Delete(ctx, o.Key); err != nil {
-				return fmt.Errorf("delete: %w", err)
-			}
-			deleted++
-		}
+	if outbox || extract {
+		_ = s.Wake.Now(ctx, s.WakeURLs.Common, "pending work")
 	}
-	slog.Info("tmp cleanup", "deleted", deleted, "kept", len(objects)-deleted)
+	if extract {
+		_ = s.Wake.Now(ctx, s.WakeURLs.Extract, "pending work")
+	}
+	return nil
+}
+
+// TmpCleanup deletes uploads older than 1 hour from tmp/ (S-4) and
+// claim-check payloads older than 1 day from compute/ (I-18). The bucket's
+// 1-day lifecycle rules are the backstop. Every 15 minutes.
+func (s *Sweeper) TmpCleanup(ctx context.Context) error {
+	for _, sweep := range []struct {
+		prefix string
+		maxAge time.Duration
+	}{{storage.TmpPrefix(s.Store), time.Hour}, {storage.ComputePrefix(s.Store), 24 * time.Hour}} {
+		objects, err := s.Store.List(ctx, sweep.prefix)
+		if err != nil {
+			return err
+		}
+		cutoff := s.Now().Add(-sweep.maxAge)
+		deleted := 0
+		for _, o := range objects {
+			if o.Created.Before(cutoff) {
+				if err := s.Store.Delete(ctx, o.Key); err != nil {
+					return fmt.Errorf("delete: %w", err)
+				}
+				deleted++
+			}
+		}
+		slog.Info("storage cleanup", "prefix", sweep.prefix, "deleted", deleted, "kept", len(objects)-deleted)
+	}
 	return nil
 }
 

@@ -1,6 +1,7 @@
-"""In-memory rule-set map, rebuilt from the compacted config.rulesets topic
-on start (system-design.md §6.6). Resolution is by tax kind and the
-period's start date (tax-engine.md §1)."""
+"""Rule-set lookup for one computation. common sends the stored rule sets
+with each tax request (S-10; system-design.md §16 I-16), so a sign-off
+applies from the next request. Resolution is by tax kind and the period's
+start date (tax-engine.md §1)."""
 
 import re
 from datetime import date, timedelta
@@ -13,6 +14,13 @@ class RulesetUnavailable(LookupError):
 class RulesetBook:
     def __init__(self):
         self._sets: dict[str, dict] = {}
+
+    @classmethod
+    def of(cls, rulesets: list[dict]) -> "RulesetBook":
+        book = cls()
+        for ruleset in rulesets:
+            book.apply(ruleset)
+        return book
 
     def __len__(self) -> int:
         return len(self._sets)

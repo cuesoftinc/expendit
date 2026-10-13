@@ -69,9 +69,51 @@ func ListImportJobs(ctx context.Context, tx pgx.Tx) ([]model.ImportJob, error) {
 	return collect(rows, scanJob)
 }
 
-func StartImportProcessing(ctx context.Context, tx pgx.Tx, id, objectKey, fileName, fileType string) error {
+// StartImportProcessing moves a job to processing and keeps the upload it
+// was queued with (the upload.received payload), for a re-send (I-17).
+func StartImportProcessing(ctx context.Context, tx pgx.Tx, id, objectKey, fileName, fileType string, upload any) error {
 	_, err := tx.Exec(ctx, `UPDATE import_job SET status = 'processing', processing_at = now(), object_key = $2,
-		file_name = coalesce(nullif($3, ''), file_name), file_type = $4 WHERE id = $1`, id, objectKey, fileName, fileType)
+		file_name = coalesce(nullif($3, ''), file_name), file_type = $4, upload = $5 WHERE id = $1`,
+		id, objectKey, fileName, fileType, mustJSON(upload))
+	return err
+}
+
+// StuckItem is an import job or statement still processing after its
+// message should have come back.
+type StuckItem struct {
+	Kind   string // import_job | fin_statement
+	ID     string
+	OrgID  string
+	Upload json.RawMessage
+}
+
+// ListStuck returns items processing for longer than after that were never
+// re-sent. System transaction: it spans orgs.
+func ListStuck(ctx context.Context, tx pgx.Tx, after time.Duration) ([]StuckItem, error) {
+	rows, err := tx.Query(ctx, `
+		SELECT 'import_job', id, org_id, upload FROM import_job
+		 WHERE status = 'processing' AND resent_at IS NULL AND upload IS NOT NULL
+		   AND processing_at < now() - make_interval(secs => $1)
+		UNION ALL
+		SELECT 'fin_statement', id, org_id, upload FROM fin_statement
+		 WHERE mapping_status = 'processing' AND resent_at IS NULL AND upload IS NOT NULL
+		   AND processing_at < now() - make_interval(secs => $1)`, after.Seconds())
+	if err != nil {
+		return nil, err
+	}
+	return collect(rows, func(r pgx.Row) (*StuckItem, error) {
+		var s StuckItem
+		return &s, r.Scan(&s.Kind, &s.ID, &s.OrgID, &s.Upload)
+	})
+}
+
+// MarkResent records the single re-send.
+func MarkResent(ctx context.Context, tx pgx.Tx, kind, id string) error {
+	table := "import_job"
+	if kind == "fin_statement" {
+		table = "fin_statement"
+	}
+	_, err := tx.Exec(ctx, `UPDATE `+table+` SET resent_at = now() WHERE id = $1`, id)
 	return err
 }
 

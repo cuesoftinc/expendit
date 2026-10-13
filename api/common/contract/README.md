@@ -19,27 +19,40 @@ Every message is an [envelope](envelope.schema.json):
   "version": 1,
   "id": "6f1c…",
   "produced_at": "2026-10-05T10:00:00Z",
-  "data": { "...": "the topic payload" }
+  "data": { "...": "the event payload" }
 }
 ```
 
-When the serialized `data` is over 512 KB the producer writes it to
-`expendit/<env>/compute/<id>.json` in the bucket and sends
-`"data_ref": {"bucket", "key"}` instead (S-3). Consumers resolve the ref, then
-validate `data` against the topic schema.
+The producer writes `data` to `expendit/<env>/compute/<id>.json` in the
+bucket (the gateway: `tmp/claims/`) and sends `"data_ref": {"bucket",
+"key"}` instead (S-3; always, on the shared bus). Consumers resolve the ref, then
+validate `data` against the schema named by `type`.
 
-## Topics
+## Events and topics
 
-| Topic | Key | Retention | Producer → consumer | Schema |
-| --- | --- | --- | --- | --- |
-| `expendit.config.rulesets` | ruleset id | compacted | common (outbox) → analytics | [config.rulesets](config.rulesets.schema.json) |
-| `expendit.upload.received` | ticket id | 24 h | statements → common | [upload.received](upload.received.schema.json) |
-| `expendit.import.ready` | job id | 24 h | common (outbox) → analytics extract | [import.ready](import.ready.schema.json) |
-| `expendit.import.processed` | job id | 24 h | analytics → common | [import.processed](import.processed.schema.json) |
-| `expendit.statement.ready` | statement id | 24 h | common (outbox) → analytics extract | [statement.ready](statement.ready.schema.json) |
-| `expendit.statement.mapped` | statement id | 24 h | analytics → common | [statement.mapped](statement.mapped.schema.json) |
-| `expendit.compute.requested` | org id | 24 h | common (outbox) → analytics compute | [compute.requested](compute.requested.schema.json) |
-| `expendit.compute.results` | org id | 24 h | analytics → common | [compute.results](compute.results.schema.json) |
+`type` names the **event**, and each event has its own schema. Expendit's
+events travel on the three lanes of the CueLABS shared message bus, which
+Apparule and Upstat use too (system-design.md §5.3, §16 I-18; the rules are
+in the CueLABS delivery standard's `shared-messaging.md`). A consumer reads
+`type` first and skips, without validating, anything that isn't an Expendit
+event it handles.
+
+| Event (schema) | Lane | Key | Producer → consumer |
+| --- | --- | --- | --- |
+| [upload.received](upload.received.schema.json) | `cuelabs.uploads` | ticket id | statements → common |
+| [import.ready](import.ready.schema.json), [statement.ready](statement.ready.schema.json) | `cuelabs.requests` | job / statement id | common (outbox) → analytics extract |
+| [compute.requested](compute.requested.schema.json) | `cuelabs.requests` | org id | common (outbox) → analytics compute |
+| [system.heartbeat](system.heartbeat.schema.json) | `cuelabs.requests` | `heartbeat` | common's reaper → nobody (I-17) |
+| [import.processed](import.processed.schema.json), [statement.mapped](statement.mapped.schema.json) | `cuelabs.results` | job / statement id | analytics extract → common |
+| [compute.results](compute.results.schema.json) | `cuelabs.results` | org id | analytics compute → common |
+
+Every payload except the heartbeat's goes by `data_ref`: other products can
+read the lanes, and storage permissions keep Expendit's data to itself.
+
+Every topic keeps messages for 24 hours (or the plan's fixed retention).
+Tax rule sets are not a topic: tax compute requests carry them in
+`rulesets` ([config.rulesets](config.rulesets.schema.json) is the schema of
+one set; the seed files in `examples/` keep the envelope form).
 
 Shared types (ids, dates, object refs, anomalies, traces) are in
 [defs.schema.json](defs.schema.json).

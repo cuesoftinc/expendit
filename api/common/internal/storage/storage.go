@@ -63,6 +63,9 @@ func Open(ctx context.Context, cfg config.Storage) (Store, error) {
 // TmpPrefix is where api/statements writes uploads.
 func TmpPrefix(s Store) string { return s.Prefix() + "/tmp/" }
 
+// ComputePrefix holds claim-check payloads of bus messages (S-3).
+func ComputePrefix(s Store) string { return s.Prefix() + "/compute/" }
+
 // ── GCS ─────────────────────────────────────────────────────────────────
 
 type gcsStore struct {

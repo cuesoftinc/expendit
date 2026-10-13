@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/system.heartbeat.schema.json",
+  "title": "expendit.system.heartbeat",
+  "description": "jobs (reaper) -> nobody. Sent every 6 hours on expendit.compute.requested so Aiven's free Kafka sees traffic and doesn't power off after 24 idle hours (system-design.md §16 I-17). Consumers drop it. Key: \"heartbeat\".",
+  "type": "object",
+  "required": ["sent_at", "source"],
+  "additionalProperties": false,
+  "properties": {
+    "sent_at": { "type": "string", "format": "date-time" },
+    "source": { "type": "string", "minLength": 1 }
+  }
+}

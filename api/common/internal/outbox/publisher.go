@@ -1,10 +1,12 @@
 // Package outbox publishes rows written by business transactions (§6.6).
 // Every instance runs a publisher; SKIP LOCKED keeps them off each other's
 // rows, and a row is marked published only after Kafka acknowledged it.
+// After a batch it wakes the services that consume what it sent (§16 I-16).
 package outbox
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -21,7 +23,9 @@ type Publisher struct {
 	DB       *repository.DB
 	Producer *kafka.Producer
 	Interval time.Duration
-	healthy  bool
+	// Wake is called with each event a batch published.
+	Wake    func(event string)
+	healthy bool
 }
 
 func (p *Publisher) Healthy() bool { return p.healthy }
@@ -59,13 +63,16 @@ func (p *Publisher) publishBatch(ctx context.Context) (int, error) {
 		msgs := make([]kgo.Message, 0, len(rows))
 		ids := make([]int64, 0, len(rows))
 		for _, row := range rows {
-			msg, err := p.Producer.Message(ctx, row.Topic, row.Key, row.Payload)
-			if err != nil {
+			msg, err := p.Producer.Message(ctx, row.Event, row.Key, row.Payload)
+			if errors.Is(err, kafka.ErrContract) {
 				// A row that fails its schema can never be sent; park it
 				// as published so it doesn't block the queue, and say so.
-				slog.Error("outbox row violates the contract; skipped", "id", row.ID, "topic", row.Topic, "error", err)
+				slog.Error("outbox row violates the contract; skipped", "id", row.ID, "event", row.Event, "error", err)
 				ids = append(ids, row.ID)
 				continue
+			} else if err != nil {
+				// Storage for the claim-check is unavailable: retry the batch.
+				return err
 			}
 			msgs = append(msgs, msg)
 			ids = append(ids, row.ID)
@@ -77,12 +84,15 @@ func (p *Publisher) publishBatch(ctx context.Context) (int, error) {
 		if err := repository.MarkPublished(ctx, tx, ids); err != nil {
 			return err
 		}
-		perTopic := map[string]int{}
-		for _, m := range msgs {
-			perTopic[m.Topic]++
+		perEvent := map[string]int{}
+		for _, row := range rows {
+			perEvent[row.Event]++
 		}
-		for topic, count := range perTopic {
-			slog.Info("published to Kafka", "step", "outbox", "topic", topic, "messages", count)
+		for event, count := range perEvent {
+			slog.Info("published to Kafka", "step", "outbox", "event", event, "topic", kafka.TopicFor[event], "messages", count)
+			if p.Wake != nil {
+				p.Wake(event)
+			}
 		}
 		return nil
 	})

@@ -8,10 +8,16 @@ temporary object store (`tmp/`) that `api/statements` wrote to (S-2, S-3).
 
 Two worker pools from one image (D8), selected by `ANALYTICS_POOL`:
 
-| Pool | Consumes | Produces | Work |
+| Pool | Consumes (topic: events) | Produces | Work |
 | --- | --- | --- | --- |
-| `extract` | `expendit.import.ready`, `expendit.statement.ready` | `expendit.import.processed`, `expendit.statement.mapped` | parse CSV/XLSX/PDF/images, duplicates, categories, anomalies, import summary + narrative, statement row mapping |
-| `compute` | `expendit.compute.requested`, `expendit.config.rulesets` (replayed from offset 0) | `expendit.compute.results` | statement derivations + validation, ratios, PIT/CIT/VAT estimates and filing figures, dashboard summary |
+| `extract` | `cuelabs.requests`: `import.ready`, `statement.ready` | `cuelabs.results`: `import.processed`, `statement.mapped` | parse CSV/XLSX/PDF/images, duplicates, categories, anomalies, import summary + narrative, statement row mapping |
+| `compute` | `cuelabs.requests`: `compute.requested` (tax requests carry their rule sets), `system.heartbeat` (dropped) | `cuelabs.results`: `compute.results` | statement derivations + validation, ratios, PIT/CIT/VAT estimates and filing figures, dashboard summary |
+
+The lanes belong to the CueLABS shared bus (system-design.md §16 I-18):
+a pool skips every message that isn't an Expendit event it handles, and
+sends every payload by pointer. In cloud both pools scale to zero: api/common wakes a pool with `GET /health`
+after publishing for it, and the pool wakes common (`WAKE_COMMON_URL`) after
+sending a result (system-design.md §16 I-16).
 
 `all` runs both in one process (compose, Helm).
 

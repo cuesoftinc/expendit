@@ -145,11 +145,11 @@ func (e *env) signIn(t *testing.T, uid, email string) *middleware.Principal {
 	return &middleware.Principal{UserID: userID, Email: email, OrgID: orgID, Role: role}
 }
 
-// outbox returns unsent payloads for topic, each validated against the contract.
-func (e *env) outbox(t *testing.T, topic string) []map[string]any {
+// outbox returns unsent payloads for an event, each validated against the contract.
+func (e *env) outbox(t *testing.T, event string) []map[string]any {
 	var out []map[string]any
 	err := e.db.AsSystem(context.Background(), func(tx pgx.Tx) error {
-		rows, err := tx.Query(context.Background(), `SELECT payload FROM outbox WHERE topic = $1 AND published_at IS NULL ORDER BY id`, topic)
+		rows, err := tx.Query(context.Background(), `SELECT payload FROM outbox WHERE event = $1 AND published_at IS NULL ORDER BY id`, event)
 		if err != nil {
 			return err
 		}
@@ -159,8 +159,8 @@ func (e *env) outbox(t *testing.T, topic string) []map[string]any {
 			if err := rows.Scan(&raw); err != nil {
 				return err
 			}
-			if err := e.contract.Validate(topic, raw); err != nil {
-				t.Errorf("outbox %s violates the contract: %v\n%s", topic, err, raw)
+			if err := e.contract.Validate(event, raw); err != nil {
+				t.Errorf("outbox %s violates the contract: %v\n%s", event, err, raw)
 			}
 			var m map[string]any
 			_ = json.Unmarshal(raw, &m)
@@ -260,7 +260,7 @@ func TestIntegration(t *testing.T) {
 			"ticket_id": ticketID, "org_id": alice.OrgID, "target": map[string]string{"kind": "import_job", "id": created.JobID},
 			"file_name": "gtb.csv", "file_type": "csv", "object": map[string]any{"bucket": "test", "key": objKey, "size": 9},
 		})
-		if err := e.contract.Validate(kafka.TopicUploadReceived, b); err != nil {
+		if err := e.contract.Validate(kafka.EventUploadReceived, b); err != nil {
 			t.Fatal(err)
 		}
 		return b
@@ -268,7 +268,7 @@ func TestIntegration(t *testing.T) {
 	if err := e.imports.OnUploadReceived(ctx, upload(jti(t, created.UploadTicket)), e.statements.UploadRouter()); err != nil {
 		t.Fatal(err)
 	}
-	ready := e.outbox(t, kafka.TopicImportReady)
+	ready := e.outbox(t, kafka.EventImportReady)
 	if len(ready) != 1 || ready[0]["job_id"] != created.JobID || ready[0]["ai_allowed"] != false {
 		t.Fatalf("import.ready: %+v", ready)
 	}
@@ -280,8 +280,29 @@ func TestIntegration(t *testing.T) {
 	if err := e.imports.OnUploadReceived(ctx, upload(jti(t, created.UploadTicket)), e.statements.UploadRouter()); err != nil {
 		t.Fatal(err)
 	}
-	if len(e.outbox(t, kafka.TopicImportReady)) != 1 {
+	if len(e.outbox(t, kafka.EventImportReady)) != 1 {
 		t.Fatal("a replayed ticket must not queue a second import.ready")
+	}
+
+	// ── Re-send from Postgres (I-17): a lost import.ready is queued again once.
+	if n, err := service.ResendStuck(ctx, e.db, e.imports, e.statements); err != nil || n != 0 {
+		t.Fatalf("a fresh job must not be re-sent: %d %v", n, err)
+	}
+	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `UPDATE import_job SET processing_at = now() - interval '5 minutes' WHERE id = $1`, created.JobID)
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if n, err := service.ResendStuck(ctx, e.db, e.imports, e.statements); err != nil || n != 1 {
+		t.Fatalf("a stuck job must be re-sent once: %d %v", n, err)
+	}
+	resent := e.outbox(t, kafka.EventImportReady)
+	if len(resent) != 2 || resent[1]["job_id"] != created.JobID || resent[1]["file"].(map[string]any)["key"] != objKey {
+		t.Fatalf("re-sent import.ready: %+v", resent)
+	}
+	if n, _ := service.ResendStuck(ctx, e.db, e.imports, e.statements); n != 0 {
+		t.Fatal("a job is re-sent only once")
 	}
 
 	processed, _ := json.Marshal(map[string]any{
@@ -297,7 +318,7 @@ func TestIntegration(t *testing.T) {
 		"anomalies": []map[string]any{{"rule_id": "large_transaction", "severity": "warn", "note": "big", "txn_index": 1}},
 		"warnings":  []string{},
 	})
-	if err := e.contract.Validate(kafka.TopicImportProcessed, processed); err != nil {
+	if err := e.contract.Validate(kafka.EventImportProcessed, processed); err != nil {
 		t.Fatal(err)
 	}
 	if err := e.imports.OnImportProcessed(ctx, processed); err != nil {
@@ -360,7 +381,7 @@ func TestIntegration(t *testing.T) {
 	if _, err := e.statements.Confirm(ctx, acme, st.StatementID); code(err) != "validation_pending" {
 		t.Fatalf("confirm before validation must be 409 validation_pending, got %v", err)
 	}
-	requests := e.outbox(t, kafka.TopicComputeRequested)
+	requests := e.outbox(t, kafka.EventComputeRequested)
 	if len(requests) != 1 || requests[0]["kind"] != "statement_validation" {
 		t.Fatalf("compute.requested: %+v", requests)
 	}
@@ -369,7 +390,7 @@ func TestIntegration(t *testing.T) {
 		"data_version": requests[0]["data_version"], "period": "FY2025", "statement_id": st.StatementID, "status": "ok",
 		"validation": map[string]any{"ok": true, "codes": []string{}, "mapping_version": 1, "derived": []any{}, "warnings": []string{}},
 	})
-	if err := e.contract.Validate(kafka.TopicComputeResults, result); err != nil {
+	if err := e.contract.Validate(kafka.EventComputeResults, result); err != nil {
 		t.Fatal(err)
 	}
 	if err := e.compute.OnComputeResults(ctx, result); err != nil {
@@ -380,7 +401,7 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("confirm after validation: %+v %v", confirmed, err)
 	}
 	kinds := map[string]int{}
-	for _, r := range e.outbox(t, kafka.TopicComputeRequested) {
+	for _, r := range e.outbox(t, kafka.EventComputeRequested) {
 		kinds[r["kind"].(string)]++
 	}
 	if kinds["ratios"] != 1 {
@@ -397,16 +418,28 @@ func TestIntegration(t *testing.T) {
 		t.Fatalf("estimates: %+v %v", est, err)
 	}
 
-	// ── Rule sets were queued for the compacted topic ───────────────────
-	if sets := e.outbox(t, kafka.TopicConfigRulesets); len(sets) != 5 {
-		t.Fatalf("rule sets queued: %d", len(sets))
+	// ── Tax requests carry the stored rule sets (S-10, §16 I-16) ────────
+	var tax map[string]any
+	for _, r := range e.outbox(t, kafka.EventComputeRequested) {
+		if r["kind"] == "tax_estimate" {
+			tax = r
+		}
 	}
-	// A restart republishes every rule set even though none changed, so an
-	// emptied or recreated topic is rebuilt from Postgres.
+	sets, _ := tax["rulesets"].([]any)
+	if len(sets) != 5 {
+		t.Fatalf("a tax request must carry the 5 seeded rule sets, got %d", len(sets))
+	}
+	for _, s := range sets {
+		if s.(map[string]any)["estimate_only"] != true {
+			t.Fatalf("unsigned rule sets go out estimate_only: %v", s)
+		}
+	}
+	// Seeding again on a restart changes nothing and queues nothing.
+	before := len(e.outbox(t, kafka.EventComputeRequested))
 	if err := service.SeedRulesets(ctx, e.db); err != nil {
 		t.Fatal(err)
 	}
-	if sets := e.outbox(t, kafka.TopicConfigRulesets); len(sets) != 10 {
-		t.Fatalf("rule sets after a restart: %d, want 10", len(sets))
+	if after := len(e.outbox(t, kafka.EventComputeRequested)); after != before {
+		t.Fatalf("seeding queued messages: %d -> %d", before, after)
 	}
 }

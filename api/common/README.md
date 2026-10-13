@@ -10,7 +10,7 @@ One image, two entry points:
 
 | Binary | Runs | Where |
 | --- | --- | --- |
-| `server` | HTTP API, Kafka consumers, outbox publisher | Cloud Run service, **min 1** (it consumes; S-12) |
+| `server` | HTTP API, Kafka consumers, outbox publisher | Cloud Run service, min 0, CPU always allocated; woken over HTTP (system-design.md §16 I-16) |
 | `jobs <name>` | one sweep, then exits | Cloud Run jobs + Cloud Scheduler (§6.7) |
 
 ## Layout
@@ -19,7 +19,7 @@ The base every service shares, then this service's own packages:
 
 ```
 cmd/server/            entry: config → deps → migrate → seed → serve + consume + publish
-cmd/jobs/              reaper | tmp-cleanup | retention | migrate | republish-rulesets
+cmd/jobs/              reaper | tmp-cleanup | retention | migrate | heartbeat
 cmd/ticketkey/         generates an upload-ticket key pair
 internal/config/       typed env config, fails fast on missing settings
 internal/kafka/        topics, envelope + claim-check, producer, consumers, contract validation
@@ -65,12 +65,23 @@ org's data changed since (§6.5).
 
 ## Kafka
 
-| Consumes | Does |
+| Consumes (topic: event) | Does |
 | --- | --- |
-| `expendit.upload.received` | marks the ticket used, job → `processing`, queues `import.ready` / `statement.ready` with reference data |
-| `expendit.import.processed` | stores staged rows, summary and anomalies; deletes the raw file (S-4) |
-| `expendit.statement.mapped` | stores line items and the v1 validation; deletes the raw file |
-| `expendit.compute.results` | stores validation, ratio reports and tax estimates if computed from the current data version |
+| `cuelabs.uploads`: `upload.received` | marks the ticket used, job → `processing`, queues `import.ready` / `statement.ready` with reference data |
+| `cuelabs.results`: `import.processed` | stores staged rows, summary and anomalies; deletes the raw file (S-4) |
+| `cuelabs.results`: `statement.mapped` | stores line items and the v1 validation; deletes the raw file |
+| `cuelabs.results`: `compute.results` | stores validation, ratio reports and tax estimates if computed from the current data version |
+
+After the outbox publishes, `internal/wake` sends a `GET /health` to the
+analytics pool that consumes it (`WAKE_EXTRACT_URL`, `WAKE_COMPUTE_URL`,
+with a Cloud Run ID token), so a pool scaled to zero starts. The reaper does
+the same, and wakes common (`WAKE_COMMON_URL`), while work is pending. Tax
+compute requests carry the rule sets from `tax_ruleset`.
+
+For Aiven's free Kafka (system-design.md §16 I-17) the reaper also powers
+Kafka back on through the Aiven API (`internal/aiven`, optional), sends a
+heartbeat every 6 hours, and re-sends, once, the work of any import or
+statement stuck in processing for 4 minutes (`service.ResendStuck`).
 
 Everything it produces goes through the transactional outbox, so a message
 is sent if and only if its write committed.

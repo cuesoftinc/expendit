@@ -17,7 +17,9 @@ services:
     port: 8080
     healthPath: /health
     readyPath: /ready
-    # Consumes Kafka and publishes the outbox: keep at least one running (S-12).
+    # Consumes Kafka and publishes the outbox, so keep one running. The
+    # WAKE_* settings stay unset here: they only matter on Cloud Run, where
+    # services scale to zero (docs/system-design.md §16 I-16).
     replicaCount: 1
     env:
       STORAGE_DRIVER: s3
@@ -88,7 +90,7 @@ jobs:
     STORAGE_ENDPOINT: minio:9000
     STORAGE_USE_SSL: "false"
   schedules:
-    reaper: "* * * * *"
+    reaper: "*/5 * * * *"
     tmp-cleanup: "*/15 * * * *"
     retention: "17 3 * * *"
 

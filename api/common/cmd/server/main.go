@@ -1,6 +1,7 @@
 // Command server is api/common: the HTTP API, the Kafka consumers and the
-// outbox publisher in one process (system-design.md §4; min 1 instance in
-// cloud, S-12, because it consumes).
+// outbox publisher in one process (system-design.md §4). In cloud it scales
+// to zero with CPU always allocated: whatever publishes for it wakes it
+// (§16 I-16), and it wakes analytics in turn.
 package main
 
 import (
@@ -25,6 +26,7 @@ import (
 	"github.com/cuesoftinc/expendit/api/common/internal/outbox"
 	"github.com/cuesoftinc/expendit/api/common/internal/router"
 	"github.com/cuesoftinc/expendit/api/common/internal/service"
+	"github.com/cuesoftinc/expendit/api/common/internal/wake"
 	"github.com/cuesoftinc/expendit/api/common/migrations"
 )
 
@@ -62,19 +64,30 @@ func run() error {
 		return err
 	}
 	defer producer.Close()
-	publisher := &outbox.Publisher{DB: a.DB, Producer: producer, Interval: time.Second}
+	waker := wake.New()
+	wakeFor := map[string]string{
+		kafka.EventImportReady:      cfg.Wake.Extract,
+		kafka.EventStatementReady:   cfg.Wake.Extract,
+		kafka.EventComputeRequested: cfg.Wake.Compute,
+	}
+	publisher := &outbox.Publisher{DB: a.DB, Producer: producer, Interval: time.Second,
+		Wake: func(event string) { waker.Async(wakeFor[event], event) }}
 
-	consumers := map[string]kafka.Handler{
-		kafka.TopicUploadReceived: func(ctx context.Context, raw json.RawMessage) error {
-			return a.Imports.OnUploadReceived(ctx, raw, a.Statements.UploadRouter())
+	consumers := map[string]map[string]kafka.Handler{
+		kafka.TopicUploads: {
+			kafka.EventUploadReceived: func(ctx context.Context, raw json.RawMessage) error {
+				return a.Imports.OnUploadReceived(ctx, raw, a.Statements.UploadRouter())
+			},
 		},
-		kafka.TopicImportProcessed: a.Imports.OnImportProcessed,
-		kafka.TopicStatementMapped: a.Statements.OnStatementMapped,
-		kafka.TopicComputeResults:  a.Compute.OnComputeResults,
+		kafka.TopicResults: {
+			kafka.EventImportProcessed: a.Imports.OnImportProcessed,
+			kafka.EventStatementMapped: a.Statements.OnStatementMapped,
+			kafka.EventComputeResults:  a.Compute.OnComputeResults,
+		},
 	}
 	var running []*kafka.Consumer
-	for topic, handle := range consumers {
-		c, err := kafka.NewConsumer(cfg.Kafka, "expendit-common", topic, handle, a.Contract, a.Store)
+	for topic, handlers := range consumers {
+		c, err := kafka.NewConsumer(cfg.Kafka, "expendit-common", topic, handlers, a.Contract, a.Store)
 		if err != nil {
 			return err
 		}

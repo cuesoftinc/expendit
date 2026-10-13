@@ -27,6 +27,11 @@ export interface Config {
   ticketPublicKeys: Map<string, Buffer>;
   /** JSON Schemas copied from api/common/contract. */
   contractDir: string;
+  /**
+   * api/common's base URL, woken after each upload.received (scale to zero,
+   * docs/system-design.md §16 I-16). Empty where common always runs.
+   */
+  wakeCommonUrl: string;
 }
 
 export const CONFIG = Symbol('CONFIG');
@@ -87,5 +92,6 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): Config => {
     },
     ticketPublicKeys: parsePublicKeys(keys),
     contractDir: env.CONTRACT_DIR ?? 'contract',
+    wakeCommonUrl: (env.WAKE_COMMON_URL ?? '').trim(),
   };
 };

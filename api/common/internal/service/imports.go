@@ -329,7 +329,7 @@ func (s *Imports) OnUploadReceived(ctx context.Context, raw json.RawMessage, sta
 		} else if err != nil {
 			return err
 		}
-		if err := repository.StartImportProcessing(ctx, tx, job.ID, msg.Object.Key, msg.FileName, msg.FileType); err != nil {
+		if err := repository.StartImportProcessing(ctx, tx, job.ID, msg.Object.Key, msg.FileName, msg.FileType, msg); err != nil {
 			return err
 		}
 		return s.enqueueReady(ctx, tx, job, msg)
@@ -367,7 +367,7 @@ func (s *Imports) enqueueReady(ctx context.Context, tx pgx.Tx, job *model.Import
 			return err
 		}
 	}
-	return repository.Enqueue(ctx, tx, kafka.TopicImportReady, job.ID, map[string]any{
+	return repository.Enqueue(ctx, tx, kafka.EventImportReady, job.ID, map[string]any{
 		"job_id":     job.ID,
 		"org_id":     job.OrgID,
 		"source":     "upload",

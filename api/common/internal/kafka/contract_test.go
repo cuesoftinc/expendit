@@ -44,21 +44,33 @@ func TestRejectsUnknownFieldsAndBadEnums(t *testing.T) {
 		"bad uuid":      `{"job_id":"nope","org_id":"3f6e2b1a-9c8d-4e7f-a6b5-c4d3e2f1a0b9","status":"failed"}`,
 	}
 	for name, body := range cases {
-		if err := c.Validate(TopicImportProcessed, []byte(body)); err == nil {
+		if err := c.Validate(EventImportProcessed, []byte(body)); err == nil {
 			t.Errorf("%s: expected a validation error", name)
 		}
 	}
 }
 
-func TestTopicsHaveSchemas(t *testing.T) {
+func TestEventsHaveSchemasAndTopics(t *testing.T) {
 	c, err := LoadContract()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, topic := range []string{TopicConfigRulesets, TopicUploadReceived, TopicImportReady, TopicImportProcessed,
-		TopicStatementReady, TopicStatementMapped, TopicComputeRequested, TopicComputeResults} {
-		if _, ok := c.schemas[strings.TrimPrefix(topic, "expendit.")]; !ok {
-			t.Errorf("no schema for %s", topic)
+	topics := map[string]bool{}
+	for event, topic := range TopicFor {
+		if _, ok := c.schemas[strings.TrimPrefix(event, "expendit.")]; !ok {
+			t.Errorf("no schema for %s", event)
+		}
+		topics[topic] = true
+	}
+	// The shared bus has three lanes (system-design.md §16 I-18).
+	for topic := range topics {
+		if topic != TopicUploads && topic != TopicRequests && topic != TopicResults {
+			t.Errorf("%s is not a lane of the shared bus", topic)
+		}
+	}
+	for event := range TopicFor {
+		if !strings.HasPrefix(event, Product) {
+			t.Errorf("%s lacks the product prefix", event)
 		}
 	}
 }

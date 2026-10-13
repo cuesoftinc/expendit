@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://expendit.cuesoft.io/contract/config.rulesets.schema.json",
-  "title": "expendit.config.rulesets",
-  "description": "common (outbox) -> analytics. Compacted: the latest message per ruleset id is the current rule set. analytics rebuilds its map from offset 0 on start. Unsigned rule sets are published with estimate_only = true and never used for filings (S-10). Key: ruleset id.",
+  "title": "Tax rule set",
+  "description": "One tax rule set as stored in tax_ruleset. Not a topic: common sends the current sets inside compute.requested (`rulesets`) for tax kinds. Unsigned rule sets go out with estimate_only = true and are never used for filings (S-10). The seed files in examples/config.rulesets.*.json keep the envelope form.",
   "type": "object",
   "required": ["ruleset_id", "jurisdiction", "tax_kind", "effective_from", "signed_off", "estimate_only", "rules"],
   "additionalProperties": false,

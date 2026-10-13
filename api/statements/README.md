@@ -24,7 +24,8 @@ The flow (system-design.md §6.1):
 3. It checks the file type from its magic bytes, and downscales receipt
    images larger than 2048 px.
 4. It writes the file to `<prefix>/tmp/<target id>/<ticket id>` in object
-   storage, then publishes a pointer on `expendit.upload.received`.
+   storage, then publishes `upload.received` on the CueLABS shared bus's
+   `cuelabs.uploads` lane, by pointer (system-design.md §16 I-18).
 
 `api/common` takes it from there: it marks the ticket used, hands the job to
 `api/analytics`, and deletes the file once it has been parsed (S-4).

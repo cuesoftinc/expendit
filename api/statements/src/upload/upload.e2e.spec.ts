@@ -21,6 +21,7 @@ const config: Config = {
   storage: { driver: 's3', bucket: 'b', prefix: 'expendit/test', endpoint: 'unused', accessKey: '', secretKey: '', useSsl: false },
   ticketPublicKeys: new Map([['k1', signer.publicKey]]),
   contractDir: CONTRACT_DIR,
+  wakeCommonUrl: '',
 };
 
 describe('POST /api/v1/uploads', () => {

@@ -17,8 +17,7 @@ log = logging.getLogger(__name__)
 
 
 class ComputeHandler:
-    def __init__(self, rulesets: RulesetBook, ai: AIEnhancer | None):
-        self.rulesets = rulesets
+    def __init__(self, ai: AIEnhancer | None):
         self._ai = ai
 
     async def run(self, msg: dict) -> dict:
@@ -41,9 +40,9 @@ class ComputeHandler:
                 case "ratios":
                     body = {"ratios": compute_report(inputs)}
                 case "tax_estimate":
-                    body = {"estimates": estimate(inputs, self.rulesets)}
+                    body = {"estimates": estimate(inputs, RulesetBook.of(msg.get("rulesets", [])))}
                 case "filing":
-                    body = {"estimates": estimate(inputs, self.rulesets, for_filing=True)}
+                    body = {"estimates": estimate(inputs, RulesetBook.of(msg.get("rulesets", [])), for_filing=True)}
                 case "dashboard_summary":
                     ai = self._ai if msg.get("ai_allowed") else None
                     if ai is None:

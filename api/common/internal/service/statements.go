@@ -303,17 +303,21 @@ func (s *Statements) onUpload(ctx context.Context, tx pgx.Tx, msg uploadReceived
 	} else if err != nil {
 		return err
 	}
-	key := msg.Object.Key
-	if err := repository.SetStatementStatus(ctx, tx, st.ID, "processing", nil, &key); err != nil {
+	if err := repository.StartStatementProcessing(ctx, tx, st.ID, msg.Object.Key, msg); err != nil {
 		return err
 	}
+	return s.enqueueReady(ctx, tx, st, msg)
+}
+
+func (s *Statements) enqueueReady(ctx context.Context, tx pgx.Tx, st *repository.Statement, msg uploadReceived) error {
+	var err error
 	aiAllowed := false
 	if st.CreatedBy != nil {
 		if aiAllowed, err = repository.HasAIConsent(ctx, tx, *st.CreatedBy); err != nil {
 			return err
 		}
 	}
-	return repository.Enqueue(ctx, tx, kafka.TopicStatementReady, st.ID, map[string]any{
+	return repository.Enqueue(ctx, tx, kafka.EventStatementReady, st.ID, map[string]any{
 		"statement_id": st.ID, "org_id": st.OrgID, "kind": st.Kind, "period": st.Period, "currency": st.Currency,
 		"file_name": msg.FileName, "file_type": msg.FileType, "file": msg.Object, "ai_allowed": aiAllowed,
 	})

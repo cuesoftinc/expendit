@@ -27,9 +27,9 @@ flag in §9.
 | Unit | Runs on | Image / source | Notes |
 | --- | --- | --- | --- |
 | `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to the API services (no browser CORS) |
-| `expendit-api-common` | Cloud Run service | `cuesoft/expendit-api-common` | Go. The only Postgres client. Kafka consumers + outbox run in the background |
+| `expendit-api-common` | Cloud Run service | `cuesoft/expendit-api-common` | Go. The only Postgres client. Kafka consumers + outbox run in the background while an instance is up |
 | `expendit-api-statements` | Cloud Run service | `cuesoft/expendit-api-statements` | Node upload gateway (`POST /api/v1/uploads`) |
-| `expendit-api-analytics-extract` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only, no public traffic |
+| `expendit-api-analytics-extract` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only; reached only by common's wake-ups |
 | `expendit-api-analytics-compute` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=compute` |
 | `expendit-sweep-{reaper,tmp-cleanup,retention}` | Cloud Run jobs + Cloud Scheduler | `cuesoft/expendit-api-common` | `./jobs <name>` |
 | Postgres, Kafka, Redis | Aiven | — | |
@@ -38,6 +38,28 @@ flag in §9.
 Images are built and deployed by `.github/workflows/release.yml` when a
 `v*` tag is created (§7). **Your infrastructure code creates the resources;
 the workflow only swaps their image digests.**
+
+### 1.1 Everything scales to zero
+
+No service runs while nobody uses the app ([system-design.md §16
+I-16](system-design.md)). Kafka needs a running consumer, and Cloud Run
+starts one only for an HTTP request, so each service that publishes wakes
+the one that consumes with a `GET /health`:
+
+```
+browser → common (creates the import) → statements (upload)
+statements ──upload.received──▶ Kafka, then wakes common
+common ──import.ready on cuelabs.requests──▶ Kafka, then wakes analytics-extract
+analytics-extract ──import.processed on cuelabs.results──▶ Kafka, then wakes common
+(compute works the same way with compute.requested / compute.results)
+```
+
+`common` and the analytics services keep **CPU always allocated**, so once
+woken they consume in the background until Cloud Run retires the idle
+instance (up to about 15 minutes). The reaper job is the safety net: every
+5 minutes it wakes common and analytics-extract if work is still pending.
+The first import after a quiet period takes about 5–10 seconds (cold start
+plus Kafka consumer-group join); later ones take 1–2 seconds.
 
 ## 2. Firebase Auth (sign-in)
 
@@ -75,37 +97,50 @@ The connection string the app gets (`DATABASE_URL`):
 Tables are created by the app itself on start (migrations under an
 advisory lock); there is nothing to run by hand.
 
-### 3.2 Kafka
+### 3.2 Kafka (the CueLABS shared bus)
 
-Create these topics before the first deploy. The app never creates
-topics (auto-create stays off).
+Expendit, Apparule and Upstat share **one Kafka service** and its three
+topics; the rules are in the CueLABS delivery standard
+(`references/shared-messaging.md`). Create these once, for every product,
+if they don't exist yet. The app never creates topics (auto-create stays
+off).
 
-| Topic | Partitions | Retention / cleanup |
-| --- | --- | --- |
-| `expendit.config.rulesets` | 1 | `cleanup.policy=compact` |
-| `expendit.upload.received` | 3 | `retention.ms=86400000` (24 h) |
-| `expendit.import.ready` | 3 | 24 h |
-| `expendit.import.processed` | 3 | 24 h |
-| `expendit.statement.ready` | 3 | 24 h |
-| `expendit.statement.mapped` | 3 | 24 h |
-| `expendit.compute.requested` | 3 | 24 h |
-| `expendit.compute.results` | 3 | 24 h |
+| Topic | Partitions | Retention | Carries |
+| --- | --- | --- | --- |
+| `cuelabs.uploads` | 2 | the service default (24 h where it can be set) | upload gateways → control planes |
+| `cuelabs.requests` | 2 | same | control planes → processing services |
+| `cuelabs.results` | 2 | same | processing services → control planes |
 
-Create them in the Aiven console (**Topics → Add topic**, advanced
-configuration for cleanup policy and retention) or with
-`avn service topic-create`.
+The service allows five topics in total; the other two are held in reserve
+for all products, so don't create Expendit-specific topics.
 
-Create **one service user per service** (S-11) with these permissions:
+Create **one Kafka user for Expendit**, `expendit`, with read and write on
+the three `cuelabs.*` topics and on consumer groups starting with
+`expendit-` (`expendit-common`, `expendit-analytics-extract`,
+`expendit-analytics-compute`). All three Expendit services use it.
 
-| User | Read (consume) | Write (produce) |
-| --- | --- | --- |
-| `expendit-common` | `upload.received`, `import.processed`, `statement.mapped`, `compute.results` | `config.rulesets`, `import.ready`, `statement.ready`, `compute.requested` |
-| `expendit-statements` | — | `upload.received` |
-| `expendit-analytics` | `import.ready`, `statement.ready`, `compute.requested`, `config.rulesets` | `import.processed`, `statement.mapped`, `compute.results` |
+**Operating the shared service:**
 
-All topic names carry the `expendit.` prefix. Consumer groups are
-`expendit-common`, `expendit-analytics-extract` and
-`expendit-analytics-compute`; the rule-set reader uses no group.
+- **It powers itself off after 24 hours with no messages**, loses the
+  messages in its topics (topics, users and ACLs come back), and stays
+  off until powered on. **Expendit is the keep-alive owner for every
+  product** ([system-design.md §16 I-17, I-18](system-design.md)): its
+  reaper sends a heartbeat every 6 hours, powers the service back on
+  through the Aiven API if it finds it off (set the three `AIVEN_*`
+  values in §6, on Expendit only), and re-sends any import whose message
+  was lost. Power-on itself takes minutes to hours, so expect failed
+  uploads during that window.
+- **Test the power-on once by hand** after creating the service: power
+  it off in the console, wait for a reaper run, and check its logs for
+  `power-on requested`. Aiven's docs only show the console for this plan,
+  so confirm the API works on yours.
+- **SASL:** enable it under **Service settings → Advanced configuration →
+  `kafka_authentication_methods.sasl`** (PLAIN and SCRAM-SHA-256/512 are
+  listed for this plan). If it can't be enabled, tell the developer: the
+  services would need client-certificate login instead.
+- **Fallback:** if the service proves unreliable, Confluent Cloud Basic
+  costs about $0 when idle and never powers off; moving the bus needs a
+  small code change in every product (it uses SASL/PLAIN).
 
 Connection settings for every service: `KAFKA_BROKERS` (the service URI,
 `host:port`), `KAFKA_USERNAME`, `KAFKA_PASSWORD`, and `KAFKA_SSL_CA` = the
@@ -123,15 +158,17 @@ limits; if it is unreachable the limits fail open.
 
 1. Use the project's default bucket with **uniform bucket-level access**.
    Expendit uses only the prefix `expendit/stg/`.
-2. Add a lifecycle rule: **delete objects older than 1 day with prefix
-   `expendit/stg/tmp/`**. This is the backstop for raw uploads (S-4); the
-   app normally deletes them within seconds.
+2. Add lifecycle rules: **delete objects older than 1 day with prefix
+   `expendit/stg/tmp/`**, and the same for **`expendit/stg/compute/`**.
+   They are the backstop for raw uploads (S-4) and for the payloads of
+   Kafka messages, which go by pointer on the shared bus; the app's
+   cleanup job normally deletes both sooner.
 
 ## 5. Service accounts and IAM
 
 | Service account | Used by | Roles |
 | --- | --- | --- |
-| `expendit-common` | common, the sweep jobs | `roles/storage.objectAdmin` on the bucket, condition below (A) |
+| `expendit-common` | common, the sweep jobs | `roles/storage.objectAdmin` on the bucket, condition below (A); `roles/run.invoker` on **both analytics services** (to wake them) |
 | `expendit-statements` | statements | `roles/storage.objectCreator` on the bucket, condition (B) |
 | `expendit-analytics` | both analytics services | `roles/storage.objectViewer`, condition (C); `roles/storage.objectCreator`, condition (D); `roles/aiplatform.user` on the project (Vertex AI) |
 | `expendit-scheduler` | Cloud Scheduler | `roles/run.invoker` on the three sweep jobs |
@@ -168,12 +205,18 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | |
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | |
 | `KAFKA_BROKERS`, `KAFKA_SSL_CA` | ✓ | ✓ | ✓ |
-| `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒 | ✓ own user | ✓ own user | ✓ own user |
+| `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒 | ✓ `expendit` | ✓ `expendit` | ✓ `expendit` |
 | `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB` | ✓ | | |
 | `STORAGE_DRIVER=gcs`, `STORAGE_BUCKET`, `STORAGE_PREFIX=expendit/stg` | ✓ | ✓ | ✓ |
 | `CORS_ORIGINS` (the website origin) | ✓ | ✓ | |
+| `WAKE_COMMON_URL` (the `expendit-api-common` URL) | ✓ (sweep jobs only) | ✓ | ✓ |
+| `WAKE_EXTRACT_URL`, `WAKE_COMPUTE_URL` (the two analytics URLs) | ✓ (service and jobs) | | |
+| `AIVEN_API_TOKEN` 🔒, `AIVEN_PROJECT`, `AIVEN_KAFKA_SERVICE` (free Kafka only: lets the reaper power Kafka back on; a token that can update that one service) | ✓ (sweep jobs only) | | |
 | `ANALYTICS_POOL` | | | `extract` / `compute` |
 | `GOOGLE_CLOUD_PROJECT`, `VERTEX_LOCATION` (e.g. `us-central1`) | | | ✓ |
+
+The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
+path. Create the services first, then fill these in and redeploy.
 
 Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `GROQ_API_KEY`,
 `GEMINI_API_KEY` (cloud AI is Vertex, X-4), `STORAGE_ENDPOINT` and the
@@ -195,11 +238,11 @@ Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `expendit-api-common` | service | `expendit-common` | 8080 | **min 1**, max 5 | 1 / 512 MiB | **always allocated** (background consumers + outbox) | all · allow unauthenticated (the app checks Firebase tokens) |
+| `expendit-api-common` | service | `expendit-common` | 8080 | **0**–5 | 1 / 512 MiB | **always allocated** (background consumers + outbox) | all · allow unauthenticated (the app checks Firebase tokens) |
 | `expendit-api-statements` | service | `expendit-statements` | 8081 | 0–5 | 1 / 1 GiB, concurrency 20 (uploads up to 15 MB are held in memory), timeout 60 s | request-based | all · allow unauthenticated (auth is the upload ticket) |
-| `expendit-api-analytics-extract` | service | `expendit-analytics` | 8082 | **min 1**, max 3 | 1 / 1 GiB | **always allocated** | internal · authenticated only |
-| `expendit-api-analytics-compute` | service | `expendit-analytics` | 8082 | **min 1**, max 2 | 1 / 512 MiB | **always allocated** | internal · authenticated only |
-| `expendit-sweep-reaper` | job, `./jobs reaper` | `expendit-common` | — | 1 task, 0 retries | 1 / 512 MiB | — | Scheduler: `* * * * *` |
+| `expendit-api-analytics-extract` | service | `expendit-analytics` | 8082 | **0**–3 | 1 / 1 GiB | **always allocated** | all · **authenticated only** (invoker: `expendit-common`) |
+| `expendit-api-analytics-compute` | service | `expendit-analytics` | 8082 | **0**–2 | 1 / 512 MiB | **always allocated** | all · **authenticated only** (invoker: `expendit-common`) |
+| `expendit-sweep-reaper` | job, `./jobs reaper` | `expendit-common` | — | 1 task, 0 retries | 1 / 512 MiB | — | Scheduler: `*/5 * * * *` |
 | `expendit-sweep-tmp-cleanup` | job, `./jobs tmp-cleanup` | `expendit-common` | — | 1 task | 1 / 512 MiB | — | Scheduler: `*/15 * * * *` |
 | `expendit-sweep-retention` | job, `./jobs retention` | `expendit-common` | — | 1 task | 1 / 512 MiB | — | Scheduler: `17 3 * * *` |
 
@@ -207,11 +250,22 @@ Cloud Scheduler calls each job with an HTTP `POST` to
 `https://run.googleapis.com/v2/projects/<project>/locations/<region>/jobs/<job>:run`,
 authenticated as `expendit-scheduler` (OAuth).
 
-The analytics pools are services with always-on CPU because they only
-consume Kafka. Cloud Run **worker pools** fit this better (S-12) where the
-stack's module supports them; then swap the two
-`gcloud run services update` lines in `release.yml` for the worker-pool
-equivalent.
+In gcloud terms: `--min-instances 0` everywhere, and `--no-cpu-throttling`
+on common and both analytics services ("CPU always allocated" is what
+keeps their Kafka consumers running between requests).
+
+Why analytics ingress is **all** rather than internal: common wakes them
+over their `run.app` URL, and a call from another Cloud Run service only
+counts as internal through a VPC. Requiring authentication (no
+`allUsers` invoker) keeps them private: only `expendit-common`, which
+holds `roles/run.invoker` on them, can reach them, and it sends an ID
+token on every wake.
+
+**Cost.** While nobody uses the app nothing is running, so the services
+cost nothing. Each wake-up keeps an instance for up to ~15 minutes;
+light use stays inside Cloud Run's monthly free allowance (shared across
+the billing account). The fixed costs are Aiven (Postgres, and Kafka unless
+on the free plan) and the reaper's short run every 5 minutes.
 
 ## 8. GitHub (release workflow)
 
@@ -235,15 +289,18 @@ On `cuesoftinc/expendit`:
    `Sandbox` deployment when GitHub asks.
 4. The workflow fails unless every service's newest revision is Ready and
    common answers `/ready`. Check the logs of `expendit-api-common` for
-   `migration applied` and `rule set published`, and of analytics for
-   `rule set loaded`.
+   `migration applied` (first deploy only) and `listening`.
 5. In App Hosting, set `API_ORIGIN`, `UPLOADS_ORIGIN` and the
    `NEXT_PUBLIC_FIREBASE_*` values, **then remove `NEXT_PUBLIC_TEST_MODE`**
    and roll out.
 6. Smoke test on the site: sign in with Google, add a transaction, import a
    small CSV, confirm it. Each import leaves a trail in the logs: filter on
-   `jsonPayload.step` and the job id (`upload.received` → `outbox` →
-   `import.ready` → `import.processed` → `upload deleted`).
+   `jsonPayload.step` and the job id (`upload.received` → `wake` →
+   `outbox` → `wake` → `import.ready` → `import.processed` → `upload
+   deleted`).
+7. Leave the app alone for 20 minutes and check that every service shows
+   0 instances (Cloud Run → service → Metrics → Instance count). Then
+   import again: it should work, a few seconds slower the first time.
 
 ## 10. Day-2
 
@@ -251,9 +308,11 @@ On `cuesoftinc/expendit`:
 | --- | --- |
 | Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/expendit-api-<svc>@sha256:…` |
 | Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy statements; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
-| Rebuild the rule-set topic | If `expendit.config.rulesets` is recreated, run the `./jobs republish-rulesets` job once |
 | Run migrations alone | `./jobs migrate` (common also runs them on start) |
-| Sign off a tax rule set | After a licensed practitioner's review, set `signed_off = true, signed_off_by = '<name>'` on the row in `tax_ruleset`, then `./jobs republish-rulesets`. Until then estimates are labelled estimate-only and filings are refused (tax-engine.md) |
+| Sign off a tax rule set | After a licensed practitioner's review, set `signed_off = true, signed_off_by = '<name>'` on the row in `tax_ruleset`. The next tax computation picks it up. Until then estimates are labelled estimate-only and filings are refused (tax-engine.md) |
+| Kafka powered off (free plan) | The reaper powers it on within 5 minutes if the `AIVEN_*` values are set (log step `kafka.power`); otherwise power it on in the Aiven console. Uploads fail until it is back; imports already processing are re-sent from Postgres. Nothing is lost from Postgres |
+| Check Kafka by hand | Run the job `./jobs heartbeat`: it sends one message and fails loudly if Kafka is unreachable |
+| An import stuck in "processing" | Wait for the reaper (≤ 5 minutes): it wakes common and analytics-extract while work is pending. If it still sticks, check the `wake` log lines for `wake failed` |
 
 ## 11. Not built yet
 

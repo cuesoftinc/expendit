@@ -65,9 +65,12 @@ Each service's README has its full layout.
 - **Object storage**: `expendit/<env>/tmp/` holds uploads until parsed
   (S-4); `compute/` holds oversized message payloads (S-3).
   `reports/` and `exports/` are **[Planned]**.
-- **Kafka** carries every hand-off, with no synchronous service-to-service
-  calls (D4). The eight topics and their JSON Schemas are in
-  `api/common/contract/`.
+- **Kafka** carries every hand-off (D4), on the CueLABS shared bus that
+  Apparule and Upstat also use: three lanes, Expendit's events by type, and
+  payloads by pointer. The events and their JSON Schemas are in
+  `api/common/contract/`. The only
+  direct call between services is a data-free wake-up that starts a
+  consumer scaled to zero (system-design.md §16 I-16).
 - **Redis** holds rate-limit and quota counters only, and fails open (§9.2).
 
 Entity details: [data-model.md](data-model.md). Topic table:
@@ -152,8 +155,9 @@ handles. See system-design.md §6.2 and [flows/bank-link.md](flows/bank-link.md)
 ## 6. Deployment view
 
 See [deployment.md](deployment.md). In short: Cloud Run services for
-`common` (min 1) and `statements`, worker pools for `analytics`, Cloud Run
-jobs for the sweeps, Firebase App Hosting for `web`, Aiven for Postgres,
+`common`, `statements` and the two `analytics` pools, all scaling to zero
+(publishers wake their consumers over HTTP, system-design.md §16 I-16), Cloud
+Run jobs for the sweeps, Firebase App Hosting for `web`, Aiven for Postgres,
 Kafka and Redis. Compose and the Helm chart run the same images.
 
 ## 7. Cross-repo dependencies

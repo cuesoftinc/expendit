@@ -50,7 +50,7 @@ func LoadContract() (*Contract, error) {
 	return c, nil
 }
 
-// Validate checks raw JSON against the named schema ("envelope" or a topic).
+// Validate checks raw JSON against the named schema ("envelope" or an event).
 func (c *Contract) Validate(name string, raw []byte) error {
 	schema, ok := c.schemas[strings.TrimPrefix(name, "expendit.")]
 	if !ok {

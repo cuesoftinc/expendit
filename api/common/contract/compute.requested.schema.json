@@ -14,9 +14,14 @@
     "period": { "type": "string" },
     "tax_kinds": { "type": "array", "items": { "enum": ["pit", "cit", "vat"] } },
     "ai_allowed": { "type": "boolean" },
+    "rulesets": {
+      "type": "array",
+      "description": "tax_estimate / filing: every stored rule set, read from Postgres when the request is made. analytics resolves the one for each tax kind and period from these; there is no separate rule-set topic (S-10, system-design.md §16 I-16).",
+      "items": { "$ref": "config.rulesets.schema.json" }
+    },
     "inputs": {
       "type": "object",
-      "description": "Kind-specific. statement_validation: {statement_id, kind, mapping_version, line_items[]}. ratios: {period, statements{kind: line_items[]}, previous?}. tax_estimate / filing: {profile, category_treatments, ledger_totals, period_bounds}. dashboard_summary: {totals, by_category, trends}."
+      "description": "Kind-specific. statement_validation: {statement_id, kind, mapping_version, line_items[]}. ratios: {period, statements{kind: line_items[]}, previous?}. tax_estimate / filing: {today, taxpayer_kind, fiscal_year_end, requests[]} (rule sets travel in `rulesets`). dashboard_summary: {totals, by_category, trends}."
     }
   }
 }

@@ -1,6 +1,6 @@
 // Command jobs runs one scheduled job and exits (system-design.md §6.7):
 //
-//	jobs reaper | tmp-cleanup | retention | migrate | republish-rulesets
+//	jobs reaper | tmp-cleanup | retention | migrate | heartbeat
 //
 // Cloud Scheduler triggers each as a Cloud Run job from this image.
 package main
@@ -16,10 +16,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cuesoftinc/expendit/api/common/internal/aiven"
 	"github.com/cuesoftinc/expendit/api/common/internal/app"
 	"github.com/cuesoftinc/expendit/api/common/internal/config"
+	"github.com/cuesoftinc/expendit/api/common/internal/kafka"
 	"github.com/cuesoftinc/expendit/api/common/internal/service"
 	"github.com/cuesoftinc/expendit/api/common/internal/sweep"
+	"github.com/cuesoftinc/expendit/api/common/internal/wake"
 	"github.com/cuesoftinc/expendit/api/common/migrations"
 )
 
@@ -44,9 +47,23 @@ func run(args []string) error {
 	}
 	defer a.Close()
 
-	jobs := (&sweep.Sweeper{DB: a.DB, Store: a.Store, Now: time.Now}).Jobs()
+	producer, err := kafka.NewProducer(cfg.Kafka, a.Contract, a.Store)
+	if err != nil {
+		return err
+	}
+	defer producer.Close()
+
+	sweeper := &sweep.Sweeper{DB: a.DB, Store: a.Store, Now: time.Now, Wake: wake.New(), WakeURLs: cfg.Wake,
+		Aiven:     aiven.New(cfg.Aiven.APIToken, cfg.Aiven.Project, cfg.Aiven.KafkaService),
+		Heartbeat: func(ctx context.Context) error { return producer.Heartbeat(ctx, "reaper") },
+		Resend: func(ctx context.Context) (int, error) {
+			return service.ResendStuck(ctx, a.DB, a.Imports, a.Statements)
+		},
+	}
+	jobs := sweeper.Jobs()
+	// By hand: check the Kafka connection, or wake an idle free plan.
+	jobs["heartbeat"] = sweeper.Heartbeat
 	jobs["migrate"] = func(ctx context.Context) error { return migrations.Apply(ctx, a.DB.Pool) }
-	jobs["republish-rulesets"] = func(ctx context.Context) error { return service.RepublishRulesets(ctx, a.DB) }
 
 	names := make([]string, 0, len(jobs))
 	for name := range jobs {

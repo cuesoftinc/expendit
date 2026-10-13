@@ -86,7 +86,7 @@ the CI/CD and tag-gated deploy model (X-6).
 | D1 | **Financial data is the most sensitive thing we hold.** | Nothing is accepted until `common` has authorized it (upload tickets, §6.1). Raw files sit in Cloud Storage only until parsed, then `common` deletes them. Kafka carries pointers, not files. Nothing sensitive is logged (data-model.md §4). |
 | D2 | **Language by role** (the standard's pipeline rule). | Go = CRUD (`common`). Python = processing (`analytics`). Node = thin gateway (`statements`). |
 | D3 | **One owner per store.** | Postgres is read and written only by `api/common`. The gateway and `analytics` have no database connection at all. |
-| D4 | **Asynchronous between services, with no exceptions.** | Kafka carries every handoff. `analytics` gets the reference data it needs inside the message (categories, fingerprints for the relevant date window, historical aggregates, rule sets). No gRPC. |
+| D4 | **Asynchronous between services, with no exceptions.** | Kafka carries every handoff. `analytics` gets the reference data it needs inside the message (categories, fingerprints for the relevant date window, historical aggregates, rule sets). No gRPC. The only HTTP between services is the data-free `GET /health` wake-up that starts a scaled-to-zero consumer (§16 I-16). |
 | D5 | **Every number can be traced.** | Tax and ratio figures are computed in `analytics` with `{value, ruleset_id, inputs, formula}` and stored by `common` exactly as computed (tax-engine.md §5). Recomputation is event-driven, so a stored figure is always tied to the data version it came from. |
 | D6 | **Config flows outward as events.** | Tax rule sets and their sign-offs publish through a transactional outbox to a compacted topic. |
 | D7 | **Users see progress, not a hanging request.** | Every asynchronous step has a status row in `common` that the client polls (the boss's "keep refreshing"). |
@@ -217,29 +217,32 @@ migration, data-model.md §6.3). This design adds:
 
 Tenancy is enforced with row-level security keyed on `org_id` (S-11).
 
-### 5.3 Kafka topics
+### 5.3 Kafka events
 
-Expendit shares the Aiven Kafka service with Upstat and Apparule, so every
-topic carries the product prefix. All topics use keys. Messages are JSON
-validated against JSON Schemas in `api/common/contract/` (replacing the
-hand-kept Pydantic/TS/Go trio). A payload over 512 KB (a large bank
-backfill, a full-year tax input) goes to `compute/` in Cloud Storage and
-the message carries the pointer.
+Expendit uses the CueLABS shared message bus (`cuelabs-delivery-standard`, `references/shared-messaging.md`): one Kafka service shared by every CueLABS product,
+three topics ("lanes"), and one envelope. The standard is the source of the
+lanes, the envelope, the service's limits and its operating rules; this
+table lists only Expendit's events. Each event has a JSON Schema in
+`api/common/contract/`, and every type starts with `expendit.`, so other
+products' consumers skip these and Expendit's skip theirs (§16 I-18).
 
-| Topic | Key | Retention | Producer → consumers |
+| Event | Lane (topic) | Key | Producer → consumers |
 | --- | --- | --- | --- |
-| `expendit.config.rulesets` | ruleset id | **compacted** | common (outbox) → analytics |
-| `expendit.upload.received` | ticket id | 24 h | statements → common |
-| `expendit.import.ready` | job id | 24 h | common (outbox) → analytics (extract) |
-| `expendit.import.processed` | job id | 24 h | analytics → common |
-| `expendit.statement.ready` | statement id | 24 h | common (outbox) → analytics (extract) |
-| `expendit.statement.mapped` | statement id | 24 h | analytics → common |
-| `expendit.compute.requested` | org id | 24 h | common (outbox) → analytics (compute) |
-| `expendit.compute.results` | org id | 24 h | analytics → common |
+| `expendit.upload.received` | `cuelabs.uploads` | ticket id | statements → common |
+| `expendit.import.ready` | `cuelabs.requests` | job id | common (outbox) → analytics (extract) |
+| `expendit.statement.ready` | `cuelabs.requests` | statement id | common (outbox) → analytics (extract) |
+| `expendit.compute.requested` | `cuelabs.requests` | org id | common (outbox) → analytics (compute) |
+| `expendit.system.heartbeat` | `cuelabs.requests` | `heartbeat` | common's reaper → nobody (keeps the service from idling, I-17) |
+| `expendit.import.processed` | `cuelabs.results` | job id | analytics (extract) → common |
+| `expendit.statement.mapped` | `cuelabs.results` | statement id | analytics (extract) → common |
+| `expendit.compute.results` | `cuelabs.results` | org id | analytics (compute) → common |
 
-Every topic carries financial data except `config.rulesets`, so
-retention stays at 24 h and each topic is readable only by its consumer's
-Kafka user (§8).
+Every other product can read the lanes, so **no Expendit data rides in a
+message**: the payload goes to `compute/` (or `tmp/claims/` for the
+gateway) in Expendit's storage prefix and the message carries the pointer.
+Storage IAM per prefix keeps it private. Only the heartbeat, which holds
+nothing but a timestamp, travels inline. Tax rule sets travel inside
+`compute.requested` (§6.6).
 
 ---
 
@@ -375,10 +378,12 @@ and renders the filing pack PDFs from the returned figures.
 ### 6.6 Config propagation (outbox)
 
 A `common` write and its outbox row commit in one transaction. The
-publisher (every instance, `SKIP LOCKED` batches) sends rows to Kafka and
-stamps `published_at`. `analytics` rebuilds its rule-set map from offset
-0 of `config.rulesets` on start. Only signed rule sets are published for
-filing; unsigned ones are published flagged `estimate_only`.
+publisher (every instance, `SKIP LOCKED` batches) sends rows to Kafka,
+stamps `published_at`, and wakes the service that consumes them (§16
+I-16). Rule sets live only in Postgres: each tax `compute.requested`
+carries the stored sets, so a sign-off applies from the next request.
+Only signed rule sets are used for filing; unsigned ones go out flagged
+`estimate_only`.
 
 ### 6.7 Scheduled sweeps
 
@@ -498,10 +503,10 @@ covers thousands of orgs.
 | Unit | Cloud Run kind | Scaling |
 | --- | --- | --- |
 | web | Firebase App Hosting | managed |
-| api/common (Go) | Service | **min 1** (Kafka consumer + outbox publisher), max 5 |
+| api/common (Go) | Service, CPU always allocated | **0**–5, woken by statements, analytics and the reaper (§16 I-16) |
 | api/statements (Node) | Service | 0–5 |
-| api/analytics — extract (Python) | **Worker pool** | 1–3, capped by the Vertex quota |
-| api/analytics — compute (Python) | **Worker pool** | 1–2 |
+| api/analytics — extract (Python) | Service, CPU always allocated | **0**–3, woken by common; capped by the Vertex quota |
+| api/analytics — compute (Python) | Service, CPU always allocated | **0**–2, woken by common |
 | Sweeps (§6.7) | Cloud Run jobs + Cloud Scheduler | per job |
 | Postgres, Redis, Kafka | Aiven | — |
 | Cloud Storage | default bucket, `expendit/<env>/…` | — |
@@ -571,9 +576,9 @@ docs/
 | **S-7** | **All computation in `analytics`**: statement derivations and checks, ratios, tax, the dashboard AI summary; `common` stores results with traces | AI summary "kept in Go on purpose"; checks in `common`'s confirm | ⭐ ratify |
 | **S-8** | Confirm checks stored, versioned validation (`409 validation_pending` while recomputing) | derivations run inside confirm | ⭐ ratify |
 | **S-9** | Bank sync fetch stays in `common` (lookup, fetch, relay); decisions in the import pipeline | — | ⭐ ratify |
-| **S-10** | Rule sets propagate by **outbox → compacted topic**; unsigned sets flagged `estimate_only` | — | ⭐ ratify |
+| **S-10** | Rule sets propagate by **outbox → compacted topic**; unsigned sets flagged `estimate_only` | — | ⭐ ratify. **Amended 2026-10-13: carried inside tax requests (§16 I-16)** |
 | **S-11** | Postgres RLS by `org_id`; per-prefix Storage IAM; per-service Kafka ACLs | app-level tenancy only | ⭐ ratify |
-| **S-12** | `common` min 1; `analytics` as two **worker pools** (extract, compute); sweeps as Cloud Run jobs | "min-instances 0 everywhere" | ⭐ ratify; note the always-on cost against the free tier |
+| **S-12** | `common` min 1; `analytics` as two **worker pools** (extract, compute); sweeps as Cloud Run jobs | "min-instances 0 everywhere" | ⭐ ratify; note the always-on cost against the free tier. **Amended 2026-10-13: scale to zero with wake-ups (§16 I-16)** |
 | **S-13** | Topics `expendit.<domain>.<event>`; JSON Schemas in `api/common/contract/` | `expendit.receipts.*` and the draft's `expendit.uploaded/ready/processed` | ⭐ ratify |
 | **S-14** | Gateway behind `api.expendit.cuesoft.io/api/v1/uploads` | "own public domain, not yet assigned" | ⭐ ratify |
 
@@ -608,9 +613,11 @@ per-surface API-base flip.
    `analytics`. This design gives the other two services no database at
    all, following the standard. Is that acceptable, or is a store for
    the gateway a hard requirement?
-2. **Kafka on the free tier.** Aiven's free Kafka powers off when idle;
-   this design keeps consumers running. Same question as Upstat and
-   Apparule.
+2. **Kafka on the free tier.** *Answered 2026-10-13:* scale to zero with
+   Kafka and HTTP wake-ups (§16 I-16), on the shared bus (I-18).
+   Still open: the free plan powers off after a stretch with no Kafka
+   traffic and needs a manual power-on, and whether it allows SASL is
+   unconfirmed (deploy-runbook.md §3.2).
 3. **A separate tax service later?** Two pools in one `analytics` image
    is enough now. If tax grows its own release cadence (rule-set sign-offs
    are legal events), `compute` could become `api/tax`.
@@ -639,9 +646,12 @@ the code and in the docs rewritten from this one.
 | I-7 | **Duplicate reference window** | `import.ready` carries the ledger for a fixed 400-day lookback, not "the statement's date window ±1 day". | `common` can't know the window before `analytics` parses the file. Large payloads go by reference (S-3). |
 | I-8 | **Results routing** | `compute.results` echoes `period` and `statement_id`. | `common` needs them to file the result. |
 | I-9 | **Computed reads** | `GET /ratios` and `GET /tax/estimates` return stored figures with `status: current \| recomputing`. They queue a recompute when the org's `data_version` moved on, or when nothing is stored yet. | The web mock computed these synchronously, which S-7 doesn't allow. This extends §7.3's list of contract changes. |
-| I-10 | **Rule sets** | Seeded from `contract/examples/config.rulesets.*.json` and published only when changed. Sign-off is stored in `tax_ruleset` and never taken from seed data. All five NG sets ship unsigned (`estimate_only`). Legacy PIT (CRA, minimum tax) and CIT (turnover bands, TET) run from the same params shape. | tax-engine.md's professional review gate. |
+| I-10 | **Rule sets** | Seeded from `contract/examples/config.rulesets.*.json` into `tax_ruleset`; since I-16 they travel inside tax `compute.requested` messages instead of a compacted topic. Sign-off is stored in `tax_ruleset` and never taken from seed data. All five NG sets ship unsigned (`estimate_only`). Legacy PIT (CRA, minimum tax) and CIT (turnover bands, TET) run from the same params shape. | tax-engine.md's professional review gate. |
 | I-11 | **RLS mechanics** | Every org-scoped table has `FORCE ROW LEVEL SECURITY`. Transactions set `app.org_id`, or `app.bypass_rls` for system work, and consumers narrow to one org before reading reference data. The app connects as a non-superuser that owns its database. | Superusers bypass RLS. The integration test proves isolation under a non-superuser. |
 | I-12 | **Gateway runtime** | NestJS 11, not 12. | Nest 12 is ESM-only, and Jest's decorator-metadata path doesn't support it cleanly yet. Dependabot holds the major. |
 | I-13 | **Statement PDFs and images** | Return `ai_unavailable` until AI table extraction lands. CSV and XLSX statements work. | Not built yet; failing beats guessing. |
-| I-14 | **Analytics pools on Cloud Run** | The two pools are specified as Cloud Run services with always-on CPU, min 1 and internal ingress; worker pools where the cuesoft-iac module supports them (deploy-runbook.md §7). | Services are what `release.yml` and every existing stack module deploy today; the runtime behaviour (always consuming) is the same. |
+| I-14 | **Analytics pools on Cloud Run** | ~~Services with always-on CPU, min 1, internal ingress.~~ Superseded by I-16: services with CPU always allocated, min 0, authenticated only. | Services are what `release.yml` and every existing stack module deploy today. |
 | I-15 | **`KAFKA_SSL_CA`** | The CA certificate's PEM text in every service; analytics also accepts a file path for native runs. | analytics used to read it as a file path only, which would have failed against Aiven. |
+| I-17 | **Living with Aiven's free Kafka** *(2026-10-13)* | The free plan powers off after 24 hours with no produce or consume, drops topic data (configs, users and ACLs come back), and stays off until powered on. Three defences, all in the reaper: **(1)** a `system.heartbeat` event on `compute.requested` every 6 hours (four a day; the compute pool drops it; `./jobs heartbeat` sends one by hand); **(2)** a watchdog that reads the service state from the Aiven API and powers it on when it is `POWEROFF` (`AIVEN_API_TOKEN`, `AIVEN_PROJECT`, `AIVEN_KAFKA_SERVICE`; off when unset); **(3)** a re-send: an import job or statement still processing after 4 minutes gets its `import.ready` / `statement.ready` rebuilt from the upload stored in Postgres and queued again, once (`resent_at`), before the 10-minute reaper fails it. | Research (reports/Aiven free Kafka idle workarounds.md): the heartbeat matches Aiven's documented rule but nobody has published proof it works; power-on takes minutes to hours, so it is a background repair; and Kafka must never be the only copy of work. Confluent Cloud Basic (no idle cost, never powers off) is the fallback if the free plan disappoints. |
+| I-18 | **On the CueLABS shared message bus** *(2026-10-13)* | Expendit, Apparule and Upstat share one Kafka service (boss's decision). Expendit's five topics became the bus's three lanes: `cuelabs.uploads`, `cuelabs.requests`, `cuelabs.results`. Consumers read the event type first and skip, silently and without validation, anything that isn't an Expendit event they handle. Every payload goes by pointer (claim-check), so other products reading the lanes see ids and pointers only. One Kafka user, `expendit`, for all three services; consumer groups `expendit-common`, `expendit-analytics-extract`, `expendit-analytics-compute`. Expendit's `api/common` reaper is the bus's **keep-alive owner** (heartbeat and power-on watchdog, I-17) for every product. | The service allows five topics in all, and three products need them; lanes by direction plus per-product event types make the topics shareable. Pointers keep each product's data behind its own storage IAM. The rules are written once in the CueLABS delivery standard so every product follows the same contract. |
+| I-16 | **Scale to zero with Kafka + HTTP wake-ups** *(2026-10-13, amends S-12)* | Every Cloud Run service runs at **min 0**. `common` and the analytics pools keep CPU always allocated, so an instance's consumers and outbox publisher run in the background for as long as Cloud Run keeps it (up to ~15 idle minutes). Whoever publishes for a sleeping service wakes it with `GET /health`: statements → common after `upload.received`; common's outbox → the extract or compute pool; analytics → common after a result. Wakes are best-effort and debounced (10 s); the reaper (now every 5 minutes) wakes common, and extract, while the outbox has unsent rows or an import or statement is processing. Calls to analytics carry a Cloud Run ID token; common is public. Topics shrank from eight to five (since I-18: the shared bus's three lanes, §5.3): `import.ready` + `statement.ready` share `extract.requested`, their results share `extract.results`, and `config.rulesets` is gone because tax requests carry the rule sets. | Boss's call: no always-on cost when nobody uses the app. Kafka stays (no Pub/Sub). Five topics with two partitions fit Aiven's smallest plan. The first request after idle pays a cold start and a consumer-group join (about 5–10 s). |

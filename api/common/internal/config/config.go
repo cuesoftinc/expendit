@@ -22,6 +22,8 @@ type Config struct {
 	Kafka   Kafka
 	Redis   Redis
 	Storage Storage
+	Wake    Wake
+	Aiven   Aiven
 
 	// Firebase ID tokens (X-1). With FIREBASE_AUTH_EMULATOR_HOST set, the
 	// emulator's unsigned tokens are accepted instead (local only).
@@ -43,6 +45,23 @@ type Kafka struct {
 	Username string
 	Password string
 	SSLCA    string
+}
+
+// Wake holds the base URLs of the services to wake after publishing for
+// them (scale to zero, system-design.md §16 I-16). Empty where every
+// service always runs (compose, Helm).
+type Wake struct {
+	Common  string // used by the jobs: they wake common while work is pending
+	Extract string
+	Compute string
+}
+
+// Aiven lets the reaper power the Kafka service back on when Aiven's free
+// plan powered it off (§16 I-17). All three set, or the watchdog is off.
+type Aiven struct {
+	APIToken     string
+	Project      string
+	KafkaService string
 }
 
 type Redis struct {
@@ -109,6 +128,16 @@ func Load() (*Config, error) {
 			AccessKey: os.Getenv("STORAGE_ACCESS_KEY"),
 			SecretKey: os.Getenv("STORAGE_SECRET_KEY"),
 			UseSSL:    os.Getenv("STORAGE_USE_SSL") != "false",
+		},
+		Wake: Wake{
+			Common:  strings.TrimSpace(os.Getenv("WAKE_COMMON_URL")),
+			Extract: strings.TrimSpace(os.Getenv("WAKE_EXTRACT_URL")),
+			Compute: strings.TrimSpace(os.Getenv("WAKE_COMPUTE_URL")),
+		},
+		Aiven: Aiven{
+			APIToken:     strings.TrimSpace(os.Getenv("AIVEN_API_TOKEN")),
+			Project:      strings.TrimSpace(os.Getenv("AIVEN_PROJECT")),
+			KafkaService: strings.TrimSpace(os.Getenv("AIVEN_KAFKA_SERVICE")),
 		},
 		UploadsPerHour:  atoi(os.Getenv("UPLOADS_PER_HOUR"), 10),
 		UploadsPerDay:   atoi(os.Getenv("UPLOADS_PER_DAY"), 30),

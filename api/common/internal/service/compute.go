@@ -45,7 +45,7 @@ func (s *Compute) request(ctx context.Context, tx pgx.Tx, orgID, kind string, ex
 	for k, v := range extra {
 		msg[k] = v
 	}
-	if err := repository.Enqueue(ctx, tx, kafka.TopicComputeRequested, orgID, msg); err != nil {
+	if err := repository.Enqueue(ctx, tx, kafka.EventComputeRequested, orgID, msg); err != nil {
 		return err
 	}
 	slog.Info("computation requested", "step", "compute.requested", "kind", kind, "org_id", orgID,
@@ -235,7 +235,11 @@ func (s *Compute) requestTax(ctx context.Context, tx pgx.Tx, orgID string) error
 	if profile.StateOfResidence != nil {
 		inputs["state_of_residence"] = *profile.StateOfResidence
 	}
-	return s.request(ctx, tx, orgID, "tax_estimate", nil, inputs)
+	rulesets, err := repository.ListRulesets(ctx, tx)
+	if err != nil {
+		return err
+	}
+	return s.request(ctx, tx, orgID, "tax_estimate", map[string]any{"rulesets": rulesets}, inputs)
 }
 
 type EstimatesView struct {

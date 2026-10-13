@@ -4,6 +4,7 @@ import sharp from 'sharp';
 import { detect, matches } from '../filetype/filetype';
 import { KafkaProducerService } from '../kafka/kafka-producer.service';
 import { UPLOAD_RECEIVED } from '../kafka/topics';
+import { WakeService } from '../kafka/wake.service';
 import { StorageService } from '../storage/storage.service';
 import type { TicketClaims } from '../ticket/ticket.service';
 import { ApiError } from '../errors/api-error';
@@ -25,6 +26,7 @@ export class UploadService {
   constructor(
     private readonly storage: StorageService,
     private readonly kafka: KafkaProducerService,
+    private readonly wake: WakeService,
   ) {}
 
   async accept(ticket: TicketClaims, file: Express.Multer.File | undefined): Promise<UploadAccepted> {
@@ -61,6 +63,7 @@ export class UploadService {
       this.logger.error({ message: 'kafka publish failed', ticket: ticket.jti, error: (error as Error).message });
       throw new ApiError(503, 'queue_unavailable', 'Uploads are temporarily unavailable; try again shortly');
     }
+    await this.wake.common('upload.received');
 
     this.logger.log({
       message: 'upload accepted; stored in tmp/ and handed to common',

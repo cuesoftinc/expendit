@@ -90,6 +90,14 @@ func ListStatements(ctx context.Context, tx pgx.Tx) ([]Statement, error) {
 	return collect(rows, scanStatement)
 }
 
+// StartStatementProcessing moves a statement to processing and keeps the
+// upload it was queued with, for a re-send (I-17).
+func StartStatementProcessing(ctx context.Context, tx pgx.Tx, id, objectKey string, upload any) error {
+	_, err := tx.Exec(ctx, `UPDATE fin_statement SET mapping_status = 'processing', error_code = NULL, object_key = $2,
+		upload = $3, processing_at = now() WHERE id = $1`, id, objectKey, mustJSON(upload))
+	return err
+}
+
 func SetStatementStatus(ctx context.Context, tx pgx.Tx, id, status string, errorCode *string, objectKey *string) error {
 	_, err := tx.Exec(ctx, `UPDATE fin_statement SET mapping_status = $2, error_code = $3, object_key = coalesce($4, object_key)
 		WHERE id = $1`, id, status, errorCode, objectKey)

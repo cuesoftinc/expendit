@@ -9,21 +9,24 @@
 
 | Unit | Runs on | Scaling | Provisioned by |
 | --- | --- | --- | --- |
-| `api/common` (Go) `./server` | Cloud Run **service** | **min 1**, max 5: it consumes Kafka and publishes the outbox | cuesoft-iac stack `expendit` |
-| `api/common` `./jobs <name>` | Cloud Run **jobs** + Cloud Scheduler | reaper every minute, tmp-cleanup every 15 min, retention daily | cuesoft-iac stack `expendit` |
+| `api/common` (Go) `./server` | Cloud Run **service**, CPU always allocated | **0**–5, woken over HTTP (system-design.md §16 I-16) | cuesoft-iac stack `expendit` |
+| `api/common` `./jobs <name>` | Cloud Run **jobs** + Cloud Scheduler | reaper every 5 min (also wakes services while work is pending), tmp-cleanup every 15 min, retention daily | cuesoft-iac stack `expendit` |
 | `api/statements` (Node) | Cloud Run **service** | 0–5 | cuesoft-iac stack `expendit` |
-| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run service, always-on CPU, internal ingress (worker pool where the stack supports it) | 1–3, capped by the Vertex quota | cuesoft-iac stack `expendit` |
-| `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run service, always-on CPU, internal ingress (worker pool where supported) | 1–2 | cuesoft-iac stack `expendit` |
+| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run service, CPU always allocated, authenticated only (common wakes it) | **0**–3, capped by the Vertex quota | cuesoft-iac stack `expendit` |
+| `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run service, CPU always allocated, authenticated only | **0**–2 | cuesoft-iac stack `expendit` |
 | `web` (Next.js) | **Firebase App Hosting** | managed | App Hosting backend |
 | Postgres, Kafka, Redis | Aiven | — | Aiven console / IaC |
 | Object storage | default bucket, `expendit/stg/…`, 1-day lifecycle rule on `tmp/` | — | cuesoft-iac |
 
-Services talk only over Aiven Kafka, never with direct service-to-service
-calls (D4). Each service has its own SASL user with topic-level ACLs, and
+Services hand data to each other only over Aiven Kafka (D4); the one
+direct call is a data-free `GET /health` that wakes a scaled-to-zero
+consumer after something was published for it (system-design.md §16 I-16). Each service has its own SASL user with topic-level ACLs, and
 each has Storage IAM on its prefixes only (S-11): `statements` can write
 `tmp/`, `analytics` can read `tmp/` and `compute/`, and `common` can do
-everything. Topics are created up front (`deploy/docker/kafka/create-topics.sh`
-lists them; `config.rulesets` is compacted, every other topic keeps 24 h).
+everything. Kafka is the CueLABS shared bus (system-design.md §16 I-18):
+three lanes shared with Apparule and Upstat, created once
+(`deploy/docker/kafka/create-topics.sh` mirrors them locally), with every
+payload by pointer.
 
 ## 2. Provisioning (cuesoft-iac)
 
@@ -68,10 +71,10 @@ environments exist.
 
 | Unit | CPU / mem | Concurrency | Instances | Timeout |
 | --- | --- | --- | --- | --- |
-| api/common | 1 vCPU / 512 MiB | 80 | 1–5 | 60 s |
+| api/common | 1 vCPU / 512 MiB, CPU always allocated | 80 | 0–5 | 60 s |
 | api/statements | 1 vCPU / 512 MiB | 20 (15 MB bodies in memory) | 0–5 | 60 s |
-| api/analytics extract | 1 vCPU / 1 GiB | n/a (worker pool) | 1–3 | n/a |
-| api/analytics compute | 1 vCPU / 512 MiB | n/a (worker pool) | 1–2 | n/a |
+| api/analytics extract | 1 vCPU / 1 GiB, CPU always allocated | 80 (only wake-ups arrive) | 0–3 | 60 s |
+| api/analytics compute | 1 vCPU / 512 MiB, CPU always allocated | 80 (only wake-ups arrive) | 0–2 | 60 s |
 
 **[Decided defaults]** for common; the other rows are **[Proposed]** until
 the first load test.
