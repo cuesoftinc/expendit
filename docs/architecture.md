@@ -69,7 +69,7 @@ Each service's README has its full layout.
   Apparule and Upstat also use: three lanes, Expendit's events by type, and
   payloads by pointer. The events and their JSON Schemas are in
   `api/common/contract/`. The only
-  direct call between services is a data-free wake-up that starts a
+  direct call between services is a wake-up call, carrying no data, that starts a
   consumer scaled to zero (system-design.md §16 I-16).
 - **Redis** holds rate-limit and quota counters only, and fails open (§9.2).
 

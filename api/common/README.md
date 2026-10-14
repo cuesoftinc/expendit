@@ -78,7 +78,7 @@ with a Cloud Run ID token), so a pool scaled to zero starts. The reaper does
 the same, and wakes common (`WAKE_COMMON_URL`), while work is pending. Tax
 compute requests carry the rule sets from `tax_ruleset`.
 
-For Aiven's free Kafka (system-design.md §16 I-17) the reaper also powers
+For the shared Aiven Kafka (system-design.md §16 I-17) the reaper also powers
 Kafka back on through the Aiven API (`internal/aiven`, optional), sends a
 heartbeat every 6 hours, and re-sends, once, the work of any import or
 statement stuck in processing for 4 minutes (`service.ResendStuck`).

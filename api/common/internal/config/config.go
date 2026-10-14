@@ -56,8 +56,8 @@ type Wake struct {
 	Compute string
 }
 
-// Aiven lets the reaper power the Kafka service back on when Aiven's free
-// plan powered it off (§16 I-17). All three set, or the watchdog is off.
+// Aiven lets the reaper power the Kafka service back on when Aiven powered it
+// off for being idle (§16 I-17). All three set, or the watchdog is off.
 type Aiven struct {
 	APIToken     string
 	Project      string

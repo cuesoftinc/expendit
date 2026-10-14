@@ -19,7 +19,7 @@
 | Object storage | default bucket, `expendit/stg/…`, 1-day lifecycle rule on `tmp/` | — | cuesoft-iac |
 
 Services hand data to each other only over Aiven Kafka (D4); the one
-direct call is a data-free `GET /health` that wakes a scaled-to-zero
+direct call is a `GET /health`, carrying no data, that wakes a scaled-to-zero
 consumer after something was published for it (system-design.md §16 I-16). Each service has its own SASL user with topic-level ACLs, and
 each has Storage IAM on its prefixes only (S-11): `statements` can write
 `tmp/`, `analytics` can read `tmp/` and `compute/`, and `common` can do

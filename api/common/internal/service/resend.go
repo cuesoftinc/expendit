@@ -19,7 +19,7 @@ const ResendAfter = 4 * time.Minute
 // ResendStuck queues import.ready / statement.ready again, once, for every
 // import job and statement still processing after ResendAfter
 // (system-design.md §16 I-17). Postgres is the source of truth and Kafka
-// only carries hand-offs, so a message lost in Kafka (Aiven's free plan
+// only carries hand-offs, so a message lost in Kafka (the shared Aiven Kafka
 // drops topic data when it powers off) is rebuilt from the stored upload.
 // A duplicate is harmless: a result for an item no longer processing is
 // dropped.

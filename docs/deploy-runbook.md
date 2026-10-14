@@ -130,10 +130,28 @@ the three `cuelabs.*` topics and on consumer groups starting with
   values in §6, on Expendit only), and re-sends any import whose message
   was lost. Power-on itself takes minutes to hours, so expect failed
   uploads during that window.
-- **Test the power-on once by hand** after creating the service: power
-  it off in the console, wait for a reaper run, and check its logs for
-  `power-on requested`. Aiven's docs only show the console for this plan,
-  so confirm the API works on yours.
+- **The Aiven API token (auto power-on).** The reaper needs a token to
+  check the Kafka service's state and power it back on:
+  1. In the Aiven console, create a token for an **application user**
+     (Organization → Application users), so it isn't tied to a person.
+     Give that user a role on the Kafka project that can update services
+     (operator or admin). A personal token (User profile → Tokens) also
+     works.
+  2. Note the **project name** and the **Kafka service name**, both shown
+     in the console.
+  3. In Doppler `expendit` → `stg`, add `AIVEN_API_TOKEN` 🔒 (the token),
+     `AIVEN_PROJECT` (the project name) and `AIVEN_KAFKA_SERVICE` (the
+     service name). Expose them to the **sweep jobs only**
+     (`expendit-sweep-*`); the Cloud Run services don't need them.
+  4. **Test it once**: power Kafka off in the console, wait up to
+     5 minutes, and check the `expendit-sweep-reaper` logs for
+     `power-on requested` (log step `kafka.power`). Kafka is back once
+     Aiven finishes starting it, which can take a few minutes. Aiven's docs
+     only show the console for power-on on this plan, so this confirms the
+     API works. If the log shows a 403, the token's role is too narrow.
+
+  Without these three values the reaper skips the check, and someone has
+  to power Kafka on in the console when it goes off.
 - **SASL:** enable it under **Service settings → Advanced configuration →
   `kafka_authentication_methods.sasl`** (PLAIN and SCRAM-SHA-256/512 are
   listed for this plan). If it can't be enabled, tell the developer: the
@@ -151,7 +169,7 @@ clients use SASL/SCRAM-SHA-256 over TLS, so enable SASL on the service.
 
 The shared Aiven Redis/Valkey, with Expendit on its own database index:
 `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`,
-`REDIS_TLS=true`, `REDIS_DB=<free index>`. Only `common` uses it, for rate
+`REDIS_TLS=true`, `REDIS_DB=<unused index>`. Only `common` uses it, for rate
 limits; if it is unreachable the limits fail open.
 
 ## 4. Cloud Storage
@@ -211,7 +229,7 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `CORS_ORIGINS` (the website origin) | ✓ | ✓ | |
 | `WAKE_COMMON_URL` (the `expendit-api-common` URL) | ✓ (sweep jobs only) | ✓ | ✓ |
 | `WAKE_EXTRACT_URL`, `WAKE_COMPUTE_URL` (the two analytics URLs) | ✓ (service and jobs) | | |
-| `AIVEN_API_TOKEN` 🔒, `AIVEN_PROJECT`, `AIVEN_KAFKA_SERVICE` (free Kafka only: lets the reaper power Kafka back on; a token that can update that one service) | ✓ (sweep jobs only) | | |
+| `AIVEN_API_TOKEN` 🔒, `AIVEN_PROJECT`, `AIVEN_KAFKA_SERVICE` (lets the reaper power the shared Kafka back on; a token that can update that one service) | ✓ (sweep jobs only) | | |
 | `ANALYTICS_POOL` | | | `extract` / `compute` |
 | `GOOGLE_CLOUD_PROJECT`, `VERTEX_LOCATION` (e.g. `us-central1`) | | | ✓ |
 
@@ -263,9 +281,9 @@ token on every wake.
 
 **Cost.** While nobody uses the app nothing is running, so the services
 cost nothing. Each wake-up keeps an instance for up to ~15 minutes;
-light use stays inside Cloud Run's monthly free allowance (shared across
+light use stays inside Cloud Run's monthly no-charge allowance (shared across
 the billing account). The fixed costs are Aiven (Postgres, and Kafka unless
-on the free plan) and the reaper's short run every 5 minutes.
+on the shared Kafka plan) and the reaper's short run every 5 minutes.
 
 ## 8. GitHub (release workflow)
 
@@ -310,7 +328,7 @@ On `cuesoftinc/expendit`:
 | Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy statements; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
 | Run migrations alone | `./jobs migrate` (common also runs them on start) |
 | Sign off a tax rule set | After a licensed practitioner's review, set `signed_off = true, signed_off_by = '<name>'` on the row in `tax_ruleset`. The next tax computation picks it up. Until then estimates are labelled estimate-only and filings are refused (tax-engine.md) |
-| Kafka powered off (free plan) | The reaper powers it on within 5 minutes if the `AIVEN_*` values are set (log step `kafka.power`); otherwise power it on in the Aiven console. Uploads fail until it is back; imports already processing are re-sent from Postgres. Nothing is lost from Postgres |
+| Kafka powered off (idle) | The reaper requests power-on within 5 minutes if the `AIVEN_*` values are set (§3.2), and Kafka is back once Aiven finishes starting it (log step `kafka.power`); otherwise power it on in the Aiven console. Uploads fail until it is back; imports already processing are re-sent from Postgres. Nothing is lost from Postgres |
 | Check Kafka by hand | Run the job `./jobs heartbeat`: it sends one message and fails loudly if Kafka is unreachable |
 | An import stuck in "processing" | Wait for the reaper (≤ 5 minutes): it wakes common and analytics-extract while work is pending. If it still sticks, check the `wake` log lines for `wake failed` |
 

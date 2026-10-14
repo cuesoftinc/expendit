@@ -31,7 +31,7 @@ const (
 	EventStatementMapped  = "expendit.statement.mapped"
 	EventComputeRequested = "expendit.compute.requested"
 	EventComputeResults   = "expendit.compute.results"
-	// EventHeartbeat keeps Aiven's free Kafka from powering off when idle
+	// EventHeartbeat keeps the shared Aiven Kafka from powering off when idle
 	// (§16 I-17). Consumers drop it.
 	EventHeartbeat = "expendit.system.heartbeat"
 )

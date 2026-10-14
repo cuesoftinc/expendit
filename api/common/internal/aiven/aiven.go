@@ -1,5 +1,5 @@
 // Package aiven powers the Kafka service back on when Aiven has powered it
-// off (system-design.md §16 I-17). Aiven's free Kafka plan powers off after
+// off (system-design.md §16 I-17). The shared Aiven Kafka's plan powers off after
 // 24 hours with no produce or consume, and stays off until someone powers
 // it on. The reaper calls EnsurePowered on every run, so an outage lasts
 // one reaper interval plus Aiven's start-up time (minutes, at worst hours).

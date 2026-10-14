@@ -61,7 +61,7 @@ func run(args []string) error {
 		},
 	}
 	jobs := sweeper.Jobs()
-	// By hand: check the Kafka connection, or wake an idle free plan.
+	// By hand: check the Kafka connection, or wake an idle Kafka service.
 	jobs["heartbeat"] = sweeper.Heartbeat
 	jobs["migrate"] = func(ctx context.Context) error { return migrations.Apply(ctx, a.DB.Pool) }
 
