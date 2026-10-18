@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Datadog service catalog entry for the Expendit system.
 - Fleet mock reset endpoint `POST /api/mock/v1/testing/reset` (reseeds the
   in-memory store to seed state), matching the sibling repos' e2e
   test-harness convention (#268).
