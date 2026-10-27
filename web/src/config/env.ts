@@ -41,6 +41,6 @@ export const env = {
  * same build serves compose (http://common:8080) and cloud.
  */
 export const serverEnv = () => ({
-  apiOrigin: process.env.API_ORIGIN ?? "http://localhost:8080",
-  uploadsOrigin: process.env.UPLOADS_ORIGIN ?? "http://localhost:8081",
+  apiOrigin: process.env.API_URL ?? "http://localhost:8080",
+  uploadsOrigin: process.env.UPLOADS_URL ?? "http://localhost:8081",
 });

@@ -84,7 +84,7 @@ services:
   firebase-auth:
     image: node:24-alpine
     working_dir: /firebase
-    command: ["npx", "-y", "firebase-tools@14", "emulators:start", "--only", "auth", "--project", "${FIREBASE_PROJECT_ID:-demo-expendit}"]
+    command: ["npx", "-y", "firebase-tools@14", "emulators:start", "--only", "auth", "--project", "${GOOGLE_CLOUD_PROJECT:-demo-expendit}"]
     volumes:
       - ./deploy/docker/firebase/firebase.json:/firebase/firebase.json:ro
     ports:
@@ -100,7 +100,7 @@ services:
       PORT: "8080"
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       DATABASE_URL: postgres://expendit_app:${APP_DB_PASSWORD:-expendit_app}@postgres:5432/expendit?sslmode=disable
-      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-expendit}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-demo-expendit}
       FIREBASE_AUTH_EMULATOR_HOST: ${FIREBASE_AUTH_EMULATOR_HOST-firebase-auth:9099}
       UPLOAD_TICKET_PRIVATE_KEY: ${UPLOAD_TICKET_PRIVATE_KEY:?set UPLOAD_TICKET_PRIVATE_KEY in .env}
       KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
@@ -224,7 +224,7 @@ services:
       args:
         # Inlined at build: the browser signs in against the Auth emulator
         # on the host's port 9099.
-        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-expendit}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT:-demo-expendit}
         NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
         NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
         NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: ${NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST-localhost:9099}
@@ -232,8 +232,8 @@ services:
       - "3000:3000"
     environment:
       # The /api/v1 proxy forwards here (system-design.md §7.1).
-      API_ORIGIN: http://common:8080
-      UPLOADS_ORIGIN: http://statements:8081
+      API_URL: http://common:8080
+      UPLOADS_URL: http://statements:8081
     depends_on:
       common:
         condition: service_healthy
