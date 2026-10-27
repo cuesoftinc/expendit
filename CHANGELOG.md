@@ -187,6 +187,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sign-in/sign-up hooks.
 
 ### Fixed
+- Release deploys retry while Cloud Run cannot pull a fresh image.
 - Root metadata carries the brand positioning instead of placeholder copy:
   `layout.tsx`'s title now matches the home og/twitter card
   ("Expendit — See every naira. File every tax."), its `description` and
