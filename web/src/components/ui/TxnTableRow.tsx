@@ -81,10 +81,40 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
   const anomaly = txn.anomalies[0];
   const [menuOpen, setMenuOpen] = React.useState(false);
   const menuRootRef = React.useRef<HTMLTableCellElement>(null);
+  const menuTriggerRef = React.useRef<HTMLButtonElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const menuStyle = useAnchoredLayer(menuOpen, menuRootRef, menuRef);
+  const menuPlaced = menuStyle != null;
   const dateFormat = showYear ? "d MMM yyyy" : "d MMM";
   const dateWidth = showYear ? "w-24" : "w-14";
+
+  const menuItems = () =>
+    Array.from(
+      menuRef.current?.querySelectorAll<HTMLButtonElement>(
+        '[role="menuitem"]',
+      ) ?? [],
+    );
+
+  // The menu portals to <body>, so focus is moved in and back by hand.
+  React.useEffect(() => {
+    if (menuOpen && menuPlaced) menuItems()[0]?.focus();
+  }, [menuOpen, menuPlaced]);
+
+  const onMenuKeyDown = (event: React.KeyboardEvent) => {
+    const items = menuItems();
+    const index = items.indexOf(document.activeElement as HTMLButtonElement);
+    const focusAt = (next: number) =>
+      items[(next + items.length) % items.length]?.focus();
+    if (event.key === "ArrowDown") focusAt(index + 1);
+    else if (event.key === "ArrowUp") focusAt(index - 1);
+    else if (event.key === "Home") focusAt(0);
+    else if (event.key === "End") focusAt(items.length - 1);
+    else if (event.key === "Tab") {
+      setMenuOpen(false);
+      menuTriggerRef.current?.focus();
+    } else return;
+    event.preventDefault();
+  };
 
   React.useEffect(() => {
     if (!menuOpen) return;
@@ -97,6 +127,9 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         return;
       }
       if (!(event instanceof KeyboardEvent) || event.key === "Escape") {
+        if (menuRef.current?.contains(document.activeElement)) {
+          menuTriggerRef.current?.focus();
+        }
         setMenuOpen(false);
       }
     };
@@ -139,8 +172,6 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
         // Figma: selected = accent tint row; staged-duplicate = warn tint.
         selected && "bg-accent/[0.08]",
         stagedDuplicate && "bg-warn/[0.08]",
-        // Keep an open menu above the subsequent rows in the ledger.
-        menuOpen && "z-50",
       )}
     >
       <td className="flex shrink-0 items-center">
@@ -213,6 +244,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
       </td>
       <td ref={menuRootRef} className="relative flex w-8 shrink-0 justify-end">
         <button
+          ref={menuTriggerRef}
           type="button"
           aria-label={`Actions for ${txn.description}`}
           aria-haspopup="menu"
@@ -229,7 +261,8 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
                 role="menu"
                 aria-label={`Actions for ${txn.description}`}
                 style={menuStyle ?? { position: "fixed", visibility: "hidden" }}
-                className="z-modal w-44 overflow-hidden rounded-md border border-border bg-bg p-1 shadow-[0_12px_32px_rgba(0,0,0,0.32)]"
+                onKeyDown={onMenuKeyDown}
+                className="z-modal w-44 overflow-hidden rounded border border-border bg-bg p-1 shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]"
               >
                 <button
                   type="button"
@@ -238,7 +271,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
                     onEdit?.();
                     setMenuOpen(false);
                   }}
-                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <Pencil aria-hidden className="h-3.5 w-3.5 text-text-2" />
                   Edit transaction
@@ -250,7 +283,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
                     onSplit?.();
                     setMenuOpen(false);
                   }}
-                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <Split aria-hidden className="h-3.5 w-3.5 text-text-2" />
                   Split transaction
@@ -262,7 +295,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
                     onExclude?.();
                     setMenuOpen(false);
                   }}
-                  className="mt-1 flex w-full items-center gap-2 border-t border-border px-2 py-1.5 text-left text-[12px] font-medium text-text-2 hover:bg-bg hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="mt-1 flex w-full items-center gap-2 rounded border-t border-border px-2 py-1.5 text-left text-[12px] font-medium text-text-2 hover:bg-bg-elev hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <EyeOff aria-hidden className="h-3.5 w-3.5" />
                   {txn.excluded_from_reports
@@ -277,7 +310,7 @@ export const TxnTableRow: React.FC<TxnTableRowProps> = ({
                       onExplainAnomaly();
                       setMenuOpen(false);
                     }}
-                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[12px] font-medium hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     <Sparkles aria-hidden className="h-3.5 w-3.5 text-info" />
                     Explain anomaly

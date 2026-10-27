@@ -62,7 +62,6 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
       screen.getByRole("button", { name: `Actions for ${txn.description}` }),
     );
     expect(screen.getByRole("menu")).toBeInTheDocument();
-    expect(screen.getByRole("row")).toHaveClass("z-50");
     expect(screen.getByRole("menu")).toHaveClass("z-modal", "bg-bg");
     expect(
       screen.getByRole("menuitem", { name: "Edit transaction" }),
@@ -148,6 +147,30 @@ describe("TxnTableRow (design.md §8.2, MI-6)", () => {
     );
     expect(onSplit).toHaveBeenCalled();
     expect(onExclude).toHaveBeenCalled();
+  });
+
+  it("menu takes focus, moves with arrows, and Escape returns to the trigger", async () => {
+    const user = userEvent.setup();
+    render(<TxnTableRow txn={txn} category={category} />);
+    const trigger = screen.getByRole("button", {
+      name: `Actions for ${txn.description}`,
+    });
+    trigger.focus();
+    await user.keyboard("{Enter}");
+    expect(
+      screen.getByRole("menuitem", { name: "Edit transaction" }),
+    ).toHaveFocus();
+    await user.keyboard("{ArrowDown}");
+    expect(
+      screen.getByRole("menuitem", { name: "Split transaction" }),
+    ).toHaveFocus();
+    await user.keyboard("{ArrowUp}{ArrowUp}");
+    expect(
+      screen.getByRole("menuitem", { name: "Exclude from reports" }),
+    ).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
   });
 });
 
