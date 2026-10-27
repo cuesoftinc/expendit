@@ -16,7 +16,7 @@ interface LatestTransactionsProps {
 const columns = [
   {
     id: "date-time",
-    label: "Date & Time",
+    label: "Date",
     widthClass: "w-48",
     headerAlign: "left" as const,
   },
