@@ -17,7 +17,7 @@ flowchart LR
     COM <-->|Kafka| AN[api/analytics — Python<br/>every decision]
     ST -->|tmp/ + Kafka| AN
     AN --> AI[AI extraction/categorization<br/>Vertex in cloud · BYO keys self-host]
-    COM --> FB[Firebase Auth<br/>Google sign-in]
+    COM --> GO[Google OAuth<br/>sign-in]
 ```
 
 - **`web`**: Next.js marketing site and authenticated dashboard (React,
@@ -26,7 +26,7 @@ flowchart LR
 - **`mobile`**: Flutter app and native shells (`mobile/{flutter,android,ios}`),
   placeholders today, consuming the same API.
 - **`api/common`** (Go): the CRUD owner and the only service that touches
-  Postgres. It handles auth (Firebase), orgs and roles, the ledger, imports,
+  Postgres. It handles auth (Google sign-in, own session JWT), orgs and roles, the ledger, imports,
   statements, stored ratios and tax figures, upload tickets, and the outbox.
 - **`api/statements`** (Node, NestJS): the thin upload gateway. It checks the
   ticket and the file, stores the file temporarily, and hands a pointer to

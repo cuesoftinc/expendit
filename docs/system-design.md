@@ -157,7 +157,7 @@ services from one image). Ports are unchanged: `api/common` 8080, `statements` 8
 | Unit | Lang | Role | Responsibility | Owns | Port |
 | --- | --- | --- | --- | --- | --- |
 | `web` | Next.js | Frontend | Landing (with the demo-data preview), dashboard: transactions, imports, accounts, reports, company statements and ratios, taxes and filing wizard, categories, settings and data rights | — | 3000 |
-| `api/common` | **Go** | **CRUD** | Firebase auth, orgs and roles, ledger (expenses, incomes, categories), import jobs and staged transactions, confirm/discard, bank links (Mono widget exchange, encrypted tokens, **daily sync fetch** — lookup, fetch, relay), company statements and line items, tax profiles, stored ratio reports, tax estimates and filings, report rendering (CSV/PDF), data rights (export-all, purge), consent. **Authorizes every upload** and issues its signed ticket. **Outbox publisher.** Scheduled sweeps. Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage | 8080 |
+| `api/common` | **Go** | **CRUD** | Google sign-in and session JWT, orgs and roles, ledger (expenses, incomes, categories), import jobs and staged transactions, confirm/discard, bank links (Mono widget exchange, encrypted tokens, **daily sync fetch** — lookup, fetch, relay), company statements and line items, tax profiles, stored ratio reports, tax estimates and filings, report rendering (CSV/PDF), data rights (export-all, purge), consent. **Authorizes every upload** and issues its signed ticket. **Outbox publisher.** Scheduled sweeps. Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage | 8080 |
 | `api/statements` | **Node** (NestJS) | Thin gateway | Receipts, bank-statement files and company statements: verifies the upload ticket `common` issued (public key, no call), magic-bytes type check, size and image-dimension checks against the ticket, server-side downscaling of oversized images, write to temporary Cloud Storage, pointer → Kafka. Stateless. | nothing: no database, no Redis | 8081 |
 | `api/analytics` | **Python** | Processing | **Extract pool:** file-type detection, CSV/XLSX/PDF parsing, AI extraction and vision (Vertex; BYO Groq/Gemini for self-host), duplicate detection, categorization, the 4 anomaly rules, import summary and narrative, statement mapping suggestions with confidence. **Compute pool:** statement derivations, identity and unmapped-threshold checks, ratios with benchmark bands, PIT/CIT/VAT against signed rule sets, authority resolution, the dashboard AI summary. | nothing; reference data arrives in messages | 8082 |
 
@@ -449,7 +449,7 @@ engineering.md unchanged.
 
 | Concern | Control |
 | --- | --- |
-| **User auth** | Firebase ID tokens, Google provider only (X-1), verified in `common`. The gateway accepts only upload tickets. No `JWT_SECRET` anywhere. |
+| **User auth** | Google sign-in only (X-1): `common` runs the OAuth code flow and signs its own session JWT (`JWT_SECRET`), set as an HttpOnly cookie. The gateway accepts only upload tickets and holds no `JWT_SECRET`. |
 | **Authz** | engineering.md §2 org-role matrix in `common`, applied **before** any upload: tickets are issued only after role, consent, rate limit and quota checks. Tickets are single use (`jti`). |
 | **Tenancy** | `org_id` everywhere; Postgres row-level security; cross-org access returns `not_found`. |
 | **Machine identity** | Kafka ACLs: one SASL user per service with topic-level grants. Cloud Storage IAM per prefix: `statements` write-only on `tmp/`; `analytics` read-only on `tmp/` and `compute/`; `common` everything. |
@@ -533,7 +533,7 @@ via env for AI. Helm uses the same images.
 `GOOGLE_CLOUD_PROJECT` + Vertex region, `GROQ_API_KEY`/`GEMINI_API_KEY`
 (self-host) · `OTEL_*` · `CORS_ORIGINS`.
 
-Retired: `JWT_SECRET`, `MONGO_URI`, `MONGO_DB`.
+Retired from the gateway: `JWT_SECRET`, `MONGO_URI`, `MONGO_DB`.
 
 ---
 
@@ -603,7 +603,7 @@ per-surface API-base flip.
 
 | Phase | Delivers | Exit criteria |
 | --- | --- | --- |
-| **A. Foundations** | Postgres (with the E-4 org migration), Kafka in compose, outbox, Firebase-only auth, contract tests; rename `intake` → `statements`, `process` → `analytics` | Auth, org and ledger surfaces run against real `common` on Postgres |
+| **A. Foundations** | Postgres (with the E-4 org migration), Kafka in compose, outbox, Google-only auth, contract tests; rename `intake` → `statements`, `process` → `analytics` | Auth, org and ledger surfaces run against real `common` on Postgres |
 | **B. Import v2** | Tickets, claim-check, `upload.received`, reference-data scoping, raw-file deletion, JSON Schemas; retire base64, `JWT_SECRET` and the in-memory cache | CSV, PDF and receipt imports end to end on two gateway replicas; no file older than 1 h in `tmp/` |
 | **C. Bank linking** | Mono exchange, encrypted tokens, sync sweep, webhooks, auto-confirm | 6-month backfill lands as one job; reauth and degraded states work |
 | **D. Company financials** | Statement upload and mapping through `analytics`, validation topics, ratios | Upload → map → edit → confirm → ratios with traces |

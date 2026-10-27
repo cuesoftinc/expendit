@@ -40,7 +40,7 @@
 
 | ID | Unit | Delivers | Refs | Deps |
 | --- | --- | --- | --- | --- |
-| E3-1 | Firebase Google-only auth | token middleware, link-by-email migration, 60-day window, legacy retirement | flows/auth §1–3 | — |
+| E3-1 | Google-only auth | session JWT middleware, link-by-email migration, 60-day window, legacy retirement | flows/auth §1–3 | — |
 | E3-2 | Mono link flow | connect widget, exchange, encrypted tokens | flows/bank-link §1 | E3-1 |
 | E3-3 | Sync engine | daily + manual sync → import jobs, cursors, backoff | flows/bank-link §2 | E2-1, E3-2 |
 | E3-4 | Re-auth + lifecycle | reauth banners, pause, unlink keep/purge | flows/bank-link §3 | E3-3 |

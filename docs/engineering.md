@@ -57,7 +57,7 @@ Cross-org access is `404 not_found`, never `403` (no existence leaks).
 | Report generation | 12/hr per org |
 | Export-all | 2/day per org |
 | Tax filing generation | 6/hr per org |
-| Auth | Firebase-managed; Redis limiter retired from auth routes only |
+| Auth | Google sign-in, API-issued session JWT; Redis limiter retired from auth routes only |
 
 Upload limits are enforced by api/common when it issues the upload ticket, before any bytes move (S-5). Redis counts them and fails open.
 

@@ -92,6 +92,9 @@ the first load test.
   `statements` gets every live public key in `UPLOAD_TICKET_PUBLIC_KEYS`.
   To rotate, add the new public key, switch the private key, then drop the
   old public key after 5 minutes.
+- Sign-in: `common` gets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+  `GOOGLE_REDIRECT_URI`, `JWT_SECRET` and `SESSION_SECRET`; the redirect URI
+  is `https://<website>/api/v1/auth/sso/google/callback`.
 - Rollback: redeploy the previous image digest (recorded in the release run).
 - Web env: `NEXT_PUBLIC_*` flows Doppler → `apphosting.yaml` at rollout.
 - Variable names: system-design.md §10.3 and each service's `.env.example`.

@@ -38,7 +38,6 @@
     "@scalar/api-reference-react": "^0.9.81",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "firebase": "^13.1.0",
     "lucide-react": "^1.59.0",
     "next": "16.4.3",
     "react": "19.3.1",

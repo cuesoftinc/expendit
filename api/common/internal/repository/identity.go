@@ -9,32 +9,32 @@ import (
 	"github.com/cuesoftinc/expendit/api/common/internal/model"
 )
 
-const userCols = `id, firebase_uid, email, name, created_at`
+const userCols = `id, google_sub, email, name, created_at`
 
 func scanUser(row pgx.Row) (*model.User, error) {
 	var u model.User
-	if err := row.Scan(&u.ID, &u.FirebaseUID, &u.Email, &u.Name, &u.CreatedAt); err != nil {
+	if err := row.Scan(&u.ID, &u.GoogleSub, &u.Email, &u.Name, &u.CreatedAt); err != nil {
 		return nil, translate(err)
 	}
 	return &u, nil
 }
 
-// UpsertUser finds the user by Firebase uid, else links a row by verified
+// UpsertUser finds the user by Google subject, else links a row by verified
 // email, else creates one (data-model.md §3). created reports a new row.
 func UpsertUser(ctx context.Context, tx pgx.Tx, uid, email, name string) (u *model.User, created bool, err error) {
-	if u, err = scanUser(tx.QueryRow(ctx, `SELECT `+userCols+` FROM app_user WHERE firebase_uid = $1`, uid)); err == nil {
+	if u, err = scanUser(tx.QueryRow(ctx, `SELECT `+userCols+` FROM app_user WHERE google_sub = $1`, uid)); err == nil {
 		return u, false, nil
 	} else if err != ErrNotFound {
 		return nil, false, err
 	}
 	if u, err = scanUser(tx.QueryRow(ctx,
-		`UPDATE app_user SET firebase_uid = $1 WHERE lower(email) = lower($2) RETURNING `+userCols, uid, email)); err == nil {
+		`UPDATE app_user SET google_sub = $1 WHERE lower(email) = lower($2) RETURNING `+userCols, uid, email)); err == nil {
 		return u, false, nil
 	} else if err != ErrNotFound {
 		return nil, false, err
 	}
 	u, err = scanUser(tx.QueryRow(ctx,
-		`INSERT INTO app_user (firebase_uid, email, name) VALUES ($1, $2, $3) RETURNING `+userCols, uid, email, name))
+		`INSERT INTO app_user (google_sub, email, name) VALUES ($1, $2, $3) RETURNING `+userCols, uid, email, name))
 	return u, err == nil, err
 }
 

@@ -1,5 +1,5 @@
 /**
- * TestModeAuthProvider — NEXT_PUBLIC_TEST_MODE=1: no Firebase, sign-in
+ * TestModeAuthProvider (NEXT_PUBLIC_TEST_MODE=1): no backend, sign-in
  * resolves instantly with the seeded test user and the app goes straight
  * to /dashboard (web standard — TEST_MODE).
  *
@@ -48,7 +48,7 @@ export class TestModeAuthProvider implements AuthProvider {
     }
   }
 
-  async getIdToken(): Promise<string | null> {
+  async getBearerToken(): Promise<string | null> {
     return this.currentUser() ? "test-mode-token" : null;
   }
 }

@@ -6,6 +6,9 @@
 # Kubernetes Secret per service (envFrom). Secrets never go in plain values:
 #   common:     DATABASE_URL (a NON-superuser role: superusers bypass RLS),
 #               UPLOAD_TICKET_PRIVATE_KEY, KAFKA_*, REDIS_PASSWORD,
+#               GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI,
+#               JWT_SECRET, SESSION_SECRET (plus optional JWT_ACCESS_TTL,
+#               SESSION_COOKIE_NAME, OAUTH_STATE_COOKIE),
 #               STORAGE_ACCESS_KEY/STORAGE_SECRET_KEY (s3 driver)
 #   statements: UPLOAD_TICKET_PUBLIC_KEYS, KAFKA_*, STORAGE_* keys
 #   analytics:  KAFKA_*, STORAGE_* keys, GROQ_API_KEY/GEMINI_API_KEY

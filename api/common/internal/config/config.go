@@ -25,10 +25,7 @@ type Config struct {
 	Wake    Wake
 	Aiven   Aiven
 
-	// Firebase ID tokens (X-1). With FIREBASE_AUTH_EMULATOR_HOST set, the
-	// emulator's unsigned tokens are accepted instead (local only).
-	FirebaseProjectID    string
-	FirebaseEmulatorHost string
+	Auth Auth
 
 	Ticket Ticket
 
@@ -43,6 +40,21 @@ type Config struct {
 	UploadBytesDay  int64
 	UploadMaxBytes  int64
 	ImportReapAfter time.Duration
+}
+
+// Auth is Google sign-in plus the session the API issues after it.
+type Auth struct {
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleRedirectURI  string
+	JWTSecret          string
+	JWTAccessTTL       time.Duration
+	// SessionSecret seals the token held for a handoff replay.
+	SessionSecret     string
+	SessionCookieName string
+	OAuthStateCookie  string
+	// SecureCookies follows the redirect URI scheme: https sets Secure.
+	SecureCookies bool
 }
 
 type Kafka struct {
@@ -108,11 +120,18 @@ func Load() (*Config, error) {
 	}
 
 	cfg := &Config{
-		Port:                 or(os.Getenv("PORT"), "8080"),
-		CORSOrigins:          split(or(os.Getenv("CORS_ORIGINS"), "http://localhost:3000")),
-		DatabaseURL:          need("DATABASE_URL"),
-		FirebaseProjectID:    need("GOOGLE_CLOUD_PROJECT"),
-		FirebaseEmulatorHost: os.Getenv("FIREBASE_AUTH_EMULATOR_HOST"),
+		Port:        or(os.Getenv("PORT"), "8080"),
+		CORSOrigins: split(or(os.Getenv("CORS_ORIGINS"), "http://localhost:3000")),
+		DatabaseURL: need("DATABASE_URL"),
+		Auth: Auth{
+			GoogleClientID:     need("GOOGLE_CLIENT_ID"),
+			GoogleClientSecret: need("GOOGLE_CLIENT_SECRET"),
+			GoogleRedirectURI:  or(os.Getenv("GOOGLE_REDIRECT_URI"), "http://localhost:3000/api/v1/auth/sso/google/callback"),
+			JWTSecret:          need("JWT_SECRET"),
+			SessionSecret:      need("SESSION_SECRET"),
+			SessionCookieName:  or(os.Getenv("SESSION_COOKIE_NAME"), "expendit_session"),
+			OAuthStateCookie:   or(os.Getenv("OAUTH_STATE_COOKIE"), "expendit_oauth_state"),
+		},
 		Kafka: Kafka{
 			Brokers:  split(need("KAFKA_BROKERS")),
 			Username: os.Getenv("KAFKA_USERNAME"),
@@ -163,6 +182,12 @@ func Load() (*Config, error) {
 		missing = append(missing, "STORAGE_ENDPOINT")
 	}
 
+	cfg.Auth.SecureCookies = strings.HasPrefix(cfg.Auth.GoogleRedirectURI, "https://")
+	cfg.Auth.JWTAccessTTL = accessTTL(&missing)
+	if len(cfg.Auth.JWTSecret) < 32 && cfg.Auth.JWTSecret != "" {
+		missing = append(missing, "JWT_SECRET (at least 32 characters)")
+	}
+
 	ticket, err := parseTicketKey(need("UPLOAD_TICKET_PRIVATE_KEY"))
 	if err != nil && !errors.Is(err, errEmpty) {
 		missing = append(missing, "UPLOAD_TICKET_PRIVATE_KEY ("+err.Error()+")")
@@ -173,6 +198,19 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("missing or invalid configuration: %s", strings.Join(missing, ", "))
 	}
 	return cfg, nil
+}
+
+// accessTTL reads JWT_ACCESS_TTL (a Go duration), else JWT_EXPIRY_HOURS, else 24h.
+func accessTTL(missing *[]string) time.Duration {
+	if v := strings.TrimSpace(os.Getenv("JWT_ACCESS_TTL")); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil || d <= 0 {
+			*missing = append(*missing, "JWT_ACCESS_TTL (want a positive duration such as 24h)")
+			return 0
+		}
+		return d
+	}
+	return time.Duration(atoi(os.Getenv("JWT_EXPIRY_HOURS"), 24)) * time.Hour
 }
 
 var errEmpty = errors.New("empty")

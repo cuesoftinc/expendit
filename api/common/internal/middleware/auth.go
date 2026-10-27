@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"slices"
+	"strings"
 
 	"github.com/cuesoftinc/expendit/api/common/internal/auth"
 	"github.com/cuesoftinc/expendit/api/common/internal/model"
@@ -30,7 +32,6 @@ func WithPrincipal(ctx context.Context, p *Principal) context.Context {
 
 // Accounts is the slice of the identity service auth needs.
 type Accounts interface {
-	SignIn(ctx context.Context, id *auth.Identity) (userID string, err error)
 	// ResolveOrg returns the org and the user's role in it; an empty orgID
 	// means the user's personal org. Non-members get ErrNotMember.
 	ResolveOrg(ctx context.Context, userID, orgID string) (string, model.Role, error)
@@ -38,39 +39,44 @@ type Accounts interface {
 
 var ErrNotMember = errors.New("not a member")
 
-type Verifier interface {
-	Verify(ctx context.Context, raw string) (*auth.Identity, error)
+// Session is how a request proves who it is: a bearer session token, else
+// the session cookie.
+type Session struct {
+	Tokens     *auth.Tokens
+	CookieName string
+	// Origins are the web origins allowed to send cookie-authenticated requests.
+	Origins []string
 }
 
-// Authenticate verifies the Firebase ID token, signs the user in (creating
-// their personal org on first sign-in), and resolves X-Org-Id. Cross-org
+// Authenticate validates the session token and resolves X-Org-Id. Cross-org
 // access is 404, never 403, so org ids don't leak.
-func Authenticate(v Verifier, accounts Accounts) func(http.Handler) http.Handler {
+func Authenticate(s Session, accounts Accounts) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := bearer(r)
 			if token == "" {
+				if c, err := r.Cookie(s.CookieName); err == nil {
+					token = c.Value
+					if !CookieRequestAllowed(r, s.Origins, !safeMethod(r.Method)) {
+						deny(w, http.StatusForbidden, "csrf_rejected", "This request did not come from the app")
+						return
+					}
+				}
+			}
+			if token == "" {
 				deny(w, http.StatusUnauthorized, "unauthenticated", "Sign in to continue")
 				return
 			}
-			id, err := v.Verify(r.Context(), token)
+			claims, err := s.Tokens.Parse(token)
 			switch {
 			case errors.Is(err, auth.ErrExpired):
 				deny(w, http.StatusUnauthorized, "token_expired", "Your session expired; sign in again")
-				return
-			case errors.Is(err, auth.ErrProvider):
-				deny(w, http.StatusUnauthorized, "unauthenticated", err.Error())
 				return
 			case err != nil:
 				deny(w, http.StatusUnauthorized, "unauthenticated", "Sign in to continue")
 				return
 			}
-			userID, err := accounts.SignIn(r.Context(), id)
-			if err != nil {
-				deny(w, http.StatusInternalServerError, "internal", "Something went wrong")
-				return
-			}
-			orgID, role, err := accounts.ResolveOrg(r.Context(), userID, r.Header.Get("X-Org-Id"))
+			orgID, role, err := accounts.ResolveOrg(r.Context(), claims.Subject, r.Header.Get("X-Org-Id"))
 			if errors.Is(err, ErrNotMember) {
 				deny(w, http.StatusNotFound, "not_found", "Not found")
 				return
@@ -78,10 +84,31 @@ func Authenticate(v Verifier, accounts Accounts) func(http.Handler) http.Handler
 				deny(w, http.StatusInternalServerError, "internal", "Something went wrong")
 				return
 			}
-			ctx := WithPrincipal(r.Context(), &Principal{UserID: userID, Email: id.Email, OrgID: orgID, Role: role})
+			ctx := WithPrincipal(r.Context(), &Principal{UserID: claims.Subject, Email: claims.Email, OrgID: orgID, Role: role})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// CookieRequestAllowed guards requests that carry only a cookie: a present
+// Origin must be one of origins, a cross-site fetch is refused, and with
+// needProof a request with no Origin must at least be same-origin.
+func CookieRequestAllowed(r *http.Request, origins []string, needProof bool) bool {
+	origin := strings.TrimRight(r.Header.Get("Origin"), "/")
+	if origin != "" && !slices.Contains(origins, origin) {
+		return false
+	}
+	fetchSite := r.Header.Get("Sec-Fetch-Site")
+	switch fetchSite {
+	case "", "same-origin", "same-site":
+	default:
+		return false
+	}
+	return !needProof || origin != "" || fetchSite == "same-origin"
+}
+
+func safeMethod(m string) bool {
+	return m == http.MethodGet || m == http.MethodHead || m == http.MethodOptions
 }
 
 func deny(w http.ResponseWriter, status int, code, message string) {

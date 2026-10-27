@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 /**
  * TEST_MODE smoke (web standard): /signin renders the single X-1 CTA and
- * "Continue with Google" lands straight on /dashboard (no Firebase).
+ * "Continue with Google" lands straight on /dashboard.
  */
 
 test("signin page shows the single Google CTA and no password fields", async ({

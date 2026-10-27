@@ -85,17 +85,15 @@ until a real customer needs it.
 ## Cross-cutting
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
-  is **Firebase Authentication on GCP project `sandbox-e306a`** ("sandbox") —
-  Google sign-in + email flows come from Firebase; services verify Firebase ID
-  tokens (OIDC-compatible). `account.cuesoft.io` **is not built yet** — each app replicates the
+  is **Google sign-in run by each product's API**: the API completes the
+  Google OAuth code flow and issues its own session JWT, which services verify. `account.cuesoft.io` **is not built yet** — each app replicates the
   sign-in/sign-up screens **in-app** (own UI per its design system,
-  Firebase Auth underneath: Google sign-in + email/password flows). The
-  central facade fronts the same Firebase project later without contract
+  Google sign-in underneath). The
+  central facade fronts the same Google identity later without contract
   changes; in-app screens then become optional, not obsolete. **HARDENED
   2026-07-16: Google sign-in is the ONLY method — no username/password
-  signup or login, product-wide.** Email/Password provider disabled at
-  the Firebase project; backends reject non-Google-provider tokens
-  (`provider_not_allowed`); UI ships exactly one auth CTA. Full contract:
+  signup or login, product-wide.** The API exposes no other sign-in
+  route; UI ships exactly one auth CTA. Full contract:
   [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
   (the product's `stg` config) — CLI
   token currently expired (`doppler login` to refresh); config names to be mirrored
@@ -178,7 +176,7 @@ until a real customer needs it.
 - **X-10 Identity, profile & KYC tiers (RATIFIED, directive 2026-07-16)**: layered on
   X-1 — Google-only sign-in stays the sole credential; tiers add profile data and
   verification, never alternative logins. **Tier 0 — Google identity** (all
-  products): firebase_uid + Google-verified email; grants all read/basic use.
+  products): google_sub + Google-verified email; grants all read/basic use.
   **Tier 1 — self-attested profile & location** (captured in product
   profile/settings; sensitive PII, never logged): apparule = bio + profile
   location {city, state, country} powering proximity-ranked designer

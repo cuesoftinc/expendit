@@ -28,7 +28,7 @@ flowchart LR
     COM <-->|Kafka| AN[api/analytics — Python<br/>every decision]
     ST -->|tmp/ + Kafka| AN
     AN --> AI[AI: Vertex in cloud · BYO keys self-host]
-    COM --> FB[Firebase Auth]
+    COM --> GG[Google OAuth]
 ```
 
 Go does CRUD, Python makes every decision, and the Node gateway validates
@@ -43,7 +43,7 @@ uploads and hands them off. The full design is
 | api/statements | Node 24, NestJS 11                                               |
 | api/analytics  | Python 3.12, FastAPI, aiokafka                                   |
 | Messaging      | Kafka (Aiven), JSON Schema contract in `api/common/contract/`    |
-| Auth           | Firebase, Google sign-in only                                    |
+| Auth           | Google sign-in (API-issued JWT)                                  |
 | Web            | Next.js, React, TypeScript                                       |
 | Mobile         | Flutter (planned)                                                |
 | AI             | Vertex AI in cloud; Groq or Gemini keys for self-host            |
@@ -62,7 +62,7 @@ mobile/
   android/      Native Android (planned)
   ios/          Native iOS (planned)
 deploy/
-  docker/       Compose support files (Postgres init, Kafka topics, Firebase emulator)
+  docker/       Compose support files (Postgres init, Kafka topics)
   helm/         Kubernetes Helm chart (all services + sweeps)
   terraform/    Infrastructure as code
 docs/           Architecture, setup, and reference documentation
@@ -85,7 +85,7 @@ health, kafka, storage, contract, telemetry).
 
 ```bash
 cp .env.example .env   # ships a local-only upload-ticket key pair
-make up      # build + start the full stack (postgres, kafka, redis, minio, firebase emulator, 3 APIs, web)
+make up      # build + start the full stack (postgres, kafka, redis, minio, 3 APIs, web)
 make logs    # follow logs
 make down    # stop
 ```

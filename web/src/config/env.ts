@@ -3,11 +3,11 @@
  * through this module only).
  *
  * NEXT_PUBLIC_TEST_MODE=1 puts the app in TEST_MODE: GoogleAuthButton
- * navigates straight to the dashboard (no Firebase) and the API client
+ * navigates straight to the dashboard and the API client
  * targets the in-app mock server (/api/mock/v1).
  *
  * Otherwise the app runs against the real backend (system-design.md §7):
- * Firebase Google sign-in (X-1) and /api/v1, which the server-side proxy
+ * Google sign-in through the API session (X-1) and /api/v1, which the server-side proxy
  * (src/app/api/v1) forwards to api/common, and /api/v1/uploads to
  * api/statements.
  *
@@ -22,18 +22,10 @@ export const env = {
   apiBase: testMode ? "/api/mock/v1" : "/api/v1",
   /**
    * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
-   * - GoogleAuthButton navigates straight to /dashboard (no Firebase), and
+   * - GoogleAuthButton navigates straight to /dashboard (no backend), and
    * - the API client targets the in-app mock server (/api/mock/v1).
    */
   testMode,
-  /** Firebase web config (public by design; X-1). */
-  firebase: {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
-    /** host:port of the Auth emulator for local runs; empty in cloud. */
-    authEmulatorHost: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST ?? "",
-  },
 } as const;
 
 /**

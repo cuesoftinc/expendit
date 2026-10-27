@@ -15,8 +15,8 @@ one build variable:
 
 - **`NEXT_PUBLIC_TEST_MODE=1`**: the site runs on its built-in mock API,
   exactly as today. **Keep this set until the backend is deployed (§9).**
-- **Unset**: the site signs in with Firebase and calls the real API. If
-  the API or the Firebase config isn't there yet, sign-in and every
+- **Unset**: the site signs in with Google and calls the real API. If
+  the API or the Google OAuth config isn't there yet, sign-in and every
   dashboard screen fail.
 
 So: merge, check the site still works in TEST_MODE, and only remove the
@@ -66,23 +66,24 @@ analytics-extract if work is still pending.
 The first import after a quiet period takes about 5–10 seconds (cold start
 plus Kafka consumer-group join); later ones take 1–2 seconds.
 
-## 2. Firebase Auth (sign-in)
+## 2. Google sign-in
 
-Google sign-in only (X-1). A Firebase project is the GCP project, so use
-the same project as Cloud Run.
+Google sign-in only (X-1). The API runs the OAuth code flow and issues its
+own session JWT, so no identity provider SDK or service-account JSON is
+needed.
 
-1. In the [Firebase console](https://console.firebase.google.com), add
-   Firebase to the GCP project.
-2. **Authentication → Sign-in method → Google → Enable.**
-3. **Authentication → Settings → Authorized domains**: add the website's
-   domain (`expendit.cuesoft.io`) and the backend's own App Hosting domain
-   (`<backend>--<project>.<region>.hosted.app`, listed in App Hosting;
-   wildcards aren't accepted). `localhost` is there by default.
-4. **Project settings → Your apps → Add app → Web.** Note `apiKey`,
-   `authDomain` and `projectId`; they go into §6. They are public by design.
-
-The API verifies tokens against Google's public keys and the project ID,
-so the services need **no Firebase key or service-account JSON**.
+1. In the GCP console, **APIs & Services → OAuth consent screen**, configure
+   the app, then **Credentials → Create credentials → OAuth client ID**
+   (type Web application).
+2. **Authorized redirect URIs**: add
+   `https://<website domain>/api/v1/auth/sso/google/callback` (the website
+   proxies `/api/v1/*` to the API, so the browser stays on one origin). Add the
+   `http://localhost:3000` equivalent for local runs.
+3. Put the client id and secret in `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET` (§6), and the redirect URI from step 2 in
+   `GOOGLE_REDIRECT_URI`.
+4. Generate `JWT_SECRET` and `SESSION_SECRET` (random, at least 32 bytes
+   each) and store them as secrets (§6).
 
 ## 3. Aiven
 
@@ -228,6 +229,8 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | --- | --- | --- | --- |
 | `DATABASE_URL` 🔒 | ✓ | | |
 | `GOOGLE_CLOUD_PROJECT` | ✓ (the GCP project id) | | |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` 🔒, `GOOGLE_REDIRECT_URI` (§2) | ✓ | | |
+| `JWT_SECRET` 🔒, `SESSION_SECRET` 🔒, `JWT_ACCESS_TTL` (e.g. `24h`), `SESSION_COOKIE_NAME`, `OAUTH_STATE_COOKIE` | ✓ | | |
 | `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | |
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | |
 | `KAFKA_BROKERS`, `KAFKA_SSL_CA` | ✓ | ✓ | ✓ |
@@ -245,7 +248,7 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
 path; `SCHEDULER_AUDIENCE` is the same URL as common's. Create the services first, then fill these in and redeploy.
 
-Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `GROQ_API_KEY`,
+Never set in cloud: `GROQ_API_KEY`,
 `GEMINI_API_KEY` (cloud AI is Vertex, X-4), `STORAGE_ENDPOINT` and the
 `STORAGE_*_KEY`s (those are for the self-host S3 driver).
 
@@ -254,7 +257,6 @@ Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `GROQ_API_KEY`,
 | Variable                                                      | Available at | Value                                              |
 | ------------------------------------------------------------- | ------------ | -------------------------------------------------- |
 | `NEXT_PUBLIC_TEST_MODE`                                       | build        | `1` until §9, then remove                          |
-| `NEXT_PUBLIC_FIREBASE_API_KEY`, `_AUTH_DOMAIN`, `_PROJECT_ID` | build        | from §2 step 4                                     |
 | `API_URL`                                                     | runtime      | the `expendit-api-common` URL (`https://…run.app`) |
 | `UPLOADS_URL`                                                 | runtime      | the `expendit-api-statements` URL                  |
 
@@ -265,7 +267,7 @@ from Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `expendit-api-common` | service | `expendit-common` | 8080 | **0**–2 | 1 / 512 MiB, timeout 300 s | request-based | all · allow unauthenticated (the app checks Firebase tokens; `/internal/jobs/*` checks the scheduler OIDC token) |
+| `expendit-api-common` | service | `expendit-common` | 8080 | **0**–2 | 1 / 512 MiB, timeout 300 s | request-based | all · allow unauthenticated (the app checks its own session JWT; `/internal/jobs/*` checks the scheduler OIDC token) |
 | `expendit-api-statements` | service | `expendit-statements` | 8081 | 0–5 | 1 / 1 GiB, concurrency 20 (uploads up to 15 MB are held in memory), timeout 60 s | request-based | all · allow unauthenticated (auth is the upload ticket) |
 | `expendit-api-analytics-extract` | service | `expendit-analytics` | 8082 | **0**–2 | 1 / 1 GiB | request-based | all · **authenticated only** (invoker: `expendit-common`) |
 | `expendit-api-analytics-compute` | service | `expendit-analytics` | 8082 | **0**–2 | 1 / 512 MiB | request-based | all · **authenticated only** (invoker: `expendit-common`) |
@@ -328,8 +330,7 @@ On `cuesoftinc/expendit`:
    `migration applied` (first deploy only) and `listening`.
 5. Unpause the three Scheduler jobs, run each once and check for a 200 in
    the `expendit-api-common` logs (the IaC creates them paused).
-6. In App Hosting, set `API_URL`, `UPLOADS_URL` and the
-   `NEXT_PUBLIC_FIREBASE_*` values, **then remove `NEXT_PUBLIC_TEST_MODE`**
+6. In App Hosting, set `API_URL` and `UPLOADS_URL`, **then remove `NEXT_PUBLIC_TEST_MODE`**
    and roll out.
 7. Smoke test on the site: sign in with Google, add a transaction, import a
    small CSV, confirm it. Each import leaves a trail in the logs: filter on

@@ -22,7 +22,7 @@ flowchart LR
     CM <-->|outbox · results| K
     K <--> AN[api/analytics — Python<br/>extract + compute pools]
     AN --> AI[Vertex / Groq / Gemini]
-    CM -.->|Firebase ID tokens| FB[Firebase Auth]
+    CM -.->|OAuth code flow| FB[Google OAuth]
 ```
 
 The language rule (CueLABS standard): **Go does CRUD only, Python does
@@ -33,7 +33,7 @@ every decision, the Node gateway validates and hands off.**
 | Unit | Lang | Role | Owns | Port |
 | --- | --- | --- | --- | --- |
 | `web` | Next.js | Landing + dashboard. TEST_MODE runs against the in-app mock API, which is the HTTP contract (system-design.md §7.3). | — | 3000 |
-| `api/common` | Go | Auth (Firebase), orgs and roles, ledger, imports and staging, statements, stored ratios and tax figures, upload tickets, transactional outbox, sweeps. | **Postgres (sole client)** | 8080 |
+| `api/common` | Go | Auth (Google sign-in, session JWT), orgs and roles, ledger, imports and staging, statements, stored ratios and tax figures, upload tickets, transactional outbox, sweeps. | **Postgres (sole client)** | 8080 |
 | `api/statements` | Node (NestJS 11) | `POST /api/v1/uploads`: verifies the upload ticket, checks size and magic bytes, downscales receipt images, writes `tmp/`, publishes a pointer. | nothing | 8081 |
 | `api/analytics` | Python (FastAPI) | `extract` pool: parsing, AI extraction, duplicates, categories, anomalies, summaries, statement row mapping. `compute` pool: statement derivations and checks, ratios, PIT/CIT/VAT, dashboard summary. | nothing | 8082 |
 
@@ -162,6 +162,6 @@ Firebase App Hosting for `web`, Aiven for Postgres, Kafka and Valkey. Compose an
 
 | ID | Dependency | Blocks |
 | --- | --- | --- |
-| D1 | `account.cuesoft.io` facade over the same Firebase project | nothing (Firebase is already the auth, X-1) |
+| D1 | `account.cuesoft.io` facade over the same Google identity | nothing (Google sign-in is already the auth, X-1) |
 | D2 | Upstat event-ingestion API and OTLP receiver | product events, OTel export (X-9) |
 | D3 | Expendit clause on `privacy.cuesoft.io` | EXP-005 copy; must reflect S-4 |

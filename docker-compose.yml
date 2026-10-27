@@ -1,6 +1,6 @@
 # Local and self-host stack (docs/system-design.md §10.2): the same images as
-# cloud, with Postgres, Kafka (KRaft), Redis, SeaweedFS (S3) and the Firebase auth
-# emulator standing in for the managed services.
+# cloud, with Postgres, Kafka (KRaft), Redis and SeaweedFS (S3) standing in for
+# the managed services.
 # Usage: cp .env.example .env  &&  make up
 services:
   postgres:
@@ -80,17 +80,6 @@ services:
       - "8333:8333"
     restart: unless-stopped
 
-  # Firebase auth emulator (X-1): Google sign-in without a real project.
-  firebase-auth:
-    image: node:24-alpine
-    working_dir: /firebase
-    command: ["npx", "-y", "firebase-tools@14", "emulators:start", "--only", "auth", "--project", "${GOOGLE_CLOUD_PROJECT:-demo-expendit}"]
-    volumes:
-      - ./deploy/docker/firebase/firebase.json:/firebase/firebase.json:ro
-    ports:
-      - "9099:9099"
-    restart: unless-stopped
-
   common:
     build: ./api/common
     image: cuesoft/expendit-api-common:latest
@@ -101,7 +90,14 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       DATABASE_URL: postgres://expendit_app:${APP_DB_PASSWORD:-expendit_app}@postgres:5432/expendit?sslmode=disable
       GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-demo-expendit}
-      FIREBASE_AUTH_EMULATOR_HOST: ${FIREBASE_AUTH_EMULATOR_HOST-firebase-auth:9099}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?set GOOGLE_CLIENT_ID in .env}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?set GOOGLE_CLIENT_SECRET in .env}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:3000/api/v1/auth/sso/google/callback}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-24h}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-expendit_session}
+      OAUTH_STATE_COOKIE: ${OAUTH_STATE_COOKIE:-expendit_oauth_state}
       UPLOAD_TICKET_PRIVATE_KEY: ${UPLOAD_TICKET_PRIVATE_KEY:?set UPLOAD_TICKET_PRIVATE_KEY in .env}
       KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
       KAFKA_USERNAME: ${KAFKA_USERNAME:-}
@@ -221,13 +217,6 @@ services:
       # /docs/api); pruned by web/Dockerfile.dockerignore.
       context: .
       dockerfile: web/Dockerfile
-      args:
-        # Inlined at build: the browser signs in against the Auth emulator
-        # on the host's port 9099.
-        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT:-demo-expendit}
-        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
-        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
-        NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: ${NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST-localhost:9099}
     ports:
       - "3000:3000"
     environment:
@@ -239,8 +228,6 @@ services:
         condition: service_healthy
       statements:
         condition: service_healthy
-      firebase-auth:
-        condition: service_started
     restart: unless-stopped
 
 volumes:

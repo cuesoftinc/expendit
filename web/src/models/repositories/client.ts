@@ -49,10 +49,10 @@ const buildUrl = (path: string, query?: RequestOptions["query"]): string => {
   return qs ? `${url}?${qs}` : url;
 };
 
-/** The signed-in user's Firebase ID token (X-1); null when signed out. */
+/** TEST_MODE bearer only; the real session travels as an HttpOnly cookie. */
 const bearerToken = async (): Promise<string | null> => {
   try {
-    return await getAuthProvider().getIdToken();
+    return await getAuthProvider().getBearerToken();
   } catch {
     return null;
   }
@@ -88,6 +88,7 @@ const request = async <T>(
     headers,
     body: payload,
     signal: options.signal,
+    credentials: "include",
   });
 
   if (response.status === 204) return undefined as T;

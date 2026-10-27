@@ -15,7 +15,7 @@ import (
 // consumers running, outbox publishing.
 type Readiness func(ctx context.Context) error
 
-func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness, jobs http.Handler) http.Handler {
+func New(h *handler.Handlers, sso *handler.SSO, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness, jobs http.Handler) http.Handler {
 	api := http.NewServeMux()
 	routes := map[string]http.HandlerFunc{
 		"GET /api/v1/me": h.Me,
@@ -89,6 +89,11 @@ func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins 
 		}
 		_, _ = w.Write([]byte(`{"status":"ready"}`))
 	})
+	// Sign-in runs before a session exists, so it sits outside auth.
+	root.HandleFunc("GET /api/v1/auth/sso/google", sso.GoogleLogin)
+	root.HandleFunc("GET /api/v1/auth/sso/google/callback", sso.GoogleCallback)
+	root.HandleFunc("POST /api/v1/auth/sso/exchange", sso.ExchangeSSOHandoff)
+	root.HandleFunc("POST /api/v1/auth/logout", sso.Logout)
 	root.Handle("/api/v1/", auth(api))
 	// Guarded by the scheduler OIDC check, not user auth.
 	root.Handle("POST /internal/jobs/{name}", jobs)

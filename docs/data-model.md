@@ -136,14 +136,14 @@ erDiagram
   `ai_processing` document records acceptance of third-party AI extraction
   (prd.md §6, open question 1).
 
-## 3. Identity mapping (X-1 hardened — Firebase, Google-only) **[Decided]**
+## 3. Identity mapping (X-1 hardened, Google-only) **[Decided]**
 
-`USER` gains a `firebase_uid` column (unique). First Google sign-in
+`USER` gains a `google_sub` column (unique). First Google sign-in
 links-by-verified-email or creates the row (flows/auth.md §3 is the
-normative flow: 60-day legacy window, then `410 migrate_to_firebase`;
+normative flow: 60-day legacy window, then `410 migrate_to_google`;
 password fields dropped after the window). Every owned collection keeps its
-`userid` scoping untouched. The future `account.cuesoft.io` facade fronts
-the same Firebase project — no further migration.
+`userid` scoping untouched. The future `account.cuesoft.io` facade keys on
+the same Google subject, so no further migration.
 
 ## 4. Data classification & handling **[PRD §5/§7]**
 
