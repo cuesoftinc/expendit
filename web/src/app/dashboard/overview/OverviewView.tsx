@@ -12,13 +12,13 @@ import Banner from "@/components/ui/Banner";
 import EmptyState from "@/components/ui/EmptyState";
 import PeriodPicker from "@/components/ui/PeriodPicker";
 import Tag from "@/components/ui/Tag";
-import PageHeader from "./PageHeader";
-import { CashFlowPanel } from "./overview/CashFlowPanel";
-import { DemoOverview } from "./overview/DemoOverview";
-import { LatestTransactions } from "./overview/LatestTransactions";
-import { OverviewLoading } from "./overview/OverviewLoading";
-import { OverviewSidePanels } from "./overview/OverviewSidePanels";
-import { OverviewStats } from "./overview/OverviewStats";
+import PageHeader from "../PageHeader";
+import { CashFlowPanel } from "./CashFlowPanel";
+import { DemoOverview } from "./DemoOverview";
+import { LatestTransactions } from "./LatestTransactions";
+import { OverviewLoading } from "./OverviewLoading";
+import { OverviewSidePanels } from "./OverviewSidePanels";
+import { OverviewStats } from "./OverviewStats";
 
 export const OverviewView: React.FC = () => {
   const router = useRouter();
@@ -53,7 +53,7 @@ export const OverviewView: React.FC = () => {
     .filter((estimate) => estimate.daysToDue >= 0 && estimate.daysToDue <= 30)
     .sort((a, b) => a.daysToDue - b.daysToDue)[0];
 
-  if (loading) return <OverviewLoading />;
+  if (loading) return <OverviewLoading orgKind={activeOrg?.kind} />;
   if (isEmpty)
     return (
       <>
@@ -120,7 +120,11 @@ export const OverviewView: React.FC = () => {
           </Banner>
         </div>
       ) : null}
-      <OverviewStats flows={flows} currency={currency} />
+      <OverviewStats
+        flows={flows}
+        currency={currency}
+        orgKind={activeOrg?.kind}
+      />
       <div
         data-testid="overview-mid-band"
         className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]"

@@ -37,12 +37,25 @@ describe("OverviewTxnTableRow", () => {
 
     const cells = container.querySelectorAll("td");
     expect(cells).toHaveLength(6);
-    expect(cells[0]).toHaveTextContent("15-07-2026");
+    expect(cells[0]).toHaveTextContent("15-07-2026 • 07:00 PM");
     expect(cells[1]).toContainElement(screen.getByLabelText("CSV import"));
     expect(cells[2]).toHaveTextContent(txn.description);
     expect(cells[3]).toHaveTextContent(category.name);
     expect(cells[4]).toBeEmptyDOMElement();
     expect(cells[5]).toHaveTextContent("−₦18,000.00");
+  });
+
+  it("does not render a made-up midnight time for date-only transactions", () => {
+    render(
+      <OverviewTxnTableRow
+        txn={{ ...txn, txn_date: "2026-07-15" }}
+        category={category}
+      />,
+      { wrapper: InTable },
+    );
+
+    expect(screen.getAllByRole("cell")[0]).toHaveTextContent("15-07-2026");
+    expect(screen.getAllByRole("cell")[0]).not.toHaveTextContent("12:00 AM");
   });
 
   it("uses the dedicated Signals cell for anomaly badges", () => {

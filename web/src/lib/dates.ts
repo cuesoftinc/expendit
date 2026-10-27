@@ -12,6 +12,17 @@ export const formatIso = (iso: string, pattern: string): string => {
   return isValid(date) ? format(date, pattern) : iso;
 };
 
+/**
+ * Formats a date-only API value without inventing a local-midnight time.
+ * The transaction API normally supplies `yyyy-MM-dd`, but callers can keep
+ * a supplied time visible when a source genuinely includes one.
+ */
+export const formatIsoWithOptionalTime = (
+  iso: string,
+  datePattern: string,
+  dateTimePattern: string,
+): string => formatIso(iso, iso.includes("T") ? dateTimePattern : datePattern);
+
 export const isValidIso = (iso: string): boolean => isValid(parseISO(iso));
 
 /** Today as the API's date grammar (yyyy-MM-dd). */
