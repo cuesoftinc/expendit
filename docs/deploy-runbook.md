@@ -88,19 +88,17 @@ so the services need **no Firebase key or service-account JSON**.
 
 ### 3.1 Postgres
 
-Use a dedicated database and a **non-superuser** role. Row-level security
-(S-11) does not apply to superusers or roles with `BYPASSRLS`, and Aiven's
-`avnadmin` should not run the app. As `avnadmin`:
+The app connects as the shared `cuesoft` user, which is not a superuser and
+has no `BYPASSRLS`, so row-level security (S-11) applies. The IaC creates the
+`expendit` database on the shared `sandbox-db`, owned by `avnadmin`; hand it to
+`cuesoft` once, as `avnadmin`:
 
 ```sql
-CREATE ROLE expendit_app LOGIN PASSWORD '<generate>' NOSUPERUSER NOBYPASSRLS;
-CREATE DATABASE expendit OWNER expendit_app;
+ALTER DATABASE expendit OWNER TO cuesoft;
 ```
 
-On staging this is the shared `sandbox-db` service, created by the IaC.
-
 The connection string the app gets (`DATABASE_URL`):
-`postgres://expendit_app:<password>@<host>:<port>/expendit?sslmode=require`.
+`postgres://cuesoft:<password>@<host>:<port>/expendit?sslmode=require`.
 Tables are created by the app itself on start (migrations under an
 advisory lock); there is nothing to run by hand.
 
