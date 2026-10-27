@@ -4,7 +4,7 @@ unaffected. Enable it to publish ONE service under a hostname; everything else
 stays cluster-internal.
 
 Why hostname routing rather than a NodePort per service: several products in this
-fleet listen on the same ports (web on 3000, api-common on 8080), so exposing
+fleet listen on the same ports (web on 3000, common on 8080), so exposing
 them by port reintroduces the collision that in-cluster DNS already solved. One
 ingress controller on :80 keeps the host side to a single port no matter how many
 services or releases exist.
@@ -41,4 +41,24 @@ spec:
                 name: {{ $svcName }}
                 port:
                   number: {{ $svc.port }}
+    {{- with .Values.ingress.apiHost }}
+    {{- /* The API host (S-14): uploads to statements, the rest to common. */}}
+    - host: {{ . | quote }}
+      http:
+        paths:
+          - path: /api/v1/uploads
+            pathType: Exact
+            backend:
+              service:
+                name: statements
+                port:
+                  number: {{ $.Values.services.statements.port }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: common
+                port:
+                  number: {{ $.Values.services.common.port }}
+    {{- end }}
 {{- end }}

@@ -25,3 +25,28 @@ updates:
       # @types/node tracks the runtime major (Node 24 in .nvmrc/Dockerfile).
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: npm
+    directory: /api/statements
+    schedule:
+      interval: weekly
+    groups:
+      npm-dependencies:
+        patterns: ["*"]
+    ignore:
+      # NestJS 12 is ESM-only; ts-jest's decorator metadata doesn't support
+      # it cleanly yet. Move together with the test runner, deliberately.
+      - dependency-name: "@nestjs/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: pip
+    directory: /api/analytics
+    schedule:
+      interval: weekly
+    groups:
+      pip-dependencies:
+        patterns: ["*"]

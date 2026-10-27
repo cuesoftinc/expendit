@@ -2953,5 +2953,6 @@ export const buildSeed = (): MockDb => ({
     "job-sync-access-jul08": "link-access",
   },
   processingSince: {},
+  uploadTickets: {},
   seq: 1000,
 });

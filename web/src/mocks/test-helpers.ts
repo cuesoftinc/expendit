@@ -44,3 +44,42 @@ export const params = <T extends Record<string, string>>(
 
 export const json = async <T>(response: Response): Promise<T> =>
   (await response.json()) as T;
+
+/**
+ * Create-then-upload through the mock (system-design.md §6.1): POST
+ * /import with the file's name and size, then POST /uploads with the
+ * ticket. Returns the first failing response, else 202 {job_id}.
+ */
+export const uploadImport = async (
+  init: MockRequestInit,
+): Promise<Response> => {
+  const { POST: createImport } = await import("@/app/api/mock/v1/import/route");
+  const { POST: sendUpload } = await import("@/app/api/mock/v1/uploads/route");
+  const file = init.form?.file as File;
+  const created = await createImport(
+    mockRequest("/api/mock/v1/import", {
+      method: "POST",
+      orgId: init.orgId,
+      idempotencyKey: init.idempotencyKey,
+      body: { file_name: file.name, size: file.size },
+    }),
+  );
+  if (!created.ok) return created;
+  const grant = (await created.clone().json()) as {
+    job_id: string;
+    upload_ticket?: string;
+  };
+  if (grant.upload_ticket) {
+    const form = new FormData();
+    form.append("file", file);
+    const uploaded = await sendUpload(
+      new Request("http://mock.local/api/mock/v1/uploads", {
+        method: "POST",
+        headers: { "Upload-Ticket": grant.upload_ticket },
+        body: form,
+      }),
+    );
+    if (!uploaded.ok) return uploaded;
+  }
+  return Response.json({ job_id: grant.job_id }, { status: 202 });
+};

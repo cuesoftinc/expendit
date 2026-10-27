@@ -1,0 +1,13 @@
+# BuildKit per-Dockerfile ignore (repo-root context: docker build -f
+# api/analytics/Dockerfile .). Only this service and the contract schemas
+# ship into the context.
+*
+!api/analytics
+!api/common/contract/*.schema.json
+
+api/analytics/tests
+api/analytics/**/__pycache__
+api/analytics/.pytest_cache
+api/analytics/.ruff_cache
+api/analytics/.env
+api/analytics/.env.*

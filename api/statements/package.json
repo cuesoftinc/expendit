@@ -1,0 +1,52 @@
+{
+  "name": "expendit-api-statements",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Thin upload gateway: verifies the upload ticket api/common issued, checks the file, stores it in tmp/ and hands a pointer to Kafka.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "dev": "tsc -p tsconfig.build.json && node --env-file=.env dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^8.3.0",
+    "@nestjs/common": "^11.2.7",
+    "@nestjs/core": "^11.2.7",
+    "@nestjs/platform-express": "^11.2.7",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "kafkajs": "^2.2.4",
+    "minio": "^8.0.7",
+    "multer": "^2.4.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9",
+    "@nestjs/testing": "^11.2.7",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^24",
+    "@types/supertest": "^7.2.1",
+    "eslint": "^9",
+    "jest": "^30.5.2",
+    "supertest": "^7.3.1",
+    "ts-jest": "^29.4.14",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/src"],
+    "transform": { "^.+\\.ts$": "ts-jest" },
+    "moduleFileExtensions": ["ts", "js", "json"]
+  }
+}

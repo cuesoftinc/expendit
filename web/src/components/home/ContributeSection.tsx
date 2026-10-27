@@ -47,7 +47,7 @@ const GitHubMark: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-/** A8 architecture mini-diagram — web → api → mongo/redis (tokens only). */
+/** A8 architecture mini-diagram — web → api services → postgres/kafka (tokens only). */
 const ArchDiagram: React.FC = () => {
   // shrink-0: the fixed 160px boxes must never squeeze (their labels
   // spilled through the borders at 390w — live QA 2026-07-19); below sm
@@ -58,13 +58,13 @@ const ArchDiagram: React.FC = () => {
   const connector = "bg-border";
   return (
     <figure
-      aria-label="Architecture: web (Next.js) talks to api (Go/Gin), which uses Mongo and Redis"
+      aria-label="Architecture: web (Next.js) talks to the API services (Go, Node, Python), which use Postgres and Kafka"
       className="mx-auto mt-8 w-full max-w-[720px] rounded border border-border p-8"
     >
       <div className="flex flex-col items-center justify-center sm:flex-row">
         <div className={box}>web · Next.js</div>
         <div aria-hidden className={`h-6 w-px sm:h-px sm:w-16 ${connector}`} />
-        <div className={box}>api · Go/Gin</div>
+        <div className={box}>api · Go/Node/Py</div>
         <div aria-hidden className={`h-6 w-px sm:h-px sm:w-8 ${connector}`} />
         {/* Fork column — desktop only; the mobile chain runs straight. */}
         <div
@@ -80,14 +80,14 @@ const ArchDiagram: React.FC = () => {
               aria-hidden
               className={`hidden h-px w-4 sm:block sm:w-8 ${connector}`}
             />
-            <div className={box}>mongo</div>
+            <div className={box}>postgres</div>
           </div>
           <div className="flex flex-col items-center sm:flex-row">
             <div
               aria-hidden
               className={`h-6 w-px sm:h-px sm:w-8 ${connector}`}
             />
-            <div className={box}>redis</div>
+            <div className={box}>kafka</div>
           </div>
         </div>
       </div>
@@ -106,7 +106,7 @@ export const ContributeSection: React.FC = () => {
           For developers — come build the hard parts
         </SectionHeading>
         <p className="mt-4 text-center font-mono text-[13px] text-text-2">
-          Go/Gin API · Next.js web · Mongo/Postgres/Redis
+          Go · Node · Python APIs · Next.js web · Postgres/Kafka/Redis
         </p>
 
         <ArchDiagram />

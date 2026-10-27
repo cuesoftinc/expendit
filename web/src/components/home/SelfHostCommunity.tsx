@@ -3,7 +3,7 @@
 /**
  * A8a — Self-host (dark editorial): data-ownership pitch, the tabbed
  * Docker Compose | Helm snippet (A8c, Figma 474:2 — CodeSnippet tabs mode,
- * copy ✓ morph on the active tab) with the shared MongoDB/Redis caption,
+ * copy ✓ morph on the active tab) with the shared infrastructure caption,
  * what ships, docs links.
  * A9 — Community: Discord card + roadmap link.
  */
@@ -36,7 +36,7 @@ const SELF_HOST_TABS = [
 ];
 
 const SELF_HOST_CAPTION =
-  "Compose ships MongoDB + Redis — the Helm chart expects reachable instances (MONGODB_URL, REDIS_URL).";
+  "Compose ships Postgres, Kafka, Redis + MinIO — the Helm chart expects reachable instances (DATABASE_URL, KAFKA_BROKERS).";
 
 export const SelfHostSection: React.FC = () => {
   const { track } = useAnalyticsController();

@@ -20,6 +20,10 @@ export const TEST_USER: AuthUser = {
 };
 
 export class TestModeAuthProvider implements AuthProvider {
+  async ready(): Promise<void> {
+    // sessionStorage is synchronous: always ready.
+  }
+
   currentUser(): AuthUser | null {
     if (typeof window === "undefined") return null;
     const raw = window.sessionStorage.getItem(SESSION_KEY);

@@ -1,0 +1,54 @@
+{{- /*
+Scheduled sweeps (docs/system-design.md §6.7): one CronJob per entry in
+.Values.jobs.schedules, each running `./jobs <name>` from the common image.
+All are lookup-then-write, so an overlapping run is harmless; Forbid keeps
+them from piling up anyway.
+*/ -}}
+{{- if .Values.jobs }}
+{{- range $name, $schedule := .Values.jobs.schedules }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sweep-{{ $name }}
+  labels:
+    {{- include "chart.selectorLabels" (dict "name" (printf "sweep-%s" $name) "root" $) | nindent 4 }}
+    {{- include "chart.labels" $ | nindent 4 }}
+spec:
+  schedule: {{ $schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            {{- include "chart.selectorLabels" (dict "name" (printf "sweep-%s" $name) "root" $) | nindent 12 }}
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+          containers:
+            - name: {{ $name }}
+              image: {{ $.Values.jobs.image }}
+              imagePullPolicy: {{ $.Values.jobs.imagePullPolicy | default "IfNotPresent" }}
+              command: ["./jobs", {{ $name | quote }}]
+              {{- with $.Values.jobs.env }}
+              env:
+                {{- range $k, $v := . }}
+                - name: {{ $k }}
+                  value: {{ $v | quote }}
+                {{- end }}
+              {{- end }}
+              {{- with $.Values.jobs.envFrom }}
+              envFrom:
+                {{- range . }}
+                - secretRef:
+                    name: {{ .secretRef }}
+                {{- end }}
+              {{- end }}
+{{- end }}
+{{- end }}

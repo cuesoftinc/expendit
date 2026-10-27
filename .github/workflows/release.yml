@@ -1,0 +1,149 @@
+# Release — API services only (X-6, docs/deployment.md §3).
+#
+# Fires ONLY when a v* tag is created. Tag creation is restricted by a tag
+# ruleset (owner level) and the deploy job runs in the protected `Sandbox`
+# environment with required reviewers, so a merge never deploys by itself.
+# The web app is not here: it rides Firebase App Hosting rollouts from main.
+#
+# The Cloud Run resources (services, jobs, env, secrets, IAM) are created by
+# the cuesoft-iac stack (docs/deploy-runbook.md). This workflow only builds
+# the images and points the existing resources at the new digests.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  images:
+    name: images · build + push
+    runs-on: ubuntu-latest
+    outputs:
+      common: ${{ steps.common.outputs.digest }}
+      statements: ${{ steps.statements.outputs.digest }}
+      analytics: ${{ steps.analytics.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tags
+        id: meta
+        run: |
+          {
+            echo "version=${GITHUB_REF_NAME}"
+            echo "sha=${GITHUB_SHA::12}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build + push api-common
+        id: common
+        uses: docker/build-push-action@v7
+        with:
+          context: api/common
+          push: true
+          tags: |
+            cuesoft/expendit-api-common:${{ steps.meta.outputs.version }}
+            cuesoft/expendit-api-common:${{ steps.meta.outputs.sha }}
+            cuesoft/expendit-api-common:latest
+          cache-from: type=gha,scope=common
+          cache-to: type=gha,mode=max,scope=common
+
+      - name: Build + push api-statements
+        id: statements
+        uses: docker/build-push-action@v7
+        with:
+          # Repo-root context: the image copies api/common/contract's schemas.
+          context: .
+          file: api/statements/Dockerfile
+          push: true
+          tags: |
+            cuesoft/expendit-api-statements:${{ steps.meta.outputs.version }}
+            cuesoft/expendit-api-statements:${{ steps.meta.outputs.sha }}
+            cuesoft/expendit-api-statements:latest
+          cache-from: type=gha,scope=statements
+          cache-to: type=gha,mode=max,scope=statements
+
+      - name: Build + push api-analytics
+        id: analytics
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: api/analytics/Dockerfile
+          push: true
+          tags: |
+            cuesoft/expendit-api-analytics:${{ steps.meta.outputs.version }}
+            cuesoft/expendit-api-analytics:${{ steps.meta.outputs.sha }}
+            cuesoft/expendit-api-analytics:latest
+          cache-from: type=gha,scope=analytics
+          cache-to: type=gha,mode=max,scope=analytics
+
+  deploy:
+    name: deploy · Cloud Run (Sandbox)
+    needs: images
+    runs-on: ubuntu-latest
+    environment: Sandbox
+    permissions:
+      contents: read
+      id-token: write # Workload Identity Federation: no JSON keys
+    env:
+      REGION: ${{ vars.GCP_REGION }}
+      COMMON: docker.io/cuesoft/expendit-api-common@${{ needs.images.outputs.common }}
+      STATEMENTS: docker.io/cuesoft/expendit-api-statements@${{ needs.images.outputs.statements }}
+      ANALYTICS: docker.io/cuesoft/expendit-api-analytics@${{ needs.images.outputs.analytics }}
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      # Deploy by digest, never by tag: Cloud Run pulls Docker Hub images
+      # through mirror.gcr.io, which has served stale manifests for tags.
+      # common first: it runs the database migrations on start.
+      - name: Deploy api-common
+        run: gcloud run services update expendit-api-common --region "$REGION" --image "$COMMON" --quiet
+
+      - name: Deploy api-statements
+        run: gcloud run services update expendit-api-statements --region "$REGION" --image "$STATEMENTS" --quiet
+
+      - name: Deploy api-analytics (extract + compute)
+        run: |
+          gcloud run services update expendit-api-analytics-extract --region "$REGION" --image "$ANALYTICS" --quiet
+          gcloud run services update expendit-api-analytics-compute --region "$REGION" --image "$ANALYTICS" --quiet
+
+      - name: Point the sweep jobs at the new common image
+        run: |
+          for job in reaper tmp-cleanup retention; do
+            gcloud run jobs update "expendit-sweep-${job}" --region "$REGION" --image "$COMMON" --quiet
+          done
+
+      # Don't report success without checking the terminal state: every
+      # service's latest revision must be the one serving and Ready.
+      - name: Verify revisions are ready
+        run: |
+          for svc in expendit-api-common expendit-api-statements expendit-api-analytics-extract expendit-api-analytics-compute; do
+            ready=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestReadyRevisionName)')
+            created=$(gcloud run services describe "$svc" --region "$REGION" --format 'value(status.latestCreatedRevisionName)')
+            echo "$svc: created=$created ready=$ready"
+            [ -n "$ready" ] && [ "$ready" = "$created" ] || { echo "::error::$svc did not become ready"; exit 1; }
+          done
+          url=$(gcloud run services describe expendit-api-common --region "$REGION" --format 'value(status.url)')
+          curl -fsS "$url/ready" && echo

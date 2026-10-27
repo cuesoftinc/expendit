@@ -1,6 +1,7 @@
 /**
- * Mock: statements — list; multipart upload → 202 processing; manual JSON
- * entry → 201 staged directly (flows/statement-mapping.md §1–2).
+ * Mock: statements — list; upload creation → 201 {statement_id,
+ * upload_ticket} (the file then goes to POST /uploads); manual JSON entry →
+ * 201 staged directly (flows/statement-mapping.md §1–2, system-design.md §6.3).
  */
 
 import type { FinStatement, ManualStatementEntry } from "@/models";
@@ -12,8 +13,21 @@ import {
 import { getDb, nextId } from "@/mocks/store";
 import { mockNow } from "@/mocks/clock";
 import { fail, ok, resolveOrgId, writeBlocked } from "@/mocks/http";
+import {
+  extensionOf,
+  issueTicket,
+  MAX_UPLOAD_BYTES,
+  pendingFor,
+} from "@/mocks/uploads";
 
-const MAX_BYTES = 15 * 1024 * 1024;
+/** Upload creation body (create-then-upload, docs/system-design.md §6.3). */
+interface StatementUpload {
+  kind?: string;
+  period?: string;
+  file_name?: string;
+  size?: number;
+}
+
 const ALLOWED_EXT = new Set([
   "csv",
   "xlsx",
@@ -55,9 +69,18 @@ export async function POST(request: Request) {
   const org = db.orgs.find((item) => item.id === orgId);
   const contentType = request.headers.get("content-type") ?? "";
 
+  if (!contentType.includes("application/json")) {
+    return fail(
+      415,
+      "unsupported_media_type",
+      "Send JSON: line items for manual entry, or file_name + size to upload",
+    );
+  }
+  const raw = (await request.json()) as ManualStatementEntry & StatementUpload;
+
   // ---- Manual JSON entry → 201 staged directly ------------------------
-  if (contentType.includes("application/json")) {
-    const body = (await request.json()) as ManualStatementEntry;
+  if (Array.isArray(raw.line_items)) {
+    const body = raw as ManualStatementEntry;
     const periodError = validatePeriod(body.kind, body.period ?? "");
     if (periodError) return fail(422, "validation_failed", periodError);
     if (org && body.currency && body.currency !== org.currency) {
@@ -128,35 +151,45 @@ export async function POST(request: Request) {
     );
   }
 
-  // ---- Multipart upload → 202 processing -------------------------------
+  // ---- Upload: create the statement, return a ticket (§6.3) ------------
+  // The file itself goes to POST /uploads with the ticket.
+  const upload: StatementUpload = raw;
   const idempotencyKey = request.headers.get("idempotency-key");
-  if (idempotencyKey && db.idempotency[idempotencyKey]) {
+  if (idempotencyKey) {
+    const pending = pendingFor(idempotencyKey);
+    if (pending) {
+      const [ticket, upload] = pending;
+      return ok(
+        {
+          statement_id: upload.draft.id,
+          mapping_status: "awaiting_upload",
+          upload_ticket: ticket,
+        },
+        201,
+      );
+    }
     const existing = db.statements.find(
       (statement) => statement.id === db.idempotency[idempotencyKey],
     );
     if (existing && existing.mapping_status !== "failed") {
       return ok(
-        {
-          statement_id: existing.id,
-          mapping_status: existing.mapping_status,
-        },
-        202,
+        { statement_id: existing.id, mapping_status: existing.mapping_status },
+        200,
       );
     }
     delete db.idempotency[idempotencyKey];
   }
 
-  const form = await request.formData();
-  const file = form.get("file");
-  const kind = String(form.get("kind") ?? "");
-  const period = String(form.get("period") ?? "");
-  if (!(file instanceof File)) {
-    return fail(422, "validation_failed", "No file in upload");
+  const { file_name: fileName, size, kind, period } = upload;
+  if (!fileName || typeof size !== "number" || size <= 0) {
+    return fail(422, "validation_failed", "file_name and size are required");
   }
-  if (file.size > MAX_BYTES) {
-    return fail(413, "file_too_large", "Files must be 15 MB or smaller");
+  if (size > MAX_UPLOAD_BYTES) {
+    return fail(413, "file_too_large", "Files must be 15 MB or smaller", {
+      max_bytes: MAX_UPLOAD_BYTES,
+    });
   }
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const ext = extensionOf(fileName);
   if (!ALLOWED_EXT.has(ext)) {
     return fail(
       415,
@@ -164,7 +197,7 @@ export async function POST(request: Request) {
       "Upload a CSV, XLSX, PDF, or scanned statement image",
     );
   }
-  const periodError = validatePeriod(kind, period);
+  const periodError = validatePeriod(kind ?? "", period ?? "");
   if (periodError) return fail(422, "validation_failed", periodError);
 
   const duplicate = db.statements.find(
@@ -179,7 +212,9 @@ export async function POST(request: Request) {
       409,
       "period_exists",
       `A confirmed ${kind} for ${period} exists — offer supersede`,
-      { existing_statement_id: duplicate.id },
+      {
+        existing_statement_id: duplicate.id,
+      },
     );
   }
 
@@ -187,7 +222,7 @@ export async function POST(request: Request) {
     id: nextId("stmt"),
     org_id: orgId,
     kind: kind as FinStatement["kind"],
-    period,
+    period: period as string,
     currency: org?.currency ?? "NGN",
     source_file_type:
       ext === "pdf"
@@ -203,9 +238,13 @@ export async function POST(request: Request) {
     created_at: mockNow().toISOString(),
     confirmed_at: null,
   };
-  db.statements.push(statement);
-  db.processingSince[statement.id] = Date.now();
-  if (idempotencyKey) db.idempotency[idempotencyKey] = statement.id;
-
-  return ok({ statement_id: statement.id, mapping_status: "processing" }, 202);
+  const grant = issueTicket({
+    kind: "fin_statement",
+    draft: statement,
+    idempotencyKey,
+  });
+  return ok(
+    { statement_id: statement.id, mapping_status: "awaiting_upload", ...grant },
+    201,
+  );
 }

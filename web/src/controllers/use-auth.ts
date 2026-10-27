@@ -26,9 +26,11 @@ export interface AuthController {
  * at its loading state. Providers already contract to return null
  * (auth/types.ts); this is the second net.
  */
-const readSession = (): AuthUser | null => {
+const readSession = async (): Promise<AuthUser | null> => {
   try {
-    return getAuthProvider().currentUser();
+    const provider = getAuthProvider();
+    await provider.ready();
+    return provider.currentUser();
   } catch {
     return null;
   }
@@ -41,11 +43,11 @@ export const useAuthController = (): AuthController => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Microtask keeps the session read out of the synchronous effect body
-    // (react-hooks/set-state-in-effect) and off the hydration pass.
+    // The async read keeps state updates out of the synchronous effect
+    // body (react-hooks/set-state-in-effect) and off the hydration pass.
     let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) setUser(readSession());
+    void readSession().then((current) => {
+      if (!cancelled) setUser(current);
     });
     return () => {
       cancelled = true;
@@ -89,9 +91,8 @@ export const useRequireAuth = (): {
 
   useEffect(() => {
     let cancelled = false;
-    queueMicrotask(() => {
+    void readSession().then((current) => {
       if (cancelled) return;
-      const current = readSession();
       setUser(current);
       setChecked(true);
       if (!current) router.replace("/signin");
@@ -122,9 +123,8 @@ export const useRedirectAuthed = (): {
 
   useEffect(() => {
     let cancelled = false;
-    queueMicrotask(() => {
+    void readSession().then((current) => {
       if (cancelled) return;
-      const current = readSession();
       setUser(current);
       setChecked(true);
       if (current) router.replace("/dashboard");

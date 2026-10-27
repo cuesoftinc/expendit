@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/envelope.schema.json",
+  "title": "Kafka message envelope",
+  "description": "Every expendit.* message (the CueLABS delivery standard's shared-messaging.md). The payload goes by `data_ref`: the producer writes it under Expendit's own storage prefix (compute/, or tmp/ for uploads) and sends the pointer. Only the heartbeat, which holds no user data, carries `data` inline. Exactly one of the two is set.",
+  "type": "object",
+  "required": ["type", "version", "id", "produced_at"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "type": "string", "pattern": "^expendit\\.[a-z]+\\.[a-z]+$", "description": "The event name, which is also the name of the schema `data` must match. A topic can carry several events (system-design.md §16 I-16)." },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$", "description": "<major>.<minor>. A minor change only adds optional fields; consumers reject a major they don't support." },
+    "id": { "type": "string", "format": "uuid", "description": "Message id; consumers deduplicate on it." },
+    "produced_at": { "type": "string", "format": "date-time" },
+    "request_id": { "type": "string", "minLength": 1, "description": "The piece of work: set on every request and kept on re-send; every result carries its request's. The owner keeps the first result per request_id." },
+    "data": { "type": "object" },
+    "data_ref": { "$ref": "defs.schema.json#/$defs/object_ref" }
+  },
+  "oneOf": [
+    { "required": ["data"], "not": { "required": ["data_ref"] } },
+    { "required": ["data_ref"], "not": { "required": ["data"] } }
+  ]
+}

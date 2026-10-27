@@ -37,12 +37,12 @@ test.describe("API reference — /docs/api", () => {
 
     // Arm the payload gate (2026-07-21), then Scalar hydrates client-side
     // from /docs/api/openapi.yaml: the spec title and a known operation
-    // summary (GET /api/v1/expenses) must render.
+    // summary (GET /api/v1/transactions) must render.
     await armReference(page);
     await expect(
       page.getByRole("heading", { name: "Expendit API" }),
     ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByText("List expenses").first()).toBeVisible();
+    await expect(page.getByText("List ledger entries").first()).toBeVisible();
 
     // Scalar's dev toolbar stays off the public reference
     // (showDeveloperTools: "never") — it would otherwise render on

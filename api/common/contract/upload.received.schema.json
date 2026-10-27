@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://expendit.cuesoft.io/contract/upload.received.schema.json",
+  "title": "expendit.upload.received",
+  "description": "statements -> common. The gateway verified the ticket and stored the bytes in tmp/. Key: ticket id.",
+  "type": "object",
+  "required": ["ticket_id", "org_id", "target", "file_name", "file_type", "object"],
+  "additionalProperties": false,
+  "properties": {
+    "ticket_id": { "type": "string", "minLength": 1 },
+    "org_id": { "$ref": "defs.schema.json#/$defs/id" },
+    "target": {
+      "type": "object",
+      "required": ["kind", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "enum": ["import_job", "fin_statement"] },
+        "id": { "$ref": "defs.schema.json#/$defs/id" }
+      }
+    },
+    "file_name": { "type": "string" },
+    "file_type": { "$ref": "defs.schema.json#/$defs/file_type" },
+    "object": { "$ref": "defs.schema.json#/$defs/object_ref" }
+  }
+}

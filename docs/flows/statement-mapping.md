@@ -12,14 +12,16 @@ flowchart TD
     UP[/company/statements: drop file/] --> VAL{client checks}
     MAN[/company/statements: enter manually/] --> MPOST[POST /statements JSON → 201, staged directly]
     VAL -->|fail| E0[inline error]
-    VAL --> POST[POST /statements → 202 statement_id, mapping_status: processing]
-    POST --> POLL[GET /statements/id/mapping — poll 2s]
+    VAL --> POST[POST /statements → 201 statement_id + upload_ticket]
+    POST --> SEND[POST /uploads with Upload-Ticket → 202 processing]
+    SEND --> POLL[GET /statements/id/mapping — poll 2s]
     POLL --> ST{status}
     ST -->|failed| FAIL[error + guidance]
     ST -->|staged| REVIEW[mapping review: source rows → canonical keys]
     MPOST --> REVIEW
     REVIEW --> FIX[fix keys MI-4-style; park rows as unmapped; add missed rows]
     FIX --> CONFIRM[POST /statements/id/confirm]
+    CONFIRM -->|edit still being checked| E3[409 validation_pending]
     CONFIRM -->|identity ±1% fails| E1[422 mapping_identity_violation]
     CONFIRM -->|>20% unmapped| E2[422 unmapped_threshold_exceeded]
     CONFIRM --> DONE[confirmed → ratios computable]
@@ -30,11 +32,12 @@ flowchart TD
 | Step | Contract |
 | --- | --- |
 | Client checks | CSV/XLSX/PDF **plus scanned/photographed statements: JPG/PNG/HEIC and image-only PDFs [Decided 2026-07-16]**, ≤ 15 MB (shared limit); statement `kind` + `period` (closed-grammar picker, line-items.md §6) selected at upload |
-| Upload | `Idempotency-Key` per file selection; same-key semantics as flows/import.md §2 (failed releases the key) |
+| Upload | Create-then-upload, as flows/import.md §2 **[Built 2026-10-05]**: `POST /statements {kind, period, file_name, size}` → `201 {statement_id, upload_ticket}`, then `POST /uploads` with the ticket → `202`. `Idempotency-Key` per file selection, with the same-key semantics (failed releases the key). Statement uploads are limited to 10/hr per org. |
 | Manual entry | `POST /statements` with JSON `{kind, period, currency, line_items: [{canonical_key, amount, label?}]}` → `source_file_type: manual`, lands **directly in `staged`** (no parse, no AI call, no `ai_processing` consent needed) — same review + confirm-time validations as uploads |
-| Parse + suggest | tabular → direct row extraction; PDF → text extraction → AI mapping suggestions (Vertex, X-4); **images + image-only PDFs (no text layer) → AI vision extraction — the flows/import.md VIS path reused; requires `ai_processing` consent [Decided 2026-07-16]**; every suggestion carries `confidence` 0–1; rows with confidence < 0.6 arrive **unmapped** rather than guessed **[Decided]** |
+| Parse + suggest | **[Built 2026-10-05 for CSV/XLSX; PDF and image statements return `ai_unavailable` until AI table extraction lands]** tabular → direct row extraction; PDF → text extraction → AI mapping suggestions (Vertex, X-4); **images + image-only PDFs (no text layer) → AI vision extraction — the flows/import.md VIS path reused; requires `ai_processing` consent [Decided 2026-07-16]**; every suggestion carries `confidence` 0–1; rows with confidence < 0.6 arrive **unmapped** rather than guessed **[Decided]** |
 | Mapping review | per-row canonical-key combobox (closed vocabulary, line-items.md §1–3); **rows the parser missed can be added** (canonical_key + amount — added rows count toward the identity check); currency field user-confirmed (mismatch vs org ⇒ `422 currency_mismatch`, line-items §4) |
-| Confirm | runs derivations + identity cross-check (line-items §4); immutable once confirmed — corrections = upload a replacement statement for the same period (supersedes, keeps audit history) |
+| Mapping edits | `PATCH /statements/{id}/mapping` saves the edit, bumps `mapping_version` and asks api/analytics' compute pool to re-run the derivations and checks (S-7). The result is stored against that version. |
+| Confirm | a CRUD check of the stored validation (S-8): `409 validation_pending` while the latest edit is still being checked, else the stored code (`422 mapping_identity_violation`, `422 unmapped_threshold_exceeded`), else confirmed. Immutable once confirmed: corrections mean uploading a replacement statement for the same period (it supersedes the old one and keeps the audit history). Confirm queues the period's ratios. |
 
 ## 3. Failure taxonomy
 

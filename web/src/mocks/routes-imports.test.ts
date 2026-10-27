@@ -1,7 +1,6 @@
 // @vitest-environment node
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { POST as upload } from "@/app/api/mock/v1/import/upload/route";
 import {
   DELETE as discardJob,
   GET as getJob,
@@ -11,7 +10,7 @@ import { PUT as correctCategory } from "@/app/api/mock/v1/import/transactions/[i
 import type { ImportJob, StagedTransaction } from "@/models";
 import { getDb, resetDb } from "./store";
 import { STAGED_JOB_ID } from "./seed";
-import { json, mockRequest, params } from "./test-helpers";
+import { json, mockRequest, params, uploadImport } from "./test-helpers";
 
 type JobDetail = { job: ImportJob; staged: StagedTransaction[] };
 
@@ -80,22 +79,18 @@ describe("mock import pipeline (flows/import.md)", () => {
       type: "text/csv",
     });
     const first = await json<{ job_id: string }>(
-      await upload(
-        mockRequest("/api/mock/v1/import/upload", {
-          method: "POST",
-          form: { file },
-          idempotencyKey: "11111111-1111-1111-1111-111111111111",
-        }),
-      ),
+      await uploadImport({
+        method: "POST",
+        form: { file },
+        idempotencyKey: "11111111-1111-1111-1111-111111111111",
+      }),
     );
     const retry = await json<{ job_id: string }>(
-      await upload(
-        mockRequest("/api/mock/v1/import/upload", {
-          method: "POST",
-          form: { file },
-          idempotencyKey: "11111111-1111-1111-1111-111111111111",
-        }),
-      ),
+      await uploadImport({
+        method: "POST",
+        form: { file },
+        idempotencyKey: "11111111-1111-1111-1111-111111111111",
+      }),
     );
     expect(retry.job_id).toBe(first.job_id); // retries never double-import
   });
@@ -105,12 +100,10 @@ describe("mock import pipeline (flows/import.md)", () => {
       type: "text/csv",
     });
     const { job_id } = await json<{ job_id: string }>(
-      await upload(
-        mockRequest("/api/mock/v1/import/upload", {
-          method: "POST",
-          form: { file },
-        }),
-      ),
+      await uploadImport({
+        method: "POST",
+        form: { file },
+      }),
     );
     // Force the async lifecycle past the processing window.
     getDb().processingSince[job_id] = Date.now() - 5_000;
@@ -126,24 +119,20 @@ describe("mock import pipeline (flows/import.md)", () => {
 
   it("failure taxonomy: 415 unsupported_type; password-protected pdf fails the job", async () => {
     const exe = new File(["MZ"], "malware.exe");
-    const unsupported = await upload(
-      mockRequest("/api/mock/v1/import/upload", {
-        method: "POST",
-        form: { file: exe },
-      }),
-    );
+    const unsupported = await uploadImport({
+      method: "POST",
+      form: { file: exe },
+    });
     expect(unsupported.status).toBe(415);
     const body = await json<{ error: { code: string } }>(unsupported);
     expect(body.error.code).toBe("unsupported_type");
 
     const locked = new File(["%PDF"], "password-protected-statement.pdf");
     const { job_id } = await json<{ job_id: string }>(
-      await upload(
-        mockRequest("/api/mock/v1/import/upload", {
-          method: "POST",
-          form: { file: locked },
-        }),
-      ),
+      await uploadImport({
+        method: "POST",
+        form: { file: locked },
+      }),
     );
     getDb().processingSince[job_id] = Date.now() - 5_000;
     const detail = await json<JobDetail>(
@@ -170,14 +159,12 @@ describe("mock import pipeline (flows/import.md)", () => {
   it("consent gate: image uploads 403 consent_required without ai_processing consent (review canon: the consent control gates results)", async () => {
     const db = getDb();
     const image = () =>
-      upload(
-        mockRequest("/api/mock/v1/import/upload", {
-          method: "POST",
-          form: {
-            file: new File(["fake"], "receipt.jpg", { type: "image/jpeg" }),
-          },
-        }),
-      );
+      uploadImport({
+        method: "POST",
+        form: {
+          file: new File(["fake"], "receipt.jpg", { type: "image/jpeg" }),
+        },
+      });
 
     // Seeded consent present → images accepted.
     const withConsent = await image();
@@ -193,12 +180,10 @@ describe("mock import pipeline (flows/import.md)", () => {
     const body = await json<{ error: { code: string } }>(refused);
     expect(body.error.code).toBe("consent_required");
 
-    const csv = await upload(
-      mockRequest("/api/mock/v1/import/upload", {
-        method: "POST",
-        form: { file: new File(["a,b"], "ledger.csv", { type: "text/csv" }) },
-      }),
-    );
+    const csv = await uploadImport({
+      method: "POST",
+      form: { file: new File(["a,b"], "ledger.csv", { type: "text/csv" }) },
+    });
     expect(csv.status).toBe(202);
   });
 });

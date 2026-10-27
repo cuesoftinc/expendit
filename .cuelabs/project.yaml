@@ -5,17 +5,20 @@ profile: cuelabs
 surfaces:
   web: active
   backend:
-    common: planned
+    common: active
+    statements: active
+    analytics: active
   mobile:
     flutter: planned
 
 capabilities:
   grpc: absent
-  firebaseAuth: planned
+  firebaseAuth: active
+  kafka: active
 
 deployment:
   web: firebase-app-hosting
-  api: none
+  api: cloud-run
   selfHost: helm
   infrastructure: terraform
 
