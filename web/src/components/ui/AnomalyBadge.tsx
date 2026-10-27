@@ -4,6 +4,8 @@
  * short label); feed = bordered card with a 32px tinted icon well, title +
  * description copy and a timestamp. Tint keys off the anomaly TYPE
  * (large txn/duplicate = warn, spike = expense, unusual category = info).
+ * overview = bordered row with the icon well, title, description, the
+ * amount coloured by direction, and the date beneath.
  * Click opens the anomaly-explain inspector (wired by the consumer).
  * MI-5 pulse handled at first render via CSS.
  */
