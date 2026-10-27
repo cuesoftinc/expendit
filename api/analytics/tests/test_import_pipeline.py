@@ -61,6 +61,14 @@ async def test_unparseable_file_fails_with_taxonomy_code(contract, store):
     }
 
 
+async def test_missing_upload_is_a_failed_result(contract, store):
+    msg = ready(store)
+    del store.objects[msg["file"]["key"]]
+    result = await ImportPipeline(store, ai=None).run(msg)
+    contract.validate_data(topics.IMPORT_PROCESSED, result)
+    assert result["status"] == "failed" and result["error_code"] == "processing_error"
+
+
 async def test_image_without_consent_is_refused(contract, store):
     msg = ready(store, b"\xff\xd8\xff\xe0jpeg", file_type="image", file_name="receipt.jpg")
     result = await ImportPipeline(store, ai=None).run(msg)

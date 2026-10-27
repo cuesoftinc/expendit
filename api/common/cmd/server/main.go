@@ -85,12 +85,21 @@ func run() error {
 			kafka.EventComputeResults:  a.Compute.OnComputeResults,
 		},
 	}
+	failures := map[string]map[string]kafka.Failer{
+		kafka.TopicUploads: {kafka.EventUploadReceived: a.Imports.OnUploadReceivedFailed},
+		kafka.TopicResults: {
+			kafka.EventImportProcessed: a.Imports.OnImportProcessedFailed,
+			kafka.EventStatementMapped: a.Statements.OnStatementMappedFailed,
+			kafka.EventComputeResults:  a.Compute.OnComputeResultsFailed,
+		},
+	}
 	var running []*kafka.Consumer
 	for topic, handlers := range consumers {
 		c, err := kafka.NewConsumer(cfg.Kafka, "expendit-common", topic, handlers, a.Contract, a.Store)
 		if err != nil {
 			return err
 		}
+		c.Failures = failures[topic]
 		running = append(running, c)
 	}
 
@@ -131,7 +140,7 @@ func run() error {
 		defer cancel()
 		return srv.Shutdown(shutdown)
 	})
-	// A consumer that fails stops the whole process: the platform restarts
-	// it and the uncommitted message is redelivered.
+	// A consumer stops only when Kafka fails: the platform restarts the
+	// process and uncommitted messages are redelivered.
 	return g.Wait()
 }

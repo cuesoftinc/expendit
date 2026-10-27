@@ -16,17 +16,25 @@ Every message is an [envelope](envelope.schema.json):
 ```json
 {
   "type": "expendit.import.ready",
-  "version": 1,
+  "version": "1.0",
   "id": "6f1c…",
   "produced_at": "2026-10-05T10:00:00Z",
-  "data": { "...": "the event payload" }
+  "request_id": "5d6e…",
+  "data_ref": { "bucket": "…", "key": "expendit/<env>/compute/….json" }
 }
 ```
 
-The producer writes `data` to `expendit/<env>/compute/<id>.json` in the
-bucket (the gateway: `tmp/claims/`) and sends `"data_ref": {"bucket",
-"key"}` instead (S-3; always, on the shared bus). Consumers resolve the ref, then
-validate `data` against the schema named by `type`.
+The producer writes the payload to `expendit/<env>/compute/` in the bucket
+(the gateway too) and sends `data_ref`; only the heartbeat travels inline.
+Consumers reject inline `data` on any other event, and a `data_ref` outside
+Expendit's bucket or its `compute/` and `tmp/` prefixes. They resolve the
+ref, then validate the payload against the schema named by `type`. The
+examples in `examples/` show the payload inline as `data` for reading.
+
+`version` is `<major>.<minor>`; producers send `"1.0"` and consumers reject
+any other major. Every request carries a `request_id`, kept when the owner
+re-sends it; every result carries its request's `request_id`, and the owner
+keeps the first result per `request_id`.
 
 ## Events and topics
 
@@ -49,7 +57,7 @@ event it handles.
 Every payload except the heartbeat's goes by `data_ref`: other products can
 read the lanes, and storage permissions keep Expendit's data to itself.
 
-Every topic keeps messages for 24 hours (or the plan's fixed retention).
+Every topic keeps messages for 24 hours (or the service's fixed retention).
 Tax rule sets are not a topic: tax compute requests carry them in
 `rulesets` ([config.rulesets](config.rulesets.schema.json) is the schema of
 one set; the seed files in `examples/` keep the envelope form).
@@ -59,8 +67,9 @@ Shared types (ids, dates, object refs, anomalies, traces) are in
 
 ## Changing a schema
 
-1. Additive change (new optional field): edit the schema, keep `version`.
-2. Breaking change: bump the envelope `version` the producer sends, and make
-   the consumer accept both versions until every producer is upgraded.
+1. Additive change (new optional field): edit the schema and bump the
+   envelope's minor `version`.
+2. Breaking change: bump the envelope's major `version`, and make the
+   consumer accept both majors until every producer is upgraded.
 3. Update the matching example in `examples/`. Every service's tests validate
    the examples, so a schema and its consumers can't drift silently.

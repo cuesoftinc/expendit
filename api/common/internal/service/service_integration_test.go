@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net"
 	"os"
 	"path/filepath"
@@ -42,8 +43,17 @@ func (m *memStore) Put(_ context.Context, k string, d []byte, _ string) error {
 	m.objects[k] = d
 	return nil
 }
-func (m *memStore) Get(_ context.Context, k string) ([]byte, error) { return m.objects[k], nil }
-func (m *memStore) Delete(_ context.Context, k string) error        { delete(m.objects, k); return nil }
+func (m *memStore) Get(_ context.Context, k string) ([]byte, error) {
+	if d, ok := m.objects[k]; ok {
+		return d, nil
+	}
+	return nil, fs.ErrNotExist
+}
+func (m *memStore) Exists(_ context.Context, k string) (bool, error) {
+	_, ok := m.objects[k]
+	return ok, nil
+}
+func (m *memStore) Delete(_ context.Context, k string) error { delete(m.objects, k); return nil }
 func (m *memStore) List(context.Context, string) ([]storage.Object, error) {
 	return nil, nil
 }
@@ -165,6 +175,31 @@ func (e *env) outbox(t *testing.T, event string) []map[string]any {
 			var m map[string]any
 			_ = json.Unmarshal(raw, &m)
 			out = append(out, m)
+		}
+		return rows.Err()
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return out
+}
+
+// requestIDs returns the envelope request_id of every outbox row for an
+// event, sent or not, in order.
+func (e *env) requestIDs(t *testing.T, event string) []string {
+	var out []string
+	err := e.db.AsSystem(context.Background(), func(tx pgx.Tx) error {
+		rows, err := tx.Query(context.Background(), `SELECT coalesce(request_id::text, '') FROM outbox WHERE event = $1 ORDER BY id`, event)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var id string
+			if err := rows.Scan(&id); err != nil {
+				return err
+			}
+			out = append(out, id)
 		}
 		return rows.Err()
 	})
@@ -301,6 +336,9 @@ func TestIntegration(t *testing.T) {
 	if len(resent) != 2 || resent[1]["job_id"] != created.JobID || resent[1]["file"].(map[string]any)["key"] != objKey {
 		t.Fatalf("re-sent import.ready: %+v", resent)
 	}
+	if ids := e.requestIDs(t, kafka.EventImportReady); len(ids) != 2 || ids[0] == "" || ids[0] != ids[1] {
+		t.Fatalf("a re-send must keep the request_id: %v", ids)
+	}
 	if n, _ := service.ResendStuck(ctx, e.db, e.imports, e.statements); n != 0 {
 		t.Fatal("a job is re-sent only once")
 	}
@@ -411,11 +449,78 @@ func TestIntegration(t *testing.T) {
 	if err != nil || view.Status != "recomputing" {
 		t.Fatalf("ratios before results: %+v %v", view, err)
 	}
+	// A read of a stale report reuses the pending request.
+	kinds = map[string]int{}
+	var ratiosReq map[string]any
+	for _, r := range e.outbox(t, kafka.EventComputeRequested) {
+		kinds[r["kind"].(string)]++
+		if r["kind"] == "ratios" {
+			ratiosReq = r
+		}
+	}
+	if kinds["ratios"] != 1 {
+		t.Fatalf("a read must not queue a second ratios request: %v", kinds)
+	}
+
+	// ── Overdue compute requests are re-sent once, keeping the request_id ──
+	if err := e.db.AsSystem(ctx, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `UPDATE outbox SET published_at = now() WHERE event = $1`, kafka.EventComputeRequested); err != nil {
+			return err
+		}
+		_, err := tx.Exec(ctx, `UPDATE compute_request SET requested_at = now() - interval '5 minutes' WHERE request_id = $1`, ratiosReq["request_id"])
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if n, err := service.ResendCompute(ctx, e.db); err != nil || n != 1 {
+		t.Fatalf("an overdue compute request must be re-sent once: %d %v", n, err)
+	}
+	if again := e.outbox(t, kafka.EventComputeRequested); len(again) != 1 || again[0]["request_id"] != ratiosReq["request_id"] {
+		t.Fatalf("re-sent compute.requested: %+v", again)
+	}
+	ids := e.requestIDs(t, kafka.EventComputeRequested)
+	if ids[len(ids)-1] != ratiosReq["request_id"] {
+		t.Fatalf("the re-send must keep the envelope request_id: %v", ids)
+	}
+	if n, _ := service.ResendCompute(ctx, e.db); n != 0 {
+		t.Fatal("a compute request is re-sent only once")
+	}
+
+	// ── The first result per request_id wins ──
+	ratioResult := func(value float64) json.RawMessage {
+		b, _ := json.Marshal(map[string]any{
+			"request_id": ratiosReq["request_id"], "org_id": company.ID, "kind": "ratios",
+			"data_version": ratiosReq["data_version"], "period": "FY2025", "status": "ok",
+			"ratios": []map[string]any{{"ratio_id": "current_ratio", "value": value}},
+		})
+		return b
+	}
+	for _, v := range []float64{1.5, 9.9} {
+		if err := e.compute.OnComputeResults(ctx, ratioResult(v)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	view, err = e.compute.Ratios(ctx, acme, "FY2025", false)
+	if err != nil || view.Status != "current" || !strings.Contains(string(view.Ratios), "1.5") || strings.Contains(string(view.Ratios), "9.9") {
+		t.Fatalf("the first result must win: %+v %s %v", view, view.Ratios, err)
+	}
 
 	// ── Tax estimates are requested on read ─────────────────────────────
 	est, err := e.compute.Estimates(ctx, alice)
 	if err != nil || est.Status != "recomputing" {
 		t.Fatalf("estimates: %+v %v", est, err)
+	}
+	if _, err := e.compute.Estimates(ctx, alice); err != nil {
+		t.Fatal(err)
+	}
+	taxRequests := 0
+	for _, r := range e.outbox(t, kafka.EventComputeRequested) {
+		if r["kind"] == "tax_estimate" {
+			taxRequests++
+		}
+	}
+	if taxRequests != 1 {
+		t.Fatalf("repeated reads must share one pending tax request, got %d", taxRequests)
 	}
 
 	// ── Tax requests carry the stored rule sets (S-10, §16 I-16) ────────

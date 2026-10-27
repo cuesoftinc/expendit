@@ -30,13 +30,25 @@ type Compute struct {
 
 var statementPeriod = regexp.MustCompile(`^(\d{4}-Q[1-4]|\d{4}-H[12]|FY\d{4})$`)
 
-func (s *Compute) request(ctx context.Context, tx pgx.Tx, orgID, kind string, extra map[string]any, inputs any) error {
+// request queues a computation unless one is already pending for the same
+// org, kind, scope and data version; reads reuse that one.
+func (s *Compute) request(ctx context.Context, tx pgx.Tx, orgID, kind, scope string, extra map[string]any, inputs any) error {
 	org, err := repository.GetOrg(ctx, tx, orgID)
 	if err != nil {
 		return err
 	}
+	requestID := uuid.NewString()
+	claimed, err := repository.ClaimComputeRequest(ctx, tx, requestID, orgID, kind, scope, org.DataVersion)
+	if err != nil {
+		return err
+	}
+	if !claimed {
+		slog.Info("computation already pending", "step", "compute.requested", "kind", kind, "org_id", orgID,
+			"data_version", org.DataVersion)
+		return nil
+	}
 	msg := map[string]any{
-		"request_id":   uuid.NewString(),
+		"request_id":   requestID,
 		"org_id":       orgID,
 		"kind":         kind,
 		"data_version": org.DataVersion,
@@ -45,11 +57,15 @@ func (s *Compute) request(ctx context.Context, tx pgx.Tx, orgID, kind string, ex
 	for k, v := range extra {
 		msg[k] = v
 	}
-	if err := repository.Enqueue(ctx, tx, kafka.EventComputeRequested, orgID, msg); err != nil {
+	outboxID, err := repository.Enqueue(ctx, tx, kafka.EventComputeRequested, orgID, requestID, msg)
+	if err != nil {
+		return err
+	}
+	if err := repository.SetComputeOutbox(ctx, tx, requestID, outboxID); err != nil {
 		return err
 	}
 	slog.Info("computation requested", "step", "compute.requested", "kind", kind, "org_id", orgID,
-		"request_id", msg["request_id"], "data_version", org.DataVersion)
+		"request_id", requestID, "data_version", org.DataVersion)
 	return nil
 }
 
@@ -71,7 +87,8 @@ func (s *Compute) requestValidation(ctx context.Context, tx pgx.Tx, st *reposito
 		}
 		rows = append(rows, row)
 	}
-	return s.request(ctx, tx, st.OrgID, "statement_validation", map[string]any{"period": st.Period}, map[string]any{
+	scope := fmt.Sprintf("%s:%d", st.ID, st.MappingVersion)
+	return s.request(ctx, tx, st.OrgID, "statement_validation", scope, map[string]any{"period": st.Period}, map[string]any{
 		"statement_id": st.ID, "kind": st.Kind, "mapping_version": st.MappingVersion, "line_items": rows,
 	})
 }
@@ -128,7 +145,7 @@ func (s *Compute) requestRatios(ctx context.Context, tx pgx.Tx, orgID, period st
 	if inputs["cash_flow_periods"], err = repository.ConfirmedCashFlowPeriods(ctx, tx); err != nil {
 		return err
 	}
-	return s.request(ctx, tx, orgID, "ratios", map[string]any{"period": period}, inputs)
+	return s.request(ctx, tx, orgID, "ratios", period, map[string]any{"period": period}, inputs)
 }
 
 type RatioView struct {
@@ -239,7 +256,7 @@ func (s *Compute) requestTax(ctx context.Context, tx pgx.Tx, orgID string) error
 	if err != nil {
 		return err
 	}
-	return s.request(ctx, tx, orgID, "tax_estimate", map[string]any{"rulesets": rulesets}, inputs)
+	return s.request(ctx, tx, orgID, "tax_estimate", "", map[string]any{"rulesets": rulesets}, inputs)
 }
 
 type EstimatesView struct {
@@ -372,7 +389,8 @@ type computeResult struct {
 }
 
 // OnComputeResults stores results computed from the current data version;
-// anything older is superseded by a request already in flight.
+// anything older is superseded by a request already in flight. Only the
+// first result per request_id counts.
 func (s *Compute) OnComputeResults(ctx context.Context, raw json.RawMessage) error {
 	var msg computeResult
 	if err := json.Unmarshal(raw, &msg); err != nil {
@@ -381,6 +399,14 @@ func (s *Compute) OnComputeResults(ctx context.Context, raw json.RawMessage) err
 	slog.Info("computation result received", "step", "compute.results", "kind", msg.Kind, "org_id", msg.OrgID,
 		"request_id", msg.RequestID, "status", msg.Status, "error_code", deref(msg.ErrorCode), "data_version", msg.DataVersion)
 	return s.DB.InOrg(ctx, msg.OrgID, func(tx pgx.Tx) error {
+		first, err := repository.FirstComputeResult(ctx, tx, msg.RequestID, msg.Status)
+		if err != nil {
+			return err
+		}
+		if !first {
+			slog.Info("later result for the same request ignored", "step", "compute.results", "request_id", msg.RequestID)
+			return nil
+		}
 		if msg.Status != "ok" {
 			return nil // reads keep reporting "recomputing"; the next change retries
 		}
@@ -440,6 +466,18 @@ func (s *Compute) storeValidation(ctx context.Context, tx pgx.Tx, orgID, stateme
 		return err
 	}
 	return repository.StoreValidation(ctx, tx, statementID, validation, version)
+}
+
+// OnComputeResultsFailed ends the request of a result that kept failing to
+// store, so the next read queues a fresh one.
+func (s *Compute) OnComputeResultsFailed(ctx context.Context, raw json.RawMessage) error {
+	var msg computeResult
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return nil
+	}
+	return s.DB.InOrg(ctx, msg.OrgID, func(tx pgx.Tx) error {
+		return repository.FailComputeRequest(ctx, tx, msg.RequestID)
+	})
 }
 
 // ErrValidationPending is §6.4's 409 while a recomputation is in flight.

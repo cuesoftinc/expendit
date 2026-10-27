@@ -156,9 +156,6 @@ the three `cuelabs.*` topics and on consumer groups starting with
   `kafka_authentication_methods.sasl`** (PLAIN and SCRAM-SHA-256/512 are
   listed for this plan). If it can't be enabled, tell the developer: the
   services would need client-certificate login instead.
-- **Fallback:** if the service proves unreliable, Confluent Cloud Basic
-  costs about $0 when idle and never powers off; moving the bus needs a
-  small code change in every product (it uses SASL/PLAIN).
 
 Connection settings for every service: `KAFKA_BROKERS` (the service URI,
 `host:port`), `KAFKA_USERNAME`, `KAFKA_PASSWORD`, and `KAFKA_SSL_CA` = the
@@ -256,9 +253,9 @@ Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `expendit-api-common` | service | `expendit-common` | 8080 | **0**–5 | 1 / 512 MiB | **always allocated** (background consumers + outbox) | all · allow unauthenticated (the app checks Firebase tokens) |
+| `expendit-api-common` | service | `expendit-common` | 8080 | **0**–2 | 1 / 512 MiB | **always allocated** (background consumers + outbox) | all · allow unauthenticated (the app checks Firebase tokens) |
 | `expendit-api-statements` | service | `expendit-statements` | 8081 | 0–5 | 1 / 1 GiB, concurrency 20 (uploads up to 15 MB are held in memory), timeout 60 s | request-based | all · allow unauthenticated (auth is the upload ticket) |
-| `expendit-api-analytics-extract` | service | `expendit-analytics` | 8082 | **0**–3 | 1 / 1 GiB | **always allocated** | all · **authenticated only** (invoker: `expendit-common`) |
+| `expendit-api-analytics-extract` | service | `expendit-analytics` | 8082 | **0**–2 | 1 / 1 GiB | **always allocated** | all · **authenticated only** (invoker: `expendit-common`) |
 | `expendit-api-analytics-compute` | service | `expendit-analytics` | 8082 | **0**–2 | 1 / 512 MiB | **always allocated** | all · **authenticated only** (invoker: `expendit-common`) |
 | `expendit-sweep-reaper` | job, `./jobs reaper` | `expendit-common` | — | 1 task, 0 retries | 1 / 512 MiB | — | Scheduler: `*/5 * * * *` |
 | `expendit-sweep-tmp-cleanup` | job, `./jobs tmp-cleanup` | `expendit-common` | — | 1 task | 1 / 512 MiB | — | Scheduler: `*/15 * * * *` |
@@ -279,11 +276,9 @@ counts as internal through a VPC. Requiring authentication (no
 holds `roles/run.invoker` on them, can reach them, and it sends an ID
 token on every wake.
 
-**Cost.** While nobody uses the app nothing is running, so the services
-cost nothing. Each wake-up keeps an instance for up to ~15 minutes;
-light use stays inside Cloud Run's monthly no-charge allowance (shared across
-the billing account). The fixed costs are Aiven (Postgres, and Kafka unless
-on the shared Kafka plan) and the reaper's short run every 5 minutes.
+**Idle.** While nobody uses the app nothing is running. Each wake-up keeps
+an instance for up to ~15 minutes. The always-on parts are Aiven (Postgres
+and the shared Kafka) and the reaper's short run every 5 minutes.
 
 ## 8. GitHub (release workflow)
 

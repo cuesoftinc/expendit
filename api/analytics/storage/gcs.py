@@ -1,6 +1,9 @@
 import asyncio
 
+from google.api_core.exceptions import NotFound
 from google.cloud import storage
+
+from storage import ObjectMissing
 
 
 class GCSStore:
@@ -12,7 +15,10 @@ class GCSStore:
         self._bucket = storage.Client().bucket(bucket)
 
     async def get(self, key: str) -> bytes:
-        return await asyncio.to_thread(self._bucket.blob(key).download_as_bytes)
+        try:
+            return await asyncio.to_thread(self._bucket.blob(key).download_as_bytes)
+        except NotFound as exc:
+            raise ObjectMissing(key) from exc
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:
         blob = self._bucket.blob(key)

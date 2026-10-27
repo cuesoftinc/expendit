@@ -28,7 +28,7 @@ type Client struct {
 }
 
 // New returns nil when any setting is missing: the watchdog is optional
-// (paid plans and compose never power off).
+// (compose and services that never power off need none).
 func New(token, project, service string) *Client {
 	if token == "" || project == "" || service == "" {
 		return nil

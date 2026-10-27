@@ -8,7 +8,9 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"io/fs"
 	"strings"
 	"time"
 
@@ -25,11 +27,14 @@ type Object struct {
 	Created time.Time
 }
 
+// Store is object storage. Get wraps fs.ErrNotExist when the object is
+// missing.
 type Store interface {
 	Bucket() string
 	Prefix() string
 	Put(ctx context.Context, key string, data []byte, contentType string) error
 	Get(ctx context.Context, key string) ([]byte, error)
+	Exists(ctx context.Context, key string) (bool, error)
 	Delete(ctx context.Context, key string) error
 	List(ctx context.Context, prefix string) ([]Object, error)
 }
@@ -89,11 +94,22 @@ func (s *gcsStore) Put(ctx context.Context, key string, data []byte, contentType
 
 func (s *gcsStore) Get(ctx context.Context, key string) ([]byte, error) {
 	r, err := s.bucket.Object(key).NewReader(ctx)
+	if errors.Is(err, gcs.ErrObjectNotExist) {
+		return nil, fmt.Errorf("%w: %s", fs.ErrNotExist, key)
+	}
 	if err != nil {
 		return nil, err
 	}
 	defer r.Close()
 	return io.ReadAll(r)
+}
+
+func (s *gcsStore) Exists(ctx context.Context, key string) (bool, error) {
+	_, err := s.bucket.Object(key).Attrs(ctx)
+	if errors.Is(err, gcs.ErrObjectNotExist) {
+		return false, nil
+	}
+	return err == nil, err
 }
 
 func (s *gcsStore) Delete(ctx context.Context, key string) error {
@@ -138,10 +154,26 @@ func (s *s3Store) Put(ctx context.Context, key string, data []byte, contentType 
 func (s *s3Store) Get(ctx context.Context, key string) ([]byte, error) {
 	obj, err := s.client.GetObject(ctx, s.bucket, key, minio.GetObjectOptions{})
 	if err != nil {
-		return nil, err
+		return nil, s3Missing(err, key)
 	}
 	defer obj.Close()
-	return io.ReadAll(obj)
+	data, err := io.ReadAll(obj)
+	return data, s3Missing(err, key)
+}
+
+func (s *s3Store) Exists(ctx context.Context, key string) (bool, error) {
+	_, err := s.client.StatObject(ctx, s.bucket, key, minio.StatObjectOptions{})
+	if err != nil && minio.ToErrorResponse(err).Code == "NoSuchKey" {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+func s3Missing(err error, key string) error {
+	if err != nil && minio.ToErrorResponse(err).Code == "NoSuchKey" {
+		return fmt.Errorf("%w: %s", fs.ErrNotExist, key)
+	}
+	return err
 }
 
 func (s *s3Store) Delete(ctx context.Context, key string) error {

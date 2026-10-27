@@ -72,6 +72,17 @@ async def lifespan(app: FastAPI):
                 "error_code": result.get("error_code"), "line_items": len(result.get("line_items", [])),
                 "ms": round((time.monotonic() - start) * 1000)})
 
+        async def on_import_failed(msg: dict) -> None:
+            await producer.send(topics.IMPORT_PROCESSED, msg["job_id"], {
+                "job_id": msg["job_id"], "org_id": msg["org_id"], "status": "failed", "error_code": "processing_error"})
+            waker.soon(topics.IMPORT_PROCESSED)
+
+        async def on_statement_failed(msg: dict) -> None:
+            await producer.send(topics.STATEMENT_MAPPED, msg["statement_id"], {
+                "statement_id": msg["statement_id"], "org_id": msg["org_id"], "status": "failed",
+                "error_code": "processing_error"})
+            waker.soon(topics.STATEMENT_MAPPED)
+
         consumers.append(
             Consumer(
                 "extract",
@@ -79,6 +90,7 @@ async def lifespan(app: FastAPI):
                 settings,
                 contract,
                 store,
+                failures={topics.IMPORT_READY: on_import_failed, topics.STATEMENT_READY: on_statement_failed},
             )
         )
 
@@ -99,6 +111,10 @@ async def lifespan(app: FastAPI):
         async def on_heartbeat(msg: dict) -> None:
             """Keep-alive traffic for Kafka only (§16 I-17): nothing to do."""
 
+        async def on_compute_failed(msg: dict) -> None:
+            await producer.send(topics.COMPUTE_RESULTS, msg["org_id"], compute.failed(msg))
+            waker.soon(topics.COMPUTE_RESULTS)
+
         consumers.append(
             Consumer(
                 "compute",
@@ -106,6 +122,7 @@ async def lifespan(app: FastAPI):
                 settings,
                 contract,
                 store,
+                failures={topics.COMPUTE_REQUESTED: on_compute_failed},
             )
         )
 

@@ -4,7 +4,7 @@ import { Kafka, Partitioners, type Producer } from 'kafkajs';
 import { CONFIG, type Config } from '../config/config';
 import { ContractService } from '../contract/contract.service';
 import { StorageService } from '../storage/storage.service';
-import { UPLOADS_TOPIC } from './topics';
+import { ENVELOPE_VERSION, UPLOADS_TOPIC } from './topics';
 
 /**
  * Publishes validated envelopes (api/common/contract/envelope.schema.json) on
@@ -69,7 +69,14 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       'application/json',
       createHash('sha256').update(body).digest('hex'),
     );
-    const envelope = { type: event, version: 1, id, produced_at: new Date().toISOString(), data_ref: dataRef };
+    const envelope = {
+      type: event,
+      version: ENVELOPE_VERSION,
+      id,
+      request_id: randomUUID(),
+      produced_at: new Date().toISOString(),
+      data_ref: dataRef,
+    };
     this.contract.validateEnvelope(envelope);
     await this.connect();
     await this.producer.send({ topic: UPLOADS_TOPIC, acks: -1, messages: [{ key, value: JSON.stringify(envelope) }] });

@@ -367,7 +367,11 @@ func (s *Imports) enqueueReady(ctx context.Context, tx pgx.Tx, job *model.Import
 			return err
 		}
 	}
-	return repository.Enqueue(ctx, tx, kafka.EventImportReady, job.ID, map[string]any{
+	requestID, err := repository.RequestID(ctx, tx, "import_job", job.ID)
+	if err != nil {
+		return err
+	}
+	_, err = repository.Enqueue(ctx, tx, kafka.EventImportReady, job.ID, requestID, map[string]any{
 		"job_id":     job.ID,
 		"org_id":     job.OrgID,
 		"source":     "upload",
@@ -378,6 +382,7 @@ func (s *Imports) enqueueReady(ctx context.Context, tx pgx.Tx, job *model.Import
 		"currency":   org.Currency,
 		"reference":  ref,
 	})
+	return err
 }
 
 type processedTxn struct {
@@ -479,6 +484,55 @@ func (s *Imports) OnImportProcessed(ctx context.Context, raw json.RawMessage) er
 		slog.Info("upload deleted from tmp/", "step", "import.processed", "job_id", msg.JobID)
 	}
 	return err
+}
+
+// OnImportProcessedFailed fails a job whose result kept failing to store.
+func (s *Imports) OnImportProcessedFailed(ctx context.Context, raw json.RawMessage) error {
+	var msg importProcessed
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return nil
+	}
+	return s.DB.InOrg(ctx, msg.OrgID, func(tx pgx.Tx) error {
+		return failImportJob(ctx, tx, msg.JobID)
+	})
+}
+
+// OnUploadReceivedFailed fails the job or statement an upload kept failing
+// to start.
+func (s *Imports) OnUploadReceivedFailed(ctx context.Context, raw json.RawMessage) error {
+	var msg uploadReceived
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return nil
+	}
+	return s.DB.InOrg(ctx, msg.OrgID, func(tx pgx.Tx) error {
+		if msg.Target.Kind == "fin_statement" {
+			return failStatement(ctx, tx, msg.Target.ID)
+		}
+		return failImportJob(ctx, tx, msg.Target.ID)
+	})
+}
+
+func failImportJob(ctx context.Context, tx pgx.Tx, id string) error {
+	job, err := repository.LockImportJob(ctx, tx, id)
+	if err == repository.ErrNotFound || (err == nil && job.Status != "awaiting_upload" && job.Status != "processing") {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	slog.Warn("import failed: its message kept failing", "step", "import.failed", "job_id", id)
+	return repository.FailImport(ctx, tx, id, "processing_error")
+}
+
+func failStatement(ctx context.Context, tx pgx.Tx, id string) error {
+	st, err := repository.GetStatement(ctx, tx, id, true)
+	if err == repository.ErrNotFound || (err == nil && st.MappingStatus != "awaiting_upload" && st.MappingStatus != "processing") {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	code := "processing_error"
+	slog.Warn("statement failed: its message kept failing", "step", "statement.failed", "statement_id", id)
+	return repository.SetStatementStatus(ctx, tx, id, "failed", &code, nil)
 }
 
 func deref(s *string) string {

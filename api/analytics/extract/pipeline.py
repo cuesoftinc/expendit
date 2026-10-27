@@ -19,7 +19,7 @@ from extract.parse.pdf_parser import extract_pdf_text, is_encrypted, parse_pdf, 
 from extract.parse.raw_transaction import RawTransaction
 from extract.summary import narrative
 from extract.summary.summary import generate as generate_summary
-from storage import ObjectStore
+from storage import ObjectMissing, ObjectStore
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +64,11 @@ class ImportPipeline:
                 for r in msg["rows"]
             ]
         else:
-            data = await self._store.get(msg["file"]["key"])
+            try:
+                data = await self._store.get(msg["file"]["key"])
+            except ObjectMissing as exc:
+                # Deleted or expired from tmp/: retrying can't bring it back.
+                raise ImportFailed("processing_error") from exc
             raw = await self._parse(msg["file_type"], msg.get("file_name", ""), data, ai, msg["ai_allowed"], warnings)
 
         if not raw:

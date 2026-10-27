@@ -20,19 +20,28 @@ class ComputeHandler:
     def __init__(self, ai: AIEnhancer | None):
         self._ai = ai
 
-    async def run(self, msg: dict) -> dict:
+    def failed(self, msg: dict) -> dict:
+        """The failed result for a request that kept failing."""
+        return self._header(msg) | {"status": "failed", "error_code": "processing_error"}
+
+    @staticmethod
+    def _header(msg: dict) -> dict:
         result = {
             "request_id": msg["request_id"],
             "org_id": msg["org_id"],
             "kind": msg["kind"],
             "data_version": msg["data_version"],
         }
-        inputs = msg["inputs"]
         # Echo what common needs to file the result.
         if "period" in msg:
             result["period"] = msg["period"]
         if msg["kind"] == "statement_validation":
-            result["statement_id"] = inputs["statement_id"]
+            result["statement_id"] = msg["inputs"]["statement_id"]
+        return result
+
+    async def run(self, msg: dict) -> dict:
+        result = self._header(msg)
+        inputs = msg["inputs"]
         try:
             match msg["kind"]:
                 case "statement_validation":

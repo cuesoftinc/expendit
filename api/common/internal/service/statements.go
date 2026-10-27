@@ -317,10 +317,15 @@ func (s *Statements) enqueueReady(ctx context.Context, tx pgx.Tx, st *repository
 			return err
 		}
 	}
-	return repository.Enqueue(ctx, tx, kafka.EventStatementReady, st.ID, map[string]any{
+	requestID, err := repository.RequestID(ctx, tx, "fin_statement", st.ID)
+	if err != nil {
+		return err
+	}
+	_, err = repository.Enqueue(ctx, tx, kafka.EventStatementReady, st.ID, requestID, map[string]any{
 		"statement_id": st.ID, "org_id": st.OrgID, "kind": st.Kind, "period": st.Period, "currency": st.Currency,
 		"file_name": msg.FileName, "file_type": msg.FileType, "file": msg.Object, "ai_allowed": aiAllowed,
 	})
+	return err
 }
 
 type statementMapped struct {
@@ -388,6 +393,18 @@ func (s *Statements) OnStatementMapped(ctx context.Context, raw json.RawMessage)
 		s.Imports.deleteObject(ctx, *objectKey)
 	}
 	return err
+}
+
+// OnStatementMappedFailed fails a statement whose mapping kept failing to
+// store.
+func (s *Statements) OnStatementMappedFailed(ctx context.Context, raw json.RawMessage) error {
+	var msg statementMapped
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return nil
+	}
+	return s.DB.InOrg(ctx, msg.OrgID, func(tx pgx.Tx) error {
+		return failStatement(ctx, tx, msg.StatementID)
+	})
 }
 
 // UploadRouter lets the import consumer hand statement uploads over.

@@ -7,6 +7,7 @@ package outbox
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -63,7 +64,8 @@ func (p *Publisher) publishBatch(ctx context.Context) (int, error) {
 		msgs := make([]kgo.Message, 0, len(rows))
 		ids := make([]int64, 0, len(rows))
 		for _, row := range rows {
-			msg, err := p.Producer.Message(ctx, row.Event, row.Key, row.Payload)
+			msg, err := p.Producer.Message(ctx, kafka.Outgoing{Event: row.Event, Key: row.Key, RequestID: row.RequestID,
+				ClaimKey: ClaimKey(row), Data: row.Payload})
 			if errors.Is(err, kafka.ErrContract) {
 				// A row that fails its schema can never be sent; park it
 				// as published so it doesn't block the queue, and say so.
@@ -97,4 +99,10 @@ func (p *Publisher) publishBatch(ctx context.Context) (int, error) {
 		return nil
 	})
 	return n, err
+}
+
+// ClaimKey names a row's claim-check object, so every publish attempt of
+// the row reuses one object; created_at keeps it unique if ids restart.
+func ClaimKey(row repository.OutboxRow) string {
+	return fmt.Sprintf("outbox-%d-%d", row.ID, row.CreatedAt.UnixMicro())
 }

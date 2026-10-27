@@ -57,7 +57,12 @@ func run(args []string) error {
 		Aiven:     aiven.New(cfg.Aiven.APIToken, cfg.Aiven.Project, cfg.Aiven.KafkaService),
 		Heartbeat: func(ctx context.Context) error { return producer.Heartbeat(ctx, "reaper") },
 		Resend: func(ctx context.Context) (int, error) {
-			return service.ResendStuck(ctx, a.DB, a.Imports, a.Statements)
+			stuck, err := service.ResendStuck(ctx, a.DB, a.Imports, a.Statements)
+			if err != nil {
+				return stuck, err
+			}
+			compute, err := service.ResendCompute(ctx, a.DB)
+			return stuck + compute, err
 		},
 	}
 	jobs := sweeper.Jobs()

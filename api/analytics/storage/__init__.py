@@ -6,10 +6,16 @@ from typing import Protocol
 from app.config import Settings
 
 
+class ObjectMissing(Exception):
+    """The object does not exist: a permanent failure, never retried."""
+
+
 class ObjectStore(Protocol):
     bucket: str
 
-    async def get(self, key: str) -> bytes: ...
+    async def get(self, key: str) -> bytes:
+        """Raises ObjectMissing when the object does not exist."""
+        ...
 
     async def put(self, key: str, data: bytes, content_type: str) -> None: ...
 

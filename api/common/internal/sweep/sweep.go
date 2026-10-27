@@ -32,7 +32,8 @@ type Sweeper struct {
 	Aiven *aiven.Client
 	// Heartbeat sends a message so Kafka never sits idle for 24 hours.
 	Heartbeat func(context.Context) error
-	// Resend queues again, once, the work of items stuck in processing.
+	// Resend queues again, once, the work of items stuck in processing and
+	// of compute requests still without a result, with the same request_id.
 	Resend func(context.Context) (int, error)
 }
 
@@ -48,8 +49,10 @@ func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 // Reaper runs every 5 minutes:
 //  1. powers Kafka back on if Aiven powered it off (I-17);
 //  2. processing > 10 min -> failed (worker crash, flows/import.md §3);
-//     awaiting_upload past ticket expiry -> deleted;
-//  3. re-sends, once, items processing for over 4 minutes (I-17);
+//     awaiting_upload past ticket expiry -> deleted; compute requests
+//     without a result after 10 min -> expired;
+//  3. re-sends, once, items processing and compute requests pending for
+//     over 4 minutes, keeping their request_id (I-17);
 //  4. every 6 hours, a Kafka heartbeat (I-17);
 //  5. wakes the services while work is pending, the backstop for a
 //     missed wake (I-16).
@@ -119,33 +122,43 @@ func (s *Sweeper) reap(ctx context.Context) error {
 		if _, err := tx.Exec(ctx, `DELETE FROM upload_ticket WHERE expires_at < now() - interval '1 day'`); err != nil {
 			return err
 		}
-		slog.Info("reaper", "jobs_failed", failed.RowsAffected(), "jobs_expired", stale.RowsAffected(), "statements_failed", statements.RowsAffected())
+		compute, err := repository.ExpireComputeRequests(ctx, tx, 10*time.Minute)
+		if err != nil {
+			return err
+		}
+		slog.Info("reaper", "jobs_failed", failed.RowsAffected(), "jobs_expired", stale.RowsAffected(), "statements_failed", statements.RowsAffected(),
+			"compute_expired", compute)
 		return nil
 	})
 }
 
-// wakePending wakes common when the outbox has unsent rows, and common plus
-// extract while an import or statement is processing (its request or its
-// result may be waiting in Kafka). A failed wake is logged, not fatal.
+// wakePending wakes common when the outbox has unsent rows, common plus
+// extract while an import or statement is processing, and common plus
+// compute while a compute request is pending (its request or its result
+// may be waiting in Kafka). A failed wake is logged, not fatal.
 func (s *Sweeper) wakePending(ctx context.Context) error {
 	if s.Wake == nil {
 		return nil
 	}
-	var outbox, extract bool
+	var outbox, extract, compute bool
 	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx, `SELECT
 			EXISTS (SELECT 1 FROM outbox WHERE published_at IS NULL),
 			EXISTS (SELECT 1 FROM import_job WHERE status = 'processing')
-				OR EXISTS (SELECT 1 FROM fin_statement WHERE mapping_status = 'processing')`).Scan(&outbox, &extract)
+				OR EXISTS (SELECT 1 FROM fin_statement WHERE mapping_status = 'processing'),
+			EXISTS (SELECT 1 FROM compute_request WHERE completed_at IS NULL)`).Scan(&outbox, &extract, &compute)
 	})
 	if err != nil {
 		return err
 	}
-	if outbox || extract {
+	if outbox || extract || compute {
 		_ = s.Wake.Now(ctx, s.WakeURLs.Common, "pending work")
 	}
 	if extract {
 		_ = s.Wake.Now(ctx, s.WakeURLs.Extract, "pending work")
+	}
+	if compute {
+		_ = s.Wake.Now(ctx, s.WakeURLs.Compute, "pending work")
 	}
 	return nil
 }
@@ -190,7 +203,11 @@ func (s *Sweeper) Retention(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		slog.Info("retention", "import_jobs", jobs.RowsAffected(), "outbox_rows", outbox)
+		compute, err := repository.PruneComputeRequests(ctx, tx, 7*24*time.Hour)
+		if err != nil {
+			return err
+		}
+		slog.Info("retention", "import_jobs", jobs.RowsAffected(), "outbox_rows", outbox, "compute_requests", compute)
 		return nil
 	})
 }

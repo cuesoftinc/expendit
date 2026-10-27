@@ -2,6 +2,9 @@ import asyncio
 import io
 
 from minio import Minio
+from minio.error import S3Error
+
+from storage import ObjectMissing
 
 
 class S3Store:
@@ -20,7 +23,12 @@ class S3Store:
                 resp.close()
                 resp.release_conn()
 
-        return await asyncio.to_thread(_read)
+        try:
+            return await asyncio.to_thread(_read)
+        except S3Error as exc:
+            if exc.code == "NoSuchKey":
+                raise ObjectMissing(key) from exc
+            raise
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:
         await asyncio.to_thread(

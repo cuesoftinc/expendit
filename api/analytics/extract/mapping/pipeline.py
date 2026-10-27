@@ -16,7 +16,7 @@ import openpyxl
 from compute.derive.statement import validate
 from extract.mapping.suggest import suggest
 from extract.parse.csv_parser import parse_amount
-from storage import ObjectStore
+from storage import ObjectMissing, ObjectStore
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +62,11 @@ class StatementPipeline:
         result = {"statement_id": msg["statement_id"], "org_id": msg["org_id"]}
         if msg["file_type"] in ("pdf", "image"):
             return result | {"status": "failed", "error_code": "ai_unavailable"}
-        data = await self._store.get(msg["file"]["key"])
+        try:
+            data = await self._store.get(msg["file"]["key"])
+        except ObjectMissing:
+            # Deleted or expired from tmp/: retrying can't bring it back.
+            return result | {"status": "failed", "error_code": "processing_error"}
         try:
             rows = parse_label_amounts(msg["file_type"], data)
         except ValueError:

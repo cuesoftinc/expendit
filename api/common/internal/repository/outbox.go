@@ -3,36 +3,55 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
 // Enqueue writes an event in the caller's transaction (§6.6): it is sent
-// if and only if the business write commits.
-func Enqueue(ctx context.Context, tx pgx.Tx, event, key string, data any) error {
-	_, err := tx.Exec(ctx, `INSERT INTO outbox (event, message_key, payload) VALUES ($1, $2, $3)`, event, key, mustJSON(data))
-	return err
+// if and only if the business write commits. requestID rides in the
+// envelope; empty sends none. Returns the outbox row id.
+func Enqueue(ctx context.Context, tx pgx.Tx, event, key, requestID string, data any) (int64, error) {
+	var id int64
+	err := tx.QueryRow(ctx, `INSERT INTO outbox (event, message_key, request_id, payload)
+		VALUES ($1, $2, nullif($3, '')::uuid, $4) RETURNING id`, event, key, requestID, mustJSON(data)).Scan(&id)
+	return id, err
+}
+
+// Requeue queues a published outbox row again as a new message with the
+// same request_id. ok is false when the row is gone or not yet published.
+func Requeue(ctx context.Context, tx pgx.Tx, id int64) (newID int64, ok bool, err error) {
+	err = tx.QueryRow(ctx, `INSERT INTO outbox (event, message_key, request_id, payload)
+		SELECT event, message_key, request_id, payload FROM outbox WHERE id = $1 AND published_at IS NOT NULL
+		RETURNING id`, id).Scan(&newID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, false, nil
+	}
+	return newID, err == nil, err
 }
 
 type OutboxRow struct {
-	ID      int64
-	Event   string
-	Key     string
-	Payload json.RawMessage
+	ID        int64
+	Event     string
+	Key       string
+	RequestID string
+	Payload   json.RawMessage
+	CreatedAt time.Time
 }
 
 // ClaimOutbox locks up to limit unsent rows; concurrent publishers skip
 // each other's rows (SKIP LOCKED).
 func ClaimOutbox(ctx context.Context, tx pgx.Tx, limit int) ([]OutboxRow, error) {
-	rows, err := tx.Query(ctx, `SELECT id, event, message_key, payload FROM outbox WHERE published_at IS NULL
+	rows, err := tx.Query(ctx, `SELECT id, event, message_key, coalesce(request_id::text, ''), payload, created_at
+		FROM outbox WHERE published_at IS NULL
 		ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED`, limit)
 	if err != nil {
 		return nil, err
 	}
 	return collect(rows, func(r pgx.Row) (*OutboxRow, error) {
 		var o OutboxRow
-		return &o, r.Scan(&o.ID, &o.Event, &o.Key, &o.Payload)
+		return &o, r.Scan(&o.ID, &o.Event, &o.Key, &o.RequestID, &o.Payload, &o.CreatedAt)
 	})
 }
 

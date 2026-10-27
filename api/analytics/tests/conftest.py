@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from contract import Contract
+from storage import ObjectMissing
 
 # In the image the schemas are copied to ./contract; in the repo they live
 # in api/common/contract.
@@ -16,8 +17,14 @@ class MemoryStore:
 
     def __init__(self):
         self.objects: dict[str, bytes] = {}
+        # Raised, one per get, before the object is returned.
+        self.get_errors: list[Exception] = []
 
     async def get(self, key: str) -> bytes:
+        if self.get_errors:
+            raise self.get_errors.pop(0)
+        if key not in self.objects:
+            raise ObjectMissing(key)
         return self.objects[key]
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:

@@ -1,8 +1,9 @@
 {
   "type": "expendit.upload.received",
-  "version": 1,
+  "version": "1.0",
   "id": "0b8f3c2e-6a1d-4c5e-9f7a-1d2e3f4a5b6c",
   "produced_at": "2026-10-05T10:00:03Z",
+  "request_id": "4c5d6e7f-8a9b-4c0d-9e1f-2a3b4c5d6e7f",
   "data": {
     "ticket_id": "tkt_01J9ZK7Q4M",
     "org_id": "3f6e2b1a-9c8d-4e7f-a6b5-c4d3e2f1a0b9",
