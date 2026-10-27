@@ -69,7 +69,7 @@ Upload limits are enforced by api/common when it issues the upload ticket, befor
 | Contract | error catalog | every documented code producible |
 | Integration (compose) | import pipeline end-to-end | fixture files per failure-taxonomy row; idempotent upload/confirm under retry storms |
 | Migration tests | Mongo→Postgres (with E-4) | row-count + checksum parity harness; org auto-create mapping |
-| E2E smoke (release tag) | signin → upload → review → confirm → report download | against sandbox in release.yml |
+| E2E smoke (per deploy) | signin → upload → review → confirm → report download | against sandbox in release.yml |
 | Privacy invariants | logs + responses | grep-gate: no transaction descriptions/amounts in logs; bank tokens absent everywhere |
 
 ## 5. Logging & observability

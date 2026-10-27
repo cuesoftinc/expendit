@@ -49,7 +49,7 @@
 - **Tests**: Vitest + Testing Library for unit/integration (components,
   controllers, mock handlers); Playwright e2e mirroring the design.md §8.4
   prototype journeys, run in TEST_MODE against the mock server; both wired
-  into CI build+test (X-6: merge-to-main never deploys).
+  into CI build+test (X-6: CI itself never deploys).
 - **Legacy / dead-code policy**: before replacement, legacy trees are
   `git mv`-ed into `web/src/legacy/` (structure preserved, excluded from
   build & routing) — live paths carry zero dead code; after the replacement
@@ -749,7 +749,7 @@ boot looks like the designs:
 | Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks — count-ups render final values, gauges jump-cut, design.md §5); model/repository parsing incl. error-envelope handling; controller hooks |
 | Integration | Vitest | mock handlers (envelope, pagination, enum taxonomies, 202-job lifecycles, mapping state machine — flows/statement-mapping.md §4 — and BANK_LINK transitions — data-model.md §6.2); controller ↔ mock-server flows (optimistic MI-11 inspector saves roll back on scripted failures) |
 | E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys: **Core journey — sign in** (`/signin` → B0 → AI-consent → B1 → the navigation mesh + drill-ins: import review MI-2/3, bank-link stepper MI-9, statement mapping, ratio traces, filing wizard MI-10, rights MI-15) and **Marketing site** (Part A scroll + CTA handoff into `/signin`); plus the keyboard-first path — ⌘K palette (MI-1) and table keyboard nav (↑↓/enter/`e`, design.md §5) asserted explicitly (design principle 3); plus the §1 mobile-responsiveness sweep (390 + 768 across home and every dashboard route) and the floating-layer viewport clamps |
-| CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: merge-to-main never deploys |
+| CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys |
 
 The §8.4 rule that empty/loading/QA frames stay out of the prototype maps
 here too: Playwright walks real user paths; empty/loading states are
@@ -796,7 +796,7 @@ policy — when it opens.
 - [x] Styled-kit packages pruned from package.json; imports CI-gated
       repo-wide; `src/legacy/` does not exist in the current tree
 - [ ] Playwright §8.4 journeys green in CI, incl. the keyboard-first path
-      (⌘K + table nav); merge-to-main never deploys (X-6)
+      (⌘K + table nav); CI itself never deploys (X-6)
 
 ## 10. SEO plumbing (as-built, 2026-07-21)
 

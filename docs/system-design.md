@@ -75,7 +75,7 @@ pipeline's decision logic (parse → dedup → categorize → anomalies →
 summary) and its Kafka shape; the flow contracts (import, bank link,
 statement mapping, rights); the tax engine's rules-as-data and trace model;
 the line-item and ratio registry; X-5's single Postgres; the web mock API;
-the CI/CD and tag-gated deploy model (X-6).
+the CI/CD and merge-to-main deploy model (X-6).
 
 ---
 
@@ -503,7 +503,7 @@ covers thousands of orgs.
 
 ## 10. Deployment topology
 
-### 10.1 Cloud (X-3, X-6: tag-gated, `stg` only)
+### 10.1 Cloud (X-3, X-6: deploys on merge to main, `stg` only)
 
 | Unit | Cloud Run kind | Scaling |
 | --- | --- | --- |

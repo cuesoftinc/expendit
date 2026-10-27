@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Rate limiter keys carry the `REDIS_KEY_PREFIX` product prefix.
 - Staging estate documented: Cloud Run, Cloud Scheduler, Aiven, Doppler `stg`.
 - **Release workflow and deploy runbook.** `.github/workflows/release.yml`
-  builds the three API images on a `v*` tag and points the Cloud Run
+  builds the three API images on every merge to main and points the Cloud Run
   services at the new digests via WIF in the `Sandbox`
   environment, failing unless every revision is Ready.
   `docs/deploy-runbook.md` is the operator's checklist for GCP, Firebase

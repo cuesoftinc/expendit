@@ -39,8 +39,8 @@ Staging is GCP project `sandbox-e306a`, region `us-central1`, created by
 [cuesoft-iac PR 368](https://github.com/cuesoftinc/cuesoft-iac/pull/368).
 Service URLs are `https://<service>-805800737799.us-central1.run.app`.
 
-Images are built and deployed by `.github/workflows/release.yml` when a
-`v*` tag is created (§7). **Your infrastructure code creates the resources;
+Images are built and deployed by `.github/workflows/release.yml` on every merge
+to `main` that touches `api/**` (§7). **Your infrastructure code creates the resources;
 the workflow only swaps their image digests.**
 
 ### 1.1 Everything scales to zero
@@ -307,7 +307,7 @@ request every 5 minutes, which starts common for a moment.
 
 On `cuesoftinc/expendit`:
 
-1. **Environment `Sandbox`** with required reviewers, and these environment
+1. **Environment `Sandbox`** with these environment
    **variables**: `GCP_PROJECT_ID`, `GCP_REGION`,
    `GCP_WORKLOAD_IDENTITY_PROVIDER`
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
@@ -315,16 +315,15 @@ On `cuesoftinc/expendit`:
    sets them. Secrets come from Doppler project `expendit`, config `stg`.
 2. **Repository secrets**: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (push to
    `cuesoft/expendit-api-*`).
-3. **Tag ruleset** restricting `v*` tag creation to owners.
-4. The WIF provider trusts this repository, and `expendit-deploy` grants it
+3. The WIF provider trusts this repository, and `expendit-deploy` grants it
    `roles/iam.workloadIdentityUser`.
 
-## 9. First release and switching the website over
+## 9. First deploy and switching the website over
 
-1. Merge to `main`; confirm the site still works (TEST_MODE, §0).
-2. Create the infrastructure (§2–§7, the IaC PR) and fill Doppler (§6).
-3. Tag a release: `git tag v0.2.0 && git push origin v0.2.0`. Approve the
-   `Sandbox` deployment when GitHub asks.
+1. Create the infrastructure (§2–§7, the IaC PR) and fill Doppler (§6).
+2. Merge to `main`; the merge deploys the API services. Confirm the site
+   still works (TEST_MODE, §0).
+3. To redeploy without a code change, re-run the latest `release` run.
 4. The workflow fails unless every service's newest revision is Ready and
    common answers `/ready`. Check the logs of `expendit-api-common` for
    `migration applied` (first deploy only) and `listening`.

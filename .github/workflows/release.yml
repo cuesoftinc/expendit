@@ -1,8 +1,7 @@
-# Release — API services only (X-6, docs/deployment.md §3).
+# Release: API services only (X-6, docs/deployment.md §3).
 #
-# Fires ONLY when a v* tag is created. Tag creation is restricted by a tag
-# ruleset (owner level) and the deploy job runs in the protected `Sandbox`
-# environment with required reviewers, so a merge never deploys by itself.
+# Fires on every merge to main that touches the API services; the deploy job
+# runs in the `Sandbox` environment. No version tags: images carry the sha.
 # The web app is not here: it rides Firebase App Hosting rollouts from main.
 #
 # The Cloud Run resources (services, scheduler jobs, env, secrets, IAM) are created by
@@ -12,7 +11,8 @@ name: release
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: ["api/**", ".github/workflows/release.yml"]
 
 permissions:
   contents: read
@@ -45,10 +45,7 @@ jobs:
       - name: Tags
         id: meta
         run: |
-          {
-            echo "version=${GITHUB_REF_NAME}"
-            echo "sha=${GITHUB_SHA::12}"
-          } >> "$GITHUB_OUTPUT"
+          echo "sha=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
       - name: Build + push api-common
         id: common
@@ -57,7 +54,6 @@ jobs:
           context: api/common
           push: true
           tags: |
-            cuesoft/expendit-api-common:${{ steps.meta.outputs.version }}
             cuesoft/expendit-api-common:${{ steps.meta.outputs.sha }}
             cuesoft/expendit-api-common:latest
           cache-from: type=gha,scope=common
@@ -72,7 +68,6 @@ jobs:
           file: api/statements/Dockerfile
           push: true
           tags: |
-            cuesoft/expendit-api-statements:${{ steps.meta.outputs.version }}
             cuesoft/expendit-api-statements:${{ steps.meta.outputs.sha }}
             cuesoft/expendit-api-statements:latest
           cache-from: type=gha,scope=statements
@@ -86,7 +81,6 @@ jobs:
           file: api/analytics/Dockerfile
           push: true
           tags: |
-            cuesoft/expendit-api-analytics:${{ steps.meta.outputs.version }}
             cuesoft/expendit-api-analytics:${{ steps.meta.outputs.sha }}
             cuesoft/expendit-api-analytics:latest
           cache-from: type=gha,scope=analytics

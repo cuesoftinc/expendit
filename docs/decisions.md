@@ -144,6 +144,9 @@ until a real customer needs it.
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
+  **Revised 2026-10-27 (owner):** "Deploy on merge to main". A merge to
+  `main` that touches `api/**` deploys the API services to the sandbox; no
+  `v*` tags, since the open-source products cut no releases yet.
 - **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
   confirmations…) — the irealty pattern: `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,

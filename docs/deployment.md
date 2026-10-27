@@ -45,14 +45,14 @@ payload by pointer.
 
 | Workflow | Trigger | Does |
 | --- | --- | --- |
-| `build-and-test.yml` | PRs **and** push to `main` | build + tests per service — **no deploy, no image push** (X-6: open-source repos; merges must be inert) |
-| `release.yml` | **tag `v*` created** | buildx (GHA cache) → push `cuesoft/expendit-api-{common,statements,analytics}` (tags: version, sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready. The website is not in it: App Hosting rolls out from `main`. Step-by-step setup: [deploy-runbook.md](deploy-runbook.md) |
+| `build-and-test.yml` | PRs **and** push to `main` | build + tests per service; **no deploy, no image push** (`release.yml` deploys) |
+| `release.yml` | **push to `main` touching `api/**`** | buildx (GHA cache) → push `cuesoft/expendit-api-{common,statements,analytics}` (tags: sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready. The website is not in it: App Hosting rolls out from `main`. Step-by-step setup: [deploy-runbook.md](deploy-runbook.md) |
 
-**Gating (X-6):** `stg` (sandbox) is the only environment and is treated as
-production. Two independent gates: (1) a GitHub **tag ruleset** restricts
-creating `v*` tags to owner-level access; (2) the deploy job runs in a
-protected GitHub **environment** (`Sandbox`) with required reviewers. A merged
-PR never reaches the sandbox on its own.
+**Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
+environment. A merge to `main` that touches `api/**` deploys the API services
+to the sandbox; review and merge rights on `main` are the gate. The deploy job
+runs in the `Sandbox` environment, which holds the WIF variables. No version
+tags: images carry the commit sha and `latest`.
 
 Two hard-won rules inherited from cueprise, non-negotiable:
 
