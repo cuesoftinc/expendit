@@ -313,8 +313,9 @@ On `cuesoftinc/expendit`:
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
    `GCP_DEPLOY_SERVICE_ACCOUNT` (the `expendit-deploy` email). The IaC
    sets them. Secrets come from Doppler project `expendit`, config `stg`.
-2. **Repository secrets**: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (push to
-   `cuesoft/expendit-api-*`).
+2. **Repository secrets**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (push to
+   `cuesoft/expendit-api-*`), synced from Doppler `expendit/ci`, which references
+   `admin/ci`.
 3. The WIF provider trusts this repository, and `expendit-deploy` grants it
    `roles/iam.workloadIdentityUser`.
 
