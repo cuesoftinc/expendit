@@ -122,6 +122,14 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { signOut, user } = useAuthController();
   const { orgs, activeOrg, activeOrgId, switchOrg, loading } = useOrg();
   const { count: anomalyCount } = useAnomalyBadgeController(activeOrgId);
+  const activeOrgKind = activeOrg?.kind;
+  const visibleNavRoutes = useMemo(
+    () =>
+      activeOrgKind === "company"
+        ? NAV_ROUTES
+        : NAV_ROUTES.filter((route) => route.group !== "Company"),
+    [activeOrgKind],
+  );
   const [collapsed, setCollapsed] = useState(false);
   // Below md the nav always rides the 64px icon rail — a fixed 240px
   // column left ~150px of content at 390w (system QA 2026-07-19).
@@ -178,6 +186,17 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
+  const onOrgSelect = (orgId: string) => {
+    switchOrg(orgId);
+    const nextOrg = orgs.find((org) => org.id === orgId);
+    if (
+      nextOrg?.kind === "personal" &&
+      pathname.startsWith("/dashboard/company")
+    ) {
+      router.push("/dashboard/imports?upload=1");
+    }
+  };
+
   // MI-1: navigate + actions ("upload statement", "new transaction",
   // "new category" — design.md §3), with shortcut hints.
   const paletteItems = useMemo<CommandItem[]>(() => {
@@ -197,12 +216,16 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         shortcut: ["U"],
         onSelect: go("/dashboard/imports?upload=1"),
       },
-      {
-        id: "action-upload-company-statement",
-        label: "Upload company statement",
-        group: "action",
-        onSelect: go("/dashboard/company?upload=1"),
-      },
+      ...(activeOrgKind === "company"
+        ? [
+            {
+              id: "action-upload-company-statement",
+              label: "Upload company statement",
+              group: "action" as const,
+              onSelect: go("/dashboard/company?upload=1"),
+            },
+          ]
+        : []),
       {
         id: "action-new-category",
         label: "New category",
@@ -228,7 +251,7 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         onSelect: go("/dashboard/taxes/file"),
       },
     ];
-    const navigation: CommandItem[] = NAV_ROUTES.map((route) => ({
+    const navigation: CommandItem[] = visibleNavRoutes.map((route) => ({
       id: `nav-${route.href}`,
       label:
         route.group === "Company"
@@ -238,14 +261,14 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       onSelect: go(route.href),
     }));
     return [...actions, ...navigation];
-  }, [router]);
+  }, [activeOrgKind, router, visibleNavRoutes]);
 
   // Shared by the in-flow rail and the mobile drawer (drawer clicks
   // dismiss it before navigating).
   const renderNavItems = (onNavigate?: () => void) =>
-    NAV_ROUTES.map((route, index) => {
+    visibleNavRoutes.map((route, index) => {
       const groupLabel =
-        route.group && route.group !== NAV_ROUTES[index - 1]?.group
+        route.group && route.group !== visibleNavRoutes[index - 1]?.group
           ? route.group
           : null;
       return (
@@ -282,7 +305,7 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <OrgSwitcher
               orgs={orgs}
               currentOrgId={activeOrgId}
-              onSelect={switchOrg}
+              onSelect={onOrgSelect}
               onCreate={() => router.push("/onboarding?create=1")}
               compact={effectiveCollapsed}
             />
@@ -356,7 +379,7 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <OrgSwitcher
                     orgs={orgs}
                     currentOrgId={activeOrgId}
-                    onSelect={switchOrg}
+                    onSelect={onOrgSelect}
                     onCreate={() => {
                       setDrawerOpen(false);
                       router.push("/onboarding?create=1");

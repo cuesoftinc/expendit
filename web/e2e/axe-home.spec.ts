@@ -29,7 +29,7 @@ test("home has zero critical axe violations (ARIA IDREF + name lock)", async ({
   // covers the full page: the IO gates fire on approach, so walk the
   // sections (an instant jump to the bottom would skip #demo), then
   // return to the top.
-  await page.locator("#demo").scrollIntoViewIfNeeded();
+  await page.locator("#demo [data-deferred]").scrollIntoViewIfNeeded();
   await expect(
     page.getByRole("table", { name: "Demo transactions" }),
   ).toBeVisible();

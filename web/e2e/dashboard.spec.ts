@@ -32,6 +32,15 @@ const switchToCompanyOrg = async (page: Page): Promise<void> => {
     .click();
 };
 
+const switchToPersonalOrg = async (page: Page): Promise<void> => {
+  const trigger = page.getByRole("button", { name: /Personal|Cuesoft/ });
+  await trigger.first().click();
+  await page
+    .getByRole("listbox", { name: "Organizations" })
+    .getByRole("option", { name: /Personal/ })
+    .click();
+};
+
 const openNav = (page: Page, label: string) =>
   // Badge counts (MI-5) join the accessible name — match on the prefix.
   page.getByRole("navigation", { name: "Primary" }).getByRole("link", {
@@ -340,6 +349,67 @@ test("keyboard-first path — ⌘K palette and ledger table nav", async ({
   await rows.first().focus();
   await page.keyboard.press("e");
   await expect(page.getByRole("dialog", { name: "Transaction" })).toBeVisible();
+});
+
+test("organization-aware navigation hides company features for personal orgs", async ({
+  page,
+}) => {
+  await signIn(page);
+  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
+
+  await expect(
+    page.getByRole("navigation", { name: "Primary" }).getByRole("link", {
+      name: "Statements",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("navigation", { name: "Primary" }).getByRole("link", {
+      name: "Ratios",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+
+  const palette = page.getByRole("dialog", { name: "Command palette" });
+  await page.keyboard.press("ControlOrMeta+k");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("company");
+  await expect(palette.getByText("Upload company statement")).toHaveCount(0);
+  await expect(palette.getByText("Statements", { exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
+  await switchToCompanyOrg(page);
+  await expect(
+    page.getByRole("navigation", { name: "Primary" }).getByRole("link", {
+      name: "Statements",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Primary" }).getByRole("link", {
+      name: "Ratios",
+      exact: true,
+    }),
+  ).toBeVisible();
+
+  await page.goto("/dashboard/company");
+  await expect(
+    page.getByRole("heading", { name: "Company statements" }),
+  ).toBeVisible();
+  await switchToPersonalOrg(page);
+  await page.waitForURL("**/dashboard/imports?upload=1");
+  await expect(page.getByLabel("Upload files")).toBeEnabled();
+});
+
+test("personal orgs are redirected from company routes", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/dashboard/company");
+  await page.waitForURL("**/dashboard/imports?upload=1");
+  await expect(page.getByLabel("Upload files")).toBeEnabled();
+
+  await page.goto("/dashboard/company/ratios");
+  await page.waitForURL("**/dashboard/imports?upload=1");
+  await expect(page.getByLabel("Upload files")).toBeEnabled();
 });
 
 test("legacy flat routes 404 on the branded page", async ({ page }) => {

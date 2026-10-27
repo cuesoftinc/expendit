@@ -92,7 +92,7 @@ export default function TransactionLedger({
                 {
                   id: "source",
                   label: "Src",
-                  widthClass: "w-32 shrink-0 text-left",
+                  widthClass: "w-32 shrink-0 text-left lg:w-24 xl:w-32",
                 },
                 {
                   id: "description",
@@ -100,21 +100,25 @@ export default function TransactionLedger({
                   sortable: true,
                   widthClass: "flex-1 text-left",
                 },
-                { id: "category", label: "Category", widthClass: "w-40" },
+                {
+                  id: "category",
+                  label: "Category",
+                  widthClass: "w-64 shrink-0 text-left lg:w-48 xl:w-64",
+                },
                 {
                   id: "amount",
                   label: "Amount",
                   numeric: true,
                   sortable: true,
-                  widthClass: "w-32",
+                  widthClass: "w-32 shrink-0 text-right lg:w-28 xl:w-32",
                 },
-                // sr-only name (axe `empty-table-header`): the hover
-                // action cluster needs a named column, not a blank th.
+                // sr-only name (axe `empty-table-header`): the overflow
+                // menu needs a named column, not a blank th.
                 {
                   id: "actions",
                   label: "Actions",
                   srOnly: true,
-                  widthClass: "w-20",
+                  widthClass: "w-8 shrink-0 text-right",
                 },
               ]}
               sort={sort}

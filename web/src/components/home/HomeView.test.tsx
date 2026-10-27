@@ -24,6 +24,9 @@ describe("public home `/` (pages.md Part A, A1–A11)", () => {
     window.__expenditEvents = [];
   });
 
+  // This composes the complete public landing page, including its deferred
+  // visual panels. Under the full suite's parallel jsdom load it can exceed
+  // the global 5s default even though no async behavior is under test.
   it("renders every Part A section", () => {
     renderHome();
     // A2 hero
@@ -61,7 +64,7 @@ describe("public home `/` (pages.md Part A, A1–A11)", () => {
     expect(screen.getByText("Your numbers are ready to talk.")).toBeVisible();
     // A11 footer
     expect(screen.getByText("View Security Policy")).toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("emits page_view on mount", () => {
     renderHome();

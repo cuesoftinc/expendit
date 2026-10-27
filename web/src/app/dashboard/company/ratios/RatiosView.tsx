@@ -136,6 +136,12 @@ export const RatiosView: React.FC = () => {
   const [period, setPeriod] = useState<string | null>(null);
   const [trace, setTrace] = useState<RatioResult | null>(null);
 
+  useEffect(() => {
+    if (activeOrg && activeOrg.kind !== "company") {
+      router.replace("/dashboard/imports?upload=1");
+    }
+  }, [activeOrg, router]);
+
   // Default to the latest confirmed period once statements load.
   useEffect(() => {
     if (period || confirmedPeriods.length === 0) return;
@@ -167,6 +173,8 @@ export const RatiosView: React.FC = () => {
     }
     return map;
   }, [ratios.report]);
+
+  if (activeOrg && activeOrg.kind !== "company") return null;
 
   const isCompany = activeOrg?.kind === "company";
   const noInputs = !statements.loading && confirmedPeriods.length === 0;
