@@ -1,5 +1,4 @@
-# CI — build & test on every push/PR (X-6: merge-to-main never deploys;
-# release.yml is tag-gated and lands separately).
+# CI — build & test on every push/PR.
 name: build-and-test
 
 on:
