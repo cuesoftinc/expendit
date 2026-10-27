@@ -14,12 +14,8 @@ servers:
   - url: https://api.expendit.cuesoft.io
   - url: http://localhost:8080
 security: [{ bearer: [] }, { session: [] }]
-tags: [{ name: auth }, { name: ledger }, { name: imports }, { name: banking }, { name: company }, { name: taxes }, { name: rights }]
+tags: [{ name: ledger }, { name: imports }, { name: banking }, { name: company }, { name: taxes }, { name: rights }, { name: auth }]
 paths:
-  /api/v1/auth/sso/google: { get: { tags: [auth], summary: "Start Google sign-in (cv = 43-char base64url PKCE challenge); sets the state cookie and redirects to Google", security: [], parameters: [{ name: cv, in: query, required: true, schema: { type: string } }], responses: { "302": { description: Redirect to Google }, "400": { description: invalid challenge }, "429": { description: rate_limited } } } }
-  /api/v1/auth/sso/google/callback: { get: { tags: [auth], summary: "Google redirect target: verifies state and code, upserts the user, issues a one-time handoff", security: [], responses: { "302": { description: "/auth/callback?handoff=code, or ?error= on failure" } } } }
-  /api/v1/auth/sso/exchange: { post: { tags: [auth], summary: "Redeem the handoff {handoff, verifier}; sets the session cookie", security: [], responses: { "200": { description: "{token, token_type: Bearer, expires_in}" }, "401": { description: handoff_invalid } } } }
-  /api/v1/auth/logout: { post: { tags: [auth], summary: Clear the session cookies, security: [], responses: { "204": { description: Signed out } } } }
   /api/v1/transactions: { get: { tags: [ledger], summary: "List ledger entries (filters: date_from, date_to, category_id, source, direction, amount_min, amount_max, anomaly_only, search; cursor)", responses: { "200": { description: Page } } }, post: { tags: [ledger], summary: Create a manual entry, responses: { "201": { description: TxnEntry } } } }
   /api/v1/import: { get: { tags: [imports], summary: Import-job history, responses: { "200": { description: "{items}" } } }, post: { tags: [imports], summary: "Authorize an upload {file_name, size, file_type?} (role, ai_processing consent, rate limits, quota; Idempotency-Key)", responses: { "201": { description: "{job_id, upload_ticket, expires_at, max_bytes}" }, "403": { description: consent_required }, "413": { description: file_too_large }, "415": { description: unsupported_type }, "429": { description: rate_limited or quota_exceeded } } } }
   /api/v1/uploads: { post: { tags: [imports], summary: "Send the file (api/statements). Auth is the Upload-Ticket header, not the session.", security: [], responses: { "202": { description: "{id, kind, status: processing}" }, "401": { description: invalid_ticket or ticket_expired }, "413": { description: file_too_large }, "415": { description: unsupported_type } } } }
@@ -35,6 +31,10 @@ paths:
   /api/v1/tax/estimates: { get: { tags: [taxes], summary: "Current estimates (rule-set versioned; incl. resolved remittance authority — tax-engine.md §5.5)", responses: { "200": { description: Estimates } } } }
   /api/v1/tax/filings: { post: { tags: [taxes], summary: Start filing draft, responses: { "201": { description: Draft } } } }
   /api/v1/account/export: { post: { tags: [rights], summary: Full-history export (owner), responses: { "202": { description: Archive job } } } }
+  /api/v1/auth/sso/google: { get: { tags: [auth], summary: "Start Google sign-in (cv = 43-char base64url PKCE challenge); sets the state cookie and redirects to Google", security: [], parameters: [{ name: cv, in: query, required: true, schema: { type: string } }], responses: { "302": { description: Redirect to Google }, "400": { description: invalid challenge }, "429": { description: rate_limited } } } }
+  /api/v1/auth/sso/google/callback: { get: { tags: [auth], summary: "Google redirect target: verifies state and code, upserts the user, issues a one-time handoff", security: [], responses: { "302": { description: "/auth/callback?handoff=code, or ?error= on failure" } } } }
+  /api/v1/auth/sso/exchange: { post: { tags: [auth], summary: "Redeem the handoff {handoff, verifier}; sets the session cookie", security: [], responses: { "200": { description: "{token, token_type: Bearer, expires_in}" }, "401": { description: handoff_invalid } } } }
+  /api/v1/auth/logout: { post: { tags: [auth], summary: Clear the session cookies, security: [], responses: { "204": { description: Signed out } } } }
   /api/v1/bank-links/{id}/exchange:
     put: { tags: [banking], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Exchange Mono widget code for account token, responses: { "200": { description: Link active }, "422": { description: link_expired } } }
   /api/v1/bank-links/{id}:
