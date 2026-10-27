@@ -5,14 +5,14 @@
 # The web app is not here: it rides Firebase App Hosting rollouts from main.
 #
 # The Cloud Run resources (services, scheduler jobs, env, secrets, IAM) are created by
-# the cuesoft-iac stack (docs/deploy-runbook.md). This workflow only builds
+# the infrastructure-as-code stack (docs/deploy-runbook.md). This workflow only builds
 # the images and points the existing resources at the new digests.
 name: release
 
 on:
   push:
     branches: [main]
-    paths: ["api/**", ".github/workflows/release.yml"]
+    paths: ["api/**", ".github/workflows/release.yml", ".github/scripts/**"]
 
 permissions:
   contents: read
@@ -100,6 +100,11 @@ jobs:
       STATEMENTS: docker.io/cuesoft/expendit-api-statements@${{ needs.images.outputs.statements }}
       ANALYTICS: docker.io/cuesoft/expendit-api-analytics@${{ needs.images.outputs.analytics }}
     steps:
+      - name: Checkout deploy scripts
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -111,18 +116,19 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3
 
       # Deploy by digest, never by tag: Cloud Run pulls Docker Hub images
-      # through mirror.gcr.io, which has served stale manifests for tags.
+      # through mirror.gcr.io, which has served stale manifests for tags and
+      # can lag a fresh digest, so each deploy retries image pull failures.
       # common first: it runs the database migrations on start.
       - name: Deploy api-common
-        run: gcloud run services update expendit-api-common --region "$REGION" --image "$COMMON" --quiet
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update expendit-api-common --region "$REGION" --image "$COMMON" --quiet
 
       - name: Deploy api-statements
-        run: gcloud run services update expendit-api-statements --region "$REGION" --image "$STATEMENTS" --quiet
+        run: .github/scripts/deploy-with-retry.sh gcloud run services update expendit-api-statements --region "$REGION" --image "$STATEMENTS" --quiet
 
       - name: Deploy api-analytics (extract + compute)
         run: |
-          gcloud run services update expendit-api-analytics-extract --region "$REGION" --image "$ANALYTICS" --quiet
-          gcloud run services update expendit-api-analytics-compute --region "$REGION" --image "$ANALYTICS" --quiet
+          .github/scripts/deploy-with-retry.sh gcloud run services update expendit-api-analytics-extract --region "$REGION" --image "$ANALYTICS" --quiet
+          .github/scripts/deploy-with-retry.sh gcloud run services update expendit-api-analytics-compute --region "$REGION" --image "$ANALYTICS" --quiet
 
       # Don't report success without checking the terminal state: every
       # service's latest revision must be the one serving and Ready.

@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Docs describe provisioning without naming internal repositories.
 - `api/intake` → `api/statements`, `api/process` → `api/analytics` (S-1).
   Uploads are create-then-upload: `POST /api/v1/import` (or
   `/statements`) returns an upload ticket, and the file goes to
@@ -187,6 +188,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sign-in/sign-up hooks.
 
 ### Fixed
+- Release deploys retry while Cloud Run cannot pull a fresh image.
 - Root metadata carries the brand positioning instead of placeholder copy:
   `layout.tsx`'s title now matches the home og/twitter card
   ("Expendit — See every naira. File every tax."), its `description` and

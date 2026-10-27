@@ -97,8 +97,8 @@ until a real customer needs it.
   the Firebase project; backends reject non-Google-provider tokens
   (`provider_not_allowed`); UI ships exactly one auth CTA. Full contract:
   [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
-  (`cueprise/cuesoft_stg`; see also the `cuesoft-iac` project) — CLI token
-  currently expired (`doppler login` to refresh); config names to be mirrored
+  (the product's `stg` config) — CLI
+  token currently expired (`doppler login` to refresh); config names to be mirrored
   into docs once readable. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
   refs. **RATIFIED 2026-07-20**: every product ships a public `/docs/api`
@@ -108,13 +108,12 @@ until a real customer needs it.
   api-surface page). ☑
 - **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
   services run on **Google Cloud Run** (per-service containers — the same
-  `cuesoft/<repo>-<service>` images), following the cueprise pattern
-  (IaC precedent in `cuesoft-iac`); frontends deploy to **Firebase App
-  Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
+  `cuesoft/<repo>-<service>` images), provisioned through the IaC
+  stack; frontends deploy to **Firebase App Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
   cloud and self-host share images, not manifests. ☑
 - **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use
   **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
-  service account — the `cuesoft-iac/functions/cueprise-gemini-proxy` pattern;
+  calling service's own service account;
   reference model `gemini-2.5-flash-lite`, region `us-central1`). No
   consumer-API keys to third-party AI vendors in cloud deployments — data
   stays inside GCP, which strengthens every privacy disclosure. Self-host
@@ -130,14 +129,13 @@ until a real customer needs it.
   (`REDIS_KEY_PREFIX`, default `expendit`; discrete `REDIS_HOST/PORT/
   USERNAME/PASSWORD/TLS` vars). **Doppler is the env source of truth: services read project `expendit`,
   config `stg`** (X-6: stg=sandbox is the only live env; `dev*` are local-dev
-  conveniences and `prd` sits empty until a production ever exists —
-  `cueprise/cuesoft_stg` was the *pattern reference*, not expendit's source).
+  conveniences and `prd` sits empty until a production ever exists).
   **Object storage**: the **default Cloud Storage bucket** in
   `sandbox-e306a` (per-product prefixes `expendit/<env>/…`) for capture
   media, exports, and artifacts. Self-host compose keeps its bundled
   stores. ☑
 - **X-6 Environments & deploy gating (RATIFIED 2026-07-16, deliberate
-  deviation from the cueprise norm)**: `stg` = **sandbox** and is the ONLY
+  deviation from the norm)**: `stg` = **sandbox** and is the ONLY
   environment — no production deployment exists for these products. Secrets
   live in Doppler `<project>/stg`. Because these repos are **open-source**,
   merge-to-main must NOT deploy: main-merge runs build+test only. **Deploys
@@ -149,7 +147,7 @@ until a real customer needs it.
   `v*` tags, since the open-source products cut no releases yet.
 - **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
-  confirmations…) — the irealty pattern: `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
+  confirmations…) — `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
   `BREVO_FROM_NAME` in Doppler. **No SMTP anywhere** — existing SMTP/gomail
   plumbing retires when next touched. Revises U-4's Resend pick where it
   applied. ☑

@@ -36,7 +36,7 @@ flag in §9.
 | Object storage | the shared bucket `sandbox-e306a.firebasestorage.app` | n/a | prefix `expendit/stg/` |
 
 Staging is GCP project `sandbox-e306a`, region `us-central1`, created by
-[cuesoft-iac PR 368](https://github.com/cuesoftinc/cuesoft-iac/pull/368).
+the IaC stack.
 Service URLs are `https://<service>-805800737799.us-central1.run.app`.
 
 Images are built and deployed by `.github/workflows/release.yml` on every merge
@@ -258,9 +258,9 @@ Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `GROQ_API_KEY`,
 | `API_ORIGIN` | runtime | the `expendit-api-common` URL (`https://…run.app`) |
 | `UPLOADS_ORIGIN` | runtime | the `expendit-api-statements` URL |
 
-## 7. Cloud Run resources (cuesoft-iac stack)
+## 7. Cloud Run resources (IaC stack)
 
-The `expendit` stack creates these (PR 368). The first image can be any tag
+The IaC stack creates these. The first image can be any tag
 from Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
