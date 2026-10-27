@@ -10,7 +10,7 @@
  * drill-in (B6c / statement view).
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatIso } from "@/lib/dates";
 import { FileSpreadsheet, Plus } from "lucide-react";
@@ -76,6 +76,12 @@ export const CompanyStatementsView: React.FC = () => {
   const isCompany = activeOrg?.kind === "company";
   const keyOptions = KEYS_BY_KIND[kind];
 
+  useEffect(() => {
+    if (activeOrg && !isCompany) {
+      router.replace("/dashboard/imports?upload=1");
+    }
+  }, [activeOrg, isCompany, router]);
+
   const sorted = useMemo(
     () =>
       [...statements.statements].sort((a, b) =>
@@ -83,6 +89,8 @@ export const CompanyStatementsView: React.FC = () => {
       ),
     [statements.statements],
   );
+
+  if (activeOrg && !isCompany) return null;
 
   const onFiles = (files: File[]) => {
     if (!period) return;
