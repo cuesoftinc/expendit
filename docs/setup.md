@@ -31,14 +31,13 @@ make down      # stop and remove
 
 | Service | URL | What |
 | --- | --- | --- |
-| web | http://localhost:3000 | Next.js app on the real backend (sign in with the emulator's Google popup) |
+| web | http://localhost:3000 | Next.js app on the real backend (sign in with Google) |
 | common | http://localhost:8080 | API (`/health`, `/ready`, `/api/v1/*`) |
 | statements | http://localhost:8081 | upload gateway (`POST /api/v1/uploads`) |
 | analytics | http://localhost:8082 | health only; works over Kafka |
 | postgres | localhost:5432 | app role `expendit_app` / `expendit_app`, db `expendit` |
 | kafka | localhost:9094 | topics created by `kafka-init` |
 | minio | http://localhost:9001 | console (`minioadmin` / `minioadmin`) |
-| firebase-auth | localhost:9099 | auth emulator (Google sign-in) |
 
 A `jobs` container runs the sweeps (reaper, tmp-cleanup, retention) on a
 loop. Cloud Scheduler calls them as `POST /internal/jobs/<name>` on `common`.
@@ -49,7 +48,7 @@ CSV and PDF (regex) imports still work.
 
 ## Running a service natively
 
-Start the dependencies with `docker compose up -d postgres kafka kafka-init redis minio firebase-auth`, then:
+Start the dependencies with `docker compose up -d postgres kafka kafka-init redis minio`, then:
 
 ```bash
 # api/common, :8080 (migrations run at start)
@@ -61,7 +60,7 @@ cd api/statements && cp .env.example .env && npm install && npm run dev
 # api/analytics, :8082
 cd api/analytics && cp .env.example .env && pip install -r requirements.txt && uvicorn app.main:app --port 8082
 
-# web, :3000 against the real backend: Firebase emulator sign-in, /api/v1
+# web, :3000 against the real backend: Google sign-in, /api/v1
 # proxied to common (:8080) and uploads to statements (:8081)
 cd web && cp .env.example .env.local && npm install && npm run dev
 

@@ -1,13 +1,13 @@
 /**
  * Auth provider factory. TEST_MODE resolves the TestModeAuthProvider;
- * otherwise the FirebaseAuthProvider (Google-only; the Auth emulator
- * locally) — X-1 either way.
+ * otherwise the SessionAuthProvider (Google-only, API-issued session
+ * cookie), X-1 either way.
  */
 
 import { env } from "@/config/env";
 import type { AuthProvider } from "./types";
 import { TestModeAuthProvider } from "./test-mode-provider";
-import { FirebaseAuthProvider } from "./firebase-provider";
+import { SessionAuthProvider } from "./session-provider";
 
 let provider: AuthProvider | null = null;
 
@@ -15,7 +15,7 @@ export const getAuthProvider = (): AuthProvider => {
   if (!provider) {
     provider = env.testMode
       ? new TestModeAuthProvider()
-      : new FirebaseAuthProvider();
+      : new SessionAuthProvider();
   }
   return provider;
 };

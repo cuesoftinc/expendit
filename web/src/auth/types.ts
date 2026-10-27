@@ -1,6 +1,6 @@
 /**
  * AuthProvider interface — X-1 Google-only auth behind a provider seam
- * (web standard): TestModeAuthProvider under TEST_MODE, FirebaseAuthProvider
+ * (web standard): TestModeAuthProvider under TEST_MODE, SessionAuthProvider
  * against the real backend. Views/controllers never import a concrete
  * provider.
  */
@@ -14,8 +14,8 @@ export interface AuthUser {
 
 export interface AuthProvider {
   /**
-   * Resolves once the session snapshot is trustworthy. Firebase restores a
-   * persisted session asynchronously; guards await this before reading
+   * Resolves once the session snapshot is trustworthy. The session is read
+   * from the API asynchronously; guards await this before reading
    * currentUser() so a returning user isn't bounced to /signin.
    */
   ready(): Promise<void>;
@@ -31,6 +31,6 @@ export interface AuthProvider {
   /** The single X-1 sign-in path. Resolves with the signed-in user. */
   signInWithGoogle(): Promise<AuthUser>;
   signOut(): Promise<void>;
-  /** Bearer token for API calls (null when signed out). */
-  getIdToken(): Promise<string | null>;
+  /** Bearer token for API calls; null when the session is a cookie or signed out. */
+  getBearerToken(): Promise<string | null>;
 }

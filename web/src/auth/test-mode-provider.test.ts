@@ -8,7 +8,7 @@ describe("TestModeAuthProvider (X-1, TEST_MODE)", () => {
     const user = await provider.signInWithGoogle();
     expect(user).toEqual(TEST_USER);
     expect(provider.currentUser()).toEqual(TEST_USER);
-    expect(await provider.getIdToken()).toBe("test-mode-token");
+    expect(await provider.getBearerToken()).toBe("test-mode-token");
   });
 
   it("persists under `expendit.test-session` in sessionStorage (fleet P16)", async () => {
@@ -35,6 +35,6 @@ describe("TestModeAuthProvider (X-1, TEST_MODE)", () => {
     await provider.signInWithGoogle();
     await provider.signOut();
     expect(provider.currentUser()).toBeNull();
-    expect(await provider.getIdToken()).toBeNull();
+    expect(await provider.getBearerToken()).toBeNull();
   });
 });

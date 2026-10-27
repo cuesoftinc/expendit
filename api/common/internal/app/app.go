@@ -4,8 +4,11 @@ package app
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
+	"github.com/cuesoftinc/expendit/api/common/internal/auth"
+	"github.com/cuesoftinc/expendit/api/common/internal/cache"
 	"github.com/cuesoftinc/expendit/api/common/internal/config"
 	"github.com/cuesoftinc/expendit/api/common/internal/kafka"
 	"github.com/cuesoftinc/expendit/api/common/internal/ratelimit"
@@ -21,6 +24,12 @@ type App struct {
 	Store    storage.Store
 	Limiter  *ratelimit.Limiter
 	Contract *kafka.Contract
+
+	// Sign-in: pending Google logins, the Google client, session tokens and one-time handoffs.
+	SSOState cache.Store
+	Google   *auth.Google
+	Tokens   *auth.Tokens
+	Handoffs *auth.Handoffs
 
 	Identity   *service.Identity
 	Ledger     *service.Ledger
@@ -47,6 +56,10 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	now := time.Now
 
 	a := &App{Config: cfg, DB: db, Store: store, Limiter: limiter, Contract: contract}
+	a.SSOState = cache.Open(cfg.Redis)
+	a.Google = auth.NewGoogle(cfg.Auth.GoogleClientID, cfg.Auth.GoogleClientSecret)
+	a.Tokens = auth.NewTokens(cfg.Auth.JWTSecret, cfg.Auth.JWTAccessTTL)
+	a.Handoffs = auth.NewHandoffs(&repository.Handoffs{DB: db}, a.Tokens, cfg.Auth.SessionSecret, slog.Default())
 	a.Identity = &service.Identity{DB: db}
 	a.Ledger = &service.Ledger{DB: db}
 	a.Compute = &service.Compute{DB: db, Now: now}
@@ -60,4 +73,5 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 func (a *App) Close() {
 	a.DB.Close()
 	_ = a.Limiter.Close()
+	_ = a.SSOState.Close()
 }

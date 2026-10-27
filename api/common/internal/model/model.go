@@ -8,11 +8,11 @@ import (
 )
 
 type User struct {
-	ID          string    `json:"id"`
-	FirebaseUID string    `json:"-"`
-	Email       string    `json:"email"`
-	Name        string    `json:"name"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID        string    `json:"id"`
+	GoogleSub string    `json:"-"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Address struct {

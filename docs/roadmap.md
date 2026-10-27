@@ -54,7 +54,7 @@ corrections.
 | Item | Requirement | Notes |
 | --- | --- | --- |
 | Mono (E-1 ratified) link/sync/re-auth flows into the shared staged-review pipeline | BNK-001/002 | NG-first; Plaid layers on later for international (E-1) |
-| Firebase Google-only identity migration | E3-1, X-1 | `account.cuesoft.io` facade is a later cosmetic cutover — **not** blocked by D1 |
+| Google-only identity migration | E3-1, X-1 | `account.cuesoft.io` facade is a later cosmetic cutover — **not** blocked by D1 |
 | Upstat events: `upload_success`, `report_generation` | ECO-ANALYTICS | **Blocked by D2**; ship behind the same no-op client wrapper pattern as apparule |
 | Support routing to clients.cuesoft.io | ECO-SUPPORT | Link-outs |
 
@@ -66,7 +66,7 @@ D2 lands.
 
 | ID | Dependency | Blocks |
 | --- | --- | --- |
-| D1 | `account.cuesoft.io` facade | Nothing (X-1: Firebase ratified; facade later) |
+| D1 | `account.cuesoft.io` facade | Nothing (X-1: Google sign-in ratified; facade later) |
 | D2 | Upstat event-ingestion API | Phase 3 events |
 | D3 | Expendit clause on privacy.cuesoft.io | Phase 0 privacy hub copy |
 

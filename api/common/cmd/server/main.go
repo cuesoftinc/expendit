@@ -18,7 +18,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/cuesoftinc/expendit/api/common/internal/app"
-	"github.com/cuesoftinc/expendit/api/common/internal/auth"
 	"github.com/cuesoftinc/expendit/api/common/internal/config"
 	"github.com/cuesoftinc/expendit/api/common/internal/handler"
 	"github.com/cuesoftinc/expendit/api/common/internal/jobs"
@@ -104,7 +103,19 @@ func run() error {
 		running = append(running, c)
 	}
 
-	verifier := auth.NewVerifier(cfg.FirebaseProjectID, cfg.FirebaseEmulatorHost != "")
+	sso := &handler.SSO{
+		Settings: handler.SSOSettings{
+			RedirectURI:       cfg.Auth.GoogleRedirectURI,
+			SessionCookieName: cfg.Auth.SessionCookieName,
+			OAuthStateCookie:  cfg.Auth.OAuthStateCookie,
+			SessionTTL:        cfg.Auth.JWTAccessTTL,
+			Secure:            cfg.Auth.SecureCookies,
+			FrontendURL:       cfg.CORSOrigins[0],
+			Origins:           cfg.CORSOrigins,
+		},
+		Store: a.SSOState, Google: a.Google, Handoffs: a.Handoffs, Users: a.Identity, Log: slog.Default(),
+	}
+	session := middleware.Session{Tokens: a.Tokens, CookieName: cfg.Auth.SessionCookieName, Origins: cfg.CORSOrigins}
 	h := &handler.Handlers{Identity: a.Identity, Ledger: a.Ledger, Imports: a.Imports, Statements: a.Statements, Compute: a.Compute}
 	ready := func(ctx context.Context) error {
 		if err := a.DB.Ping(ctx); err != nil {
@@ -121,7 +132,7 @@ func run() error {
 		handler.RunJob(jobs.New(a, producer)))
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(h, middleware.Authenticate(verifier, a.Identity), cfg.CORSOrigins, ready, scheduled),
+		Handler:           router.New(h, sso, middleware.Authenticate(session, a.Identity), cfg.CORSOrigins, ready, scheduled),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

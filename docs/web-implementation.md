@@ -35,10 +35,10 @@
   (feature-scoped hooks/orchestration, own all state; views never fetch);
   views = `web/src/app/**` routes + composed components, render-only.
 - **TEST_MODE**: `NEXT_PUBLIC_TEST_MODE=1` → GoogleAuthButton navigates
-  straight to the dashboard (no Firebase), and the API client targets the
+  straight to the dashboard (no Google redirect), and the API client targets the
   in-app mock server (§5). Auth sits behind an `AuthProvider` interface
-  (`TestModeAuthProvider` now; `FirebaseAuthProvider` added at
-  backend-integration time — X-1 Google-only either way,
+  (`TestModeAuthProvider` now; `SessionAuthProvider` for the real
+  backend — X-1 Google-only either way,
   [flows/auth.md](flows/auth.md)).
 - **Mock server**: Next route handlers under `web/src/app/api/mock/v1/*`
   implementing the documented API surface the web needs (paths, snake_case
@@ -643,11 +643,11 @@ on it:
 
 1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` —
    GoogleAuthButton navigates straight to `/dashboard` as the seeded test
-   user (§6), no Firebase SDK loaded, no popup. The seeded user already has
+   user (§6), no Google redirect, no API session. The seeded user already has
    orgs + consent recorded, so boot lands on `/dashboard`, not B0; the B0
    first-run journey runs on the fresh-identity fixture (§6). The interface
-   is identical to the future `FirebaseAuthProvider` (X-1 Google-only,
-   bearer-token shape preserved — flows/auth.md §2), so backend integration
+   is identical to `SessionAuthProvider` (X-1 Google-only,
+   API-issued session cookie, flows/auth.md §2), so backend integration
    swaps the provider, not the views. The test session persists as
    `expendit.test-session` in **sessionStorage** (JSON user payload) — the
    fleet key convention (P16): `<product>.test-session`, per-tab, gone on
@@ -657,7 +657,7 @@ on it:
    (incl. the `X-Org-Id` context header), so repositories are identical in
    both modes except for the base URL.
 
-Unset (or `0`) → real `FirebaseAuthProvider` + the real `/api/v1` base
+Unset (or `0`) → real `SessionAuthProvider` + the real `/api/v1` base
 (api/common). TEST_MODE is how Playwright runs in CI and how the app is
 developed before the v1 backend consolidation lands.
 
@@ -787,7 +787,7 @@ policy — when it opens.
 - [ ] W0–W3 each closed by a Figma QA loop before merge; deviations landed
       in docs + the org SKILL.md
 - [ ] TEST_MODE boots to `/dashboard` with the §6 seed rendering the
-      Figma-coherent narrative (all three §8.3 datasets); no Firebase loaded
+      Figma-coherent narrative (all three §8.3 datasets); no Google sign-in started
 - [ ] Every mocked endpoint speaks the engineering.md §1 envelope with
       catalog codes; every referenced failure-taxonomy code producible from
       fixtures; contract types shared with models

@@ -19,7 +19,9 @@ services talk over Kafka (system-design.md §5.3).
 ## 2. Conventions **[Built]**
 
 - Versioned under `/api/v1`. `GET /health` and `GET /ready` sit at the root.
-- **Auth**: `Authorization: Bearer <Firebase ID token>`, Google only (X-1).
+- **Auth**: the API's own session JWT, sent as the HttpOnly session cookie or
+  `Authorization: Bearer <jwt>`, obtained by Google sign-in only (X-1;
+  `/api/v1/auth/sso/*`, [flows/auth.md](flows/auth.md)).
   The first sign-in creates the personal org.
 - **Org context**: the `X-Org-Id` header. Without it, the personal org is
   used. Another org's id answers `404 not_found`, never `403`
@@ -103,5 +105,5 @@ categories.
 | EXP-004 downloadable summaries | JSON aggregates | `POST /reports` + rendering |
 | EXP-005 privacy hub | — | web page + D3 clause, updated for S-4 |
 | USR-001 / USR-002 | per-item deletes | `account/export`, `account/purge` |
-| ECO-AUTH | Firebase ID tokens | `account.cuesoft.io` facade (D1) |
+| ECO-AUTH | API-issued session JWT | `account.cuesoft.io` facade (D1) |
 | ECO-ANALYTICS | — | D2 + server-side events |

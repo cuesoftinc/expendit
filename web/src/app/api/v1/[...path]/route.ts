@@ -5,8 +5,10 @@
  * everything else to api/common. Origins are read per request
  * (API_URL, UPLOADS_URL), so one build runs in compose and cloud.
  *
- * Server-side code, not a view: no auth logic here. The bearer token and
- * the upload ticket pass through untouched and the services check them.
+ * Server-side code, not a view: no auth logic here. The bearer token, the
+ * upload ticket and, for api/common only, the session cookie and its origin
+ * proof pass through untouched and the services check them. The Google
+ * sign-in redirects and their cookies pass back through the same way.
  */
 
 import { serverEnv } from "@/config/env";
@@ -22,12 +24,23 @@ const FORWARD_REQUEST = [
   "upload-ticket",
   "x-request-id",
 ];
+/** Session and sign-in headers; never sent to the upload gateway. */
+const FORWARD_SESSION_REQUEST = [
+  "cookie",
+  "origin",
+  "accept",
+  "sec-fetch-site",
+  "sec-fetch-mode",
+  "sec-fetch-dest",
+  "x-forwarded-for",
+];
 /** Response headers the client reads. */
 const FORWARD_RESPONSE = [
   "content-type",
   "retry-after",
   "x-request-id",
   "content-disposition",
+  "location",
 ];
 
 const proxy = async (
@@ -44,6 +57,12 @@ const proxy = async (
   for (const name of FORWARD_REQUEST) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
+  }
+  if (origin === apiOrigin) {
+    for (const name of FORWARD_SESSION_REQUEST) {
+      const value = request.headers.get(name);
+      if (value) headers.set(name, value);
+    }
   }
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
@@ -75,6 +94,9 @@ const proxy = async (
   for (const name of FORWARD_RESPONSE) {
     const value = upstream.headers.get(name);
     if (value) responseHeaders.set(name, value);
+  }
+  for (const cookie of upstream.headers.getSetCookie()) {
+    responseHeaders.append("set-cookie", cookie);
   }
   return new Response(upstream.body, {
     status: upstream.status,

@@ -1,7 +1,7 @@
 # api/common
 
 Go: the **CRUD owner** (system-design.md §4, S-1, S-2). It is the only
-service that touches Postgres. It authenticates users (Firebase, X-1),
+service that touches Postgres. It authenticates users (Google sign-in, X-1),
 enforces the org-role matrix, owns every write, and stores the decisions
 `api/analytics` makes exactly as made. It never decides anything about
 financial data itself (S-7).
@@ -27,7 +27,8 @@ internal/storage/      object store: gcs (cloud) | s3 (MinIO)
 contract/              JSON Schemas for every Kafka message (owned here; embedded)
 
 internal/app/          wiring shared by the binaries
-internal/auth/         Firebase ID-token verification
+internal/auth/         Google OAuth client, session JWTs, one-time sign-in handoffs
+internal/cache/        pending sign-ins and sign-in start limits (memory or Redis)
 internal/middleware/   request id, logs, recovery, CORS contract, auth + org resolution
 internal/router/       the HTTP surface (/api/v1, /internal/jobs, /health, /ready)
 internal/handler/      thin handlers: decode → service → encode
@@ -44,12 +45,14 @@ migrations/            forward-only SQL, applied at start under an advisory lock
 ## The HTTP surface
 
 Paths follow the web contract (`web/src/models/repositories`) under `/api/v1`.
-Every route needs `Authorization: Bearer <Firebase ID token>`. `X-Org-Id`
+Every route needs the session: `Authorization: Bearer <session token>` or the
+session cookie set by sign-in. `X-Org-Id`
 picks the org; without it, the user's personal org is used. Another org's
 id answers `404`, never `403` (engineering.md §2).
 
 | Area | Routes |
 | --- | --- |
+| Sign-in (no session) | `GET /auth/sso/google?cv=` · `GET /auth/sso/google/callback` · `POST /auth/sso/exchange` · `POST /auth/logout` |
 | Identity | `GET /me` · `GET,POST /orgs` · `PATCH /orgs/{id}` · `GET,POST /orgs/{id}/members` · `PATCH,DELETE /orgs/{id}/members/{userId}` · `GET,POST /consent` |
 | Ledger | `GET,POST /categories` · `GET,PUT,DELETE /categories/{id}` · `POST /categories/{id}/merge,archive,unarchive` · `GET,POST /transactions` · `GET,PUT,DELETE /transactions/{id}` · `GET /report/monthly` · `GET /report/category` |
 | Imports | `POST /import` → `{job_id, upload_ticket}` · `GET /import` · `GET,DELETE /import/{jobId}` · `POST /import/{jobId}/confirm` · `PUT /import/transactions/{id}/category,include` |
@@ -104,7 +107,7 @@ go run ./cmd/server
 ```
 
 From the repo root, `docker compose up common` runs it with Postgres,
-Kafka, Redis, MinIO and the Firebase auth emulator.
+Kafka, Redis and MinIO.
 
 Use a **non-superuser** database role: superusers bypass row-level security.
 
