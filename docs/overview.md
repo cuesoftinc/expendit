@@ -55,7 +55,7 @@ Backend services are named by **function**, never by language:
 - [design.md](design.md) + [pages.md](pages.md) — design language, screens, microinteractions
 - [line-items.md](line-items.md) — canonical statement vocabulary + ratio formula registry
 - [decisions.md](decisions.md) — the ratified decision register (governs all docs)
-- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (cuesoft-iac provisioning, CI/CD pattern)
+- [deployment.md](deployment.md) — Cloud Run + App Hosting contract (IaC provisioning, CI/CD pattern)
 - flows/ — feature flow specs with edge cases: [auth](flows/auth.md), [import](flows/import.md), [bank-link](flows/bank-link.md)
 - [tax-engine.md](tax-engine.md) — NG PIT/CIT/VAT computation contract (versioned rule sets, trace requirements)
 - [engineering.md](engineering.md) — error catalog, authz matrix, rate limits, testing strategy, logging rules

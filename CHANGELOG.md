@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Docs describe provisioning without naming internal repositories.
 - `api/intake` → `api/statements`, `api/process` → `api/analytics` (S-1).
   Uploads are create-then-upload: `POST /api/v1/import` (or
   `/statements`) returns an upload ticket, and the file goes to
