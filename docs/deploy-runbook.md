@@ -251,12 +251,12 @@ Never set in cloud: `FIREBASE_AUTH_EMULATOR_HOST`, `GROQ_API_KEY`,
 
 **Website (App Hosting, `web/`):**
 
-| Variable | Available at | Value |
-| --- | --- | --- |
-| `NEXT_PUBLIC_TEST_MODE` | build | `1` until §9, then remove |
-| `NEXT_PUBLIC_FIREBASE_API_KEY`, `_AUTH_DOMAIN`, `_PROJECT_ID` | build | from §2 step 4 |
-| `API_ORIGIN` | runtime | the `expendit-api-common` URL (`https://…run.app`) |
-| `UPLOADS_ORIGIN` | runtime | the `expendit-api-statements` URL |
+| Variable                                                      | Available at | Value                                              |
+| ------------------------------------------------------------- | ------------ | -------------------------------------------------- |
+| `NEXT_PUBLIC_TEST_MODE`                                       | build        | `1` until §9, then remove                          |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`, `_AUTH_DOMAIN`, `_PROJECT_ID` | build        | from §2 step 4                                     |
+| `API_URL`                                                     | runtime      | the `expendit-api-common` URL (`https://…run.app`) |
+| `UPLOADS_URL`                                                 | runtime      | the `expendit-api-statements` URL                  |
 
 ## 7. Cloud Run resources (IaC stack)
 
@@ -328,7 +328,7 @@ On `cuesoftinc/expendit`:
    `migration applied` (first deploy only) and `listening`.
 5. Unpause the three Scheduler jobs, run each once and check for a 200 in
    the `expendit-api-common` logs (the IaC creates them paused).
-6. In App Hosting, set `API_ORIGIN`, `UPLOADS_ORIGIN` and the
+6. In App Hosting, set `API_URL`, `UPLOADS_URL` and the
    `NEXT_PUBLIC_FIREBASE_*` values, **then remove `NEXT_PUBLIC_TEST_MODE`**
    and roll out.
 7. Smoke test on the site: sign in with Google, add a transaction, import a

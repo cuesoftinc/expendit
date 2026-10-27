@@ -3,7 +3,7 @@
  * route handler forwards to the backend in cloud and
  * compose alike (system-design.md §7.1, S-14): /api/v1/uploads to api/statements,
  * everything else to api/common. Origins are read per request
- * (API_ORIGIN, UPLOADS_ORIGIN), so one build runs in compose and cloud.
+ * (API_URL, UPLOADS_URL), so one build runs in compose and cloud.
  *
  * Server-side code, not a view: no auth logic here. The bearer token and
  * the upload ticket pass through untouched and the services check them.

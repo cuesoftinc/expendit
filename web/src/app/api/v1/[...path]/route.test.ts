@@ -9,8 +9,8 @@ describe("/api/v1 proxy (system-design.md §7.1)", () => {
   const calls: Array<{ url: string; init: RequestInit }> = [];
 
   beforeEach(() => {
-    process.env.API_ORIGIN = "http://common:8080";
-    process.env.UPLOADS_ORIGIN = "http://statements:8081";
+    process.env.API_URL = "http://common:8080";
+    process.env.UPLOADS_URL = "http://statements:8081";
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string, init: RequestInit) => {
