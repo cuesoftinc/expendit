@@ -125,14 +125,14 @@ until a real customer needs it.
   migration is scheduled WITH the E-4 org migration (one migration, not two);
   self-host compose keeps Mongo until then, then switches to a Postgres
   container.
-  **Shared Redis**: the sandbox **Aiven Redis** instance, tenancy by
-  **`REDIS_DB` index** (the irealty pattern: discrete `REDIS_HOST/PORT/
-  USERNAME/PASSWORD/TLS/DB` vars; e.g. irealty prd=0, stg/dev=1) — indices
-  per product/config assigned in Doppler by the owner. **Doppler is the env source of truth: services read project `expendit`,
+  **Shared Valkey**: the sandbox **Aiven Valkey** instance `sandbox-cache`,
+  tenancy by **key prefix**: user `expendit` is limited to keys `expendit:*`
+  (`REDIS_KEY_PREFIX`, default `expendit`; discrete `REDIS_HOST/PORT/
+  USERNAME/PASSWORD/TLS` vars). **Doppler is the env source of truth: services read project `expendit`,
   config `stg`** (X-6: stg=sandbox is the only live env; `dev*` are local-dev
   conveniences and `prd` sits empty until a production ever exists —
   `cueprise/cuesoft_stg` was the *pattern reference*, not expendit's source).
-  Redis DB index recorded here when assigned: `expendit/stg = TBD-by-owner`. **Object storage**: the **default Cloud Storage bucket** in
+  **Object storage**: the **default Cloud Storage bucket** in
   `sandbox-e306a` (per-product prefixes `expendit/<env>/…`) for capture
   media, exports, and artifacts. Self-host compose keeps its bundled
   stores. ☑
@@ -144,6 +144,9 @@ until a real customer needs it.
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
+  **Revised 2026-10-27 (owner):** "Deploy on merge to main". A merge to
+  `main` that touches `api/**` deploys the API services to the sandbox; no
+  `v*` tags, since the open-source products cut no releases yet.
 - **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
   confirmations…) — the irealty pattern: `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
@@ -155,9 +158,8 @@ until a real customer needs it.
   (OTel industry standard, OBS-001), internal s2s (observability↔common),
   and the existing monitor control plane until monitors-v2. Cloud Run runs
   gRPC fine with end-to-end HTTP/2 (h2c) — already how api/common works.
-  **Browser gRPC-Web + Envoy is a sunset path**: no new surface uses it
-  (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP and Envoy
-  retires from the cloud topology. apparule/expendit never adopt gRPC. ☑
+  **Browser gRPC-Web is a sunset path**: no new surface uses it
+  (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. apparule/expendit never adopt gRPC. ☑
 - **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
   everywhere** — traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
@@ -234,7 +236,7 @@ until a real customer needs it.
 
 | ID | Decision | Status |
 | --- | --- | --- |
-| S-1 | Units: `web` · `api/common` (Go, CRUD) · `api/statements` (Node, thin gateway; was `intake`) · `api/analytics` (Python; was `process`), two worker pools | ☑ |
+| S-1 | Units: `web` · `api/common` (Go, CRUD) · `api/statements` (Node, thin gateway; was `intake`) · `api/analytics` (Python; was `process`), two services from one image | ☑ |
 | S-2 | Only `api/common` touches Postgres. `statements` and `analytics` have no database; they use temporary object storage, and `analytics` gets reference data inside messages | ☑ signed off |
 | S-3 | Claim-check: files in Cloud Storage `tmp/`, pointers on Kafka; payloads over 512 KB by reference | ☑ |
 | S-4 | Raw files at rest only until parsed (amends E-5) | ☑ |
@@ -245,7 +247,7 @@ until a real customer needs it.
 | S-9 | Bank sync fetch stays in `common` (lookup, fetch, relay); decisions go through the import pipeline | ☑ |
 | S-10 | Rule sets propagate by outbox → compacted topic; unsigned sets are `estimate_only`. **Amended 2026-10-13:** tax `compute.requested` messages carry the stored rule sets instead of a topic (system-design.md §16 I-16) | ☑ |
 | S-11 | Postgres row-level security by `org_id`; per-prefix Storage IAM; per-service Kafka ACLs | ☑ |
-| S-12 | `common` min 1 instance; `analytics` as two worker pools; sweeps as Cloud Run jobs. **Amended 2026-10-13 (boss):** every service scales to zero; publishers wake their consumers over HTTP, with Kafka kept and five topics (system-design.md §16 I-16; since I-18, the CueLABS shared bus's three lanes) | ☑ |
+| S-12 | Sweeps are Cloud Scheduler calls to `POST /internal/jobs/<name>` on `common`; `analytics` is two services from one image. **Amended 2026-10-13 (boss):** every service scales to zero; publishers wake their consumers over HTTP, with Kafka kept and five topics (system-design.md §16 I-16; since I-18, the CueLABS shared bus's three lanes) | ☑ |
 | S-13 | Topics `expendit.<domain>.<event>`; JSON Schemas in `api/common/contract/`. **Amended 2026-10-13:** events keep those names, and travel on the CueLABS shared bus's lanes `cuelabs.uploads`, `cuelabs.requests`, `cuelabs.results` (system-design.md §16 I-18) | ☑ |
 | S-15 | **Shared message bus (2026-10-13, boss):** Expendit, Apparule and Upstat share one Kafka service under the CueLABS delivery standard's `shared-messaging.md`. Expendit's Kafka user is `expendit`; consumer groups `expendit-common`, `expendit-analytics-extract`, `expendit-analytics-compute`. Payloads go by pointer. **Keep-alive owner: Expendit** (`api/common` reaper: heartbeat and power-on watchdog); Apparule and Upstat run neither | ☑ |
-| S-14 | The gateway sits behind `api.expendit.cuesoft.io/api/v1/uploads` | ☑ |
+| S-14 | The gateway is reached through the web proxy at `/api/v1/uploads` | ☑ |

@@ -1,7 +1,7 @@
 /**
  * /api/v1/* proxy: the browser talks only to the web origin, and this
- * route handler forwards to the backend the way the load balancer does in
- * cloud (system-design.md §7.1, S-14): /api/v1/uploads to api/statements,
+ * route handler forwards to the backend in cloud and
+ * compose alike (system-design.md §7.1, S-14): /api/v1/uploads to api/statements,
  * everything else to api/common. Origins are read per request
  * (API_ORIGIN, UPLOADS_ORIGIN), so one build runs in compose and cloud.
  *

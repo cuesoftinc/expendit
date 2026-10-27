@@ -170,7 +170,7 @@ services:
       - "8082:8082"
     environment:
       PORT: "8082"
-      # Both worker pools in one process for compose (§10.2).
+      # Both analytics pools in one process for compose (§10.2).
       ANALYTICS_POOL: all
       KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
       KAFKA_USERNAME: ${KAFKA_USERNAME:-}

@@ -32,6 +32,11 @@ type Config struct {
 
 	Ticket Ticket
 
+	// Cloud Scheduler's OIDC token: audience and invoker service account.
+	// Unset, /internal/jobs answers 503.
+	SchedulerAudience     string
+	SchedulerInvokerEmail string
+
 	// Limits enforced before a ticket exists (engineering.md §3).
 	UploadsPerHour  int
 	UploadsPerDay   int
@@ -71,6 +76,8 @@ type Redis struct {
 	Password string
 	TLS      bool
 	DB       int
+	// KeyPrefix leads every key (the shared Valkey ACL allows expendit:* only).
+	KeyPrefix string
 }
 
 type Storage struct {
@@ -113,12 +120,13 @@ func Load() (*Config, error) {
 			SSLCA:    os.Getenv("KAFKA_SSL_CA"),
 		},
 		Redis: Redis{
-			Host:     os.Getenv("REDIS_HOST"),
-			Port:     or(os.Getenv("REDIS_PORT"), "6379"),
-			Username: os.Getenv("REDIS_USERNAME"),
-			Password: os.Getenv("REDIS_PASSWORD"),
-			TLS:      os.Getenv("REDIS_TLS") == "true",
-			DB:       atoi(os.Getenv("REDIS_DB"), 0),
+			Host:      os.Getenv("REDIS_HOST"),
+			Port:      or(os.Getenv("REDIS_PORT"), "6379"),
+			Username:  os.Getenv("REDIS_USERNAME"),
+			Password:  os.Getenv("REDIS_PASSWORD"),
+			TLS:       os.Getenv("REDIS_TLS") == "true",
+			DB:        atoi(os.Getenv("REDIS_DB"), 0),
+			KeyPrefix: strings.TrimRight(or(os.Getenv("REDIS_KEY_PREFIX"), "expendit"), ":"),
 		},
 		Storage: Storage{
 			Driver:    or(os.Getenv("STORAGE_DRIVER"), "gcs"),
@@ -139,11 +147,13 @@ func Load() (*Config, error) {
 			Project:      strings.TrimSpace(os.Getenv("AIVEN_PROJECT")),
 			KafkaService: strings.TrimSpace(os.Getenv("AIVEN_KAFKA_SERVICE")),
 		},
-		UploadsPerHour:  atoi(os.Getenv("UPLOADS_PER_HOUR"), 10),
-		UploadsPerDay:   atoi(os.Getenv("UPLOADS_PER_DAY"), 30),
-		UploadBytesDay:  int64(atoi(os.Getenv("UPLOAD_BYTES_PER_DAY"), 200<<20)),
-		UploadMaxBytes:  15 << 20, // S-6
-		ImportReapAfter: 10 * time.Minute,
+		SchedulerAudience:     strings.TrimRight(strings.TrimSpace(os.Getenv("SCHEDULER_AUDIENCE")), "/"),
+		SchedulerInvokerEmail: strings.TrimSpace(os.Getenv("SCHEDULER_INVOKER_EMAIL")),
+		UploadsPerHour:        atoi(os.Getenv("UPLOADS_PER_HOUR"), 10),
+		UploadsPerDay:         atoi(os.Getenv("UPLOADS_PER_DAY"), 30),
+		UploadBytesDay:        int64(atoi(os.Getenv("UPLOAD_BYTES_PER_DAY"), 200<<20)),
+		UploadMaxBytes:        15 << 20, // S-6
+		ImportReapAfter:       10 * time.Minute,
 	}
 
 	if cfg.Storage.Driver != "gcs" && cfg.Storage.Driver != "s3" {

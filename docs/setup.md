@@ -41,7 +41,7 @@ make down      # stop and remove
 | firebase-auth | localhost:9099 | auth emulator (Google sign-in) |
 
 A `jobs` container runs the sweeps (reaper, tmp-cleanup, retention) on a
-loop. Cloud runs them on Cloud Scheduler.
+loop. Cloud Scheduler calls them as `POST /internal/jobs/<name>` on `common`.
 
 AI is optional locally. Set `GROQ_API_KEY` or `GEMINI_API_KEY` in `.env` to
 enable AI categorization, PDF extraction and receipt images. Without one,

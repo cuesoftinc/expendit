@@ -10,8 +10,8 @@ One image, two entry points:
 
 | Binary | Runs | Where |
 | --- | --- | --- |
-| `server` | HTTP API, Kafka consumers, outbox publisher | Cloud Run service, min 0, CPU always allocated; woken over HTTP (system-design.md §16 I-16) |
-| `jobs <name>` | one sweep, then exits | Cloud Run jobs + Cloud Scheduler (§6.7) |
+| `server` | HTTP API, Kafka consumers, outbox publisher | Cloud Run service, min 0; woken over HTTP (system-design.md §16 I-16). Also serves `POST /internal/jobs/<name>` |
+| `jobs <name>` | one sweep, then exits | by hand or compose; Cloud Scheduler uses the HTTP route (§6.7) |
 
 ## Layout
 
@@ -29,14 +29,14 @@ contract/              JSON Schemas for every Kafka message (owned here; embedde
 internal/app/          wiring shared by the binaries
 internal/auth/         Firebase ID-token verification
 internal/middleware/   request id, logs, recovery, CORS contract, auth + org resolution
-internal/router/       the HTTP surface (/api/v1, /health, /ready)
+internal/router/       the HTTP surface (/api/v1, /internal/jobs, /health, /ready)
 internal/handler/      thin handlers: decode → service → encode
 internal/service/      CRUD rules, authorization, hand-offs to analytics
 internal/repository/   all SQL; every query runs org-scoped under RLS
 internal/model/        API shapes (mirrors web/src/models)
 internal/ticket/       Ed25519 upload-ticket issuer (S-5)
 internal/outbox/       transactional outbox publisher (§6.6)
-internal/ratelimit/    Redis fixed-window limits; fails open (§9.2)
+internal/ratelimit/    Valkey fixed-window limits under `REDIS_KEY_PREFIX`; fails open (§9.2)
 internal/sweep/        scheduled jobs (§6.7)
 migrations/            forward-only SQL, applied at start under an advisory lock
 ```
@@ -62,6 +62,15 @@ return a ticket, and the client sends the file to `api/statements`
 `api/analytics`, so reads return the stored figures with
 `"status": "current" | "recomputing"` and queue a recomputation when the
 org's data changed since (§6.5).
+
+## Scheduled jobs
+
+Cloud Scheduler calls `POST /internal/jobs/{name}` (`reaper`, `tmp-cleanup`,
+`retention`, `heartbeat`) with a Google OIDC token. The route checks that the
+token's audience is `SCHEDULER_AUDIENCE` and that its verified `email` is
+`SCHEDULER_INVOKER_EMAIL`, then runs the sweep inside the request. Answers:
+200 `{"job","ms"}`, 401 no or bad token, 403 wrong email, 404 unknown name,
+500 sweep failed, 503 either variable unset. `migrate` is not exposed.
 
 ## Kafka
 
