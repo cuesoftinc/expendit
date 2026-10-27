@@ -1,6 +1,6 @@
 // Command server is api/common: the HTTP API, the Kafka consumers and the
 // outbox publisher in one process (system-design.md §4). In cloud it scales
-// to zero with CPU always allocated: whatever publishes for it wakes it
+// to zero: whatever publishes for it wakes it
 // (§16 I-16), and it wakes analytics in turn.
 package main
 
@@ -21,6 +21,7 @@ import (
 	"github.com/cuesoftinc/expendit/api/common/internal/auth"
 	"github.com/cuesoftinc/expendit/api/common/internal/config"
 	"github.com/cuesoftinc/expendit/api/common/internal/handler"
+	"github.com/cuesoftinc/expendit/api/common/internal/jobs"
 	"github.com/cuesoftinc/expendit/api/common/internal/kafka"
 	"github.com/cuesoftinc/expendit/api/common/internal/middleware"
 	"github.com/cuesoftinc/expendit/api/common/internal/outbox"
@@ -116,9 +117,11 @@ func run() error {
 		}
 		return nil
 	}
+	scheduled := middleware.SchedulerAuth(middleware.GoogleVerifier{}, cfg.SchedulerAudience, cfg.SchedulerInvokerEmail)(
+		handler.RunJob(jobs.New(a, producer)))
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           router.New(h, middleware.Authenticate(verifier, a.Identity), cfg.CORSOrigins, ready),
+		Handler:           router.New(h, middleware.Authenticate(verifier, a.Identity), cfg.CORSOrigins, ready, scheduled),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 

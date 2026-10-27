@@ -17,6 +17,7 @@ import (
 
 type Limiter struct {
 	client *redis.Client
+	prefix string
 }
 
 // New returns nil when REDIS_HOST is unset (limits disabled).
@@ -33,7 +34,7 @@ func New(cfg config.Redis) *Limiter {
 	if cfg.TLS {
 		opts.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
 	}
-	return &Limiter{client: redis.NewClient(opts)}
+	return &Limiter{client: redis.NewClient(opts), prefix: cfg.KeyPrefix}
 }
 
 func (l *Limiter) Close() error {
@@ -59,7 +60,7 @@ func (l *Limiter) Take(ctx context.Context, key string, cost int64, rules ...Rul
 	now := time.Now()
 	keys := make([]string, len(rules))
 	for i, r := range rules {
-		keys[i] = fmt.Sprintf("rl:%s:%s:%d", r.Name, key, now.Unix()/int64(r.Window.Seconds()))
+		keys[i] = l.windowKey(r, key, now)
 	}
 	// Check every window first, then add to all: one refusal costs nothing.
 	values, err := l.client.MGet(ctx, keys...).Result()
@@ -86,6 +87,15 @@ func (l *Limiter) Take(ctx context.Context, key string, cost int64, rules ...Rul
 		slog.Warn("rate limiter unavailable; failing open", "error", err)
 	}
 	return true, 0
+}
+
+// windowKey is <prefix>:rl:<rule>:<key>:<window number>.
+func (l *Limiter) windowKey(r Rule, key string, now time.Time) string {
+	k := fmt.Sprintf("rl:%s:%s:%d", r.Name, key, now.Unix()/int64(r.Window.Seconds()))
+	if l.prefix == "" {
+		return k
+	}
+	return l.prefix + ":" + k
 }
 
 func (l *Limiter) Ping(ctx context.Context) error {

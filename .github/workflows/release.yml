@@ -5,7 +5,7 @@
 # environment with required reviewers, so a merge never deploys by itself.
 # The web app is not here: it rides Firebase App Hosting rollouts from main.
 #
-# The Cloud Run resources (services, jobs, env, secrets, IAM) are created by
+# The Cloud Run resources (services, scheduler jobs, env, secrets, IAM) are created by
 # the cuesoft-iac stack (docs/deploy-runbook.md). This workflow only builds
 # the images and points the existing resources at the new digests.
 name: release
@@ -128,12 +128,6 @@ jobs:
         run: |
           gcloud run services update expendit-api-analytics-extract --region "$REGION" --image "$ANALYTICS" --quiet
           gcloud run services update expendit-api-analytics-compute --region "$REGION" --image "$ANALYTICS" --quiet
-
-      - name: Point the sweep jobs at the new common image
-        run: |
-          for job in reaper tmp-cleanup retention; do
-            gcloud run jobs update "expendit-sweep-${job}" --region "$REGION" --image "$COMMON" --quiet
-          done
 
       # Don't report success without checking the terminal state: every
       # service's latest revision must be the one serving and Ready.

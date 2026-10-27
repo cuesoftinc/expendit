@@ -11,12 +11,10 @@
 ```mermaid
 flowchart LR
     BR[Browser] --> WEB[web — Next.js]
-    BR --> LB{{api.expendit.cuesoft.io}}
-    WEB -->|SSR| LB
-    LB -->|/api/v1/uploads| ST[api/statements — Node<br/>thin gateway]
-    LB -->|everything else| CM[api/common — Go<br/>CRUD owner]
+    WEB -->|proxy /api/v1/uploads| ST[api/statements · Node<br/>thin gateway]
+    WEB -->|proxy everything else| CM[api/common · Go<br/>CRUD owner]
     CM --> PG[(Postgres)]
-    CM -.-> R[(Redis<br/>rate limits)]
+    CM -.-> R[(Valkey<br/>rate limits)]
     ST -->|tmp/| OS[(Object storage<br/>GCS · MinIO)]
     AN -.->|read tmp/| OS
     CM -->|delete after parse| OS
@@ -71,7 +69,7 @@ Each service's README has its full layout.
   `api/common/contract/`. The only
   direct call between services is a wake-up call, carrying no data, that starts a
   consumer scaled to zero (system-design.md §16 I-16).
-- **Redis** holds rate-limit and quota counters only, and fails open (§9.2).
+- **Valkey** holds rate-limit and quota counters only, and fails open (§9.2).
 
 Entity details: [data-model.md](data-model.md). Topic table:
 [system-design.md §5.3](system-design.md#53-kafka-topics).
@@ -157,8 +155,8 @@ handles. See system-design.md §6.2 and [flows/bank-link.md](flows/bank-link.md)
 See [deployment.md](deployment.md). In short: Cloud Run services for
 `common`, `statements` and the two `analytics` pools, all scaling to zero
 (publishers wake their consumers over HTTP, system-design.md §16 I-16), Cloud
-Run jobs for the sweeps, Firebase App Hosting for `web`, Aiven for Postgres,
-Kafka and Redis. Compose and the Helm chart run the same images.
+Scheduler calls to `POST /internal/jobs/<name>` on `common` for the sweeps,
+Firebase App Hosting for `web`, Aiven for Postgres, Kafka and Valkey. Compose and the Helm chart run the same images.
 
 ## 7. Cross-repo dependencies
 

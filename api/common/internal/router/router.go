@@ -15,7 +15,7 @@ import (
 // consumers running, outbox publishing.
 type Readiness func(ctx context.Context) error
 
-func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness) http.Handler {
+func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins []string, ready Readiness, jobs http.Handler) http.Handler {
 	api := http.NewServeMux()
 	routes := map[string]http.HandlerFunc{
 		"GET /api/v1/me": h.Me,
@@ -90,6 +90,8 @@ func New(h *handler.Handlers, auth func(http.Handler) http.Handler, corsOrigins 
 		_, _ = w.Write([]byte(`{"status":"ready"}`))
 	})
 	root.Handle("/api/v1/", auth(api))
+	// Guarded by the scheduler OIDC check, not user auth.
+	root.Handle("POST /internal/jobs/{name}", jobs)
 	root.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
