@@ -6,14 +6,14 @@ import (
 )
 
 func TestLoadReportsEveryMissingSetting(t *testing.T) {
-	for _, k := range []string{"DATABASE_URL", "FIREBASE_PROJECT_ID", "KAFKA_BROKERS", "STORAGE_BUCKET", "STORAGE_PREFIX", "UPLOAD_TICKET_PRIVATE_KEY", "STORAGE_DRIVER"} {
+	for _, k := range []string{"DATABASE_URL", "GOOGLE_CLOUD_PROJECT", "KAFKA_BROKERS", "STORAGE_BUCKET", "STORAGE_PREFIX", "UPLOAD_TICKET_PRIVATE_KEY", "STORAGE_DRIVER"} {
 		t.Setenv(k, "")
 	}
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected an error")
 	}
-	for _, k := range []string{"DATABASE_URL", "FIREBASE_PROJECT_ID", "KAFKA_BROKERS", "STORAGE_BUCKET", "STORAGE_PREFIX", "UPLOAD_TICKET_PRIVATE_KEY"} {
+	for _, k := range []string{"DATABASE_URL", "GOOGLE_CLOUD_PROJECT", "KAFKA_BROKERS", "STORAGE_BUCKET", "STORAGE_PREFIX", "UPLOAD_TICKET_PRIVATE_KEY"} {
 		if !strings.Contains(err.Error(), k) {
 			t.Errorf("error does not name %s: %v", k, err)
 		}
@@ -22,7 +22,7 @@ func TestLoadReportsEveryMissingSetting(t *testing.T) {
 
 func TestLoadParsesTheTicketKey(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://x")
-	t.Setenv("FIREBASE_PROJECT_ID", "p")
+	t.Setenv("GOOGLE_CLOUD_PROJECT", "p")
 	t.Setenv("KAFKA_BROKERS", "a:9092, b:9092")
 	t.Setenv("STORAGE_DRIVER", "s3")
 	t.Setenv("STORAGE_ENDPOINT", "localhost:9000")

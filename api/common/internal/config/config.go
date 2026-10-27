@@ -111,7 +111,7 @@ func Load() (*Config, error) {
 		Port:                 or(os.Getenv("PORT"), "8080"),
 		CORSOrigins:          split(or(os.Getenv("CORS_ORIGINS"), "http://localhost:3000")),
 		DatabaseURL:          need("DATABASE_URL"),
-		FirebaseProjectID:    need("FIREBASE_PROJECT_ID"),
+		FirebaseProjectID:    need("GOOGLE_CLOUD_PROJECT"),
 		FirebaseEmulatorHost: os.Getenv("FIREBASE_AUTH_EMULATOR_HOST"),
 		Kafka: Kafka{
 			Brokers:  split(need("KAFKA_BROKERS")),

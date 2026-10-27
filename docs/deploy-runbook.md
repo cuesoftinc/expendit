@@ -227,7 +227,7 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | Variable | common | statements | analytics |
 | --- | --- | --- | --- |
 | `DATABASE_URL` 🔒 | ✓ | | |
-| `FIREBASE_PROJECT_ID` | ✓ (the GCP project id) | | |
+| `GOOGLE_CLOUD_PROJECT` | ✓ (the GCP project id) | | |
 | `UPLOAD_TICKET_PRIVATE_KEY` 🔒 | ✓ | | |
 | `UPLOAD_TICKET_PUBLIC_KEYS` | | ✓ | |
 | `KAFKA_BROKERS`, `KAFKA_SSL_CA` | ✓ | ✓ | ✓ |

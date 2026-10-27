@@ -29,7 +29,7 @@ services:
       STORAGE_USE_SSL: "false"
       PORT: "8080"
       CORS_ORIGINS: https://expendit.example.com
-      FIREBASE_PROJECT_ID: ""
+      GOOGLE_CLOUD_PROJECT: ""
       REDIS_HOST: redis
       REDIS_PORT: "6379"
     envFrom:

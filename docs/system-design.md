@@ -526,7 +526,7 @@ via env for AI. Helm uses the same images.
 ### 10.3 Environment variables (fleet names only)
 
 `DATABASE_URL` · `REDIS_HOST/PORT/USERNAME/PASSWORD/TLS/DB` ·
-`KAFKA_BROKERS/USERNAME/PASSWORD/SSL_CA` · `FIREBASE_PROJECT_ID` ·
+`KAFKA_BROKERS/USERNAME/PASSWORD/SSL_CA` · `GOOGLE_CLOUD_PROJECT` ·
 `STORAGE_BUCKET` · `MONO_SECRET_KEY` + KMS key name (common) ·
 `UPLOAD_TICKET_PRIVATE_KEY` (common) · `UPLOAD_TICKET_PUBLIC_KEYS`
 (statements) · `ANALYTICS_POOL=extract|compute` (analytics) ·
