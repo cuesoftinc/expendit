@@ -1,10 +1,10 @@
 # Expendit, Web Implementation Standard
 
 > How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
-> (ratified 2026-07-18, org-wide **[Directive]**) carried in full, plus the
+> (ratified 2026-07-18, org-wide **[Specified]**) carried in full, plus the
 > Expendit-specific addendum, stage plan, token mapping, route map,
 > TEST_MODE contract, mock server, test strategy, legacy/dead-code policy.
-> Markers as in [design.md](design.md): **[Directive]** = user-stated
+> Markers as in [design.md](design.md): **[Specified]** = user-stated
 > direction, **[Proposed]** = ratifiable decision, **[Decided <date>]** =
 > ratified. Companion contracts: [engineering.md](engineering.md) (errors,
 > authz, limits), [design.md](design.md) (tokens, components, MI catalog),
@@ -59,7 +59,7 @@
   `scripts/check-boundaries.mjs` keep `legacy/` imports banned regardless of
   whether the tree currently holds anything. Expendit's application of the
   policy: §8.
-- **Mobile responsiveness canon [Directive 2026-07-19]**: the home page and
+- **Mobile responsiveness canon [Specified 2026-07-19]**: the home page and
   every dashboard route are fully responsive at 390 (768 sanity), the
   document NEVER side-scrolls. Wide data surfaces (the ledger table,
   staged-review table, statement grids, mapping review) live in
@@ -396,7 +396,7 @@ A5a thumbs do), so the numbered captions sit on one aligned row at
 desktop; the home e2e asserts the caption row stays level (±2px) at
 1440 in both themes.
 
-Screen-state parity **[Directive 2026-07-18, carried from design.md §8.1]**:
+Screen-state parity **[Specified 2026-07-18, carried from design.md §8.1]**:
 every data-driven screen ships default, empty, and loading states, the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three (B1/B2/B6/B6b/B7 have the
@@ -586,7 +586,7 @@ currency from org settings.
 
 pages.md names the Part B routes directly in its screen headers, the map
 below restates them and resolves the drill-ins. Route shape
-**[Decided 2026-07-18, route canon]** (user directive, canonical across the
+**[Decided 2026-07-18, route canon]** (canonical across the
 ecosystem): `/` is the public home, `/signin` is the only auth route, and
 **every app surface nests under `/dashboard/<area>`**. Detail views
 open in the Inspector (deep-linkable `?record=`, MI-11), not routes -

@@ -118,7 +118,7 @@ auto-created personal org; any business entity that wants statement capture
 
 ---
 
-## 9. Scope expansion (2026-07-16) **[Directive]**
+## 9. Scope expansion (2026-07-16) **[Specified]**
 
 Look and feel: **brex.com** ([design.md](design.md)). Three new capability
 pillars, page-level breakdowns in [pages.md](pages.md):
@@ -137,7 +137,7 @@ pillars, page-level breakdowns in [pages.md](pages.md):
    NG-first **[Proposed]**) and **file**: v1 generates filing-ready documents
    with guided handoff; v2 adds direct e-filing where APIs/partners exist.
 
-Platform structure **[Directive]**: public home page (shared open-source-site
+Platform structure **[Specified]**: public home page (shared open-source-site
 pattern: Discord, GitHub, preview link, Try Cloud / Self Host CTAs) + dashboard
 + eventual mobile parity (receipt capture first). Docs on GitBook (Git-synced
 from `docs/`); API reference via Scalar. New open questions: aggregator

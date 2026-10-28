@@ -2,7 +2,7 @@
 
 > Reference feel: **brex.com**, editorial financial-grade polish: confident
 > typography, dark hero surfaces, precise data UI, keyboard-first workflows.
-> Markers: **[Directive]** = user-stated direction (2026-07-16), **[Proposed]**
+> Markers: **[Specified]** = stated direction (2026-07-16), **[Proposed]**
 > = ratifiable decision. Pages/screens in [pages.md](pages.md) reference the
 > microinteractions here as `MI-n`.
 
@@ -87,7 +87,7 @@
 | Radii (product) | 6px |
 | Product note | density toggle honors the compact row height 32px / comfortable 44px |
 
-- **Cursor affordance**: enabled interactive controls show `cursor: pointer`, one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Directive 2026-07-19]
+- **Cursor affordance**: enabled interactive controls show `cursor: pointer`, one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Specified 2026-07-19]
 
 These rows are standardized in the org SKILL.md, a change here is an
 ecosystem change, PR'd to all three design.md files together.
@@ -144,7 +144,7 @@ ecosystem change, PR'd to all three design.md files together.
 | --- | --- | --- |
 | Home (public) | pages.md Part A Brex-editorial home, built on this system (W2) | shipped |
 | Dashboard | pages.md Part B suite, built on this system (W3) | shipped |
-| Mobile | responsive web shipped, below `md` the marketing nav collapses to the hamburger disclosure (Try Cloud stays in the bar) and the dashboard rides the 64px icon rail with an overlay drawer + scrim; the Figma Mobile page carries the @390 exemplars | native app later phase; ledger + receipt-capture first (pages.md Part C sketch), ecosystem parity **[Directive]** |
+| Mobile | responsive web shipped, below `md` the marketing nav collapses to the hamburger disclosure (Try Cloud stays in the bar) and the dashboard rides the 64px icon rail with an overlay drawer + scrim; the Figma Mobile page carries the @390 exemplars | native app later phase; ledger + receipt-capture first (pages.md Part C sketch), ecosystem parity **[Specified]** |
 
 ## 7. Figma Style Guide (source of truth for tokens)
 
@@ -228,13 +228,13 @@ above (docs Stage 3 = Assemblies); the "Mode test, Dark" and "About -
 Component Library" frames on that page are QA/scaffolding artifacts, not
 stages or contract rows.
 
-**Screen-state rule [Directive 2026-07-18].** Every data-driven Stage-4
+**Screen-state rule [Specified 2026-07-18].** Every data-driven Stage-4
 screen template ships **three frames**: **default** (populated), **empty**
 (EmptyState + first-run copy; demo-data toggle where specced, MI-16), and
 **loading** (Skeleton set, MI-12). pages.md calls the rule out on B1/B2/B6/B7;
 it applies to every data-driven template in the Stage-4 row.
 
-**Canvas hygiene [Directive 2026-07-18].** Design canvases carry **product
+**Canvas hygiene [Specified 2026-07-18].** Design canvases carry **product
 copy only**. Spec annotations, MI references, requirement IDs,
 implementation notes, live in component descriptions and in these docs,
 never on screens.
@@ -293,7 +293,7 @@ never on screens.
 
 | Component | Variants × states |
 | --- | --- |
-| AppNav / NavItem | **blocking** · item: default / hover / active / with-badge-count (MI-5) · group label · expanded 240px / collapsed 64px icon rail · org-switcher slot top · theme ×2 · ThemeToggle instance in the chrome (expanded footer + collapsed rail) [Directive 2026-07-19] |
+| AppNav / NavItem | **blocking** · item: default / hover / active / with-badge-count (MI-5) · group label · expanded 240px / collapsed 64px icon rail · org-switcher slot top · theme ×2 · ThemeToggle instance in the chrome (expanded footer + collapsed rail) [Specified 2026-07-19] |
 | ThemeToggle | **blocking** · theme: light / dark / system, a single 28px icon button; the icon (sun / moon / lucide monitor) announces the applied state and each click advances the cycle light → dark → system; system follows live `prefers-color-scheme` · persisted at localStorage `expendit.theme` · token-bound (`bg-elev`/`border`/`bg`, icon strokes → `text`) so one master renders in both modes · instances pinned in MarketingNav and AppNav chrome per the cross-product canon · the three-way Light \| Dark \| System control in Settings → Organization (the appearance rows at the tab tail) is a SegmentedControl instance, not this component **[Reconciled 2026-07-20]** |
 | OrgSwitcher | **blocking** · closed / open (menu) · org kind: personal / company · current + list rows · theme ×2 (as built: `open` is modeled on kind=company only, 3 of 4 combos; the open menu is the company exemplar) |
 | MobileTabBar + MobileHeader | **nice-to-have** (Part C, later phase) · 5 tabs Home/Transactions/Capture/Reports/Settings · active/inactive · Capture accent · header: title + back |
@@ -352,7 +352,7 @@ never on screens.
 | Component | Variants × states |
 | --- | --- |
 | MarketingNav | **blocking** · surface: on-dark (over hero) / dark-on-light (post-hero scroll, sticky) × breakpoint: desktop / mobile / mobile-open · 4 text links pinned to the cross-product canon: Features · Pricing · Docs (GitBook root) · GitHub, the GitHub item renders as a compact star badge (GitHub mark + star glyph + neutral "Star" label; no count on canvas, the live star count is runtime behavior) · ThemeToggle instance · "Sign in" text link (`/signin`) + "Try Cloud" accent primary CTA · no Solutions dropdown · breakpoint=mobile is the 390 bar, Wordmark · Try Cloud · icon/menu hamburger (the conversion CTA never hides behind the menu); breakpoint=mobile-open adds the disclosure panel, Features / Pricing / Docs / star badge, then divider + ThemeToggle + Sign in, and the bar swaps to icon/x (matching @390 exemplars on the Figma Mobile page) **[Reconciled 2026-07-20]** |
-| MarketingFooter | **blocking** · brand block (wordmark + tagline) + 4 link columns pinned to the cross-product canon, Product (Features · Pricing · Try Cloud · Self Host) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status), column headers render the 11px uppercase micro-label idiom (same treatment as TableHeader labels), legal bar verbatim "© Cuesoft Inc. 2026. Expendit. CueLABS™ Division. MIT License." ("Cuesoft Inc." → cuesoft.io, "CueLABS™ Division" → cuelabs.cuesoft.io, "MIT License" → repo LICENSE) · "View Security Policy" CTA (repo SECURITY.md) · English language selector · dark editorial band in both themes [Directive 2026-07-19] |
+| MarketingFooter | **blocking** · brand block (wordmark + tagline) + 4 link columns pinned to the cross-product canon, Product (Features · Pricing · Try Cloud · Self Host) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status), column headers render the 11px uppercase micro-label idiom (same treatment as TableHeader labels), legal bar verbatim "© Cuesoft Inc. 2026. Expendit. CueLABS™ Division. MIT License." ("Cuesoft Inc." → cuesoft.io, "CueLABS™ Division" → cuelabs.cuesoft.io, "MIT License" → repo LICENSE) · "View Security Policy" CTA (repo SECURITY.md) · English language selector · dark editorial band in both themes [Specified 2026-07-19] |
 | EditorialCard | **important** · pillar (A4) / community (A9) · default / hover (2px lift + accent underline draw) · light/dark section |
 | CodeSnippet | **important** · Mono/13 block on dark · copy: idle / copied (✓ morph) · tabs: none / docker / helm, the A8a self-host pair renders mirrored two-line commands (only the final command differs: `docker compose up --build -d` vs `helm install expendit deploy/helm`) with a muted BYO-datastores caption under the block, tab-independent **[Ratified 2026-07-20]** |
 | ComparisonTable | **important** · 2 columns (Cloud vs Self-host) · cell: check / x / text · per-column CTA footer row, as built 2026-07-18: the price row reads "Announced at GA" / "Free forever", captioned "Cloud pricing is announced at GA, self-hosting is free forever" |

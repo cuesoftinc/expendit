@@ -2,9 +2,9 @@
 
 > Component-level surface inventory referencing [design.md](design.md)
 > (`MI-n`). Part A public home page, Part B dashboard, Part C mobile sketch.
-> The 2026-07-16 expansion **[Directive]**: bank-account linking, company
+> The 2026-07-16 expansion **[Specified]**: bank-account linking, company
 > financial-records analysis (solvency/profitability ratios), tax calculation
-> **and filing**. Iteration 1 (2026-07-18) **[Directive]**: enriched home
+> **and filing**. Iteration 1 (2026-07-18) **[Specified]**: enriched home
 > narrative (deep-dives, how-it-works, contribute, self-host, FAQ, final CTA)
 > + flow-state screens; data-driven screens ship default/empty/loading frames
 > (screen-state rule, design.md §8.1).
@@ -13,7 +13,7 @@
 
 Shared CueLABS™ open-source-site pattern: product presentation → developer
 setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTAs
-**[Directive]**. Brex-style editorial execution (design.md §1.2).
+**[Specified]**. Brex-style editorial execution (design.md §1.2).
 
 | # | Section | Content & components | Interactions |
 | --- | --- | --- | --- |
@@ -21,17 +21,17 @@ setup → Discord + GitHub + preview links → **Try Cloud** / **Self Host** CTA
 | A2 | Hero (dark editorial) | display-type H1 "See every naira. File every tax."; sub; dual CTA **Try Cloud** / **Self Host**; hero visual: dashboard in device frame with animated categorization chips | chips animate once; static under reduced-motion |
 | A3 | Logos/social proof strip | placeholder for case-study logos (PRD §6) | |
 | A4 | Product pillars | 3 editorial cards: **Statements → intelligence** (upload/link), **Company financials** (ratios), **Taxes** (calculate + file) | card hover: 2px lift + accent underline draw |
-| A4a | Feature deep-dives **[Directive 2026-07-18]** | benefit-led deep-dive per pillar, alternating editorial split (claim → outcome copy → product still): categorized ledger in minutes · company health at a glance (ratios + trends) · filing-ready taxes with a named authority | stills swap on scroll-into-view; static under reduced-motion |
+| A4a | Feature deep-dives **[Specified 2026-07-18]** | benefit-led deep-dive per pillar, alternating editorial split (claim → outcome copy → product still): categorized ledger in minutes · company health at a glance (ratios + trends) · filing-ready taxes with a named authority | stills swap on scroll-into-view; static under reduced-motion |
 | A5 | Interactive preview (EXP-001) | embedded read-only demo report: synthetic txn table + category donut + cash-flow line; "This is demo data" badge | tabs switch datasets (freelancer/SME/company); MI-7 count-ups |
-| A5a | How it works **[Directive 2026-07-18]** | 3 numbered steps, link/upload → AI review & confirm → reports, ratios & filings, each carrying a **real screen thumbnail** (Stage-4 template captures, not illustrations) | thumbnail click scrolls to the A5 live demo |
+| A5a | How it works **[Specified 2026-07-18]** | 3 numbered steps, link/upload → AI review & confirm → reports, ratios & filings, each carrying a **real screen thumbnail** (Stage-4 template captures, not illustrations) | thumbnail click scrolls to the A5 live demo |
 | A6 | AI section | how categorization/anomalies work + privacy note inline (AI providers disclosed) | |
 | A7 | Security & privacy | encryption, retention, delete-all rights; links: security policy + privacy hub (D3) | |
-| A8 | For developers, Contribute (expands Open-source **[Directive 2026-07-18]**) | stack line (Go · Node · Python APIs · Next.js web · Postgres/Kafka/Redis, architecture.md); "interesting problems" list (statement parsing, categorization engine, ratio/tax engines); good-first-issues + CONTRIBUTING + Discord links; GitHub badge; architecture mini-diagram | badge star count populated at runtime, no number in static designs |
-| A8a | Self-host **[Directive 2026-07-18]** | data-ownership pitch ("your ledger, your infra"); tabbed snippet **Docker Compose \| Helm** (CodeSnippet `tabs=docker/helm`): mirrored two-line commands, `git clone https://github.com/cuesoftinc/expendit` then `cd expendit && docker compose up --build -d` (Makefile `up` target) vs `cd expendit && helm install expendit deploy/helm`, only the final command differs, with a muted caption under the block ("Compose ships MongoDB + Redis, the Helm chart expects reachable instances (DATABASE_URL, REDIS_HOST)") **[Ratified 2026-07-20]**; what ships (api-common · web · Mongo · Redis, architecture.md); self-host docs link | copy ✓ morph |
+| A8 | For developers, Contribute (expands Open-source **[Specified 2026-07-18]**) | stack line (Go · Node · Python APIs · Next.js web · Postgres/Kafka/Redis, architecture.md); "interesting problems" list (statement parsing, categorization engine, ratio/tax engines); good-first-issues + CONTRIBUTING + Discord links; GitHub badge; architecture mini-diagram | badge star count populated at runtime, no number in static designs |
+| A8a | Self-host **[Specified 2026-07-18]** | data-ownership pitch ("your ledger, your infra"); tabbed snippet **Docker Compose \| Helm** (CodeSnippet `tabs=docker/helm`): mirrored two-line commands, `git clone https://github.com/cuesoftinc/expendit` then `cd expendit && docker compose up --build -d` (Makefile `up` target) vs `cd expendit && helm install expendit deploy/helm`, only the final command differs, with a muted caption under the block ("Compose ships MongoDB + Redis, the Helm chart expects reachable instances (DATABASE_URL, REDIS_HOST)") **[Ratified 2026-07-20]**; what ships (api-common · web · Mongo · Redis, architecture.md); self-host docs link | copy ✓ morph |
 | A9 | Community | Discord card + roadmap link | |
 | A10 | Cloud vs Self-host | comparison table; per-column CTAs | |
-| A10a | FAQ **[Directive 2026-07-18]** | 4–5 product Q&As (Accordion): is my bank data safe (read-only via Mono) · does AI see my data (consent-gated, providers disclosed) · can I self-host everything · what does "filing" mean in v1 (filing-ready documents + guided handoff) · which banks/jurisdictions (NG-first) | accordion open/close, one open at a time |
-| A10b | Final CTA band **[Directive 2026-07-18]** | dark editorial band: one-line close + dual CTA **Try Cloud** / **Self Host** (mirrors A2) | CTAs re-emit the A2 events |
+| A10a | FAQ **[Specified 2026-07-18]** | 4–5 product Q&As (Accordion): is my bank data safe (read-only via Mono) · does AI see my data (consent-gated, providers disclosed) · can I self-host everything · what does "filing" mean in v1 (filing-ready documents + guided handoff) · which banks/jurisdictions (NG-first) | accordion open/close, one open at a time |
+| A10b | Final CTA band **[Specified 2026-07-18]** | dark editorial band: one-line close + dual CTA **Try Cloud** / **Self Host** (mirrors A2) | CTAs re-emit the A2 events |
 | A11 | Footer | standard + brand caption "Financial intelligence for modern growth." + "View Security Policy" CTA (PRD §6) | |
 
 As built (2026-07-18 QA loop): the section register above matches the built
@@ -41,7 +41,7 @@ final CTA), no drift.
 
 Events go to the monitoring service (D2): `page_view`, `try_cloud_click`, `self_host_click`,
 `github_click`, `demo_interact`, `contribute_click`, `faq_open`
-**[Directive 2026-07-18 additions]**.
+**[Specified 2026-07-18 additions]**.
 
 ## Part B, Dashboard (app)
 
@@ -53,7 +53,7 @@ Left nav groups **[Proposed]**: Overview · Transactions · Imports · Accounts
 Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 (personal ↔ company orgs, data-model.md §5).
 
-### B0 `/onboarding`, First-run **[Directive 2026-07-18]**
+### B0 `/onboarding`, First-run **[Specified 2026-07-18]**
 - One post-auth screen: create org, personal (default) / company kind picker
   (data-model.md §5 "Who uses which org kind"), plus the AI-consent sheet
   (`ai_processing` CONSENT_RECORD) before first import.
@@ -66,7 +66,7 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   actual span), category donut, anomaly feed (MI-5), latest transactions
   table (5 rows → Transactions).
 - Empty state: MI-16 with demo-data toggle; empty + loading frames ship per
-  the screen-state rule (design.md §8.1) **[Directive 2026-07-18]**.
+  the screen-state rule (design.md §8.1) **[Specified 2026-07-18]**.
 
 ### B2 `/transactions`, Ledger
 - Full `TxnTable` (virtualized): filters (date range, category, source,
@@ -84,9 +84,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   flagged, human-cased severity, provenance line (detected date +
   `rule_id` rule version), comparable transactions named by category with
   a median footer; actions **Cancel / Mark expected**, Mark expected
-  clears the flags (the AI-trust affordance) **[Directive 2026-07-18]**.
+  clears the flags (the AI-trust affordance) **[Specified 2026-07-18]**.
 - Empty + loading frames per the screen-state rule (design.md §8.1)
-  **[Directive 2026-07-18]**.
+  **[Specified 2026-07-18]**.
 
 ### B3 `/imports`, Import hub
 - UploadDropzone (CSV/PDF/receipt image) (MI-2) + "Import history" job list
@@ -104,9 +104,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Async model (202 + polling) per architecture.md §4.2.
 - Import failure state: a `failed` job renders the error screen -
   failure-taxonomy copy + retry (new job), flows/import.md §3
-  **[Directive 2026-07-18]**.
+  **[Specified 2026-07-18]**.
 
-### B4 `/accounts`, Linked bank accounts **[Directive, new]**
+### B4 `/accounts`, Linked bank accounts **[Specified, new]**
 - `LinkAccountCard` grid + "Link account" CTA → provider flow (MI-9).
 - Aggregator: **Mono (E-1, ratified)**; Plaid layers on for international
   later. Flow contract: flows/bank-link.md.
@@ -120,7 +120,7 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   12 Jul" + **Re-authenticate**.
 - Bank-link journey states as screens: consent (Mono widget hand-off) /
   syncing (progress + live txn counter) / done, the MI-9 stepper,
-  flows/bank-link.md **[Directive 2026-07-18]**.
+  flows/bank-link.md **[Specified 2026-07-18]**.
 
 ### B5 `/reports`, Reports & downloads (EXP-004)
 - Generate: monthly summary / cash-movement / category deep-dive
@@ -131,7 +131,7 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   report at any time."
 - Scheduled reports (monthly email) **[Proposed, later]**.
 
-### B6 `/company`, Company financials **[Directive, new]**
+### B6 `/company`, Company financials **[Specified, new]**
 - **Statements**: upload balance sheet / income statement / cash-flow
   (CSV/XLSX/PDF via the same dropzone, scanned/photographed statements
   JPG/PNG/HEIC and image-only PDFs go through the import vision path,
@@ -144,7 +144,7 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Statement mapping review screen: AI-suggested mappings with per-row
   `confidence` (low-confidence rows arrive unmapped, never guessed) +
   ManualStatementRow add-row for parser-missed lines -
-  flows/statement-mapping.md **[Directive 2026-07-18]**.
+  flows/statement-mapping.md **[Specified 2026-07-18]**.
 - **Statement view**: per confirmed statement (kind × period), render the
   normalized statement, rows read as the vocabulary's **human labels**
   (`CANONICAL_KEY_LABELS`, raw key preserved as the row title), derived
@@ -186,11 +186,11 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Requires ≥1 mapped statement period; empty state explains inputs needed
   and which org kind captures statements (data-model.md §5 "Who uses which
   org kind"); empty + loading frames per the screen-state rule
-  (design.md §8.1) **[Directive 2026-07-18]**, as built (2026-07-18 QA
+  (design.md §8.1) **[Specified 2026-07-18]**, as built (2026-07-18 QA
   loop): both the B6 statements and B6b ratios templates ship their empty +
   loading frames.
 
-### B7 `/taxes`, Tax center **[Directive, new]**
+### B7 `/taxes`, Tax center **[Specified, new]**
 - Overview: jurisdiction profile (org settings; captures **state of
   residence** for individuals, explainer: "determines your State IRS for
   PIT", and TIN/RC + registered address for company orgs, tax-engine.md
@@ -221,7 +221,7 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
 - Filing history: immutable records with stamped receipts; rows show
   authority + deadline columns.
 - Empty + loading frames per the screen-state rule (design.md §8.1)
-  **[Directive 2026-07-18]**, as built (2026-07-18 QA loop): the B7 tax
+  **[Specified 2026-07-18]**, as built (2026-07-18 QA loop): the B7 tax
   center ships its empty + loading frames.
 
 ### B8 `/categories`, B9 `/settings`
@@ -259,9 +259,9 @@ Categories · Settings. ⌘K palette everywhere (MI-1). Org switcher atop nav
   (202 job → running/completed with signed-url download, flows/rights.md
   §1) and delete-account typed-confirm (MI-15: type the **org name**, 5s
   danger-armed CTA, an **Export first** secondary that kicks off USR-001;
-  7-day grace, flows/rights.md §2) **[Directive 2026-07-18]**.
+  7-day grace, flows/rights.md §2) **[Specified 2026-07-18]**.
 
-## Part C, Mobile app (later phase; parity direction **[Directive]**)
+## Part C, Mobile app (later phase; parity direction **[Specified]**)
 
 Sketch for the parity roadmap, not scheduled before dashboard/web work:
 tabs Home (stat cards + anomalies) · Transactions (list + inline category) ·
