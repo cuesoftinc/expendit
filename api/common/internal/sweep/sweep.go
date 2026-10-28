@@ -27,7 +27,7 @@ type Sweeper struct {
 	Wake     *wake.Waker
 	WakeURLs config.Wake
 
-	// Keeping the shared Aiven Kafka usable (§16 I-17); each is optional.
+	// Keeping the shared managed Kafka usable (§16 I-17); each is optional.
 	// Aiven powers Kafka back on when Aiven powered it off.
 	Aiven *aiven.Client
 	// Heartbeat sends a message so Kafka never sits idle for 24 hours.

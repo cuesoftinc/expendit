@@ -7,7 +7,7 @@ from app.config import Settings
 
 def ssl_context(ca: str):
     """KAFKA_SSL_CA is the CA certificate's PEM text, as in the Go and Node
-    services (Aiven's CA, pasted into Doppler). A file path also works for
+    services (the broker's CA certificate text). A file path also works for
     native runs. Empty = the system trust store."""
     if not ca:
         return create_ssl_context()
@@ -19,7 +19,7 @@ def ssl_context(ca: str):
 def connection_kwargs(settings: Settings) -> dict:
     kwargs: dict = {"bootstrap_servers": settings.kafka_broker_list}
     if settings.kafka_username:
-        # Aiven: SASL/SCRAM over TLS, one user per service (S-11).
+        # SASL/SCRAM over TLS, one user per service (S-11).
         kwargs.update(
             security_protocol="SASL_SSL",
             sasl_mechanism="SCRAM-SHA-256",

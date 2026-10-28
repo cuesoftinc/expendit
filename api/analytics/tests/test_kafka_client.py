@@ -12,7 +12,7 @@ def _has_test_ca(context: ssl.SSLContext) -> bool:
 
 
 def test_pem_text_is_loaded_like_the_go_and_node_services():
-    # Doppler holds the CA's PEM text in KAFKA_SSL_CA (Aiven's CA certificate).
+    # KAFKA_SSL_CA holds the CA certificate's PEM text.
     assert _has_test_ca(ssl_context(CA.read_text()))
 
 

@@ -29,7 +29,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       brokers: kafka.brokers,
       ...(kafka.username
         ? {
-            // Aiven: SASL/SCRAM over TLS, one user per service (S-11).
+            // SASL/SCRAM over TLS, one user per service (S-11).
             ssl: kafka.sslCa ? { ca: [kafka.sslCa] } : true,
             sasl: { mechanism: 'scram-sha-256' as const, username: kafka.username, password: kafka.password },
           }

@@ -204,7 +204,7 @@
     text-align: inherit;
   }
 
-  /* Cursor affordance canon [Directive 2026-07-19]: enabled interactive
+  /* Cursor affordance canon [Specified 2026-07-19]: enabled interactive
      controls show the pointer — explicit so Tailwind v3/v4 repos behave
      identically (v4 preflight dropped the button pointer). Links use the
      native pointer; disabled controls keep the default cursor. */
