@@ -27,10 +27,10 @@ flag in §9.
 | Unit | Runs on | Image / source | Notes |
 | --- | --- | --- | --- |
 | `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to the API services (no browser CORS) |
-| `expendit-api-common` | Cloud Run service | `expendit-api-common` | Go. The only Postgres client. Kafka consumers + outbox run while an instance is up. Also serves `POST /internal/jobs/<name>` for the sweeps |
-| `expendit-api-statements` | Cloud Run service | `expendit-api-statements` | Node upload gateway (`POST /api/v1/uploads`) |
-| `expendit-api-analytics-extract` | Cloud Run service | `expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only; reached only by common's wake-ups |
-| `expendit-api-analytics-compute` | Cloud Run service | `expendit-api-analytics` | Python, `ANALYTICS_POOL=compute` |
+| `expendit-api-common` | Cloud Run service | `cuesoft/expendit-api-common` | Go. The only Postgres client. Kafka consumers + outbox run while an instance is up. Also serves `POST /internal/jobs/<name>` for the sweeps |
+| `expendit-api-statements` | Cloud Run service | `cuesoft/expendit-api-statements` | Node upload gateway (`POST /api/v1/uploads`) |
+| `expendit-api-analytics-extract` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only; reached only by common's wake-ups |
+| `expendit-api-analytics-compute` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=compute` |
 | `expendit-{reaper,tmp-cleanup,retention}` | Cloud Scheduler | n/a | `POST /internal/jobs/<name>` on common with an OIDC token |
 | Postgres, Kafka, Valkey | managed services, shared | n/a | |
 | Object storage | the shared storage bucket | n/a | prefix `expendit/stg/` |
@@ -262,7 +262,7 @@ Never set in cloud: `GROQ_API_KEY`,
 ## 7. Cloud Run resources (infrastructure-as-code stack)
 
 Your infrastructure-as-code stack creates these. The first image can be any tag
-from the container registry, because every release replaces it by digest.
+from Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -313,7 +313,7 @@ On `cuesoftinc/expendit`:
    `GCP_DEPLOY_SERVICE_ACCOUNT` (the `expendit-deploy` email). Your infrastructure-as-code
    sets them. Secrets come from your secrets manager.
 2. **Repository secrets**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (push to
-   `expendit-api-*`), synced from your secrets manager, which references
+   `cuesoft/expendit-api-*`), synced from your secrets manager, which references
    `admin/ci`.
 3. The WIF provider trusts this repository, and `expendit-deploy` grants it
    `roles/iam.workloadIdentityUser`.
@@ -344,7 +344,7 @@ On `cuesoftinc/expendit`:
 
 | Task | How |
 | --- | --- |
-| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image <registry>/expendit-api-<svc>@sha256:…` |
+| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/expendit-api-<svc>@sha256:…` |
 | Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy statements; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
 | Run migrations alone | `./jobs migrate` from a local checkout (common also runs them on start) |
 | Sign off a tax rule set | After a licensed practitioner's review, set `signed_off = true, signed_off_by = '<name>'` on the row in `tax_ruleset`. The next tax computation picks it up. Until then estimates are labelled estimate-only and filings are refused (tax-engine.md) |

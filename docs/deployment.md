@@ -44,7 +44,7 @@ payload by pointer.
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `build-and-test.yml` | PRs **and** push to `main` | build + tests per service; **no deploy, no image push** (`release.yml` deploys) |
-| `release.yml` | **push to `main` touching `api/**`** | buildx (GHA cache) → push `expendit-api-{common,statements,analytics}` (tags: sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready. The website is not in it: App Hosting rolls out from `main`. Step-by-step setup: [deploy-runbook.md](deploy-runbook.md) |
+| `release.yml` | **push to `main` touching `api/**`** | buildx (GHA cache) → push `cuesoft/expendit-api-{common,statements,analytics}` (tags: sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready. The website is not in it: App Hosting rolls out from `main`. Step-by-step setup: [deploy-runbook.md](deploy-runbook.md) |
 
 **Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
 environment. A merge to `main` that touches `api/**` deploys the API services
@@ -54,7 +54,7 @@ tags: images carry the commit sha and `latest`.
 
 Two hard-won rules, non-negotiable:
 
-1. **Deploy by digest, never by tag**, Cloud Run pulls the container registry images
+1. **Deploy by digest, never by tag**, Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for
    tags; the staging workflow threads `steps.build.outputs.digest` into the
    deploy step.
@@ -104,6 +104,6 @@ the first load test.
 `release.yml` landed on 2026-10-08; the staging estate is created by
 your infrastructure-as-code stack,
 described in [deploy-runbook.md](deploy-runbook.md) §7. The images now exist as
-`expendit-api-common`, `expendit-api-statements`,
-`expendit-api-analytics` and `expendit-web`. The
-old `intake` and `process` image repositories can be retired.
+`cuesoft/expendit-api-common`, `cuesoft/expendit-api-statements`,
+`cuesoft/expendit-api-analytics` and `cuesoft/expendit-web`. The
+`intake`/`process` Docker Hub repos can be retired.

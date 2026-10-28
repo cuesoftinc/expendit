@@ -105,7 +105,7 @@ until a real customer needs it.
   api-surface page). ☑
 - **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
   services run on **Google Cloud Run** (per-service containers, the same
-  images the self-host path uses), provisioned through your infrastructure-as-code
+  `cuesoft/<repo>-<service>` images), provisioned through your infrastructure-as-code
   stack; frontends deploy to **Firebase App Hosting**. Helm + terraform in `deploy/` remain the **self-host** path -
   cloud and self-host share images, not manifests. ☑
 - **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use
