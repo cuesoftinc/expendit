@@ -43,6 +43,18 @@ const FORWARD_RESPONSE = [
   "location",
 ];
 
+const backendUnavailable = () =>
+  Response.json(
+    {
+      error: {
+        code: "backend_unavailable",
+        message: "The Expendit API is not reachable",
+        details: {},
+      },
+    },
+    { status: 502 },
+  );
+
 const proxy = async (
   request: Request,
   { params }: { params: Promise<{ path: string[] }> },
@@ -50,6 +62,7 @@ const proxy = async (
   const { path } = await params;
   const { apiOrigin, uploadsOrigin } = serverEnv();
   const origin = path[0] === "uploads" ? uploadsOrigin : apiOrigin;
+  if (!origin) return backendUnavailable();
   const incoming = new URL(request.url);
   const target = `${origin}/api/v1/${path.map(encodeURIComponent).join("/")}${incoming.search}`;
 
@@ -78,16 +91,7 @@ const proxy = async (
       redirect: "manual",
     } as RequestInit);
   } catch {
-    return Response.json(
-      {
-        error: {
-          code: "backend_unavailable",
-          message: "The Expendit API is not reachable",
-          details: {},
-        },
-      },
-      { status: 502 },
-    );
+    return backendUnavailable();
   }
 
   const responseHeaders = new Headers();
