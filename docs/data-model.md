@@ -1,4 +1,4 @@
-# Expendit — Data Model
+# Expendit, Data Model
 
 > Companion to [prd.md](prd.md) / [architecture.md](architecture.md).
 > Markers: **[Current]**, **[PRD]**, **[Proposed]**.
@@ -132,7 +132,7 @@ erDiagram
 - `REPORT_ARTIFACT` backs EXP-004 (downloadables) and USR-001 (full export is
   just `kind: full_export`).
 - `PURGE_REQUEST` backs USR-002 with a grace window (architecture.md §5.3).
-- `CONSENT_RECORD` mirrors apparule's model for ecosystem parity; the
+- `CONSENT_RECORD` mirrors a sibling product's model for ecosystem parity; the
   `ai_processing` document records acceptance of third-party AI extraction
   (prd.md §6, open question 1).
 
@@ -149,9 +149,9 @@ the same Google subject, so no further migration.
 
 | Class | Data | Rules |
 | --- | --- | --- |
-| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address` — X-10 tier-1/tier-2 fields, §5) | Never in logs (the old monolith's `[pdf] sample:` line did not carry over); TLS in transit; third-party AI processing disclosed; raw files at rest only until parsed (S-4) |
+| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address`, X-10 tier-1/tier-2 fields, §5) | Never in logs (the old monolith's `[pdf] sample:` line did not carry over); TLS in transit; third-party AI processing disclosed; raw files at rest only until parsed (S-4) |
 | Sensitive | User identity, consent, purge requests | Standard PII handling; consent/purge rows immutable audit records |
-| Operational | Job status/counters, event counters to Upstat | Safe for logs/metrics; Upstat events are **counters only, never amounts or descriptions** |
+| Operational | Job status/counters, event counters to the monitoring service | Safe for logs/metrics; monitoring-service events are **counters only, never amounts or descriptions** |
 
 Retention defaults **[Proposed, to ratify]**: ledger data until user deletion
 (USR-002); import jobs + staging 90 days after confirm/discard; report
@@ -179,8 +179,8 @@ erDiagram
         string kind "personal | company"
         string currency
         string country
-        string fiscal_year_end "MM-DD, default 12-31 — defines FYYYYY periods (line-items.md §6)"
-        json registered_address "company orgs: {line1, line2?, city, state, country} — state required (CIT/VAT authority, tax-engine.md §5.5); high-sensitivity (§4)" }
+        string fiscal_year_end "MM-DD, default 12-31, defines FYYYYY periods (line-items.md §6)"
+        json registered_address "company orgs: {line1, line2?, city, state, country}, state required (CIT/VAT authority, tax-engine.md §5.5); high-sensitivity (§4)" }
     BANK_LINK { objectid _id PK
         objectid org_id FK
         string provider "mono (E-1 ratified); plaid later"
@@ -206,7 +206,7 @@ erDiagram
         string jurisdiction "NG"
         string taxpayer_kind "individual|company"
         string tin "optional until filing (422 tax_identity_incomplete)"
-        string state_of_residence "NG state code; required for individual profiles — resolves the PIT State IRS (tax-engine.md §5.5); high-sensitivity (§4)"
+        string state_of_residence "NG state code; required for individual profiles, resolves the PIT State IRS (tax-engine.md §5.5); high-sensitivity (§4)"
         string rc_number "company; optional until filing; high-sensitivity (§4)"
         string nin "individual; optional; high-sensitivity (§4)"
         json category_treatments "category → tax_treatment + vat_treatment + vat_basis" }
@@ -215,7 +215,7 @@ erDiagram
         string kind "pit|cit|vat"
         string period
         json computed_fields "with input traces"
-        json authority "resolved remittance authority {code, name} — tax-engine.md §5.5"
+        json authority "resolved remittance authority {code, name}, tax-engine.md §5.5"
         string ruleset_id
         datetime computed_at }
     FIN_STATEMENT { objectid _id PK
@@ -224,14 +224,14 @@ erDiagram
         string period "closed grammar (line-items.md §6): YYYY-Qn | YYYY-H1/H2 | FYYYYY"
         string source_file_type "csv|xlsx|pdf|image|manual"
         string mapping_status "processing|staged|confirmed|failed|superseded (flows/statement-mapping.md §4)"
-        objectid superseded_by FK "nullable — the replacement statement (audit trail)" }
+        objectid superseded_by FK "nullable, the replacement statement (audit trail)" }
     LINE_ITEM { objectid _id PK
         objectid statement_id FK
         string canonical_key "current_assets|inventory|long_term_debt|revenue|cogs|net_income|..."
         string source_label "as it appeared in the upload"
         float amount
         string status "mapped|unmapped (parked rows excluded from ratios)"
-        float confidence "nullable — AI suggestion confidence 0-1"
+        float confidence "nullable, AI suggestion confidence 0-1"
         string mapped_by "ai|user" }
     RATIO_REPORT { objectid _id PK
         objectid org_id FK
@@ -244,7 +244,7 @@ erDiagram
         string period
         string status "draft|generated|submitted|accepted"
         json computed_fields "each with input trace"
-        json authority "resolved remittance authority {code, name} — immutable once generated"
+        json authority "resolved remittance authority {code, name}, immutable once generated"
         string artifact_key "generated forms incl. remittance sheet"
         datetime filed_at }
 ```
@@ -252,17 +252,17 @@ erDiagram
 Notes: existing per-user collections become org-scoped (`org_id`) with a
 personal org auto-created per user (migration: `userid` → personal org). The
 `canonical_key` vocabulary is the closed mapping target for AI-suggested
-line mapping (pages.md B6) — same schema-as-boundary pattern as elsewhere.
+line mapping (pages.md B6), same schema-as-boundary pattern as elsewhere.
 Ratio formulas persist **with their inputs** so every gauge is auditable
 (MI-8 trace). Tax computed fields carry input traces for the wizard's
 "how we got this" expanders; filings are immutable once submitted.
-Bank credentials are never stored — only provider tokens, encrypted, with
+Bank credentials are never stored, only provider tokens, encrypted, with
 provider-side revocation honored (BNK-002 unlink offers keep-or-purge for
 already-imported transactions).
 
 **Who uses which org kind [Decided 2026-07-16]:** individuals and
 unincorporated freelancers use their auto-created **personal org** (ledger
-capture, imports, PIT — no financial statements); any business entity that
+capture, imports, PIT, no financial statements); any business entity that
 wants statement capture / ratios / CIT creates a **company org regardless of
 incorporation status**, with `TAX_PROFILE.taxpayer_kind`
 (`individual | company`) deciding PIT-vs-CIT treatment (tax-engine.md §2's
@@ -278,7 +278,7 @@ historical records survive registry changes.
 ### 6.1 Import-job provenance
 
 `IMPORT_JOB` gains `source: upload | bank_sync` and staged/ledger
-transactions gain `source_link_id` (nullable) — the column the unlink
+transactions gain `source_link_id` (nullable), the column the unlink
 `purge=true` path deletes by (flows/bank-link.md §3).
 
 ### 6.2 BANK_LINK state transitions
@@ -290,9 +290,9 @@ consecutive sync failures; resets on first success) | `paused` (user) ·
 
 ### 6.3 Mongo→Postgres + org migration runbook (E-4/X-5, "one migration")
 
-1. **Freeze window** (not dual-write **[Decided]** — volumes allow a short
+1. **Freeze window** (not dual-write **[Decided]**, volumes allow a short
    freeze): announce in-app 48h ahead; writes disabled ≤ 30 min.
-2. Schema pre-created in Aiven PG (this doc's entities as DDL).
+2. Schema pre-created in managed Postgres (this doc's entities as DDL).
 3. Copy with transform: `userid` scoping → auto-created personal `ORG` per
    user + `ORG_MEMBER(owner)` rows; checksums per table.
 4. **Parity harness**: row counts + per-table content checksums + 20 sampled

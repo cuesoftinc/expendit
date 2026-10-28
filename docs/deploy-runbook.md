@@ -1,7 +1,7 @@
-# Deploy Runbook — GCP + Aiven
+# Deploy Runbook, GCP + Managed Data Services
 
-> For the person deploying Expendit to the company's GCP project and Aiven
-> account. It turns [deployment.md](deployment.md) and the
+> For the person deploying Expendit to the company's GCP project and the managed data
+> services account. It turns [deployment.md](deployment.md) and the
 > [system design](system-design.md) §10 into steps. Everything in the repo
 > is ready; the steps below are the parts only an account owner can do.
 > Work through them in order: each part lists what to create and the exact
@@ -27,17 +27,17 @@ flag in §9.
 | Unit | Runs on | Image / source | Notes |
 | --- | --- | --- | --- |
 | `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to the API services (no browser CORS) |
-| `expendit-api-common` | Cloud Run service | `cuesoft/expendit-api-common` | Go. The only Postgres client. Kafka consumers + outbox run while an instance is up. Also serves `POST /internal/jobs/<name>` for the sweeps |
-| `expendit-api-statements` | Cloud Run service | `cuesoft/expendit-api-statements` | Node upload gateway (`POST /api/v1/uploads`) |
-| `expendit-api-analytics-extract` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only; reached only by common's wake-ups |
-| `expendit-api-analytics-compute` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=compute` |
+| `expendit-api-common` | Cloud Run service | `expendit-api-common` | Go. The only Postgres client. Kafka consumers + outbox run while an instance is up. Also serves `POST /internal/jobs/<name>` for the sweeps |
+| `expendit-api-statements` | Cloud Run service | `expendit-api-statements` | Node upload gateway (`POST /api/v1/uploads`) |
+| `expendit-api-analytics-extract` | Cloud Run service | `expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only; reached only by common's wake-ups |
+| `expendit-api-analytics-compute` | Cloud Run service | `expendit-api-analytics` | Python, `ANALYTICS_POOL=compute` |
 | `expendit-{reaper,tmp-cleanup,retention}` | Cloud Scheduler | n/a | `POST /internal/jobs/<name>` on common with an OIDC token |
-| Postgres, Kafka, Valkey | Aiven (shared `sandbox-db`, `sandbox-kafka`, `sandbox-cache`) | n/a | |
-| Object storage | the shared bucket `sandbox-e306a.firebasestorage.app` | n/a | prefix `expendit/stg/` |
+| Postgres, Kafka, Valkey | managed services, shared | n/a | |
+| Object storage | the shared storage bucket | n/a | prefix `expendit/stg/` |
 
-Staging is GCP project `sandbox-e306a`, region `us-central1`, created by
-the IaC stack.
-Service URLs are `https://<service>-805800737799.us-central1.run.app`.
+Staging is your GCP project, region `us-central1`, created by
+your infrastructure-as-code stack.
+Service URLs are `https://<service>-<project-number>.us-central1.run.app`.
 
 Images are built and deployed by `.github/workflows/release.yml` on every merge
 to `main` that touches `api/**` (§7). **Your infrastructure code creates the resources;
@@ -85,29 +85,28 @@ needed.
 4. Generate `JWT_SECRET` and `SESSION_SECRET` (random, at least 32 bytes
    each) and store them as secrets (§6).
 
-## 3. Aiven
+## 3. Managed data services
 
 ### 3.1 Postgres
 
-The app connects as the shared `cuesoft` user, which is not a superuser and
-has no `BYPASSRLS`, so row-level security (S-11) applies. The IaC creates the
-`expendit` database on the shared `sandbox-db`, owned by `avnadmin`; hand it to
-`cuesoft` once, as `avnadmin`:
+The app connects as a shared `<app_user>`, which is not a superuser and
+has no `BYPASSRLS`, so row-level security (S-11) applies. Your infrastructure-as-code creates the
+`expendit` database on the managed Postgres instance, owned by the admin
+user; hand it to `<app_user>` once, as `<admin_user>`:
 
 ```sql
-ALTER DATABASE expendit OWNER TO cuesoft;
+ALTER DATABASE expendit OWNER TO <app_user>;
 ```
 
 The connection string the app gets (`DATABASE_URL`):
-`postgres://cuesoft:<password>@<host>:<port>/expendit?sslmode=require`.
+`postgres://<app_user>:<password>@<host>:<port>/expendit?sslmode=require`.
 Tables are created by the app itself on start (migrations under an
 advisory lock); there is nothing to run by hand.
 
-### 3.2 Kafka (the CueLABS shared bus)
+### 3.2 Kafka (the shared bus)
 
-Expendit, Apparule and Upstat share **one Kafka service** and its three
-topics; the rules are in the CueLABS delivery standard
-(`references/shared-messaging.md`). Create these once, for every product,
+Expendit and its sibling products share **one Kafka service** and its three
+topics; the rules are in the CueLABS shared messaging contract. Create these once, for every product,
 if they don't exist yet. The app never creates topics (auto-create stays
 off).
 
@@ -121,7 +120,7 @@ The service allows five topics in total; the other two are held in reserve
 for all products, so don't create Expendit-specific topics.
 
 Expendit has **one SASL user**, `expendit`, with topic ACLs for read and
-write on the three `cuelabs.*` topics (the IaC creates it). All three
+write on the three `cuelabs.*` topics (your infrastructure-as-code creates it). All three
 Expendit services use it. If the free plan refuses SASL, fall back to
 client certificates.
 
@@ -132,27 +131,27 @@ client certificates.
   off until powered on. **Expendit is the keep-alive owner for every
   product** ([system-design.md §16 I-17, I-18](system-design.md)): its
   reaper sends a heartbeat every 6 hours, powers the service back on
-  through the Aiven API if it finds it off (set the three `AIVEN_*`
+  through the managed-service API if it finds it off (set the three `AIVEN_*`
   values in §6, on common only), and re-sends any import whose message
   was lost. Power-on itself takes minutes to hours, so expect failed
   uploads during that window.
-- **The Aiven API token (auto power-on).** The reaper needs a token to
+- **The managed-service API token (auto power-on).** The reaper needs a token to
   check the Kafka service's state and power it back on:
-  1. In the Aiven console, create a token for an **application user**
+  1. In the provider's console, create a token for an **application user**
      (Organization → Application users), so it isn't tied to a person.
      Give that user a role on the Kafka project that can update services
      (operator or admin). A personal token (User profile → Tokens) also
      works.
   2. Note the **project name** and the **Kafka service name**, both shown
      in the console.
-  3. In Doppler `expendit` → `stg`, add `AIVEN_API_TOKEN` 🔒 (the token),
+  3. In your secrets manager, add `AIVEN_API_TOKEN` 🔒 (the token),
      `AIVEN_PROJECT` (the project name) and `AIVEN_KAFKA_SERVICE` (the
      service name). Expose them to **common only**, which runs the sweeps; the other
      services don't need them.
   4. **Test it once**: power Kafka off in the console, wait up to
      5 minutes, and check the `expendit-api-common` logs for the `reaper` job and
      `power-on requested` (log step `kafka.power`). Kafka is back once
-     Aiven finishes starting it, which can take a few minutes. Aiven's docs
+     the provider finishes starting it, which can take a few minutes. The provider's docs
      only show the console for power-on on this plan, so this confirms the
      API works. If the log shows a 403, the token's role is too narrow.
 
@@ -165,12 +164,12 @@ client certificates.
 
 Connection settings for every service: `KAFKA_BROKERS` (the service URI,
 `host:port`), `KAFKA_USERNAME`, `KAFKA_PASSWORD`, and `KAFKA_SSL_CA` = the
-**text** of Aiven's CA certificate (`-----BEGIN CERTIFICATE-----…`). The
+**text** of the provider's CA certificate (`-----BEGIN CERTIFICATE-----…`). The
 clients use SASL/SCRAM-SHA-256 over TLS, so enable SASL on the service.
 
 ### 3.3 Valkey
 
-The shared Aiven Valkey `sandbox-cache`, user `expendit`, whose ACL allows
+The shared managed Valkey instance, user `expendit`, whose ACL allows
 only keys `expendit:*`: `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`,
 `REDIS_PASSWORD`, `REDIS_TLS=true`, `REDIS_KEY_PREFIX=expendit` (the default).
 Only `common` uses it, for rate limits; if it is unreachable the limits
@@ -178,14 +177,14 @@ fail open.
 
 ## 4. Cloud Storage
 
-1. Use the shared bucket `sandbox-e306a.firebasestorage.app` with
+1. Use the shared storage bucket with
    **uniform bucket-level access**. Expendit uses only the prefix
    `expendit/stg/`.
 2. Add lifecycle rules: **delete objects older than 1 day with prefix
    `expendit/stg/tmp/`**, and the same for **`expendit/stg/compute/`**.
    They are the backstop for raw uploads (S-4) and for the payloads of
    Kafka messages, which go by pointer on the shared bus; the app's
-   cleanup sweep normally deletes both sooner. The IaC creates the rules.
+   cleanup sweep normally deletes both sooner. Your infrastructure-as-code creates the rules.
 
 ## 5. Service accounts and IAM
 
@@ -208,13 +207,13 @@ IAM conditions (`B` = the bucket name):
 - **(C)** `resource.name.startsWith("projects/_/buckets/B/objects/expendit/stg/tmp/") || resource.name.startsWith("projects/_/buckets/B/objects/expendit/stg/compute/")`
 - **(D)** `resource.name.startsWith("projects/_/buckets/B/objects/expendit/stg/compute/")`
 
-The IaC creates all of this. Enable the APIs: Cloud Run, Cloud Scheduler, Vertex AI
+Your infrastructure-as-code creates all of this. Enable the APIs: Cloud Run, Cloud Scheduler, Vertex AI
 (`aiplatform.googleapis.com`), IAM Credentials, and Firebase App Hosting.
 
-## 6. Configuration (Doppler `stg` → Cloud Run / App Hosting)
+## 6. Configuration (your secrets manager → Cloud Run / App Hosting)
 
 Names follow [system-design.md §10.3](system-design.md). Secrets are marked
-🔒 and live in Doppler project `expendit`, config `stg`. Cloud Run sets
+🔒 and live in your secrets manager. Cloud Run sets
 `PORT` itself.
 
 **Upload-ticket keys.** Generate once and keep the pair together:
@@ -260,10 +259,10 @@ Never set in cloud: `GROQ_API_KEY`,
 | `API_URL`                                                     | runtime      | the `expendit-api-common` URL (`https://…run.app`) |
 | `UPLOADS_URL`                                                 | runtime      | the `expendit-api-statements` URL                  |
 
-## 7. Cloud Run resources (IaC stack)
+## 7. Cloud Run resources (infrastructure-as-code stack)
 
-The IaC stack creates these. The first image can be any tag
-from Docker Hub, because every release replaces it by digest.
+Your infrastructure-as-code stack creates these. The first image can be any tag
+from the container registry, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -300,7 +299,7 @@ token on every wake.
 
 **Idle.** While nobody uses the app nothing is running. Each wake-up keeps
 an instance for up to ~15 minutes. The only things that run regardless are
-Aiven (Postgres, Valkey and the shared Kafka) and Cloud Scheduler's reaper
+the managed data services (Postgres, Valkey and the shared Kafka) and Cloud Scheduler's reaper
 request every 5 minutes, which starts common for a moment.
 
 ## 8. GitHub (release workflow)
@@ -311,17 +310,17 @@ On `cuesoftinc/expendit`:
    **variables**: `GCP_PROJECT_ID`, `GCP_REGION`,
    `GCP_WORKLOAD_IDENTITY_PROVIDER`
    (`projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>`),
-   `GCP_DEPLOY_SERVICE_ACCOUNT` (the `expendit-deploy` email). The IaC
-   sets them. Secrets come from Doppler project `expendit`, config `stg`.
+   `GCP_DEPLOY_SERVICE_ACCOUNT` (the `expendit-deploy` email). Your infrastructure-as-code
+   sets them. Secrets come from your secrets manager.
 2. **Repository secrets**: `DOCKER_USERNAME`, `DOCKER_PASSWORD` (push to
-   `cuesoft/expendit-api-*`), synced from Doppler `expendit/ci`, which references
+   `expendit-api-*`), synced from your secrets manager, which references
    `admin/ci`.
 3. The WIF provider trusts this repository, and `expendit-deploy` grants it
    `roles/iam.workloadIdentityUser`.
 
 ## 9. First deploy and switching the website over
 
-1. Create the infrastructure (§2–§7, the IaC PR) and fill Doppler (§6).
+1. Create the infrastructure (§2–§7, your infrastructure-as-code PR) and fill your secrets manager (§6).
 2. Merge to `main`; the merge deploys the API services. Confirm the site
    still works (TEST_MODE, §0).
 3. To redeploy without a code change, re-run the latest `release` run.
@@ -329,7 +328,7 @@ On `cuesoftinc/expendit`:
    common answers `/ready`. Check the logs of `expendit-api-common` for
    `migration applied` (first deploy only) and `listening`.
 5. Unpause the three Scheduler jobs, run each once and check for a 200 in
-   the `expendit-api-common` logs (the IaC creates them paused).
+   the `expendit-api-common` logs (your infrastructure-as-code creates them paused).
 6. In App Hosting, set `API_URL` and `UPLOADS_URL`, **then remove `NEXT_PUBLIC_TEST_MODE`**
    and roll out.
 7. Smoke test on the site: sign in with Google, add a transaction, import a
@@ -345,11 +344,11 @@ On `cuesoftinc/expendit`:
 
 | Task | How |
 | --- | --- |
-| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image docker.io/cuesoft/expendit-api-<svc>@sha256:…` |
+| Roll back | Redeploy the previous image digest (it is in the earlier release run) with `gcloud run services update <name> --image <registry>/expendit-api-<svc>@sha256:…` |
 | Rotate the ticket key | Generate a new pair with a new kid; **add** its public key to `UPLOAD_TICKET_PUBLIC_KEYS` (comma-separated) and deploy statements; switch `UPLOAD_TICKET_PRIVATE_KEY` and deploy common; after 5 minutes, drop the old public key |
 | Run migrations alone | `./jobs migrate` from a local checkout (common also runs them on start) |
 | Sign off a tax rule set | After a licensed practitioner's review, set `signed_off = true, signed_off_by = '<name>'` on the row in `tax_ruleset`. The next tax computation picks it up. Until then estimates are labelled estimate-only and filings are refused (tax-engine.md) |
-| Kafka powered off (idle) | The reaper requests power-on within 5 minutes if the `AIVEN_*` values are set (§3.2), and Kafka is back once Aiven finishes starting it (log step `kafka.power`); otherwise power it on in the Aiven console. Uploads fail until it is back; imports already processing are re-sent from Postgres. Nothing is lost from Postgres |
+| Kafka powered off (idle) | The reaper requests power-on within 5 minutes if the `AIVEN_*` values are set (§3.2), and Kafka is back once the provider finishes starting it (log step `kafka.power`); otherwise power it on in the provider console. Uploads fail until it is back; imports already processing are re-sent from Postgres. Nothing is lost from Postgres |
 | Check Kafka by hand | Run `./jobs heartbeat` locally against the stg config: it sends one message and fails loudly if Kafka is unreachable |
 | Run a sweep by hand | Resume the Scheduler job's `Force run`, or `POST /internal/jobs/<name>` on common with an OIDC token |
 | An import stuck in "processing" | Wait for the reaper (≤ 5 minutes): it wakes common and analytics-extract while work is pending. If it still sticks, check the `wake` log lines for `wake failed` |

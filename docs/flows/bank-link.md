@@ -1,6 +1,6 @@
 # Flow: Bank Account Linking (Mono)
 
-> Implements E-1 (Mono NG-first). Covers link, sync, re-auth, pause, unlink —
+> Implements E-1 (Mono NG-first). Covers link, sync, re-auth, pause, unlink -
 > the full `BANK_LINK` lifecycle (data-model.md §5). Preconditions: authed +
 > verified email; org context resolved.
 
@@ -59,7 +59,7 @@ Edge cases at link time:
   - `purge=false` (default): provider token revoked + deleted; imported
     transactions **stay** in the ledger (they're the user's records).
   - `purge=true`: additionally hard-deletes all transactions originating
-    from this link (`source_link_id`) + their staged rows — MI-15 danger
+    from this link (`source_link_id`) + their staged rows, MI-15 danger
     treatment (type-to-confirm), irreversible.
 - Provider-side revocation (user revokes at their bank) surfaces as
   `reauth_required` → user chooses reconnect or unlink.
@@ -67,7 +67,7 @@ Edge cases at link time:
 ## 4. Security invariants
 
 - Bank credentials never touch our servers (widget is provider-hosted).
-- Mono tokens encrypted at rest (KMS/env key via Doppler); never logged;
+- Mono tokens encrypted at rest (KMS/env key via your secrets manager); never logged;
   never serialized in any API response.
 - Webhooks (`/webhooks/bank`) signature-verified; unverified → 401 + alert,
   never processed. **Handled events [Decided]**: new-transactions-available →
@@ -75,12 +75,12 @@ Edge cases at link time:
   status + banner; account-unlinked (provider-side) → `reauth_required`.
   Idempotent by provider event id (processed-ids table, 7-day TTL); always
   respond 200 fast, process async.
-- All bank-link mutations audit-logged (who, when, what — no payloads).
+- All bank-link mutations audit-logged (who, when, what, no payloads).
 
 ## 5. Instrumentation & acceptance
 
 Events: `bank_link_created`, `bank_sync_completed`, `bank_reauth_required`
-— counters only (the institution dim question is CLOSED: registry forbids
+- counters only (the institution dim question is CLOSED: registry forbids
 institutions).
 
 - [ ] Link → initial 6-month backfill lands in staged review

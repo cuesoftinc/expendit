@@ -74,21 +74,21 @@ flowchart TD
 - **The stranded-user edge**: a legacy account whose email has no Google
   account (corporate/non-Gmail without Google Workspace). Policy: they sign
   in with *any* Google account and request an email change via support
-  (`clients.cuesoft.io`), which re-links history after identity check —
+  (`clients.cuesoft.io`), which re-links history after identity check -
   documented in the migration banner. Expected to be rare; measured by
   `auth_migration_stranded` (support-ticket count).
 
 ## 4. Post-auth gates
 
 Consent on first protected action: `tos`, `privacy`, **`ai_processing`**
-(declining disables AI-dependent paths only — E-3). Org scoping per E-4
+(declining disables AI-dependent paths only, E-3). Org scoping per E-4
 unchanged.
 
 ## 5. Instrumentation & acceptance
 
 Events: `auth_signin_completed`, `auth_migration_completed`,
-`consent_recorded{document}` (emitted by the consent endpoints, E1-5) —
-counters only. `auth_migration_stranded` is **not an ingest event** — it is
+`consent_recorded{document}` (emitted by the consent endpoints, E1-5) -
+counters only. `auth_migration_stranded` is **not an ingest event**, it is
 a support-ticket tag counted operationally (registry annotation updated).
 
 - [ ] Legacy user links on first Google sign-in; history intact

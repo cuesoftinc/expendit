@@ -1,22 +1,22 @@
-# Expendit — Roadmap
+# Expendit, Roadmap
 
 > Ordered plan from the gap analysis (api.md §3). Expendit's engine exists;
 > the phases complete the trust surface, then scale the pipeline, then expand
 > acquisition channels. Each phase is independently shippable.
 
-## Phase 0 — Landing preview + privacy hub (the two web Musts)
+## Phase 0, Landing preview + privacy hub (the two web Musts)
 
 | Item | Requirement | Notes |
 | --- | --- | --- |
-| Example-report preview section on `/` with synthetic data | EXP-001 | Reuses existing chart components; a small committed demo dataset — never real personal bank data (PRD §5) |
+| Example-report preview section on `/` with synthetic data | EXP-001 | Reuses existing chart components; a small committed demo dataset, never real personal bank data (PRD §5) |
 | `/privacy` page: retention, storage, deletion rights, **third-party AI processing disclosure** | EXP-005 | Links to Expendit clause on privacy.cuesoft.io (D3); content mirrors data-model.md §4 |
-| Remove financial data from logs (`[pdf] sample:` line) | EXP-005 credibility | **Already true**: the line did not carry over during the service split (architecture.md §4.2) — verify via the flows/import.md §6 acceptance checklist before claiming it in the privacy hub |
+| Remove financial data from logs (`[pdf] sample:` line) | EXP-005 credibility | **Already true**: the line did not carry over during the service split (architecture.md §4.2), verify via the flows/import.md §6 acceptance checklist before claiming it in the privacy hub |
 | CTAs aligned to PRD ("Open Expendit", "Upload Statement", "View Security Policy") | PRD §6 | Copy/design pass |
 
 **Exit criteria:** a visitor understands the product and its privacy posture
 without signing in; no financial payloads in server logs.
 
-## Phase 1 — Downloadable reports + data rights (remaining Musts)
+## Phase 1, Downloadable reports + data rights (remaining Musts)
 
 | Item | Requirement |
 | --- | --- |
@@ -29,7 +29,7 @@ without signing in; no financial payloads in server logs.
 **Exit criteria:** every §7 user right is a working button; EXP-004 acceptance
 met (downloadable summaries + cash movement).
 
-## Phase 2 — Pipeline hardening & intelligence UX
+## Phase 2, Pipeline hardening & intelligence UX
 
 **Shipped ahead of schedule:** the async pipeline is a real three-service
 split over Kafka. Since 2026-10-05 it runs on the ratified system design:
@@ -49,13 +49,13 @@ decision) → `api/common` (Postgres), per system-design.md §6.1.
 anomalies visible on the dashboard; categorization measurably improves from
 corrections.
 
-## Phase 3 — Bank linking + identity
+## Phase 3, Bank linking + identity
 
 | Item | Requirement | Notes |
 | --- | --- | --- |
 | Mono (E-1 ratified) link/sync/re-auth flows into the shared staged-review pipeline | BNK-001/002 | NG-first; Plaid layers on later for international (E-1) |
-| Google-only identity migration | E3-1, X-1 | `account.cuesoft.io` facade is a later cosmetic cutover — **not** blocked by D1 |
-| Upstat events: `upload_success`, `report_generation` | ECO-ANALYTICS | **Blocked by D2**; ship behind the same no-op client wrapper pattern as apparule |
+| Google-only identity migration | E3-1, X-1 | `account.cuesoft.io` facade is a later cosmetic cutover, **not** blocked by D1 |
+| Monitoring service events: `upload_success`, `report_generation` | ECO-ANALYTICS | **Blocked by D2**; ship behind the same no-op client wrapper pattern as the sibling products |
 | Support routing to clients.cuesoft.io | ECO-SUPPORT | Link-outs |
 
 **Exit criteria:** bank linking live end-to-end (Mono connect → sync →
@@ -67,7 +67,7 @@ D2 lands.
 | ID | Dependency | Blocks |
 | --- | --- | --- |
 | D1 | `account.cuesoft.io` facade | Nothing (X-1: Google sign-in ratified; facade later) |
-| D2 | Upstat event-ingestion API | Phase 3 events |
+| D2 | Monitoring service event-ingestion API | Phase 3 events |
 | D3 | Expendit clause on privacy.cuesoft.io | Phase 0 privacy hub copy |
 
 ## Sequencing rationale
@@ -75,20 +75,20 @@ D2 lands.
 Phases 0–1 close every **Must** with the least engineering (the engine already
 exists) and make the privacy story real before growth work; Phase 2 pays the
 scaling debt in the pipeline the PRD's traffic assumes; Phase 3 ships bank
-linking (Mono, E-1 ratified) and the identity migration (X-1) — neither waits
+linking (Mono, E-1 ratified) and the identity migration (X-1), neither waits
 on D1, and only the ecosystem-events row waits on D2.
 
 ---
 
-## Phase 4+ — Company financials, tax, mobile parity
+## Phase 4+, Company financials, tax, mobile parity
 
-- **Phase 4 — Company financials**: org model migration (personal org
+- **Phase 4, Company financials**: org model migration (personal org
   auto-create), statement upload + line-item mapping review, ratio engine +
   trends (CMP-001…003).
-- **Phase 5 — Tax center**: profile/calendar/estimates (TAX-001), filing
+- **Phase 5, Tax center**: profile/calendar/estimates (TAX-001), filing
   wizard generating filing-ready documents (TAX-002); direct e-filing (TAX-003)
   behind jurisdiction/partner availability.
-- **Phase 6 — Mobile parity** (receipt capture first) + Brex-system dashboard
+- **Phase 6, Mobile parity** (receipt capture first) + Brex-system dashboard
   restyle completes (design.md rolls out progressively from Phase 3).
 
 Gates: the tax-jurisdiction decision (E-2) is Phase 5 entry criteria; company

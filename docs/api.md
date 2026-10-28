@@ -1,4 +1,4 @@
-# Expendit — API Surface
+# Expendit, API Surface
 
 > **Rewritten 2026-10-05** from the ratified [system design](system-design.md)
 > §7 and verified against `api/common/internal/router/router.go` and
@@ -91,7 +91,7 @@ multipart/form-data, one part named "file"
 | Data rights | `POST /account/export` → `202 {job_id}` · `GET /account/export/{jobId}` (7-day signed URL) · `POST /account/purge` · `GET /account/purge` · `DELETE /account/purge` (7-day grace) | USR-001/002 |
 
 **Events (ECO-ANALYTICS):** `upload_success`, `import_confirmed`,
-`import_discarded`, `report_generation` go to Upstat as counters with coarse
+`import_discarded`, `report_generation` go to the monitoring service as counters with coarse
 dimensions (file_type, kind) only. Never amounts, descriptions or
 categories.
 
@@ -103,7 +103,7 @@ categories.
 | EXP-002 uploads | CSV/XLSX/PDF/receipt images; tickets; typed failures; 15 MB | PDF/image **statements** need AI table extraction |
 | EXP-003 AI categorization | keyword + AI categories, correction, §7 anomaly rules | anomaly UX outside import |
 | EXP-004 downloadable summaries | JSON aggregates | `POST /reports` + rendering |
-| EXP-005 privacy hub | — | web page + D3 clause, updated for S-4 |
+| EXP-005 privacy hub | n/a | web page + D3 clause, updated for S-4 |
 | USR-001 / USR-002 | per-item deletes | `account/export`, `account/purge` |
 | ECO-AUTH | API-issued session JWT | `account.cuesoft.io` facade (D1) |
-| ECO-ANALYTICS | — | D2 + server-side events |
+| ECO-ANALYTICS | n/a | D2 + server-side events |

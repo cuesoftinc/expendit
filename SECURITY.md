@@ -25,4 +25,4 @@ component. We aim to acknowledge within 3 business days.
 - Never commit credentials, service-account keys, or `.env` files. These are
   covered by `.gitignore` and `.dockerignore`.
 - Supply configuration at runtime via environment variables or a secret
-  manager — never baked into an image.
+  manager, never baked into an image.
