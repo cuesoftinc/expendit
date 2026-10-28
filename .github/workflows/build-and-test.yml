@@ -145,7 +145,7 @@ jobs:
       - name: Build (TEST_MODE)
         run: npm run build
         env:
-          NEXT_PUBLIC_TEST_MODE: "1"
+          NEXT_PUBLIC_TEST_MODE: "true"
 
   web-e2e:
     name: web · Playwright (TEST_MODE)
@@ -170,7 +170,7 @@ jobs:
       - name: Build (TEST_MODE)
         run: npm run build
         env:
-          NEXT_PUBLIC_TEST_MODE: "1"
+          NEXT_PUBLIC_TEST_MODE: "true"
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -178,7 +178,7 @@ jobs:
       - name: E2E (Playwright, TEST_MODE)
         run: npm run test:e2e
         env:
-          NEXT_PUBLIC_TEST_MODE: "1"
+          NEXT_PUBLIC_TEST_MODE: "true"
           CI: "true"
 
       - name: Upload Playwright report

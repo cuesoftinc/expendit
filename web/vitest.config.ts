@@ -16,7 +16,7 @@ export default defineConfig({
     include: ["src/**/*.test.{ts,tsx}"],
     exclude: ["node_modules/**", "src/legacy/**", "e2e/**"],
     env: {
-      NEXT_PUBLIC_TEST_MODE: "1",
+      NEXT_PUBLIC_TEST_MODE: "true",
     },
   },
 });

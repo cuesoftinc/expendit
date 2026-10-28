@@ -35,7 +35,7 @@ export default defineConfig({
     stderr: "pipe",
     timeout: 120_000,
     env: {
-      NEXT_PUBLIC_TEST_MODE: "1",
+      NEXT_PUBLIC_TEST_MODE: "true",
     },
   },
 });

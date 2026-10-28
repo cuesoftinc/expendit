@@ -72,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- `NEXT_PUBLIC_TEST_MODE` is switched on with `true` instead of `1`.
 - Docs describe provisioning without naming internal repositories.
 - `api/intake` → `api/statements`, `api/process` → `api/analytics` (S-1).
   Uploads are create-then-upload: `POST /api/v1/import` (or

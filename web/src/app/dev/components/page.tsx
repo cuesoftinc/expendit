@@ -11,7 +11,7 @@ export const metadata = { title: "Expendit — component gallery (dev)" };
 export default function DevComponentsPage() {
   if (
     process.env.NODE_ENV === "production" &&
-    process.env.NEXT_PUBLIC_TEST_MODE !== "1"
+    process.env.NEXT_PUBLIC_TEST_MODE !== "true"
   ) {
     notFound();
   }
