@@ -65,7 +65,7 @@ test("nav carries the canonical 4 links + Sign in + Try Cloud CTA", async ({
     "/signin",
   );
 
-  // Cursor affordance canon [Directive 2026-07-19]: pointer on enabled
+  // Cursor affordance canon [Specified 2026-07-19]: pointer on enabled
   // controls and links.
   const cursorOf = (locator: ReturnType<typeof nav.getByRole>) =>
     locator.evaluate((el) => getComputedStyle(el).cursor);
