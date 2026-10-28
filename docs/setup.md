@@ -10,7 +10,7 @@
 ## Configuration
 
 Every service ships an `.env.example` with its native-run variables (names
-per [system-design.md §10.3](system-design.md#103-environment-variables-fleet-names-only)).
+per [system-design.md §10.3](system-design.md#103-environment-variables-names-only)).
 Compose reads the root `.env`; never commit a real one.
 
 ```bash
@@ -29,15 +29,15 @@ make logs      # follow logs
 make down      # stop and remove
 ```
 
-| Service | URL | What |
-| --- | --- | --- |
-| web | http://localhost:3000 | Next.js app on the real backend (sign in with Google) |
-| common | http://localhost:8080 | API (`/health`, `/ready`, `/api/v1/*`) |
-| statements | http://localhost:8081 | upload gateway (`POST /api/v1/uploads`) |
-| analytics | http://localhost:8082 | health only; works over Kafka |
-| postgres | localhost:5432 | app role `expendit_app` / `expendit_app`, db `expendit` |
-| kafka | localhost:9094 | topics created by `kafka-init` |
-| minio | http://localhost:9001 | console (`minioadmin` / `minioadmin`) |
+| Service    | URL                   | What                                                    |
+| ---------- | --------------------- | ------------------------------------------------------- |
+| web        | http://localhost:3000 | Next.js app on the real backend (sign in with Google)   |
+| common     | http://localhost:8080 | API (`/health`, `/ready`, `/api/v1/*`)                  |
+| statements | http://localhost:8081 | upload gateway (`POST /api/v1/uploads`)                 |
+| analytics  | http://localhost:8082 | health only; works over Kafka                           |
+| postgres   | localhost:5432        | app role `expendit_app` / `expendit_app`, db `expendit` |
+| kafka      | localhost:9094        | topics created by `kafka-init`                          |
+| minio      | http://localhost:9001 | console (`minioadmin` / `minioadmin`)                   |
 
 A `jobs` container runs the sweeps (reaper, tmp-cleanup, retention) on a
 loop. Cloud Scheduler calls them as `POST /internal/jobs/<name>` on `common`.
@@ -70,9 +70,9 @@ cd web && NEXT_PUBLIC_TEST_MODE=true npm run dev
 
 ## Tests
 
-| Service | Command |
-| --- | --- |
-| api/common | `go vet ./... && go test ./...` (`-short` skips the Postgres integration test) |
-| api/statements | `npm run typecheck && npm run lint && npm test` |
-| api/analytics | `pytest && ruff check .` |
-| web | `npm run lint && npm run typecheck && npm test`; e2e: `npm run test:e2e` |
+| Service        | Command                                                                        |
+| -------------- | ------------------------------------------------------------------------------ |
+| api/common     | `go vet ./... && go test ./...` (`-short` skips the Postgres integration test) |
+| api/statements | `npm run typecheck && npm run lint && npm test`                                |
+| api/analytics  | `pytest && ruff check .`                                                       |
+| web            | `npm run lint && npm run typecheck && npm test`; e2e: `npm run test:e2e`       |

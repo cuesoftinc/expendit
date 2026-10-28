@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 /**
- * check:boundaries — the shared cross-repo boundary gate (org web standard),
- * wired into `npm run lint`. This file is byte-identical across apparule,
- * expendit and upstat; the only repo-specific part is the rule list in the
+ * check:boundaries — the shared boundary gate, wired into
+ * `npm run lint`. The only repo-specific part is the rule list in the
  * marked config section below, selected by the `name` field of
  * web/package.json.
  *
- * Rule library (the superset of the three repos' historical gates):
+ * Rule library:
  *   - legacyImport        live code never imports src/legacy (quarantine —
  *                         src/legacy stays the mechanism for future
  *                         replacements even while the tree is empty)
  *   - forbiddenImports    package prefixes banned repo-wide (pruned kits)
  *   - rawHex              no raw hex outside the token layer; documented
- *                         exceptions only (design.md §7 per repo)
+ *                         exceptions only (design.md §7 per repo); opt-in
+ *                         colorFunctions also bans rgb()/rgba()/hsl()/hsla()
  *   - fetchOnlyIn         fetch() confined to the repositories client (MVC —
  *                         views/controllers never fetch)
- *   - viewBoundaries      views never fetch or import repositories/gRPC;
+ *   - viewBoundaries      views never fetch or import repositories;
  *                         controllers never fetch (MVC network seam)
  */
 
@@ -25,10 +25,39 @@ import { fileURLToPath } from "node:url";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Per-repo rule lists — the ONLY repo-specific section. Keys are package
-// names; every entry ships in every repo so the file stays byte-identical.
+// names; every entry ships in every repo so the file stays identical.
 // ─────────────────────────────────────────────────────────────────────────
 const REPO_RULES = {
   apparule: [legacyImport()],
+  consoless: [
+    legacyImport(),
+    viewBoundaries({
+      // Views: src/app/** minus the route handlers (src/app/api/**).
+      isView: (path) =>
+        path.startsWith("src/app/") && !path.startsWith("src/app/api/"),
+      isController: (path) => path.startsWith("src/controllers/"),
+      viewForbiddenImports: [/from\s+["']@\/models\/repositories/],
+    }),
+    fetchOnlyIn({
+      // Browser calls go through the client; the Gemini proxy call is
+      // server-only and lives beside it in the repositories.
+      files: [
+        "src/models/repositories/client.ts",
+        "src/models/repositories/gemini-proxy.ts",
+      ],
+      prefixes: [],
+    }),
+    rawHex({
+      // Token rule scope: every component and app file; only
+      // src/design/tokens.css holds raw colours.
+      scope: (path) =>
+        path.startsWith("src/components/") || path.startsWith("src/app/"),
+      allowLinePatterns: [],
+      commentedException: "none",
+      allowFileSuffixes: [],
+      colorFunctions: true,
+    }),
+  ],
   expendit: [
     legacyImport(),
     forbiddenImports(
@@ -69,12 +98,8 @@ const REPO_RULES = {
       isView: (path) =>
         path.startsWith("src/app/") && !path.startsWith("src/app/api/"),
       isController: (path) => path.startsWith("src/controllers/"),
-      // No repository imports and no gRPC/proto imports in views (MVC + the
-      // X-8 control-plane exception lives behind the repositories).
-      viewForbiddenImports: [
-        /from\s+["']@\/models\/repositories/,
-        /from\s+["'](@\/proto|grpc-web|google-protobuf)/,
-      ],
+      // No repository imports in views (MVC).
+      viewForbiddenImports: [/from\s+["']@\/models\/repositories/],
     }),
     rawHex({
       // Token rule scope (design.md §7): ui primitives + view markup/styles.
@@ -145,12 +170,14 @@ function forbiddenImports(packages, why) {
 
 /** No raw hex outside the token layer; exception classes are configured
  *  per repo (documented-comment carve-outs, data-value line patterns,
- *  file-level brand-glyph allowances). */
+ *  file-level brand-glyph allowances). `colorFunctions` extends the ban to
+ *  rgb()/hsl() literals; `commentedException: "none"` allows no carve-out. */
 function rawHex({
   scope,
   allowLinePatterns,
   commentedException,
   allowFileSuffixes,
+  colorFunctions = false,
 }) {
   return {
     check({ path, lines }, fail) {
@@ -158,18 +185,31 @@ function rawHex({
       if (allowFileSuffixes.some((suffix) => path.endsWith(suffix))) return;
       lines.forEach((line, i) => {
         if (isPureComment(line)) return;
-        const hexes = line.match(/#[0-9a-fA-F]{3,8}\b/g);
-        if (!hexes) return;
+        const hexes = line.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];
+        const functions = colorFunctions
+          ? (line.match(/\b(?:rgba?|hsla?)\(/g) ?? [])
+          : [];
+        if (hexes.length === 0 && functions.length === 0) return;
         if (allowLinePatterns.some((pattern) => pattern.test(line))) return;
         const documented = isDocumented(line, lines[i - 1] ?? "");
-        const allWhite = hexes.every(
-          (hex) =>
-            hex.toUpperCase() === "#FFFFFF" || hex.toLowerCase() === "#fff",
-        );
+        const allWhite =
+          functions.length === 0 &&
+          hexes.every(
+            (hex) =>
+              hex.toUpperCase() === "#FFFFFF" || hex.toLowerCase() === "#fff",
+          );
         const excepted =
-          commentedException === "any" ? documented : documented && allWhite;
+          commentedException === "any"
+            ? documented
+            : commentedException === "white-only" && documented && allWhite;
         if (!excepted) {
-          fail(i + 1, "raw-hex", "raw hex without a documenting comment");
+          fail(
+            i + 1,
+            "raw-hex",
+            functions.length > 0
+              ? "raw colour function outside the token layer"
+              : "raw hex without a documenting comment",
+          );
         }
       });
     },
@@ -198,7 +238,7 @@ function fetchOnlyIn({ files, prefixes }) {
   };
 }
 
-/** Views never fetch or import repositories/gRPC; controllers never fetch —
+/** Views never fetch or import repositories; controllers never fetch —
  *  the repositories are the only network seam. */
 function viewBoundaries({ isView, isController, viewForbiddenImports }) {
   return {

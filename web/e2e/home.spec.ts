@@ -395,7 +395,7 @@ test.describe("public home `/` (Part A)", () => {
 // −2.2px), Display/32 Bold section headings (32/38, −1% = −0.32px — the
 // same metrics StatCard pins), Title/20 Semi Bold pillar titles (20/26,
 // −0.05px) and Body/14 Regular captions (14/20). Regression lock from the
-// fleet font-weight audit (2026-07-20).
+// font-weight audit (2026-07-20).
 test.describe("type contract — Figma Home frame roles", () => {
   test("per-role computed weight/size/line-height/tracking match the styles", async ({
     page,

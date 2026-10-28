@@ -77,7 +77,7 @@ export const MarketingNav: React.FC<MarketingNavProps> = ({
   className,
 }) => {
   const onDark = variant === "on-dark";
-  // Mobile canon (org SKILL.md, 2026-07-19): below md the text links
+  // Mobile canon (2026-07-19): below md the text links
   // collapse into a hamburger disclosure — never display:none with no
   // fallback. The panel carries the same 4 links + theme toggle + Sign in.
   const [menuOpen, setMenuOpen] = useState(false);

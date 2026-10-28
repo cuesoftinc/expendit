@@ -54,7 +54,7 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const [typed, setTyped] = useState("");
   const confirmReady = !confirmPhrase || typed === confirmPhrase;
-  // Focus restore (2026-07-21 a11y audit, fleet P4): modals are controlled
+  // Focus restore (2026-07-21 a11y audit): modals are controlled
   // dialogs with no Radix Trigger, so Radix's default close autofocus
   // targets a null triggerRef and focus falls to <body>. Capture the opener
   // ourselves (onOpenAutoFocus fires before Radix moves focus in) and

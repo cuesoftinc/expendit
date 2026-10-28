@@ -3,17 +3,16 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 
 /**
- * Payload-budget lock for /docs/api (perf audit 2026-07-21, fleet P10):
+ * Payload-budget lock for /docs/api (perf audit 2026-07-21):
  * the Scalar reference is ~1.3–1.4MB encoded / ~4.8MB decoded JS in every
  * product — shipped eagerly it made /docs/api the heaviest page of the
- * fleet. The diet gates the Scalar import on user intent (first gesture or
+ * app. The diet gates the Scalar import on user intent (first gesture or
  * the explicit load button), so the settled pre-intent page costs only the
  * shell. This spec locks both halves: the shell stays under budget, AND
  * intent still mounts the full reference from the product's OpenAPI
  * document.
  *
- * This spec is BYTE-IDENTICAL across apparule/expendit/upstat (tooling
- * canon) — per-product expectations live in the config below keyed by
+ * Per-product expectations live in the config below keyed by
  * `package.json` name, the seo.spec.ts pattern.
  *
  * Budgets are the measured settled pre-intent encoded JS of the TEST_MODE

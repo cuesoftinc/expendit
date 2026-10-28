@@ -4,7 +4,7 @@
  * Button — design.md §8.2: kind primary (accent) / quiet / quiet-danger /
  * destructive / danger-armed (MI-15 countdown) · md/sm · default/pressed/
  * disabled/loading. Primary/destructive labels bind to on-accent.
- * Danger-affordance ladder (SKILL.md, ratified 2026-07-20): row-level
+ * Danger-affordance ladder (ratified 2026-07-20): row-level
  * destructive actions use quiet-danger (danger TEXT on quiet chrome —
  * Figma "Button (quiet-danger)"); filled destructive is reserved for
  * armed/confirm surfaces.

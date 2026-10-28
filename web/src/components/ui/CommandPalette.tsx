@@ -61,7 +61,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
-  // Focus restore (2026-07-21 a11y audit, fleet P4): the palette opens
+  // Focus restore (2026-07-21 a11y audit): the palette opens
   // programmatically (⌘K), so closing must hand focus back to whatever
   // element had it before the palette autofocused its input — Escape
   // previously dropped focus on <body>.

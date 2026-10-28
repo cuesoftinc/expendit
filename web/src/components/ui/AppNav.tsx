@@ -16,7 +16,7 @@ import Tag from "./Tag";
 const NavCollapsedContext = createContext(false);
 
 /**
- * Intent-based prefetch (perf P13): the rail links every pillar, and App
+ * Intent-based prefetch (perf): the rail links every pillar, and App
  * Router's default viewport prefetch pulled every sibling pillar's chunks
  * into every dashboard route (the union set). `prefetch={false}` disables
  * that pass entirely (Next 16 App Router: no hover fallback), so the first

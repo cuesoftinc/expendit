@@ -412,7 +412,7 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </Dialog.Root>
       ) : null}
 
-      {/* id/tabIndex: the SkipLink target (fleet canon P15). */}
+      {/* id/tabIndex: the SkipLink target. */}
       <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto">
         <div className="mx-auto w-full max-w-[1440px] px-6 py-6">
           {activeOrg ? children : null}

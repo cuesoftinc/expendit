@@ -39,7 +39,7 @@ const eslintConfig = defineConfig([
             {
               group: ["dayjs", "moment"],
               message:
-                "date-fns is the canonical date library (org SKILL) — use @/lib/dates helpers.",
+                "date-fns is the canonical date library: use @/lib/dates helpers.",
             },
             {
               group: ["@/legacy/*", "**/legacy/*"],

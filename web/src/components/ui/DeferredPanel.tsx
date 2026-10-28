@@ -2,7 +2,7 @@
 
 /**
  * DeferredPanel — visibility-gated mount for below-the-fold demo panels
- * (perf pass 2026-07-21, fleet pattern from upstat). The home page
+ * (perf pass 2026-07-21, pattern). The home page
  * hydrated every demo panel eagerly — the A5 persona demo (charts +
  * ledger table) and the three A5a screen-thumb compositions executed
  * inside the load window (live mobile TBT ~310ms). Prerender and first

@@ -8,7 +8,7 @@
 import { prefersReducedMotion } from "@/lib/use-reduced-motion";
 
 // Canonical inventory per the marketing nav/footer & theme parity canon
-// (org SKILL.md, 2026-07-19) — all URLs verified 200.
+// (2026-07-19) — all URLs verified 200.
 export const GITHUB_URL = "https://github.com/cuesoftinc/expendit";
 export const GITHUB_ISSUES_URL = `${GITHUB_URL}/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22`;
 export const CONTRIBUTING_URL = `${GITHUB_URL}/blob/main/CONTRIBUTING.md`;

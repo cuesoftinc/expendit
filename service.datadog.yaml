@@ -10,7 +10,7 @@ metadata:
     - component:website
   contacts:
     - type: email
-      contact: cuehire-cuesoft@cuesoft.io
+      contact: cuelabs@cuesoft.io
   additionalOwners:
     - name: platform
       type: SRE
@@ -41,7 +41,7 @@ metadata:
     - component:website
   contacts:
     - type: email
-      contact: cuehire-cuesoft@cuesoft.io
+      contact: cuelabs@cuesoft.io
   additionalOwners:
     - name: platform
       type: SRE
@@ -75,7 +75,7 @@ metadata:
     - component:system
   contacts:
     - type: email
-      contact: cuehire-cuesoft@cuesoft.io
+      contact: cuelabs@cuesoft.io
   additionalOwners:
     - name: platform
       type: SRE

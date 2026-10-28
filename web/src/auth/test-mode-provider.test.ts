@@ -11,11 +11,11 @@ describe("TestModeAuthProvider (X-1, TEST_MODE)", () => {
     expect(await provider.getBearerToken()).toBe("test-mode-token");
   });
 
-  it("persists under `expendit.test-session` in sessionStorage (fleet P16)", async () => {
+  it("persists under `expendit.test-session` in sessionStorage", async () => {
     const provider = new TestModeAuthProvider();
     await provider.signInWithGoogle();
-    // Dictated canon 2026-07-21: `<product>.test-session`, sessionStorage,
-    // JSON user payload — one shape across the fleet's e2e tooling.
+    // Key convention: `<product>.test-session`, sessionStorage,
+    // JSON user payload — one shape across e2e tooling.
     expect(
       JSON.parse(window.sessionStorage.getItem("expendit.test-session")!),
     ).toEqual(TEST_USER);

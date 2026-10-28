@@ -83,8 +83,7 @@ const DEEP_DIVES: DeepDive[] = [
     visual: (
       // RatioGauge is its own card (border + bg + p-4, fixed 240px) —
       // no outer chrome: a second bordered wrapper double-boxed it and
-      // its 228px content box clipped the gauge asymmetrically
-      // (user-reported 2026-07-19).
+      // its 228px content box clipped the gauge asymmetrically.
       <RatioGauge
         label="Current ratio"
         value={1.82}

@@ -75,7 +75,7 @@ export default function TransactionInspector({
             {inspector.kind === "record" && activeTxn ? (
               // Danger ladder: the editor-footer Delete is the master's
               // "Button (quiet-danger)" — danger text on quiet chrome,
-              // never a filled block (SKILL.md, ratified 2026-07-20).
+              // never a filled block (ratified 2026-07-20).
               <Button
                 kind="quiet-danger"
                 size="sm"

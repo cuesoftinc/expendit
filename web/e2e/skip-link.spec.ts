@@ -1,4 +1,4 @@
-// Skip link (fleet canon P15, 2026-07-21 a11y audit): every route's FIRST
+// Skip link : every route's FIRST
 // Tab stop is a visually-hidden-until-focused "Skip to content" link;
 // activating it moves focus into <main id="main" tabIndex={-1}>, past the
 // navigation chrome. Probe shape: load → Tab → link focused (and visible)

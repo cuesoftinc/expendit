@@ -10,7 +10,7 @@ import { expect, test } from "@playwright/test";
 
 // The ARIA classes this gate locks at ANY impact level: broken IDREFs /
 // required attributes (the CodeSnippet regression family) and unnamed
-// buttons (the checkbox/icon-button family, fleet P6).
+// buttons (the checkbox/icon-button family).
 const LOCKED_RULES = [
   "aria-valid-attr-value",
   "aria-valid-attr",

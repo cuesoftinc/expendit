@@ -2,8 +2,7 @@
 
 /**
  * ThemeToggle — the ecosystem theme control (marketing nav + dashboard
- * chrome; theme contract ratified 2026-07-20, identical across apparule,
- * expendit and upstat): one icon button cycling light → dark → system
+ * chrome; theme contract ratified 2026-07-20, shared across products): one icon button cycling light → dark → system
  * with a distinct icon per mode (sun / moon / monitor) and an aria-label
  * announcing the ACTIVE mode plus the mode a press switches to.
  */

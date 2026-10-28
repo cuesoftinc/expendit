@@ -1,8 +1,6 @@
-// SkipLink — fleet canon (SKILL.md a11y closeout canons, 2026-07-21).
-// First focusable on every route; visually hidden until keyboard focus;
-// the pill appearing on :focus IS the focus indication. Byte-identical
-// across products (shared-files canon) — utility names only, no
-// product-specific tokens.
+// SkipLink: first focusable on every route; visually hidden until keyboard
+// focus; the pill appearing on :focus IS the focus indication. Utility
+// names only, no product-specific tokens.
 import React from "react";
 
 const SkipLink: React.FC = () => (

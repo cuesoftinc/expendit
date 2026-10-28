@@ -1,7 +1,6 @@
 "use client";
 
-// Lazy boundary for the Scalar embed (perf audit 2026-07-21, P10 —
-// fleet-uniform across apparule/expendit/upstat): @scalar/api-reference-react
+// Lazy boundary for the Scalar embed (perf audit 2026-07-21): @scalar/api-reference-react
 // is the app's single heaviest dependency, and `next/dynamic` alone only
 // MOVES it out of the first-load chunks — the async chunk group still
 // downloads right after hydration, so the settled /docs/api payload stayed

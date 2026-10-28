@@ -11,13 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
 - Rate limiter keys carry the `REDIS_KEY_PREFIX` product prefix.
-- Staging estate documented: Cloud Run, Cloud Scheduler, Aiven, Doppler `stg`.
+- Staging estate documented: Cloud Run, Cloud Scheduler, managed Kafka and the `stg` secrets config.
 - **Release workflow and deploy runbook.** `.github/workflows/release.yml`
   builds the three API images on every merge to main and points the Cloud Run
   services at the new digests via WIF in the `Sandbox`
   environment, failing unless every revision is Ready.
   `docs/deploy-runbook.md` is the operator's checklist for GCP, Firebase
-  Auth, Aiven (Postgres, Kafka topics and ACLs, Redis), IAM and the
+  Auth, managed Postgres, Kafka (topics and ACLs) and Redis, IAM and the
   website switch-over.
 - **The ratified system design, built (S-1…S-14, 2026-10-05).** Three
   services on one base layout: `api/common` (Go, the only Postgres client,
@@ -31,11 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   docs/system-design.md, docs/decisions.md.
 
 - Datadog service catalog entry for the Expendit system.
-- Fleet mock reset endpoint `POST /api/mock/v1/testing/reset` (reseeds the
+- Mock reset endpoint `POST /api/mock/v1/testing/reset` (reseeds the
   in-memory store to seed state), matching the sibling repos' e2e
   test-harness convention (#268).
 - Web app manifest at `/manifest.webmanifest`: product identity, token
-  colors and the brand icons; the fleet SEO spec now locks it (#262).
+  colors and the brand icons; the SEO spec now locks it (#262).
 - Settings goes route-backed tabs: Organization | Members | Data & privacy |
   Notifications, each deep-linkable (#240).
 - Categories gains an Archive tab: routed Active | Archive registry views
@@ -93,7 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   destructured in `use-saved-views.test.ts`, an empty-callback `act()`
   around a clipboard-promise flush replaced with a real fake-timer
   advance in `CodeSnippet.test.tsx`) (#271).
-- Fleet-parity wave: mock server routes move under the versioned
+- Parity wave: mock server routes move under the versioned
   `/api/mock/v1/*` path (client base path, tests, e2e fixtures, and docs
   updated to match); `src/mocks/db.ts` renames to `store.ts`;
   `config/env.ts` converges on the shared `env` object shape
@@ -111,7 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   first hover/focus of its nav item instead of on viewport entry, so a cold
   dashboard route ships only its own chunk set (~204K vs ~355K settled JS
   on accounts) with navigation latency unchanged (#262).
-- The skip link converges on the fleet-canonical construction
+- The skip link converges on the canonical construction
   ("Skip to content") (#262).
 - Mock-data module renamed `src/mock/` → `src/mocks/` for tree-shape parity
   with the sibling repos (#256).
@@ -189,13 +189,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   sign-in/sign-up hooks.
 
 ### Fixed
+
 - Release deploys retry while Cloud Run cannot pull a fresh image.
 - Root metadata carries the brand positioning instead of placeholder copy:
   `layout.tsx`'s title now matches the home og/twitter card
   ("Expendit — See every naira. File every tax."), its `description` and
   the web manifest's drop the leftover "Expense tracker App" for the
   ratified tagline, and the home page's og:description and
-  twitter:description — previously two different strings — now share one
+  twitter:description (previously two different strings) now share one
   constant (#272).
 - Docs currency pass: `web/README.md`'s test command and app-area list now
   match the shipped app (Vitest/Playwright, not retired Jest); the
@@ -208,8 +209,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `design.md` drops stale rename parentheticals (#267).
 
 - Session-restore gate hardening (flows/auth.md §2, ratified 2026-07-22):
-  `/signin` gains the reverse guard — a signed-in visitor is replaced to
-  `/dashboard` and never sees the CTA — and a failed session read now reads
+  `/signin` gains the reverse guard, a signed-in visitor is replaced to
+  `/dashboard` and never sees the CTA, and a failed session read now reads
   as signed out instead of stranding the auth guards at their loading
   state; the provider contract (return `null`, never throw) is documented
   on `AuthProvider.currentUser()`, and the e2e cold-start pair locks both
@@ -262,7 +263,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   leftmost forwarded entry and a fresh header meant a fresh bucket. The engine
   now sets no trusted proxies, and `internal/clientip` attributes requests
   against verified proxy CIDRs (`TRUST_PROXY_HEADERS`, `TRUSTED_PROXY_CIDRS`,
-  `TRUSTED_PROXY_HOPS`, `CLOUDFLARE_PROXY_CIDRS` — the cueprise contract),
+  `TRUSTED_PROXY_HOPS`, `CLOUDFLARE_PROXY_CIDRS` — the shared trusted-proxy contract),
   falling back to the network peer when the chain cannot be trusted. CIDRs
   rather than a hop count because Cloud Run ingress is open: the
   direct-to-origin chain is one hop shorter than the Cloudflare one.

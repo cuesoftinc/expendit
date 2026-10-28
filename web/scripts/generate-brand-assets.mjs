@@ -1,5 +1,5 @@
 /**
- * generate-brand-assets.mjs — brand/SEO asset generator (fleet-shared).
+ * generate-brand-assets.mjs — brand/SEO asset generator.
  *
  * Generates the App Router metadata assets from the product's brand
  * construction (design.md §2 tokens + the marketing wordmark), so the
@@ -13,13 +13,12 @@
  * Run manually (assets are committed, not built):
  *   node scripts/generate-brand-assets.mjs
  *
- * Type renders in Inter (the fleet family, landing-type canon). Font
+ * Type renders in Inter (the product family typeface). Font
  * resolution: $INTER_WOFF2 (path to any Inter variable woff2 — e.g. the
  * `.p.` latin file under web/.next/static/media after a build) or, when
  * unset, the official Inter distribution at rsms.me is fetched.
  *
- * This file is BYTE-IDENTICAL across apparule/expendit/upstat (tooling
- * canon): the engine is shared; the per-product section below is keyed by
+ * The engine is shared; the per-product section below is keyed by
  * `package.json` name. Raw hex is intentional here — assets are rendered
  * outside the app, so token custom properties are quoted by VALUE with
  * their token names in comments (same documented-exception rule as Figma).
