@@ -9,7 +9,7 @@
 # NOTE: NEXT_PUBLIC_TEST_MODE is NOT set here on purpose. Next inlines
 # NEXT_PUBLIC_* at `next build`, so a runtime env var would be silently ignored.
 # It is baked into the image instead:
-#   docker build -f web/Dockerfile -t cuesoft/expendit-web:testmode --build-arg NEXT_PUBLIC_TEST_MODE=1 .
+#   docker build -f web/Dockerfile -t cuesoft/expendit-web:testmode --build-arg NEXT_PUBLIC_TEST_MODE=true .
 #
 # Then load it into the cluster. kind/k3d/minikube/k3s nodes run their own
 # container runtime and cannot see the host Docker image store, so with

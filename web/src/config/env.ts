@@ -2,7 +2,7 @@
  * Typed access to environment switches (web standard: env access goes
  * through this module only).
  *
- * NEXT_PUBLIC_TEST_MODE=1 puts the app in TEST_MODE: GoogleAuthButton
+ * NEXT_PUBLIC_TEST_MODE=true puts the app in TEST_MODE: GoogleAuthButton
  * navigates straight to the dashboard and the API client
  * targets the in-app mock server (/api/mock/v1).
  *
@@ -15,13 +15,13 @@
  * read at request time on the server, so one image runs anywhere.
  */
 
-const testMode = process.env.NEXT_PUBLIC_TEST_MODE === "1";
+const testMode = process.env.NEXT_PUBLIC_TEST_MODE === "true";
 
 export const env = {
   /** Base path for the API the repositories talk to. */
   apiBase: testMode ? "/api/mock/v1" : "/api/v1",
   /**
-   * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=1 →
+   * TEST_MODE (web-standard): NEXT_PUBLIC_TEST_MODE=true →
    * - GoogleAuthButton navigates straight to /dashboard (no backend), and
    * - the API client targets the in-app mock server (/api/mock/v1).
    */

@@ -65,7 +65,7 @@ cd api/analytics && cp .env.example .env && pip install -r requirements.txt && u
 cd web && cp .env.example .env.local && npm install && npm run dev
 
 # web in TEST_MODE: the in-app mock API, no backend needed
-cd web && NEXT_PUBLIC_TEST_MODE=1 npm run dev
+cd web && NEXT_PUBLIC_TEST_MODE=true npm run dev
 ```
 
 ## Tests

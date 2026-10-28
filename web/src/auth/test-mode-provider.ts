@@ -1,5 +1,5 @@
 /**
- * TestModeAuthProvider (NEXT_PUBLIC_TEST_MODE=1): no backend, sign-in
+ * TestModeAuthProvider (NEXT_PUBLIC_TEST_MODE=true): no backend, sign-in
  * resolves instantly with the seeded test user and the app goes straight
  * to /dashboard (web standard — TEST_MODE).
  *
