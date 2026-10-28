@@ -12,12 +12,12 @@
 ## 1. Product definition
 
 Expendit is a financial-analysis and expense-intelligence product: it turns raw
-financial data — bank statements, receipts, CSV exports — into structured,
+financial data, bank statements, receipts, CSV exports, into structured,
 categorized, anomaly-checked reports of spending and cash movement, for
 individuals, SMEs, and operational teams. **[PRD]**
 
 `expendit.cuesoft.io` is both the landing page and the application entry point.
-**[PRD §1.1]** Unlike apparule (whose web property fronts a mostly-unbuilt
+**[PRD §1.1]** Unlike the sibling products (whose web property fronts a mostly-unbuilt
 platform), Expendit's core intelligence loop **already exists in this repo**:
 upload → parse (CSV/PDF/receipt image) → AI categorization → duplicate &
 anomaly detection → reviewable staging → confirm into the ledger. The PRD phase
@@ -56,7 +56,7 @@ auto-created personal org; any business entity that wants statement capture
 | --- | --- | --- |
 | ECO-AUTH | Identity via `account.cuesoft.io` | Same external dependency as the other products (D1). Current: own JWT auth (signup/signin/Google/reset, rate-limited) — a solid interim. |
 | ECO-SUPPORT | Disputes/technical issues route to `clients.cuesoft.io` | Link-out from dashboard/settings. |
-| ECO-ANALYTICS | "Upload Success" and "Report Generation" events via Upstat | Depends on Upstat event API (D2). Events must be **privacy-compliant**: counters only, never financial payloads. **[PRD §4.2]** |
+| ECO-ANALYTICS | "Upload Success" and "Report Generation" events via the monitoring service | Depends on the monitoring service's event API (D2). Events must be **privacy-compliant**: counters only, never financial payloads. **[PRD §4.2]** |
 
 ### 3.3 Derived user-rights requirements **[PRD §7 made explicit]**
 
@@ -92,14 +92,14 @@ auto-created personal org; any business entity that wants statement capture
 | Demo data | Landing previews and demos must use synthetic data only **[PRD §5]** |
 | Privacy clause | Adhere to the Expendit-specific clause in `privacy.cuesoft.io` **[PRD §7]** (content dependency D3) |
 | User control | USR-001/002 above — export + full deletion, visibly reachable **[PRD §7]** |
-| AI processing disclosure | Cloud: statements/receipts are processed by **Vertex AI within GCP** (X-4 — no third-party AI vendors); self-host BYO Groq/Gemini keys disclosed as such **[Current fact that §7 disclosure must cover — Proposed to make explicit in the privacy hub]** |
+| AI processing disclosure | Cloud: statements/receipts are processed by **Vertex AI within GCP** (X-4, no third-party AI vendors); self-host BYO Groq/Gemini keys disclosed as such **[Current fact that §7 disclosure must cover, Proposed to make explicit in the privacy hub]** |
 
 ## 7. Success metrics
 
 | Metric | Source | Requirement |
 | --- | --- | --- |
-| Upload Success | Upstat event on completed import job | ECO-ANALYTICS **[PRD]** |
-| Report Generation | Upstat event on report/export creation | ECO-ANALYTICS **[PRD]** |
+| Upload Success | Monitoring service event on completed import job | ECO-ANALYTICS **[PRD]** |
+| Report Generation | Monitoring service event on report/export creation | ECO-ANALYTICS **[PRD]** |
 | Import → confirm conversion | api/common (jobs confirmed ÷ jobs created) | **[Proposed]** — measures trust in AI staging |
 | Correction rate per import | api/common | **[Proposed]** — categorization quality signal |
 
@@ -118,7 +118,7 @@ auto-created personal org; any business entity that wants statement capture
 
 ---
 
-## 9. Scope expansion (2026-07-16) **[Directive]**
+## 9. Scope expansion (2026-07-16) **[Specified]**
 
 Look and feel: **brex.com** ([design.md](design.md)). Three new capability
 pillars, page-level breakdowns in [pages.md](pages.md):
@@ -127,17 +127,17 @@ pillars, page-level breakdowns in [pages.md](pages.md):
    *or link accounts*; synced transactions flow through the same staged-review
    pipeline. Aggregator: **Mono, ratified E-1** (Okra wound down; Plaid layers
    on later).
-2. **Company financial records** (CMP-001…003) — company orgs upload balance
+2. **Company financial records** (CMP-001…003), company orgs upload balance
    sheets / income statements / cash-flow statements; a normalized line-item
    model feeds a ratio engine: liquidity (current/quick/cash), solvency
    (debt-to-equity, debt ratio, interest coverage), profitability
-   (margins/ROA/ROE), efficiency (turnovers) — every ratio with a formula
+   (margins/ROA/ROE), efficiency (turnovers), every ratio with a formula
    trace back to line items.
 3. **Taxes** (TAX-001…003) — calculate PIT/CIT/VAT (jurisdiction profile,
    NG-first **[Proposed]**) and **file**: v1 generates filing-ready documents
    with guided handoff; v2 adds direct e-filing where APIs/partners exist.
 
-Platform structure **[Directive]**: public home page (shared open-source-site
+Platform structure **[Specified]**: public home page (shared open-source-site
 pattern: Discord, GitHub, preview link, Try Cloud / Self Host CTAs) + dashboard
 + eventual mobile parity (receipt capture first). Docs on GitBook (Git-synced
 from `docs/`); API reference via Scalar. New open questions: aggregator

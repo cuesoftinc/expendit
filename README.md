@@ -21,11 +21,11 @@ API. For a deeper description of the components and how they fit together, see
 
 ```mermaid
 flowchart LR
-    WEB[Next.js web app<br/>web/] -->|HTTPS| COM[api/common — Go<br/>CRUD owner]
-    WEB -->|file + upload ticket| ST[api/statements — Node<br/>upload gateway]
+    WEB[Next.js web app<br/>web/] -->|HTTPS| COM[api/common, Go<br/>CRUD owner]
+    WEB -->|file + upload ticket| ST[api/statements, Node<br/>upload gateway]
     MOB[Flutter mobile<br/>mobile/, planned] --> COM
     COM --> PG[(Postgres)]
-    COM <-->|Kafka| AN[api/analytics — Python<br/>every decision]
+    COM <-->|Kafka| AN[api/analytics, Python<br/>every decision]
     ST -->|tmp/ + Kafka| AN
     AN --> AI[AI: Vertex in cloud · BYO keys self-host]
     COM --> GG[Google OAuth]
@@ -42,7 +42,7 @@ uploads and hands them off. The full design is
 | api/common     | Go 1.26, net/http, Postgres (pgx, row-level security), Redis     |
 | api/statements | Node 24, NestJS 11                                               |
 | api/analytics  | Python 3.12, FastAPI, aiokafka                                   |
-| Messaging      | Kafka (Aiven), JSON Schema contract in `api/common/contract/`    |
+| Messaging      | Kafka (managed), JSON Schema contract in `api/common/contract/`    |
 | Auth           | Google sign-in (API-issued JWT)                                  |
 | Web            | Next.js, React, TypeScript                                       |
 | Mobile         | Flutter (planned)                                                |

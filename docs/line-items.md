@@ -16,15 +16,15 @@
 | `current_assets_other` | Prepayments, other current assets | current ratio |
 | `current_assets` *(derived if absent)* | Total current assets | current/quick/cash ratios |
 | `ppe` | Property, plant & equipment (net) | asset turnover |
-| `intangibles` | Goodwill, software, licenses | — |
-| `noncurrent_assets_other` | Investments, deferred tax assets | — |
+| `intangibles` | Goodwill, software, licenses | —   |
+| `noncurrent_assets_other` | Investments, deferred tax assets | —   |
 | `total_assets` *(derived if absent)* | Total assets | debt ratio, ROA, asset turnover |
 | `payables` | Trade creditors, accounts payable | current ratio |
 | `short_term_debt` | Overdrafts, current portion of loans | current ratio, total debt |
 | `current_liabilities_other` | Accruals, taxes payable | current ratio |
 | `current_liabilities` *(derived)* | Total current liabilities | current/quick/cash ratios |
 | `long_term_debt` | Loans, bonds, lease liabilities > 1y | debt-to-equity, total debt |
-| `noncurrent_liabilities_other` | Deferred tax, provisions | — |
+| `noncurrent_liabilities_other` | Deferred tax, provisions | —   |
 | `total_liabilities` *(derived)* | Total liabilities | debt ratio |
 | `share_capital` | Issued capital, share premium | equity |
 | `retained_earnings` | Accumulated profits/losses | equity |
@@ -41,7 +41,7 @@
 | `depreciation_amortization` | D&A (if separate) | interest coverage (EBITDA variant) |
 | `operating_profit` *(derived)* | EBIT, operating income | operating margin, interest coverage |
 | `interest_expense` | Finance costs | interest coverage |
-| `interest_income` | Investment/interest income | — |
+| `interest_income` | Investment/interest income | —   |
 | `tax_expense` | Income tax | net margin, CIT cross-check |
 | `net_income` *(derived)* | Profit after tax | net margin, ROA, ROE |
 
@@ -53,7 +53,7 @@
 | `cfi` | Net cash from investing activities | `net_change_in_cash` |
 | `cff` | Net cash from financing activities | `net_change_in_cash` |
 | `capex` | Purchase of PP&E | free cash flow |
-| `net_change_in_cash` *(derived)* | | — |
+| `net_change_in_cash` *(derived)* | | —   |
 
 ## 4. Derivation & validation rules
 
@@ -120,14 +120,14 @@ a range.
 | CFO-to-total-debt | `cfo / (short_term_debt + long_term_debt)` | no band — trend-only | higher |
 | Revenue growth | `(revenue_t − revenue_prev) / revenue_prev` | no band | higher |
 | Net-income growth | `(net_income_t − net_income_prev) / net_income_prev` | no band | higher |
-| Runway (months) | `cash_and_equivalents / avg monthly net cash burn` | no band — value; "n/a — cash-flow positive" when not burning | higher |
+| Runway (months) | `cash_and_equivalents / avg monthly net cash burn` | no band, value; "n/a, cash-flow positive" when not burning | higher |
 
 **EBITDA-variant rule:** Interest coverage (EBITDA) is shown only when
 `depreciation_amortization` was separately mapped; otherwise it is omitted
 and the EBIT-basis trace note (§4) applies.
 
 **Growth-metric rules:** consecutive same-kind periods only (Q-over-Q,
-H-over-H, or FY-over-FY — never mixed granularity); "n/a — no prior period"
+H-over-H, or FY-over-FY, never mixed granularity); "n/a, no prior period"
 when absent; when the prior value is ≤ 0 (e.g. loss to profit), the
 percentage is suppressed and the trace shows the absolute change with a
 "sign change" note.
@@ -137,9 +137,9 @@ cash flow computes `cfo + capex` as-reported (capex reported negative),
 i.e. CFO minus the capex outflow magnitude.
 
 **Runway (company orgs, pages.md B1 StatCard):** `burn` = trailing-3-period
-average net cash outflow — from `cfo` when confirmed cash-flow statements
+average net cash outflow, from `cfo` when confirmed cash-flow statements
 exist, else from the ledger's monthly net cash flow (income − expenses);
-renders "n/a — cash-flow positive" when not burning and "n/a — insufficient
+renders "n/a, cash-flow positive" when not burning and "n/a, insufficient
 history" under 3 periods; the trace names the burn source (statement vs
 ledger).
 
@@ -150,7 +150,7 @@ trace.
 
 **Period normalization [Decided]:** flow figures (revenue, cogs, net_income,
 interest) annualize by period length before mixed-ratio computation —
-quarterly ×4, half-year ×2, FY ×1 — and the trace shows the annualization
+quarterly ×4, half-year ×2, FY ×1, and the trace shows the annualization
 factor. Receivables-days uses the period's actual day count (`× days`, not a
 hardcoded 365). **Statement pairing:** ratios mixing BS and IS require
 statements of the SAME `period` value; absent a match, the ratio renders
@@ -165,7 +165,7 @@ badge instead of a number (a real signal, not hidden).
 ## 6. Period grammar **[Proposed — ratify]**
 
 `FIN_STATEMENT.period` (data-model.md §5) is a **closed grammar**, selected
-from a picker at upload/manual entry — never free text — because statement
+from a picker at upload/manual entry, never free text, because statement
 pairing ("SAME `period` value", §5) and uniqueness (`409 period_exists`,
 flows/statement-mapping.md §3) both key on the exact string:
 

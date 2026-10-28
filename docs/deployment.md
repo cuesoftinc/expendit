@@ -2,42 +2,42 @@
 
 > Implements decision X-3. Cloud deploys follow proven
 > patterns (workflows verified 2026-07-16); provisioning goes through the
-> **IaC** (Pulumi) stack — never ad-hoc gcloud. Self-hosting via
+> **infrastructure-as-code** (Pulumi) stack, never ad-hoc gcloud. Self-hosting via
 > `deploy/` (compose/helm/terraform) is unchanged and shares only images.
 
 ## 1. Topology **[Decided — system-design.md §10, S-12]**
 
 | Unit | Runs on | Scaling | Provisioned by |
 | --- | --- | --- | --- |
-| `api/common` (Go) `./server` | Cloud Run **service** (also serves `POST /internal/jobs/<name>`) | **0**–2, woken over HTTP (system-design.md §16 I-16) | IaC stack |
-| Sweeps `expendit-reaper`, `expendit-tmp-cleanup`, `expendit-retention` | Cloud Scheduler, `POST /internal/jobs/<name>` on common with an OIDC token | reaper every 5 min (also wakes services while work is pending), tmp-cleanup every 15 min, retention daily; created paused until the handlers deploy | IaC stack |
-| `api/statements` (Node) | Cloud Run **service** | 0–5 | IaC stack |
-| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run service, authenticated only (common wakes it) | **0**–2, capped by the Vertex quota | IaC stack |
-| `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run service, authenticated only | **0**–2 | IaC stack |
+| `api/common` (Go) `./server` | Cloud Run **service** (also serves `POST /internal/jobs/<name>`) | **0**–2, woken over HTTP (system-design.md §16 I-16) | infrastructure-as-code stack |
+| Sweeps `expendit-reaper`, `expendit-tmp-cleanup`, `expendit-retention` | Cloud Scheduler, `POST /internal/jobs/<name>` on common with an OIDC token | reaper every 5 min (also wakes services while work is pending), tmp-cleanup every 15 min, retention daily; created paused until the handlers deploy | infrastructure-as-code stack |
+| `api/statements` (Node) | Cloud Run **service** | 0–5 | infrastructure-as-code stack |
+| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run service, authenticated only (common wakes it) | **0**–2, capped by the Vertex quota | infrastructure-as-code stack |
+| `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run service, authenticated only | **0**–2 | infrastructure-as-code stack |
 | `web` (Next.js) | **Firebase App Hosting** | managed | App Hosting backend |
-| Postgres, Kafka, Valkey | Aiven, shared (`sandbox-db`, `sandbox-kafka`, `sandbox-cache`) | n/a | IaC stack |
-| Object storage | shared bucket `sandbox-e306a.firebasestorage.app`, `expendit/stg/…`, 1-day lifecycle rule on `tmp/` and `compute/` | n/a | IaC stack |
+| Postgres, Kafka, Valkey | managed services, shared | n/a | infrastructure-as-code stack |
+| Object storage | shared storage bucket, `expendit/stg/…`, 1-day lifecycle rule on `tmp/` and `compute/` | n/a | infrastructure-as-code stack |
 
-Services hand data to each other only over Aiven Kafka (D4); the one
+Services hand data to each other only over managed Kafka (D4); the one
 direct call is a `GET /health`, carrying no data, that wakes a scaled-to-zero
 consumer after something was published for it (system-design.md §16 I-16). Each service has its own SASL user with topic-level ACLs, and
 each has Storage IAM on its prefixes only (S-11): `statements` can write
 `tmp/`, `analytics` can read `tmp/` and `compute/`, and `common` can do
 everything. Kafka is the CueLABS shared bus (system-design.md §16 I-18):
-three lanes shared with Apparule and Upstat, created once
+three lanes shared with the sibling products, created once
 (`deploy/docker/kafka/create-topics.sh` mirrors them locally), with every
 payload by pointer.
 
-## 2. Provisioning (IaC)
+## 2. Provisioning (infrastructure-as-code)
 
 - **Pulumi, bun runtime**; state in a GCS state bucket;
   per-product stack (`Pulumi.<product>.yaml`) added alongside existing ones.
 - Cloud Run services instantiate the shared Cloud Run service
   module; the GitHub→GCP deploy identity uses **Workload Identity
   Federation** — no service-account keys in GitHub.
-- Secrets/env flow from **Doppler** (the product's `stg` config) into
+- Secrets/env flow from **your secrets manager** (the product's `stg` config) into
   Cloud Run env; the repo's `.env.example` files document the variable
-  names, Doppler owns values.
+  names, your secrets manager owns values.
 
 ## 3. CI/CD (GitHub Actions)
 
@@ -96,13 +96,13 @@ the first load test.
   `GOOGLE_REDIRECT_URI`, `JWT_SECRET` and `SESSION_SECRET`; the redirect URI
   is `https://<website>/api/v1/auth/sso/google/callback`.
 - Rollback: redeploy the previous image digest (recorded in the release run).
-- Web env: `NEXT_PUBLIC_*` flows Doppler → `apphosting.yaml` at rollout.
+- Web env: `NEXT_PUBLIC_*` flows your secrets manager → `apphosting.yaml` at rollout.
 - Variable names: system-design.md §10.3 and each service's `.env.example`.
 
 ## 5. Not in this phase
 
 `release.yml` landed on 2026-10-08; the staging estate is created by
-the IaC stack,
+your infrastructure-as-code stack,
 described in [deploy-runbook.md](deploy-runbook.md) §7. The images now exist as
 `cuesoft/expendit-api-common`, `cuesoft/expendit-api-statements`,
 `cuesoft/expendit-api-analytics` and `cuesoft/expendit-web`. The

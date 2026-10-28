@@ -1,8 +1,8 @@
 # Expendit — Engineering Contracts
 
 > Error catalog, authorization matrix, rate limits, testing strategy, logging
-> rules. Ecosystem conventions shared with apparule/upstat (envelope, code
-> discipline, never-log gating — see apparule engineering.md §1 for the
+> rules. Ecosystem conventions shared with the sibling products (envelope, code
+> discipline, never-log gating, see the sibling products' engineering docs for the
 > envelope definition). The web implementation follows
 > [web-implementation.md](web-implementation.md) — the CueLABS™ Web
 > Implementation Standard (W0–W3, TEST_MODE, mock server, legacy policy).
@@ -10,16 +10,16 @@
 ## 1. Error catalog (product families)
 
 Shared envelope + HTTP families per the ecosystem standard. Expendit-specific
-codes live in their flow specs: import (flows/import.md §3 — `file_too_large`,
+codes live in their flow specs: import (flows/import.md §3, `file_too_large`,
 `unsupported_type`, `no_transactions_found`, `password_protected_pdf`,
 `ai_unavailable`, `job_already_confirmed`), bank-link (flows/bank-link.md —
 `already_linked`, `link_expired`, `reauth_required`), tax
 (`ruleset_unsigned`, `period_incomplete`, `mapping_unconfirmed`,
-`tax_identity_incomplete` — mapped to wizard steps in tax-engine.md §5),
+`tax_identity_incomplete`, mapped to wizard steps in tax-engine.md §5),
 statements
 (`mapping_identity_violation`, `unmapped_threshold_exceeded` —
-line-items.md §4), rights (`purge_pending` — 409 on writes while a purge grace window is open;
-`grace_expired` — 410 on cancel attempts after execution). Plus universal:
+line-items.md §4), rights (`purge_pending`, 409 on writes while a purge grace window is open;
+`grace_expired`, 410 on cancel attempts after execution). Plus universal:
 `401 unauthenticated`/`token_expired`, `429 rate_limited` (+`Retry-After`),
 `422 currency_mismatch` (line-items.md §4).
 
@@ -32,16 +32,16 @@ Roles: **member** (read + own uploads), **admin** (member + manage data),
 | --- | --- | --- | --- |
 | Ledger read, reports read | ✓ | ✓ | ✓ |
 | Upload imports, correct categories, confirm/discard own jobs | ✓ | ✓ | ✓ |
-| Confirm/discard any job; bulk re-categorize; manage categories | — | ✓ | ✓ |
-| Bank links: create/sync/pause/auto-confirm toggle | — | ✓ | ✓ |
-| Bank links: unlink (+purge choice) | — | — | ✓ |
-| Statements upload + mapping | — | ✓ | ✓ |
+| Confirm/discard any job; bulk re-categorize; manage categories | —   | ✓ | ✓ |
+| Bank links: create/sync/pause/auto-confirm toggle | —   | ✓ | ✓ |
+| Bank links: unlink (+purge choice) | —   | —   | ✓ |
+| Statements upload + mapping | —   | ✓ | ✓ |
 | Ratio reports (read + `POST /ratios/compute`) | ✓ read | ✓ compute | ✓ |
 | Tax estimates read | ✓ | ✓ | ✓ |
-| Tax filing generate/**submit** | — | generate | ✓ submit |
-| Org members manage | — | — | ✓ |
-| Export-all (USR-001) | — | — | ✓ |
-| Purge (USR-002) | — | — | ✓ (type-to-confirm + grace) |
+| Tax filing generate/**submit** | —   | generate | ✓ submit |
+| Org members manage | —   | —   | ✓ |
+| Export-all (USR-001) | —   | —   | ✓ |
+| Purge (USR-002) | —   | —   | ✓ (type-to-confirm + grace) |
 | Consent records | self | self | self |
 
 Middleware resolves `{user, org, role}` once; handlers declare capability.
@@ -106,11 +106,11 @@ tokens, generated tax documents' contents, AI prompts containing user data
 - Traces: OTel SDK auto-instrumentation (HTTP server/client, gRPC, DB) +
   manual spans on domain operations; W3C traceparent propagated on every
   outbound call (incl. service-to-service).
-- Metrics: OTel Meter API — each service registers its KPI instruments
+- Metrics: OTel Meter API, each service registers its KPI instruments
   (request histograms come free; domain counters per the flow specs'
-  instrumentation sections are PRODUCT events via upstat /v1/events, NOT
-  OTel metrics — keep the pipelines separate).
+  instrumentation sections are PRODUCT events via the monitoring service's `/v1/events`, NOT
+  OTel metrics, keep the pipelines separate).
 - Logs: slog/logging → OTel bridge dual-emit (JSON stdout for Cloud Run +
-  OTLP to upstat). The never-log list applies to BOTH pipelines.
-- Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = upstat
+  OTLP to the monitoring service). The never-log list applies to BOTH pipelines.
+- Export: direct OTLP, env-gated (no endpoint ⇒ no-op); receiver = the monitoring service
   ingest (X-9). Sampling: parent-based, 10% default, errors always.

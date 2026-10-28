@@ -10,7 +10,7 @@
 
 ```mermaid
 flowchart LR
-    BR[Browser] --> WEB[web — Next.js]
+    BR[Browser] --> WEB[web, Next.js]
     WEB -->|proxy /api/v1/uploads| ST[api/statements · Node<br/>thin gateway]
     WEB -->|proxy everything else| CM[api/common · Go<br/>CRUD owner]
     CM --> PG[(Postgres)]
@@ -20,7 +20,7 @@ flowchart LR
     CM -->|delete after parse| OS
     ST -->|pointer| K[[Kafka]]
     CM <-->|outbox · results| K
-    K <--> AN[api/analytics — Python<br/>extract + compute pools]
+    K <--> AN[api/analytics, Python<br/>extract + compute pools]
     AN --> AI[Vertex / Groq / Gemini]
     CM -.->|OAuth code flow| FB[Google OAuth]
 ```
@@ -32,7 +32,7 @@ every decision, the Node gateway validates and hands off.**
 
 | Unit | Lang | Role | Owns | Port |
 | --- | --- | --- | --- | --- |
-| `web` | Next.js | Landing + dashboard. TEST_MODE runs against the in-app mock API, which is the HTTP contract (system-design.md §7.3). | — | 3000 |
+| `web` | Next.js | Landing + dashboard. TEST_MODE runs against the in-app mock API, which is the HTTP contract (system-design.md §7.3). | —   | 3000 |
 | `api/common` | Go | Auth (Google sign-in, session JWT), orgs and roles, ledger, imports and staging, statements, stored ratios and tax figures, upload tickets, transactional outbox, sweeps. | **Postgres (sole client)** | 8080 |
 | `api/statements` | Node (NestJS 11) | `POST /api/v1/uploads`: verifies the upload ticket, checks size and magic bytes, downscales receipt images, writes `tmp/`, publishes a pointer. | nothing | 8081 |
 | `api/analytics` | Python (FastAPI) | `extract` pool: parsing, AI extraction, duplicates, categories, anomalies, summaries, statement row mapping. `compute` pool: statement derivations and checks, ratios, PIT/CIT/VAT, dashboard summary. | nothing | 8082 |
@@ -64,7 +64,7 @@ Each service's README has its full layout.
   (S-4); `compute/` holds oversized message payloads (S-3).
   `reports/` and `exports/` are **[Planned]**.
 - **Kafka** carries every hand-off (D4), on the CueLABS shared bus that
-  Apparule and Upstat also use: three lanes, Expendit's events by type, and
+  the sibling products also use: three lanes, Expendit's events by type, and
   payloads by pointer. The events and their JSON Schemas are in
   `api/common/contract/`. The only
   direct call between services is a wake-up call, carrying no data, that starts a
@@ -156,12 +156,12 @@ See [deployment.md](deployment.md). In short: Cloud Run services for
 `common`, `statements` and the two `analytics` pools, all scaling to zero
 (publishers wake their consumers over HTTP, system-design.md §16 I-16), Cloud
 Scheduler calls to `POST /internal/jobs/<name>` on `common` for the sweeps,
-Firebase App Hosting for `web`, Aiven for Postgres, Kafka and Valkey. Compose and the Helm chart run the same images.
+Firebase App Hosting for `web`, managed Postgres, Kafka and Valkey. Compose and the Helm chart run the same images.
 
 ## 7. Cross-repo dependencies
 
 | ID | Dependency | Blocks |
 | --- | --- | --- |
 | D1 | `account.cuesoft.io` facade over the same Google identity | nothing (Google sign-in is already the auth, X-1) |
-| D2 | Upstat event-ingestion API and OTLP receiver | product events, OTel export (X-9) |
+| D2 | Monitoring service event-ingestion API and OTLP receiver | product events, OTel export (X-9) |
 | D3 | Expendit clause on `privacy.cuesoft.io` | EXP-005 copy; must reflect S-4 |

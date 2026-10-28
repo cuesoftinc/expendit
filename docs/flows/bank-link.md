@@ -67,7 +67,7 @@ Edge cases at link time:
 ## 4. Security invariants
 
 - Bank credentials never touch our servers (widget is provider-hosted).
-- Mono tokens encrypted at rest (KMS/env key via Doppler); never logged;
+- Mono tokens encrypted at rest (KMS/env key via your secrets manager); never logged;
   never serialized in any API response.
 - Webhooks (`/webhooks/bank`) signature-verified; unverified → 401 + alert,
   never processed. **Handled events [Decided]**: new-transactions-available →

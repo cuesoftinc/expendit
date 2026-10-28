@@ -56,7 +56,7 @@ Each deduction line appears in the trace with its source (category sum vs
 user input). Absent inputs default to 0 with a "add deductions" prompt.
 **Business-expense deduction for freelancers/SMEs is NOT computed in v1** —
 estimates are gross-income-based; the estimate banner states this limitation
-explicitly ("PIT shown before business-expense deductions — consult your
+explicitly ("PIT shown before business-expense deductions, consult your
 accountant") **[Decided v1 limitation]**.
 
 | Band (annual, ₦) | Rate |
@@ -90,10 +90,10 @@ Rule-set `params` shape (all rule sets):
 
 Gross income = sum of `income` transactions in period, **excluding**
 categories flagged non-taxable (capital transfers between own accounts,
-loan principal received, gifts — a per-category `tax_treatment` attribute,
+loan principal received, gifts, a per-category `tax_treatment` attribute,
 user-reviewable in Categories): `taxable_income` (in gross, taxed) ·
 `exempt` (**reported in the trace as exempt income, excluded from tax**) ·
-`ignore` (**not income at all — excluded from gross and from the trace**,
+`ignore` (**not income at all, excluded from gross and from the trace**,
 e.g. self-transfers). Every
 figure in the wizard traces to the transaction list behind it.
 
@@ -104,7 +104,7 @@ figure in the wizard traces to the transaction list behind it.
 | Classification | Test | Rate |
 | --- | --- | --- |
 | Small company | turnover ≤ ₦100m AND fixed assets ≤ ₦250m | 0% CIT **and 0% development levy** (levy follows the CIT exemption) **[rule-set param]** |
-| Other | — | 30% + **4% development levy on assessable profits** (consolidates the former education tax etc.) |
+| Other | —   | 30% + **4% development levy on assessable profits** (consolidates the former education tax etc.) |
 
 Inputs come from the mapped statements (line-items.md): assessable profit
 starts from `net_income` with an adjustments worksheet (disallowables:
@@ -166,8 +166,8 @@ registry change is a config release, not code.
 | --- | --- | --- | --- |
 | `pit` | individual (NG resident) | **State IRS** of the state of residence (e.g. `NG-LA` → LIRS) | `TAX_PROFILE.state_of_residence` |
 | `pit` | non-resident / FCT / armed-forces & foreign-service edge cases | **FIRS** | rule-set param; edge cases prompt review |
-| `cit` + development levy | company | **FIRS** | — |
-| `vat` | all | **FIRS** | — |
+| `cit` + development levy | company | **FIRS** | —   |
+| `vat` | all | **FIRS** | —   |
 
 Authority registry entries carry `{code, name, payment_channels,
 reference_format}` — e.g. FIRS: TaxPro-Max portal + Remita; each State IRS:

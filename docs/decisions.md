@@ -43,7 +43,7 @@ considered and excluded, not overlooked; the rule-set mechanism
 | --- | --- | --- |
 | **(a) Keep Groq→Gemini with explicit disclosure + `ai_processing` consent; self-hosted model as a roadmap item for cloud** ⭐ | Works today; honest; consent recorded per user | Financial data transits third parties (disclosed) |
 | (b) Self-hosted extraction model before launch | Strongest privacy story | Big ML lift now; blocks everything on it |
-| (c) Drop AI features | — | Guts EXP-003 |
+| (c) Drop AI features | —   | Guts EXP-003 |
 
 ☑ Ratified: option (a) — **revised by X-4 (2026-07-16): cloud uses Vertex AI
 (Gemini, ADC) instead of consumer Groq/Gemini APIs; financial data stays in
@@ -82,7 +82,7 @@ until a real customer needs it.
 
 ☑ Ratified
 
-## Cross-cutting
+## Cross-cutting (shared with sibling products)
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
   is **Google sign-in run by each product's API**: the API completes the
@@ -94,22 +94,21 @@ until a real customer needs it.
   2026-07-16: Google sign-in is the ONLY method — no username/password
   signup or login, product-wide.** The API exposes no other sign-in
   route; UI ships exactly one auth CTA. Full contract:
-  [flows/auth.md](flows/auth.md). Environment/secrets live in **Doppler**
-  (the product's `stg` config) — CLI
-  token currently expired (`doppler login` to refresh); config names to be mirrored
-  into docs once readable. ☑
+  [flows/auth.md](flows/auth.md). Environment/secrets live in **your secrets manager**
+  (the product's `stg` config); variable names are documented in each
+  service's `.env.example`. ☑
 - **X-2 Docs platform**: GitBook space per product, Git-synced; Scalar API
   refs. **RATIFIED 2026-07-20**: every product ships a public `/docs/api`
   route embedding the Scalar interactive reference, rendered live from the
   repo's `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); the
   footer Docs column's "API reference" links it (was the GitBook
   api-surface page). ☑
-- **X-3 Cloud deployment target (RATIFIED, directive)**: all backend
+- **X-3 Cloud deployment target (RATIFIED)**: all backend
   services run on **Google Cloud Run** (per-service containers — the same
-  `cuesoft/<repo>-<service>` images), provisioned through the IaC
+  `cuesoft/<repo>-<service>` images), provisioned through your infrastructure-as-code
   stack; frontends deploy to **Firebase App Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
   cloud and self-host share images, not manifests. ☑
-- **X-4 AI platform (RATIFIED, directive 2026-07-16)**: AI features use
+- **X-4 AI platform (RATIFIED 2026-07-16)**: AI features use
   **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
   calling service's own service account;
   reference model `gemini-2.5-flash-lite`, region `us-central1`). No
@@ -117,90 +116,90 @@ until a real customer needs it.
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
 - **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
-  **Aiven Postgres** as the system of record — financial aggregation, audit
+  **managed Postgres** as the system of record — financial aggregation, audit
   trails, ratio/tax traces, and org joins are SQL-shaped. Mongo→Postgres
   migration is scheduled WITH the E-4 org migration (one migration, not two);
   self-host compose keeps Mongo until then, then switches to a Postgres
   container.
-  **Shared Valkey**: the sandbox **Aiven Valkey** instance `sandbox-cache`,
+  **Shared Valkey**: the sandbox **managed Valkey** instance,
   tenancy by **key prefix**: user `expendit` is limited to keys `expendit:*`
   (`REDIS_KEY_PREFIX`, default `expendit`; discrete `REDIS_HOST/PORT/
-  USERNAME/PASSWORD/TLS` vars). **Doppler is the env source of truth: services read project `expendit`,
-  config `stg`** (X-6: stg=sandbox is the only live env; `dev*` are local-dev
+  USERNAME/PASSWORD/TLS` vars). **your secrets manager is the env source of truth: services read the `stg`
+  config** (X-6: stg=sandbox is the only live env; `dev*` are local-dev
   conveniences and `prd` sits empty until a production ever exists).
   **Object storage**: the **default Cloud Storage bucket** in
-  `sandbox-e306a` (per-product prefixes `expendit/<env>/…`) for capture
+  `<project-id>` (per-product prefixes `expendit/<env>/…`) for capture
   media, exports, and artifacts. Self-host compose keeps its bundled
   stores. ☑
 - **X-6 Environments & deploy gating (RATIFIED 2026-07-16, deliberate
   deviation from the norm)**: `stg` = **sandbox** and is the ONLY
   environment — no production deployment exists for these products. Secrets
-  live in Doppler `<project>/stg`. Because these repos are **open-source**,
+  live in your secrets manager (`stg` config). Because these repos are **open-source**,
   merge-to-main must NOT deploy: main-merge runs build+test only. **Deploys
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
   a GitHub tag ruleset restricts `v*` creation to owner-level access, and the
   deploy workflow additionally runs in a protected GitHub environment. ☑
-  **Revised 2026-10-27 (owner):** "Deploy on merge to main". A merge to
+  **Revised 2026-10-27:** "Deploy on merge to main". A merge to
   `main` that touches `api/**` deploys the API services to the sandbox; no
   `v*` tags, since the open-source products cut no releases yet.
-- **X-7 Transactional email (RATIFIED, directive 2026-07-16)**: **Brevo REST
+- **X-7 Transactional email (RATIFIED 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
   confirmations…) — `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
-  `BREVO_FROM_NAME` in Doppler. **No SMTP anywhere** — existing SMTP/gomail
+  `BREVO_FROM_NAME` in your secrets manager. **No SMTP anywhere**, existing SMTP/gomail
   plumbing retires when next touched. Revises U-4's Resend pick where it
   applied. ☑
 - **X-8 Protocol standard (RATIFIED 2026-07-16)**: ecosystem APIs are
-  **HTTP/JSON**. gRPC exists ONLY where upstat needs it: **OTLP/gRPC ingest**
+  **HTTP/JSON**. gRPC exists ONLY where the monitoring service needs it: **OTLP/gRPC ingest**
   (OTel industry standard, OBS-001), internal s2s (observability↔common),
   and the existing monitor control plane until monitors-v2. Cloud Run runs
   gRPC fine with end-to-end HTTP/2 (h2c) — already how api/common works.
   **Browser gRPC-Web is a sunset path**: no new surface uses it
-  (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. apparule/expendit never adopt gRPC. ☑
-- **X-9 Telemetry standard (RATIFIED, directive 2026-07-16)**: **OpenTelemetry
+  (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. expendit and the sibling products never adopt gRPC. ☑
+- **X-9 Telemetry standard (RATIFIED 2026-07-16)**: **OpenTelemetry
   everywhere** — traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
   handler; Next: @opentelemetry/sdk-node), W3C `traceparent` propagation
   across HTTP and gRPC. **Export: direct OTLP from the SDK in v1** (batch
   processors; collector sidecar on Cloud Run is the documented upgrade path
-  for tail sampling/fan-out). **Receiver: upstat's OTLP ingest gateway**
-  (OBS-001; gRPC 4317 + HTTP 4318, `Upstat-Ingest-Key` via
+  for tail sampling/fan-out). **Receiver: the monitoring service's OTLP ingest gateway**
+  (OBS-001; gRPC 4317 + HTTP 4318, an ingest-key header via
   OTEL_EXPORTER_OTLP_HEADERS) — sibling products are its first-party
-  customers. **Sibling exporters default to OTLP/HTTP (4318)** — apparule
-  and expendit remain 100% HTTP in practice; only upstat hosts gRPC (X-8). Until OBS-001 ships, services instrument NOW with export
+  customers. **Sibling exporters default to OTLP/HTTP (4318)**, the sibling products
+  and expendit remain 100% HTTP in practice; only the monitoring service hosts gRPC (X-8). Until OBS-001 ships, services instrument NOW with export
   env-gated (unset OTEL_EXPORTER_OTLP_ENDPOINT = no-op). Logs dual-emit:
-  JSON stdout stays (Cloud Run native logging) + OTLP to upstat. Operational
-  telemetry (X-9) is SEPARATE from product analytics events (upstat
+  JSON stdout stays (Cloud Run native logging) + OTLP to the monitoring service. Operational
+  telemetry (X-9) is SEPARATE from product analytics events (the monitoring service
   /v1/events counters) — never mix the pipelines. Env names standard:
   OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_RESOURCE_ATTRIBUTES. ☑
-- **X-10 Identity, profile & KYC tiers (RATIFIED, directive 2026-07-16)**: layered on
+- **X-10 Identity, profile & KYC tiers (RATIFIED 2026-07-16)**: layered on
   X-1 — Google-only sign-in stays the sole credential; tiers add profile data and
   verification, never alternative logins. **Tier 0 — Google identity** (all
   products): google_sub + Google-verified email; grants all read/basic use.
-  **Tier 1 — self-attested profile & location** (captured in product
-  profile/settings; sensitive PII, never logged): apparule = bio + profile
+  **Tier 1, self-attested profile & location** (captured in product
+  profile/settings; sensitive PII, never logged): a sibling product = bio + profile
   location {city, state, country} powering proximity-ranked designer
   recommendations ("near me") and delivery-address pre-fill (delivery address
-  itself stays frozen per order); expendit = tax-jurisdiction location —
-  state_of_residence for individuals, registered_address for company orgs —
-  which resolves the remittance authority (State IRS vs FIRS); upstat = org
+  itself stays frozen per order); expendit = tax-jurisdiction location
+  (state_of_residence for individuals, registered_address for company orgs),
+  which resolves the remittance authority (State IRS vs FIRS); the monitoring service = org
   timezone (IANA) only, for accurate report rendering and time-bucketing —
-  deliberately the entire upstat requirement. **Tier 2 — provider-verified
+  deliberately the entire requirement for the monitoring service. **Tier 2, provider-verified
   financial identity** (only where money moves or government filings
   generate; store provider refs + verification state, never raw government
-  IDs): apparule designer payouts = Paystack bank resolution, BVN-backed
-  (already ratified A-2 — canonized as the ecosystem pattern); expendit
+  IDs): a sibling product's designer payouts = Paystack bank resolution, BVN-backed
+  (already ratified A-2, canonized as the ecosystem pattern); expendit
   filing identity = TIN (+ RC number + registered address for companies)
   required at filing-pack generation (422 tax_identity_incomplete); v1
   verification is format validation + attestation, provider-verified arrives
-  with direct e-filing (post-v1); upstat = N/A until billing enters the PRD.
+  with direct e-filing (post-v1); the monitoring service = N/A until billing enters the PRD.
   **Rules**: tiers gate capabilities, never sign-in; KYC state machines +
-  error codes live in flow docs (apparule kyc_incomplete/post_unavailable is
+  error codes live in flow docs (a sibling product's kyc_incomplete/post_unavailable is
   the template); tier-2 fields are high-sensitivity in every data-model §4
   classification; verification is delegated to the money/filing provider —
   no in-house document review. ☑
-- **X-11 Shared message bus (RATIFIED, boss 2026-10-13)**: expendit, apparule
-  and upstat share **one Aiven Kafka service** under the CueLABS delivery
+- **X-11 Shared message bus (RATIFIED, boss 2026-10-13)**: expendit and its sibling products
+  share **one managed Kafka service** under the CueLABS delivery
   standard's `references/shared-messaging.md` (the contract; read it before
   designing any Kafka use). Three topics ("lanes") serve every product:
   `cuelabs.uploads` (gateway → control plane), `cuelabs.requests` (control
@@ -212,12 +211,11 @@ until a real customer needs it.
   topics: config travels in requests or as a snapshot object. Retention is
   the service's fixed setting, so nothing may depend on the bus keeping a
   message for more than a day; each control plane re-sends overdue work
-  from its own store. One Kafka user per product (`expendit`, `apparule`,
-  `upstat`); consumer groups `<product>-<service>`. The service powers off
+  from its own store. One Kafka user per product (`expendit` and one per sibling product); consumer groups `<product>-<service>`. The service powers off
   after 24 h with no traffic and drops its messages: **keep-alive owner is
   expendit** (its `api/common` reaper sends a heartbeat every 6 h and powers
-  the service back on through the Aiven API); apparule and upstat run no
-  heartbeat or watchdog. Bulk data never rides the bus (upstat telemetry
+  the service back on through the managed-service API); the sibling products run no
+  heartbeat or watchdog. Bulk data never rides the bus (the monitoring service telemetry
   goes through the OpenTelemetry Collector instead). ☑
 
 ## System design (S-1 … S-14)
@@ -245,5 +243,5 @@ until a real customer needs it.
 | S-11 | Postgres row-level security by `org_id`; per-prefix Storage IAM; per-service Kafka ACLs | ☑ |
 | S-12 | Sweeps are Cloud Scheduler calls to `POST /internal/jobs/<name>` on `common`; `analytics` is two services from one image. **Amended 2026-10-13 (boss):** every service scales to zero; publishers wake their consumers over HTTP, with Kafka kept and five topics (system-design.md §16 I-16; since I-18, the CueLABS shared bus's three lanes) | ☑ |
 | S-13 | Topics `expendit.<domain>.<event>`; JSON Schemas in `api/common/contract/`. **Amended 2026-10-13:** events keep those names, and travel on the CueLABS shared bus's lanes `cuelabs.uploads`, `cuelabs.requests`, `cuelabs.results` (system-design.md §16 I-18) | ☑ |
-| S-15 | **Shared message bus (2026-10-13, boss):** Expendit, Apparule and Upstat share one Kafka service under the CueLABS delivery standard's `shared-messaging.md`. Expendit's Kafka user is `expendit`; consumer groups `expendit-common`, `expendit-analytics-extract`, `expendit-analytics-compute`. Payloads go by pointer. **Keep-alive owner: Expendit** (`api/common` reaper: heartbeat and power-on watchdog); Apparule and Upstat run neither | ☑ |
+| S-15 | **Shared message bus (2026-10-13, boss):** Expendit and its sibling products share one Kafka service under the CueLABS shared messaging contract. Expendit's Kafka user is `expendit`; consumer groups `expendit-common`, `expendit-analytics-extract`, `expendit-analytics-compute`. Payloads go by pointer. **Keep-alive owner: Expendit** (`api/common` reaper: heartbeat and power-on watchdog); a sibling product and the monitoring service run neither | ☑ |
 | S-14 | The gateway is reached through the web proxy at `/api/v1/uploads` | ☑ |

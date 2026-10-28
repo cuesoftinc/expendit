@@ -24,11 +24,11 @@ paths:
   /api/v1/bank-links: { post: { tags: [banking], summary: Init Mono link, responses: { "201": { description: Connect config } } }, get: { tags: [banking], summary: List links, responses: { "200": { description: Links } } } }
   /api/v1/bank-links/{id}/sync: { post: { tags: [banking], summary: Manual sync (rate-limited), responses: { "202": { description: Job } } } }
   /api/v1/orgs: { post: { tags: [company], summary: Create org, responses: { "201": { description: Org } } }, get: { tags: [company], summary: List my orgs, responses: { "200": { description: Orgs } } } }
-  /api/v1/orgs/{id}: { patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Update org (name, registered_address, fiscal_year_end — data-model.md §5)", responses: { "200": { description: Org } } } }
+  /api/v1/orgs/{id}: { patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Update org (name, registered_address, fiscal_year_end; data-model.md §5)", responses: { "200": { description: Org } } } }
   /api/v1/statements: { post: { tags: [company], summary: "Authorize a statement upload {kind, period, file_name, size} (returns an upload ticket) OR manual JSON entry {kind, period, currency, line_items[]} staged directly (flows/statement-mapping.md §2)", responses: { "201": { description: "{statement_id, upload_ticket} or staged manual entry" } } } }
   /api/v1/statements/{id}/confirm: { post: { tags: [company], summary: Confirm mapping (checks the stored, versioned validation), responses: { "200": { description: Statement }, "409": { description: validation_pending }, "422": { description: mapping_identity_violation or unmapped_threshold_exceeded } } } }
   /api/v1/ratios: { get: { tags: [company], summary: "Stored ratio report for period, with status current | recomputing", responses: { "200": { description: Ratios + traces } } } }
-  /api/v1/tax/estimates: { get: { tags: [taxes], summary: "Current estimates (rule-set versioned; incl. resolved remittance authority — tax-engine.md §5.5)", responses: { "200": { description: Estimates } } } }
+  /api/v1/tax/estimates: { get: { tags: [taxes], summary: "Current estimates (rule-set versioned; incl. resolved remittance authority; tax-engine.md §5.5)", responses: { "200": { description: Estimates } } } }
   /api/v1/tax/filings: { post: { tags: [taxes], summary: Start filing draft, responses: { "201": { description: Draft } } } }
   /api/v1/account/export: { post: { tags: [rights], summary: Full-history export (owner), responses: { "202": { description: Archive job } } } }
   /api/v1/auth/sso/google: { get: { tags: [auth], summary: "Start Google sign-in (cv = 43-char base64url PKCE challenge); sets the state cookie and redirects to Google", security: [], parameters: [{ name: cv, in: query, required: true, schema: { type: string } }], responses: { "302": { description: Redirect to Google }, "400": { description: invalid challenge }, "429": { description: rate_limited } } } }
@@ -41,7 +41,7 @@ paths:
     patch: { tags: [banking], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Pause / auto-confirm toggle, responses: { "200": { description: Link } } }
     delete: { tags: [banking], parameters: [{ $ref: "#/components/parameters/Id" }, { name: purge, in: query, schema: { type: boolean, default: false } }], summary: Unlink (keep-or-purge history), responses: { "204": { description: Unlinked } } }
   /webhooks/bank:
-    post: { tags: [banking], summary: Mono webhook — signature-auth only; idempotent by provider event id, security: [], responses: { "200": { description: Accepted }, "401": { description: Invalid signature } } }
+    post: { tags: [banking], summary: Mono webhook; signature-auth only; idempotent by provider event id, security: [], responses: { "200": { description: Accepted }, "401": { description: Invalid signature } } }
   /api/v1/statements/{id}/mapping:
     get: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Poll mapping (processing|staged|failed) + staged line items, responses: { "200": { description: Mapping } } }
     patch: { tags: [company], parameters: [{ $ref: "#/components/parameters/Id" }], summary: Fix canonical keys / park rows unmapped / add parser-missed rows, responses: { "200": { description: Mapping } } }
@@ -51,9 +51,9 @@ paths:
     get: { tags: [company], parameters: [{ name: key, in: path, required: true, schema: { type: string } }, { name: period, in: query, required: true, schema: { type: string } }], summary: Formula trace (line-item inputs), responses: { "200": { description: Trace } } }
   /api/v1/tax/profile:
     get: { tags: [taxes], summary: Tax profile, responses: { "200": { description: Profile } } }
-    put: { tags: [taxes], summary: "Update profile (jurisdiction, treatments, state_of_residence, tin/rc_number/nin — data-model.md §5)", responses: { "200": { description: Profile } } }
+    put: { tags: [taxes], summary: "Update profile (jurisdiction, treatments, state_of_residence, tin/rc_number/nin; data-model.md §5)", responses: { "200": { description: Profile } } }
   /api/v1/tax/filings/{id}/generate:
-    post: { tags: [taxes], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Generate filing documents (incl. remittance sheet — tax-engine.md §5.5)", responses: { "201": { description: Artifacts }, "409": { description: ruleset_unsigned }, "422": { description: period_incomplete | mapping_unconfirmed | tax_identity_incomplete } } }
+    post: { tags: [taxes], parameters: [{ $ref: "#/components/parameters/Id" }], summary: "Generate filing documents (incl. remittance sheet; tax-engine.md §5.5)", responses: { "201": { description: Artifacts }, "409": { description: ruleset_unsigned }, "422": { description: period_incomplete | mapping_unconfirmed | tax_identity_incomplete } } }
   /api/v1/reports:
     post:
       tags: [rights]
