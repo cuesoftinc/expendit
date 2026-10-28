@@ -1,10 +1,10 @@
-# Expendit, Engineering Contracts
+# Expendit — Engineering Contracts
 
 > Error catalog, authorization matrix, rate limits, testing strategy, logging
 > rules. Ecosystem conventions shared with the sibling products (envelope, code
 > discipline, never-log gating, see the sibling products' engineering docs for the
 > envelope definition). The web implementation follows
-> [web-implementation.md](web-implementation.md), the CueLABS™ Web
+> [web-implementation.md](web-implementation.md) — the CueLABS™ Web
 > Implementation Standard (W0–W3, TEST_MODE, mock server, legacy policy).
 
 ## 1. Error catalog (product families)
@@ -12,12 +12,12 @@
 Shared envelope + HTTP families per the ecosystem standard. Expendit-specific
 codes live in their flow specs: import (flows/import.md §3, `file_too_large`,
 `unsupported_type`, `no_transactions_found`, `password_protected_pdf`,
-`ai_unavailable`, `job_already_confirmed`), bank-link (flows/bank-link.md -
+`ai_unavailable`, `job_already_confirmed`), bank-link (flows/bank-link.md —
 `already_linked`, `link_expired`, `reauth_required`), tax
 (`ruleset_unsigned`, `period_incomplete`, `mapping_unconfirmed`,
 `tax_identity_incomplete`, mapped to wizard steps in tax-engine.md §5),
 statements
-(`mapping_identity_violation`, `unmapped_threshold_exceeded` -
+(`mapping_identity_violation`, `unmapped_threshold_exceeded` —
 line-items.md §4), rights (`purge_pending`, 409 on writes while a purge grace window is open;
 `grace_expired`, 410 on cancel attempts after execution). Plus universal:
 `401 unauthenticated`/`token_expired`, `429 rate_limited` (+`Retry-After`),
@@ -32,16 +32,16 @@ Roles: **member** (read + own uploads), **admin** (member + manage data),
 | --- | --- | --- | --- |
 | Ledger read, reports read | ✓ | ✓ | ✓ |
 | Upload imports, correct categories, confirm/discard own jobs | ✓ | ✓ | ✓ |
-| Confirm/discard any job; bulk re-categorize; manage categories | n/a | ✓ | ✓ |
-| Bank links: create/sync/pause/auto-confirm toggle | n/a | ✓ | ✓ |
-| Bank links: unlink (+purge choice) | n/a | n/a | ✓ |
-| Statements upload + mapping | n/a | ✓ | ✓ |
+| Confirm/discard any job; bulk re-categorize; manage categories | —   | ✓ | ✓ |
+| Bank links: create/sync/pause/auto-confirm toggle | —   | ✓ | ✓ |
+| Bank links: unlink (+purge choice) | —   | —   | ✓ |
+| Statements upload + mapping | —   | ✓ | ✓ |
 | Ratio reports (read + `POST /ratios/compute`) | ✓ read | ✓ compute | ✓ |
 | Tax estimates read | ✓ | ✓ | ✓ |
-| Tax filing generate/**submit** | n/a | generate | ✓ submit |
-| Org members manage | n/a | n/a | ✓ |
-| Export-all (USR-001) | n/a | n/a | ✓ |
-| Purge (USR-002) | n/a | n/a | ✓ (type-to-confirm + grace) |
+| Tax filing generate/**submit** | —   | generate | ✓ submit |
+| Org members manage | —   | —   | ✓ |
+| Export-all (USR-001) | —   | —   | ✓ |
+| Purge (USR-002) | —   | —   | ✓ (type-to-confirm + grace) |
 | Consent records | self | self | self |
 
 Middleware resolves `{user, org, role}` once; handlers declare capability.
@@ -90,10 +90,10 @@ tokens, generated tax documents' contents, AI prompts containing user data
 
 ## CORS contract (ecosystem standard)
 
-- Env: **`CORS_ORIGINS`**, comma-separated exact origins; no wildcard in
+- Env: **`CORS_ORIGINS`** — comma-separated exact origins; no wildcard in
   cloud; `http://localhost:3000` default for native dev.
 - Behaviour: echo the request Origin **only if allowlisted**; `Vary: Origin`;
-  `Allow-Credentials: false` (bearer auth, no cookies);
+  `Allow-Credentials: false` (bearer auth — no cookies);
   methods `GET,POST,PUT,PATCH,DELETE,OPTIONS`; headers
   `Authorization, Content-Type, Idempotency-Key, X-Org-Id`; preflight 204
   with `Access-Control-Max-Age: 600`. The upload gateway (api/statements)

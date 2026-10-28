@@ -1,6 +1,6 @@
-# Expendit, System Design
+# Expendit — System Design
 
-> **Status: [Decided] v1, ratified 2026-10-05** (S-1…S-14 in
+> **Status: [Decided] v1 — ratified 2026-10-05** (S-1…S-14 in
 > [decisions.md](decisions.md#system-design-s-1--s-14); S-2 signed off by
 > the product lead). Built the same day; §16 records what changed during
 > implementation. This document replaces the system design described across
@@ -30,7 +30,7 @@
 
 ## Contents
 
-1. Why redesign, audit of the current design
+1. Why redesign — audit of the current design
 2. Design drivers
 3. Architecture overview
 4. Services
@@ -41,7 +41,7 @@
 9. Reliability, failure modes, and capacity
 10. Deployment topology
 11. Repository layout
-12. Doc map, keep, change, retire
+12. Doc map — keep, change, retire
 13. Decisions to ratify
 14. Migration plan
 15. Open questions
@@ -49,7 +49,7 @@
 
 ---
 
-## 1. Why redesign, audit of the current design **[Current docs]**
+## 1. Why redesign — audit of the current design **[Current docs]**
 
 This audit is of the **documented design** (architecture.md, data-model.md,
 deployment.md, the flow docs, the tax engine) and the "Expendit Pipeline"
@@ -106,7 +106,7 @@ flowchart LR
     end
 
     subgraph Edge
-        WEB[web, Next.js<br/>App Hosting + CDN]
+        WEB[web — Next.js<br/>App Hosting + CDN]
         PX[/api/v1/* proxy<br/>web route handler/]
     end
 
@@ -156,8 +156,8 @@ services from one image). Ports are unchanged: `api/common` 8080, `statements` 8
 
 | Unit | Lang | Role | Responsibility | Owns | Port |
 | --- | --- | --- | --- | --- | --- |
-| `web` | Next.js | Frontend | Landing (with the demo-data preview), dashboard: transactions, imports, accounts, reports, company statements and ratios, taxes and filing wizard, categories, settings and data rights | n/a | 3000 |
-| `api/common` | **Go** | **CRUD** | Google sign-in and session JWT, orgs and roles, ledger (expenses, incomes, categories), import jobs and staged transactions, confirm/discard, bank links (Mono widget exchange, encrypted tokens, **daily sync fetch**, lookup, fetch, relay), company statements and line items, tax profiles, stored ratio reports, tax estimates and filings, report rendering (CSV/PDF), data rights (export-all, purge), consent. **Authorizes every upload** and issues its signed ticket. **Outbox publisher.** Scheduled sweeps. Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage | 8080 |
+| `web` | Next.js | Frontend | Landing (with the demo-data preview), dashboard: transactions, imports, accounts, reports, company statements and ratios, taxes and filing wizard, categories, settings and data rights | —   | 3000 |
+| `api/common` | **Go** | **CRUD** | Google sign-in and session JWT, orgs and roles, ledger (expenses, incomes, categories), import jobs and staged transactions, confirm/discard, bank links (Mono widget exchange, encrypted tokens, **daily sync fetch** — lookup, fetch, relay), company statements and line items, tax profiles, stored ratio reports, tax estimates and filings, report rendering (CSV/PDF), data rights (export-all, purge), consent. **Authorizes every upload** and issues its signed ticket. **Outbox publisher.** Scheduled sweeps. Persists every decision Python makes. | **Postgres** (sole client), Cloud Storage | 8080 |
 | `api/statements` | **Node** (NestJS) | Thin gateway | Receipts, bank-statement files and company statements: verifies the upload ticket `common` issued (public key, no call), magic-bytes type check, size and image-dimension checks against the ticket, server-side downscaling of oversized images, write to temporary Cloud Storage, pointer → Kafka. Stateless. | nothing: no database, no Redis | 8081 |
 | `api/analytics` | **Python** | Processing | **Extract pool:** file-type detection, CSV/XLSX/PDF parsing, AI extraction and vision (Vertex; BYO Groq/Gemini for self-host), duplicate detection, categorization, the 4 anomaly rules, import summary and narrative, statement mapping suggestions with confidence. **Compute pool:** statement derivations, identity and unmapped-threshold checks, ratios with benchmark bands, PIT/CIT/VAT against signed rule sets, authority resolution, the dashboard AI summary. | nothing; reference data arrives in messages | 8082 |
 
@@ -555,7 +555,7 @@ docs/
 
 ---
 
-## 12. Doc map, keep, change, retire
+## 12. Doc map — keep, change, retire
 
 | Doc | Fate |
 | --- | --- |
@@ -580,8 +580,8 @@ docs/
 | **S-6** | **15 MB** upload cap, carried in the ticket | the 10 MB gateway cap | ⭐ ratify |
 | **S-7** | **All computation in `analytics`**: statement derivations and checks, ratios, tax, the dashboard AI summary; `common` stores results with traces | AI summary "kept in Go on purpose"; checks in `common`'s confirm | ⭐ ratify |
 | **S-8** | Confirm checks stored, versioned validation (`409 validation_pending` while recomputing) | derivations run inside confirm | ⭐ ratify |
-| **S-9** | Bank sync fetch stays in `common` (lookup, fetch, relay); decisions in the import pipeline | n/a | ⭐ ratify |
-| **S-10** | Rule sets propagate by **outbox → compacted topic**; unsigned sets flagged `estimate_only` | n/a | ⭐ ratify. **Amended 2026-10-13: carried inside tax requests (§16 I-16)** |
+| **S-9** | Bank sync fetch stays in `common` (lookup, fetch, relay); decisions in the import pipeline | —   | ⭐ ratify |
+| **S-10** | Rule sets propagate by **outbox → compacted topic**; unsigned sets flagged `estimate_only` | —   | ⭐ ratify. **Amended 2026-10-13: carried inside tax requests (§16 I-16)** |
 | **S-11** | Postgres RLS by `org_id`; per-prefix Storage IAM; per-service Kafka ACLs | app-level tenancy only | ⭐ ratify |
 | **S-12** | Every service min 0; `analytics` as two services from one image (extract, compute); sweeps as Cloud Scheduler calls to `POST /internal/jobs/<name>` on `common`. **Amended 2026-10-13: scale to zero with wake-ups (§16 I-16); 2026-10-27: no always-on instances, no worker pools, no Cloud Run jobs** | "min-instances 0 everywhere" | ⭐ ratify |
 | **S-13** | Topics `expendit.<domain>.<event>`; JSON Schemas in `api/common/contract/` | `expendit.receipts.*` and the draft's `expendit.uploaded/ready/processed` | ⭐ ratify |

@@ -1,4 +1,4 @@
-# Expendit, API Surface
+# Expendit — API Surface
 
 > **Rewritten 2026-10-05** from the ratified [system design](system-design.md)
 > §7 and verified against `api/common/internal/router/router.go` and
@@ -103,7 +103,7 @@ categories.
 | EXP-002 uploads | CSV/XLSX/PDF/receipt images; tickets; typed failures; 15 MB | PDF/image **statements** need AI table extraction |
 | EXP-003 AI categorization | keyword + AI categories, correction, §7 anomaly rules | anomaly UX outside import |
 | EXP-004 downloadable summaries | JSON aggregates | `POST /reports` + rendering |
-| EXP-005 privacy hub | n/a | web page + D3 clause, updated for S-4 |
+| EXP-005 privacy hub | —   | web page + D3 clause, updated for S-4 |
 | USR-001 / USR-002 | per-item deletes | `account/export`, `account/purge` |
 | ECO-AUTH | API-issued session JWT | `account.cuesoft.io` facade (D1) |
-| ECO-ANALYTICS | n/a | D2 + server-side events |
+| ECO-ANALYTICS | —   | D2 + server-side events |

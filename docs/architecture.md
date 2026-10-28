@@ -1,4 +1,4 @@
-# Expendit, System Architecture
+# Expendit — System Architecture
 
 > Companion to [prd.md](prd.md). **Rewritten 2026-10-05** from the ratified
 > [system design](system-design.md) (S-1…S-14), which holds the rationale,
@@ -32,7 +32,7 @@ every decision, the Node gateway validates and hands off.**
 
 | Unit | Lang | Role | Owns | Port |
 | --- | --- | --- | --- | --- |
-| `web` | Next.js | Landing + dashboard. TEST_MODE runs against the in-app mock API, which is the HTTP contract (system-design.md §7.3). | n/a | 3000 |
+| `web` | Next.js | Landing + dashboard. TEST_MODE runs against the in-app mock API, which is the HTTP contract (system-design.md §7.3). | —   | 3000 |
 | `api/common` | Go | Auth (Google sign-in, session JWT), orgs and roles, ledger, imports and staging, statements, stored ratios and tax figures, upload tickets, transactional outbox, sweeps. | **Postgres (sole client)** | 8080 |
 | `api/statements` | Node (NestJS 11) | `POST /api/v1/uploads`: verifies the upload ticket, checks size and magic bytes, downscales receipt images, writes `tmp/`, publishes a pointer. | nothing | 8081 |
 | `api/analytics` | Python (FastAPI) | `extract` pool: parsing, AI extraction, duplicates, categories, anomalies, summaries, statement row mapping. `compute` pool: statement derivations and checks, ratios, PIT/CIT/VAT, dashboard summary. | nothing | 8082 |

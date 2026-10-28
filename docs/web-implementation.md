@@ -1,8 +1,8 @@
-# Expendit, Web Implementation Standard
+# Expendit — Web Implementation Standard
 
 > How `web/` gets rebuilt: the **CueLABS™ Web Implementation Standard**
 > (ratified 2026-07-18, org-wide **[Specified]**) carried in full, plus the
-> Expendit-specific addendum, stage plan, token mapping, route map,
+> Expendit-specific addendum — stage plan, token mapping, route map,
 > TEST_MODE contract, mock server, test strategy, legacy/dead-code policy.
 > Markers as in [design.md](design.md): **[Specified]** = user-stated
 > direction, **[Proposed]** = ratifiable decision, **[Decided <date>]** =
@@ -14,15 +14,15 @@
 
 - **Stack**: Next.js 16 App Router (typed `next.config.ts`) + React 19 +
   TypeScript; Tailwind v4 maps to the token CSS variables (§3). Components
-  are token/Tailwind-based, the live tree carries no MUI (§8 boundary
+  are token/Tailwind-based — the live tree carries no MUI (§8 boundary
   gates).
-- **Design tokens**: `web/src/design/tokens.css`, CSS custom properties
+- **Design tokens**: `web/src/design/tokens.css` — CSS custom properties
   mirroring design.md §2 exactly (light on `:root`, dark on
   `[data-theme="dark"]`, honoring `prefers-color-scheme` with manual
   override; spacing 4–64; radii; durations + easings; z layers; on-accent).
-  **No raw hex in components**, the same rule as Figma (design.md §7);
+  **No raw hex in components** — the same rule as Figma (design.md §7);
   documented exceptions carry a code comment.
-- **Components**: `web/src/components/ui/<Name>.tsx`, one module per Figma
+- **Components**: `web/src/components/ui/<Name>.tsx` — one module per Figma
   component set, named exactly as the set (PascalCase, design.md §8.1 naming
   standards); props mirror the variant axes (`kind`/`size`/`state`/…);
   microinteractions from design.md §4 implemented with duration/easing
@@ -30,7 +30,7 @@
   component unit-tested.
 - **MVC**: models = `web/src/models/` (typed entities per
   [data-model.md](data-model.md) + repositories per
-  [api.md](api.md)/[openapi.yaml](api/openapi.yaml), the **only** layer
+  [api.md](api.md)/[openapi.yaml](api/openapi.yaml) — the **only** layer
   that talks to the network); controllers = `web/src/controllers/`
   (feature-scoped hooks/orchestration, own all state; views never fetch);
   views = `web/src/app/**` routes + composed components, render-only.
@@ -38,7 +38,7 @@
   straight to the dashboard (no Google redirect), and the API client targets the
   in-app mock server (§5). Auth sits behind an `AuthProvider` interface
   (`TestModeAuthProvider` now; `SessionAuthProvider` for the real
-  backend, X-1 Google-only either way,
+  backend — X-1 Google-only either way,
   [flows/auth.md](flows/auth.md)).
 - **Mock server**: Next route handlers under `web/src/app/api/mock/v1/*`
   implementing the documented API surface the web needs (paths, snake_case
@@ -52,21 +52,21 @@
   into CI build+test (X-6: CI itself never deploys).
 - **Legacy / dead-code policy**: before replacement, legacy trees are
   `git mv`-ed into `web/src/legacy/` (structure preserved, excluded from
-  build & routing), live paths carry zero dead code; after the replacement
+  build & routing) — live paths carry zero dead code; after the replacement
   passes QA + Playwright, the legacy subtree is deleted in a dedicated
   `chore(web): retire legacy <area>` PR. No dead code lives outside
-  `src/legacy/`, ever, the eslint `no-restricted-imports` rule and
+  `src/legacy/`, ever — the eslint `no-restricted-imports` rule and
   `scripts/check-boundaries.mjs` keep `legacy/` imports banned regardless of
   whether the tree currently holds anything. Expendit's application of the
   policy: §8.
 - **Mobile responsiveness canon [Specified 2026-07-19]**: the home page and
-  every dashboard route are fully responsive at 390 (768 sanity), the
+  every dashboard route are fully responsive at 390 (768 sanity) — the
   document NEVER side-scrolls. Wide data surfaces (the ledger table,
   staged-review table, statement grids, mapping review) live in
   horizontal-scroll containers (`max-lg:overflow-x-auto`) that scroll
   WITHIN the fixed viewport; ≥lg keeps sticky table headers against the
   main scroll. Grids that collapse to one column declare an explicit base
-  `grid-cols-1` (Tailwind's `minmax(0,1fr)` floors the track, implicit
+  `grid-cols-1` (Tailwind's `minmax(0,1fr)` floors the track — implicit
   auto tracks blow out to item min-content and push the page wide); header
   action clusters and row action clusters `flex-wrap` under their titles
   instead of forcing width; the wizard's rail/content/summary columns
@@ -86,7 +86,7 @@
   SKILL.md updated with every deviation.
 - **Component reuse policy [Decided 2026-07-18]**: pixel-fidelity to the
   Figma file wins. All **visual** components are built in-house from the
-  token layer, no styled component kits in new code (no **new** MUI, no
+  token layer — no styled component kits in new code (no **new** MUI, no
   shadcn/DaisyUI skins) and no chart libraries (Chart/Line, Chart/Donut,
   RatioGauge needles, and StatCard sparklines are bespoke SVG built to the
   design.md §8.2/§8.2b chart specs). Reuse is allowed only where it is
@@ -99,19 +99,19 @@
   date-fns, clsx). Fidelity is verified against the Figma file in the stage
   QA loops (screenshot comparison + token/geometry checks).
 
-## 2. Stage plan, W0 foundations → W3 dashboards
+## 2. Stage plan — W0 foundations → W3 dashboards
 
 One PR per stage; a stage closes only after its QA loop against the Figma
 file passes (screenshot comparison + token/geometry/state checks against the
-Style Guide, component sets, and screen frames, the same standard as the
+Style Guide, component sets, and screen frames — the same standard as the
 design-phase QA loops, design.md §8).
 
 | Stage | Scope | Closes when |
 | --- | --- | --- |
 | **W0 Foundations** | `tokens.css` (§3) + Tailwind mapping · MVC skeleton (`models/`, `controllers/`, `components/ui/`) · `AuthProvider` interface + `TestModeAuthProvider` · mock server + seed dataset (§5–6) · Vitest + Playwright harnesses wired into CI build+test · `/signin` Google-only (X-1) | tokens render both themes correctly vs the Style Guide page; TEST_MODE boots to a stubbed `/dashboard` against the mock server; CI green |
 | **W1 Components** | `components/ui/*` per the design.md §8.1 build order (atoms → molecules → table chrome, charts, app chrome) and §8.2/§8.2b contract rows, MI specs MI-1…MI-16 (all web-applicable) · unit tests per component | every built component passes QA vs its Figma component set (variants, states, both themes, motion specs) |
-| **W2 Home** **[Done 2026-07-19, PR #202]** | Part A sections (§4): A1–A11 + iteration rows A4a/A5a/A8a/A10a/A10b · A5 interactive demo (tabs over the three §6 synthetic datasets, "This is demo data" badge) · analytics events to the monitoring service (D2: `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact`, `contribute_click`, `faq_open`) · runtime GitHub star count on A8 (the A1 nav badge stays neutral "Star", as built, design.md §8.2b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the cross-page CTA handoff into `/signin` |
-| **W3 Dashboards** **[Done 2026-07-19, PR #206]** | Part B routes (§4): B0–B9 + B6b/B7b · feature controllers · ⌘K palette (MI-1), Inspector pattern (MI-11), bank-link + filing wizards (MI-9/MI-10), rights flows (MI-15) | QA vs the Stage-4 Figma templates + prototype flows; Playwright covers the "Core journey, sign in" §8.4 flow (§7) |
+| **W2 Home** **[Done 2026-07-19, PR #202]** | Part A sections (§4): A1–A11 + iteration rows A4a/A5a/A8a/A10a/A10b · A5 interactive demo (tabs over the three §6 synthetic datasets, "This is demo data" badge) · analytics events to the monitoring service (D2: `page_view`, `try_cloud_click`, `self_host_click`, `github_click`, `demo_interact`, `contribute_click`, `faq_open`) · runtime GitHub star count on A8 (the A1 nav badge stays neutral "Star" — as built, design.md §8.2b) | QA vs the Stage-5 Figma page; Playwright covers the "Marketing site" §8.4 flow incl. the cross-page CTA handoff into `/signin` |
+| **W3 Dashboards** **[Done 2026-07-19, PR #206]** | Part B routes (§4): B0–B9 + B6b/B7b · feature controllers · ⌘K palette (MI-1), Inspector pattern (MI-11), bank-link + filing wizards (MI-9/MI-10), rights flows (MI-15) | QA vs the Stage-4 Figma templates + prototype flows; Playwright covers the "Core journey — sign in" §8.4 flow (§7) |
 
 **W2 as-built notes (2026-07-19, PR #202):**
 
@@ -121,11 +121,11 @@ design-phase QA loops, design.md §8).
   data-table parity toggle (§5) wired in.
 - The hero visual embeds the real B1 overview composition
   (`DashboardEmbed`) through `ScaledEmbed`, reproducing the Figma
-  hero-visual scale exactly, 1037/1440 ≈ 0.72.
+  hero-visual scale exactly — 1037/1440 ≈ 0.72.
 - Analytics events land on an in-page queue (`window.__expenditEvents`) in
   TEST_MODE for unit/e2e assertions; the monitoring service's network beacon is
   env-gated behind `NEXT_PUBLIC_UPSTAT_EVENTS_URL` and fires only outside
-  TEST_MODE, the D2 ingestion contract is not yet ratified, so the
+  TEST_MODE — the D2 ingestion contract is not yet ratified, so the
   default build ships queue-only.
 - The `components/ui/*` registry gained additive extensions discovered in
   the W2 QA loop: `Accordion` `mode="single"` (A10a FAQ, one item open at a
@@ -136,12 +136,12 @@ design-phase QA loops, design.md §8).
   (alongside `:root`) so theme scoping works when a dark-editorial section
   sits inside a light-scoped subtree.
 - **Naming canon:** the Part A section components live in
-  `web/src/components/home/`, the canonical path.
+  `web/src/components/home/` — the canonical path.
 
 **W3 as-built notes (2026-07-19, PR #206):**
 
 - The full authenticated app ships from the W1 registry over the mock CRUD
-  server, nested under `/dashboard/<area>` (§4), B0 onboarding (org
+  server, nested under `/dashboard/<area>` (§4) — B0 onboarding (org
   create with the personal/company kind picker + AI-consent sheet) through
   B9 settings, incl. the B2b anomaly-explain inspector variant, B3b staged
   review (MI-3 counts, duplicate re-include, ✨ fixes) with the B3c
@@ -153,12 +153,12 @@ design-phase QA loops, design.md §8).
   the USR-001 export and USR-002 purge (MI-15 typed-confirm, 7-day grace,
   cancel) rights flows.
 - **B9 routed settings tabs [User-ratified 2026-07-20]:** settings is a
-  layout (title + underline tab bar) over four REAL sub-routes -
+  layout (title + underline tab bar) over four REAL sub-routes —
   Organization (`/organization`, org profile + Appearance tail), Members
   (`/members`), Data & privacy (`/data-privacy`, AI consent + bank-link
   permissions, export card above the bordered danger card), Notifications
   (`/notifications`). The bare route `redirect()`s to the first tab; the
-  tab bar is `RouteTabs`, a `role=tablist` of links with `aria-selected`
+  tab bar is `RouteTabs` — a `role=tablist` of links with `aria-selected`
   + `aria-current="page"` and roving-tabindex arrow-key focus (manual
   activation), h-scrolling inside the viewport below `md`; AppNav's
   Settings entry matches nested sub-routes.
@@ -171,14 +171,14 @@ design-phase QA loops, design.md §8).
   `<section>` (one-`<main>`-per-page rule). A follow-up QA pass caught
   every remaining composition site still nesting rows in plain divs (the
   W2 home embeds, the A5 demo table, the DeepDives artifact card, the dev
-  gallery), invalid nesting the HTML parser rearranges during SSR,
+  gallery) — invalid nesting the HTML parser rearranges during SSR,
   producing a client hydration mismatch; every site now wraps rows in a
   real `<table>`/`<tbody>` or `<ul>`.
 - **Boundaries gate:** `scripts/check-boundaries.mjs` (no styled-kit
   imports anywhere, live-code-importing-legacy, raw-hex-without-comment,
   and the MVC fetch-only-in-repositories-client rule) is wired into
   `npm run lint`
-  alongside prettier/eslint, the CI build-and-test workflow needed no
+  alongside prettier/eslint — the CI build-and-test workflow needed no
   changes.
 - **New mock endpoints:** `GET /api/mock/v1/report/monthly` (12-month
   income-vs-expense + runway snapshot) and `GET /api/mock/v1/report/category`
@@ -187,7 +187,7 @@ design-phase QA loops, design.md §8).
   `422 merge_type_mismatch`/`merge_self`); `GET
   /api/mock/v1/reports/{id}/download` serves the signed-URL artifact body for
   B5.
-- W2.1 live-site QA (PR #205) rides separately from this stage, it is a
+- W2.1 live-site QA (PR #205) rides separately from this stage — it is a
   post-launch visual/semantic sweep of the marketing site against the
   design.md §2 container pin (PR #204), not a W3 scope item; W3's own
   Figma self-QA (Dashboard frames) is unaffected by it.
@@ -203,7 +203,7 @@ usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
   `{id, canonical_key, amount}` (ids stay the audit pointer); the hero/tax
   marketing embeds and the A5 company donut now mirror seed.ts verbatim.
 - **Rights:** `GET /account/purge` (200 `null` when none) + a settings
-  mount probe, the grace banner/cancel now survive reloads.
+  mount probe — the grace banner/cancel now survive reloads.
 - **Usability:** BulkActionBar floats at the viewport bottom; import jobs
   parked in staged review show a warn **Needs review** tag with staged
   counts (`ImportJobRowStatus` gains `needs-review`); the filing wizard
@@ -213,7 +213,7 @@ usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
   row-actions cluster is pointer-events-gated (it swallowed clicks).
 - **MI fixes:** MI-14 NEW = `created_at ≥ now − 24h` (pure helper, the
   clock-skew `|diff|` hack retired); StatCard gains `deltaDirection`
-  ("down-good" for expense-like metrics, color = goodness, sign/icon =
+  ("down-good" for expense-like metrics — color = goodness, sign/icon =
   direction); the A2 hero chips join the ScaledEmbed composition (they
   scaled independently and painted under the frame's stacking context).
 - **Parity canon (org SKILL.md 2026-07-19):** marketing nav = Features ·
@@ -228,7 +228,7 @@ usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
   PeriodPicker triggers never wrap.
 - **Mobile nav canon (org SKILL.md follow-up):** below `md` the four nav
   text links collapse into a hamburger disclosure (`aria-expanded`) whose
-  panel carries the same links + ThemeToggle + Sign in, never
+  panel carries the same links + ThemeToggle + Sign in — never
   display-none with no fallback; the 390w Playwright test walks every
   canonical destination through the menu.
 - **Review-canon mock sweep:** (a) query/parse seams reject malformed
@@ -246,7 +246,7 @@ usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
   test. The wizard's profile gate and the generate endpoint now share one
   predicate (`missingTaxIdentifiers`, models/tax.ts), and PIT drafts pick
   a plain calendar year (the FY#### year picker grammar stays
-  statement-only), both from the PR #209 Codex review.
+  statement-only) — both from the PR #209 Codex review.
 
 **Public API reference as-built (2026-07-20, ratified).** `/docs/api` is
 the public Scalar reference (X-2): the `@scalar/api-reference-react`
@@ -259,27 +259,27 @@ links with absolute home anchors, live star count, ThemeToggle,
 (`npm run generate:openapi`, wired as `predev`/`prebuild`/
 `pretypecheck`; output gitignored under `src/generated/`). Theme: the
 embed is forced to the RESOLVED theme via Scalar's `forceDarkModeState`
-(a creation-time override, the view mounts after hydration and remounts
+(a creation-time override — the view mounts after hydration and remounts
 on theme change, since `updateConfiguration` never re-applies it);
 Scalar's own toggle is hidden and its remote default fonts are disabled
 (self-host ethos). Header construction: the sticky marketing nav and
 Scalar's sticky layout coexist via `--scalar-custom-header-height` on
 the embed wrapper (offsets Scalar's sticky sidebar/mobile bar below the
-nav and shrinks its viewport math, one coherent page scroll) plus
+nav and shrinks its viewport math — one coherent page scroll) plus
 `isolate` so no Scalar z-index paints over the nav. Scalar's developer
 toolbar is pinned off (`showDeveloperTools: "never"`) and Agent Scalar
-is disabled outright (`agent: { disabled: true }`, both auto-enable on
+is disabled outright (`agent: { disabled: true }` — both auto-enable on
 localhost-class hosts, surfacing author chrome that never exists on the
 real deploy). The footer Docs column's "API reference"
 (`API_REFERENCE_URL`) links `/docs/api`; `e2e/docs-api.spec.ts` pins
 route 200, a rendered operation from the spec, the served document, the
 footer handoff, the header/scroll sanity and the embed-theme sync.
 Payload: Scalar is the app's heaviest dependency, so `DocsApiView`
-renders it through `ScalarApiReferenceLazy`, a `next/dynamic`
+renders it through `ScalarApiReferenceLazy` — a `next/dynamic`
 `ssr: false` boundary gated on USER INTENT (fleet-uniform, perf audit +
 payload diet 2026-07-21). A `ssr: false` boundary alone only moves
 Scalar out of the first-load chunks (the async group still downloads
-right after hydration, settled /docs/api JS stayed ~1408K encoded /
+right after hydration — settled /docs/api JS stayed ~1408K encoded /
 ~4874K decoded, network-recorded on the prod build), so the import
 fires only on the first pointer/key/wheel/touch/scroll gesture or the
 placeholder's explicit "Load the interactive API reference" button
@@ -289,7 +289,7 @@ The placeholder reserves the embed's viewport slice
 (`100dvh − --scalar-custom-header-height`) so the swap-in shifts no
 layout; the nav/footer chrome stays SSR'd and interactive throughout.
 `e2e/docs-api-payload.spec.ts` (byte-identical fleet spec, keyed by
-package name, the seo.spec.ts pattern) locks the settled pre-intent
+package name — the seo.spec.ts pattern) locks the settled pre-intent
 budget (measured + 20% headroom, CDP-recorded encoded transfer; CI
 prod build only) AND that intent still mounts the full reference with
 the spec fetch intact.
@@ -304,14 +304,14 @@ radix + lucide + date-fns + clsx only. Route-level code splitting is
 healthy: each pillar view is its own small chunk (~5–8K gz) referenced
 only by its route. A dashboard route's settled JS is (a) the framework
 floor shared with every page (react-dom ~70K enc + Next runtime/router
-~60K + radix/lucide/shared-UI ~40K, /signin measures 237K settled
+~60K + radix/lucide/shared-UI ~40K — /signin measures 237K settled
 with zero dashboard code) plus (b) the route's own pillar chunk set.
 Rail prefetch is INTENT-BASED: the rail's Links set `prefetch={false}`
 (App Router's viewport pass would otherwise pull every sibling
 pillar's chunks into every dashboard route, converging each to the
 same ~342–359K encoded union set), and the first pointerenter/focus
 on an item fires `router.prefetch(href)` (`useIntentPrefetch` in
-AppNav), hover leads the click and focus leads the Enter press, so
+AppNav) — hover leads the click and focus leads the Enter press, so
 the sibling's RSC payload and chunks are in flight before navigation
 commits and nav latency is effectively unchanged. Measured on
 /dashboard/accounts: 204K encoded settled / 14 script requests
@@ -341,7 +341,7 @@ mode and reload persistence.
 **Figma-convergence as-built notes (2026-07-20, code lane of the
 adjudicated audit ledger):**
 
-- **B1 overview**: the mid-band grid is `lg:grid-cols-[2fr_1fr]`, the
+- **B1 overview**: the mid-band grid is `lg:grid-cols-[2fr_1fr]` — the
   comma form is invalid CSS (browsers drop the declaration, collapsing
   the band to one column); an e2e asserts two computed tracks at lg. The
   donut center follows the master: caption above, compact 2-decimal value
@@ -373,11 +373,11 @@ adjudicated audit ledger):**
   confirms), and a delete-confirm modal ahead of the `category_in_use`
   merge pivot.
 - **B2b anomaly explain**: reachable from the inline row badges;
-  human-cased severity; provenance line (detected date + rule version -
+  human-cased severity; provenance line (detected date + rule version —
   `Anomaly` gains optional `detected_at`/`rule_version`); category-named
   comparables with a median footer; actions Cancel / **Mark expected**
   (PUT `{anomalies: []}`, the only anomaly write the mock accepts).
-- **Low sweep**: amber re-auth banner ("… link expired, sync paused
+- **Low sweep**: amber re-auth banner ("… link expired — sync paused
   since 12 Jul" + Re-authenticate), AppNav icons per the master (Reports
   file-text, Statements file-spreadsheet), the marketing-nav wordmark
   accent dot, CodeSnippet copy-button backdrop (no text showing through),
@@ -385,26 +385,26 @@ adjudicated audit ledger):**
   "1 anomaly", humanized fiscal-year-end select, Light | Dark | System
   order.
 - **/docs/api**: Scalar's dev toolbar is disabled via configuration
-  (`showDeveloperTools: "never"`, `showToolbar` is its deprecated
+  (`showDeveloperTools: "never"` — `showToolbar` is its deprecated
   alias), never a fork.
 
 **A5a thumb clamp as-built (2026-07-20,
 `fix/howitworks-thumb-alignment`):** the three how-it-works step thumbs
 are pinned to the frame's 384×190 box (`aspect-[384/190]` + overflow
-clip, the taller B3b/B1/B7 embeds crop at the bottom exactly as the
+clip — the taller B3b/B1/B7 embeds crop at the bottom exactly as the
 A5a thumbs do), so the numbered captions sit on one aligned row at
 desktop; the home e2e asserts the caption row stays level (±2px) at
 1440 in both themes.
 
 Screen-state parity **[Specified 2026-07-18, carried from design.md §8.1]**:
-every data-driven screen ships default, empty, and loading states, the
+every data-driven screen ships default, empty, and loading states — the
 three-frame rule applies to the implementation exactly as it does to the
 Figma templates, and the QA loop checks all three (B1/B2/B6/B6b/B7 have the
 frames called out in pages.md; the rule covers every data-driven template).
 
 The design.md §8.1 Stage-3 note carries over: the "composed at screen time"
 assemblies (TxnTable full, staged-review table, ratio grid, filing wizard
-steps) stay screen-level compositions in code too, feature components under
+steps) stay screen-level compositions in code too — feature components under
 their W3 screens, not `components/ui/` modules.
 
 **DatePicker as-built (2026-07-20, every dashboard date field is
@@ -430,9 +430,9 @@ invalid drafts keep the existing inline validation. Grid picks commit
 immediately (range mode: two clicks, start held in the input as
 `from..`, endpoints normalized); the footer is the master's
 Cancel/Apply pair; Escape/Cancel/commit return focus to the trigger
-(the input's Enter commit `preventDefault`s, the browser's Enter
+(the input's Enter commit `preventDefault`s — the browser's Enter
 activation otherwise clicks the re-focused trigger and reopens the
-popover). Geometry is the master's (set 467:11039): a 220px popover -
+popover). Geometry is the master's (set 467:11039): a 220px popover —
 194px content behind 12/10px padding, day cells 26×22 on 2/4px gaps,
 month cells 62×26 / a Q1–Q4 row / 26px year rows on a 4px gap, 14px nav
 chevrons, Table/13 throughout; the panel hugs the grid rather than
@@ -456,13 +456,13 @@ portaled menu marks itself `data-floating-layer` + `pointer-events-auto`
 (Radix's modal body lock disables pointer events under `<body>`),
 `Modal` ignores outside interactions originating inside floating layers,
 and Escape with an open menu closes the menu only (second Escape reaches
-the dialog). The B8 merge modal opts in, its "Merge into" menu used to
+the dialog). The B8 merge modal opts in — its "Merge into" menu used to
 render inside the modal body's `overflow-auto` as a clipped inner
 scrollbox (`e2e/categories-merge.spec.ts` walks the merge end-to-end and
 pins the unclipped, height-capped construction). (b) The B1 mid-band
 drops `items-start`: the chart card stretches to the donut/anomalies
 rail (±2px e2e on personal and company orgs) through `ChartLine`'s
-`fill` mode, at lg+ the plot grows to the card's remaining height,
+`fill` mode — at lg+ the plot grows to the card's remaining height,
 floored at `lg:min-h-[176px]` so short rails never squash it
 (absolutely-filled SVG, `preserveAspectRatio="none"`, non-scaling
 strokes; the %-positioned tick ladder tracks any height); below lg the
@@ -470,12 +470,12 @@ stacked aspect construction is unchanged. Fill-mode series fade in
 rather than dash-draw-in: `non-scaling-stroke` computes dash metrics in
 screen space, so the `pathLength`-normalized dash no longer spans the
 stretched path and the line renders as literal dashes with gaps (unit +
-e2e pin the fill-mode polyline dash-free). The absolutely-positioned fill SVG pins to the padding box, so it restates the 52px axis offset as a left inset, the plot never slides under the y-axis label column (e2e pins the label→plot gap ≥ 4px).
+e2e pin the fill-mode polyline dash-free). The absolutely-positioned fill SVG pins to the padding box, so it restates the 52px axis offset as a left inset — the plot never slides under the y-axis label column (e2e pins the label→plot gap ≥ 4px).
 
 **Self-host tabbed snippet as-built (2026-07-20, PR #239).** The A8a
 compose one-liner is now the user-approved Docker Compose | Helm tab pair
 (A8c, Figma proposal 474:2): `CodeSnippet` gained a tabbed mode (the
-single-block mode is unchanged), Radix Tabs supply roving focus + ARIA
+single-block mode is unchanged) — Radix Tabs supply roving focus + ARIA
 per the kit reuse policy, the active tab carries the 2px accent underline
 (labels stay font-medium in both states, so switching never reflows
 them), and copy targets the ACTIVE tab's full two-line block: `git clone
@@ -497,15 +497,15 @@ deferred Archive proposal).** The archive surface ships on the category
 registry, not the B6 hub (B6 keeps its adjudicated two-page IA; the
 ratified canvas frame is "B8b, Categories (Archive)").
 `/dashboard/categories` carries the routed tab pair **Active | Archive**
-(RouteTabs idiom, every tab a real sub-route, deep-linkable; `RouteTabs`
+(RouteTabs idiom — every tab a real sub-route, deep-linkable; `RouteTabs`
 resolves the most specific matching href, so the bare Active route no
 longer captures its child). Rows gain a quiet **Archive** action (danger
 ladder: reversible moves are never danger and take no confirm);
 `/dashboard/categories/archive` lists archived rows as chip + "Archived
 d MMM yyyy · N transactions this year" (absolute finance dates) + quiet
 **Unarchive**. Model: `Category.archived_at` (ISO datetime, null/absent
-= active). Mock API: `GET /categories` serves the active registry only -
-pickers, merge targets, and recategorize menus never see archived rows -
+= active). Mock API: `GET /categories` serves the active registry only
+(pickers, merge targets, and recategorize menus never see archived rows),
 with `?archived=1` for the archive; idempotent `POST
 /categories/{id}/archive` / `.../unarchive`; merge refuses an archived
 target (`422 merge_target_archived`). Seed: "Conferences & travel" +
@@ -520,7 +520,7 @@ route.
 hardened at the shared layer:
 
 - **Checkbox requires an accessible name.** `CheckboxProps` is a union:
-  either a visible `label` or an `aria-label`, a name-less usage is a
+  either a visible `label` or an `aria-label` — a name-less usage is a
   compile error (the audit found the row-select checkboxes shipped as
   unnamed `button[role="checkbox"]`, axe `button-name` critical ×50 on
   transactions, ×5 on overview and the home demo). `TxnTableRow` names
@@ -532,14 +532,14 @@ hardened at the shared layer:
   zero critical violations and zero `button-name`, ever.
 - **Overlays return focus to their opener.** `Modal` and `CommandPalette`
   own the focus contract (fleet P4): the opener is captured on open
-  (before autofocus moves into the overlay) and refocused on close -
+  (before autofocus moves into the overlay) and refocused on close —
   necessary because Radix's default targets a null trigger on controlled
   dialogs, and the palette opens programmatically via ⌘K, so neither has a
   natural focus-return target. `Modal` is also announced `aria-modal`. e2e:
   `focus-restore.spec.ts` (open → Tab inside → Escape → trigger
   refocused) for the palette and the merge modal.
 
-## 3. Token mapping, design.md §2 → `web/src/design/tokens.css`
+## 3. Token mapping — design.md §2 → `web/src/design/tokens.css`
 
 One custom property per Figma variable in the `expendit/tokens` collection
 (design.md §7, true Light/Dark modes); light values on `:root`, dark on
@@ -550,7 +550,7 @@ block remains as the no-JS fallback only).
 | Group | Token names |
 | --- | --- |
 | Color | `--bg` · `--bg-editorial` (#0C0C0E in **both** modes, hero/dark marketing sections) · `--bg-elev` · `--border` · `--text` · `--text-2` · `--accent` (the Expendit orange) · `--on-accent` (white in both modes **[Decided 2026-07-16]**, primary/destructive labels bind here, never `--bg`) · `--income` · `--expense` · `--warn` · `--info` |
-| Spacing | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64`, the 4px-grid scale, no off-scale values |
+| Spacing | `--space-4` `--space-8` `--space-12` `--space-16` `--space-24` `--space-32` `--space-48` `--space-64` — the 4px-grid scale, no off-scale values |
 | Radii | `--radius: 6px` (the product radius) · `--radius-full: 9999px` (avatars, dots, progress rings) |
 | Motion | `--duration-fast: 120ms` · `--duration-base: 200ms` · `--duration-slow: 300ms` · `--duration-entrance: 250ms` · `--ease-standard: cubic-bezier(0.2, 0, 0, 1)` · `--ease-exit: cubic-bezier(0.4, 0, 1, 1)` |
 | Z layers | `--z-base: 0` · `--z-sticky: 10` · `--z-dropdown: 20` · `--z-overlay: 30` · `--z-modal: 40` · `--z-toast: 50` |
@@ -560,66 +560,66 @@ The mapping is consumed through Tailwind v4's `@theme inline` block in
 convention; the Figma variables carry the bare names). Utilities resolve the
 custom properties at runtime, so theme switching needs no class swaps, and
 alpha modifiers (`bg-info/10`, `border-warn/40`) apply natively to the
-var-backed colors, v4 compiles them to `color-mix()`.
+var-backed colors — v4 compiles them to `color-mix()`.
 
-Notes: Expendit has no chart series-palette tokens, donut slices take the
+Notes: Expendit has no chart series-palette tokens — donut slices take the
 registry category colors (B8, ColorSwatchPicker presets) and line charts
 draw from `--income`/`--expense`/`--accent`. Chart/Line carries the Figma
 master's axis construction as built (2026-07-20 fidelity pass): a 44px
 y-axis column left of the plot (Table/13 Regular in `--text-2`,
 nice-scaled ticks, ₦-compact by default with a per-content-kind format
 override; negative domains tick below zero) with a 1px `--border`
-gridline per tick across the plot (the lowest gridline is the baseline -
+gridline per tick across the plot (the lowest gridline is the baseline —
 no separate axis hairlines), and 13px `--text-2` x labels below the plot
 at their data positions. StatCard sparklines, RatioGauge and Chart/Donut
 stay axis-free per their masters. The Afrocentric line motif is
 an asset at 4% opacity (dark editorial sections only), not a token.
-Breakpoints need no mapping, the design.md §2 scale (sm 640 … 2xl 1536) is
+Breakpoints need no mapping — the design.md §2 scale (sm 640 … 2xl 1536) is
 Tailwind's default. Density row heights (compact 32 / comfortable 44) are
 component constants per the shared-foundations product note, toggled per
 table. **Tabular numerals** (`font-variant-numeric: tabular-nums`) apply
-wherever the design.md §7 `tnum` note applies, MoneyCell, StatCard values,
+wherever the design.md §7 `tnum` note applies — MoneyCell, StatCard values,
 every numeric table column; money formats `₦1,240,300.50` / `$…` with
 currency from org settings.
 
-## 4. Route map, pages.md Part A/B → app routes
+## 4. Route map — pages.md Part A/B → app routes
 
-pages.md names the Part B routes directly in its screen headers, the map
+pages.md names the Part B routes directly in its screen headers — the map
 below restates them and resolves the drill-ins. Route shape
 **[Decided 2026-07-18, route canon]** (canonical across the
 ecosystem): `/` is the public home, `/signin` is the only auth route, and
 **every app surface nests under `/dashboard/<area>`**. Detail views
-open in the Inspector (deep-linkable `?record=`, MI-11), not routes -
+open in the Inspector (deep-linkable `?record=`, MI-11), not routes —
 tables never navigate away for a single record (design.md §2 layout rule);
 the ⌘K palette (MI-1) is a global overlay, not a route.
 
 | pages.md | Route | Screen |
 | --- | --- | --- |
 | Part A (A1–A11 + A4a/A5a/A8a/A10a/A10b) | `/` | Public home page (Brex-editorial) |
-| flows/auth.md §1 | `/signin` | Single auth screen, wordmark + "Sign in" heading + brand subtitle "Financial intelligence for modern growth." + GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab; the one X-1 auth screen; Stage-4 `signin` template) |
-| X-2 | `/docs/api` | Public API reference, Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
+| flows/auth.md §1 | `/signin` | Single auth screen — wordmark + "Sign in" heading + brand subtitle "Financial intelligence for modern growth." + GoogleAuthButton + legal links (Terms/Privacy open the canonical https://terms.cuesoft.io / https://privacy.cuesoft.io in a new tab; the one X-1 auth screen; Stage-4 `signin` template) |
+| X-2 | `/docs/api` | Public API reference — Scalar embed rendering `docs/api/openapi.yaml` (served at `/docs/api/openapi.yaml`); marketing nav chrome, minimal legal strip **[Ratified 2026-07-20]** |
 | B0 | `/onboarding` | First-run: org create (personal/company kind picker) + AI-consent sheet |
 | B1 | `/dashboard` | Overview (StatCards, cash-flow chart, category donut, anomaly feed, latest txns) |
 | B2 | `/dashboard/transactions` | Ledger (full TxnTable, filters, saved views, inline edit, inspector) |
 | B3 | `/dashboard/imports` · `/dashboard/imports/{job_id}` | Import hub + staged-review job detail |
 | B4 | `/dashboard/accounts` | Linked bank accounts (LinkAccountCard grid, MI-9 flow) |
 | B5 | `/dashboard/reports` | Reports & downloads (artifact history, MI-14) |
-| B6 | `/dashboard/company` · `/dashboard/company/statements/{id}` | Company financials, statements list + upload; mapping review & statement view drill-in |
+| B6 | `/dashboard/company` · `/dashboard/company/statements/{id}` | Company financials — statements list + upload; mapping review & statement view drill-in |
 | B6b | `/dashboard/company/ratios` | Ratio grid (RatioGauge groups, trends; traces open in the Inspector) |
 | B7 | `/dashboard/taxes` | Tax center (profile, calendar, estimates with RemitToCard, filing history) |
 | B7b | `/dashboard/taxes/file` | Filing wizard (MI-10) |
-| B8 | `/dashboard/categories` · `/dashboard/categories/archive` | Categories, routed Active/Archive registry tabs (CRUD, color, merge; quiet archive/unarchive, absolute archive dates) |
-| B9 | `/dashboard/settings` → `/dashboard/settings/organization` | Settings shell, page title + routed tab bar (underline grammar, tablist-of-links with `aria-current`); the bare route redirects to the first tab (live IA, **[User-ratified 2026-07-20]**) |
-| B9 | `/dashboard/settings/organization` | Organization tab, org profile (name, registered address, fiscal year end) + Appearance card tail (theme control) |
-| B9 | `/dashboard/settings/members` | Members tab, members & roles (invite → pending until first sign-in) |
-| B9/B9b | `/dashboard/settings/data-privacy` | Data & privacy tab, AI consent + bank-link permissions; USR-001 export card (determinate strip) above the bordered danger card (USR-002 purge, MI-15 typed confirm + 7-day grace) |
-| B9 | `/dashboard/settings/notifications` | Notifications tab, deadline reminders + import summaries |
+| B8 | `/dashboard/categories` · `/dashboard/categories/archive` | Categories — routed Active/Archive registry tabs (CRUD, color, merge; quiet archive/unarchive, absolute archive dates) |
+| B9 | `/dashboard/settings` → `/dashboard/settings/organization` | Settings shell — page title + routed tab bar (underline grammar, tablist-of-links with `aria-current`); the bare route redirects to the first tab (live IA, **[User-ratified 2026-07-20]**) |
+| B9 | `/dashboard/settings/organization` | Organization tab — org profile (name, registered address, fiscal year end) + Appearance card tail (theme control) |
+| B9 | `/dashboard/settings/members` | Members tab — members & roles (invite → pending until first sign-in) |
+| B9/B9b | `/dashboard/settings/data-privacy` | Data & privacy tab — AI consent + bank-link permissions; USR-001 export card (determinate strip) above the bordered danger card (USR-002 purge, MI-15 typed confirm + 7-day grace) |
+| B9 | `/dashboard/settings/notifications` | Notifications tab — deadline reminders + import summaries |
 
-Part C (mobile) has no web routes, it is a later phase (§8). Legacy
+Part C (mobile) has no web routes — it is a later phase (§8). Legacy
 flat paths (`/expense`, `/income`, `/history`, `/import`, `/reports`,
 `/categories`, `/settings`, and the password-era auth paths `/signup`,
 `/forgot-password[/new-password]`, `/change-password`) carry no redirect
-stubs, they 404 on the branded page (route canon, above): the only
+stubs — they 404 on the branded page (route canon, above): the only
 routes are `/`, `/signin`, `/onboarding`, and `/dashboard/<area>`
 (X-1, flows/auth.md §1).
 
@@ -627,7 +627,7 @@ routes are `/`, `/signin`, `/onboarding`, and `/dashboard/<area>`
 resolves before either surface routes: `DashboardShell` holds rendering
 behind `useRequireAuth` (nothing dashboard-side paints until the session
 read settles; signed-out visitors replace to `/signin`), and `/signin`
-carries the reverse guard, `SignInGate` wraps the screen content
+carries the reverse guard — `SignInGate` wraps the screen content
 (`useRedirectAuthed`; the page stays a server component with its
 metadata) so a signed-in visitor is replaced to `/dashboard` and never
 sees the CTA, with an aria-busy hold while the read is in flight. A
@@ -637,11 +637,11 @@ as a second net. Locked by the e2e cold-start pair in `signin.spec.ts`.
 
 ## 5. TEST_MODE contract
 
-`NEXT_PUBLIC_TEST_MODE=true` (build-time inlined, like all `NEXT_PUBLIC_*` -
+`NEXT_PUBLIC_TEST_MODE=true` (build-time inlined, like all `NEXT_PUBLIC_*` —
 [setup.md](setup.md)) switches exactly two seams; nothing else may branch
 on it:
 
-1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` -
+1. **Auth**: the `AuthProvider` resolves to `TestModeAuthProvider` —
    GoogleAuthButton navigates straight to `/dashboard` as the seeded test
    user (§6), no Google redirect, no API session. The seeded user already has
    orgs + consent recorded, so boot lands on `/dashboard`, not B0; the B0
@@ -649,11 +649,11 @@ on it:
    is identical to `SessionAuthProvider` (X-1 Google-only,
    API-issued session cookie, flows/auth.md §2), so backend integration
    swaps the provider, not the views. The test session persists as
-   `expendit.test-session` in **sessionStorage** (JSON user payload), the
+   `expendit.test-session` in **sessionStorage** (JSON user payload) — the
    fleet key convention (P16): `<product>.test-session`, per-tab, gone on
    close.
 2. **API client**: the models layer's base URL targets the in-app mock
-   server, `/api/mock/v1/*` mirrors the `/api/v1/*` surface path-for-path
+   server — `/api/mock/v1/*` mirrors the `/api/v1/*` surface path-for-path
    (incl. the `X-Org-Id` context header), so repositories are identical in
    both modes except for the base URL.
 
@@ -676,15 +676,15 @@ with full CRUD; contract types shared with `src/models/`.
 | --- | --- |
 | Ledger | `/expense` · `/income` · `/category` CRUD + search (v1-consolidated: JWT-scoped, enveloped, cursor-paginated) |
 | Dashboard aggregates | monthly income-vs-expense + category totals (the api.md §1 report endpoints, v1-consolidated), B1 charts and StatCards; the monthly series is the trailing-12-month window trimmed to ledger onset (months before the org's first transaction are never emitted, no fabricated zero points; zero months after onset are true zeros); the anomaly feed reads anomaly-flagged transactions (flows/import.md §7 registry), no separate endpoint |
-| Import | `POST /import` (`201 {job_id, upload_ticket}`) → `POST /uploads` with `Upload-Ticket` (`202`, scripted processing → completed; system-design.md §6.1) · `GET /import/{job_id}` (polling) · `PUT /import/transaction/{id}/category` · `POST /import/{job_id}/confirm` · `DELETE /import/{job_id}`, every flows/import.md §3 failure-taxonomy code reproducible via designated fixture files |
-| Reports & artifacts | `POST /reports` (`201 {artifact_id, signed_url, expires_at}`, mock-served file URL) · `GET /reports` (TTL'd history) |
+| Import | `POST /import` (`201 {job_id, upload_ticket}`) → `POST /uploads` with `Upload-Ticket` (`202`, scripted processing → completed; system-design.md §6.1) · `GET /import/{job_id}` (polling) · `PUT /import/transaction/{id}/category` · `POST /import/{job_id}/confirm` · `DELETE /import/{job_id}` — every flows/import.md §3 failure-taxonomy code reproducible via designated fixture files |
+| Reports & artifacts | `POST /reports` (`201 {artifact_id, signed_url, expires_at}` — mock-served file URL) · `GET /reports` (TTL'd history) |
 | Data rights | `POST /account/export` (`202 {job_id}` → poll → signed_url) · `POST /account/purge` · `DELETE /account/purge` (grace; `409 purge_pending` on writes while open) |
 | Consent | `GET/POST /consent` (`tos` / `privacy` / `ai_processing`) |
 | Orgs | `POST/GET /orgs` · `PATCH /orgs/{id}` · member invite / role / remove · `X-Org-Id` honored on every group (absent = personal org) |
-| Bank links | `POST /bank-links` · `PUT /bank-links/{id}/exchange` · `GET /bank-links` · `POST /bank-links/{id}/sync` (scripted MI-9 stepper: syncing with live txn counter → done → a `source: bank_sync` import job) · `PATCH` (pause/auto-confirm) · `DELETE ?purge=`, `/webhooks/bank` is server-to-server and not mocked; the sync scripting stands in |
+| Bank links | `POST /bank-links` · `PUT /bank-links/{id}/exchange` · `GET /bank-links` · `POST /bank-links/{id}/sync` (scripted MI-9 stepper: syncing with live txn counter → done → a `source: bank_sync` import job) · `PATCH` (pause/auto-confirm) · `DELETE ?purge=` — `/webhooks/bank` is server-to-server and not mocked; the sync scripting stands in |
 | Statements | `POST /statements` (multipart → `202 processing`; manual JSON → `201` staged) · `GET/PATCH /statements/{id}/mapping` (AI-suggested keys with per-row `confidence`; low-confidence arrives unmapped, never guessed) · `POST /statements/{id}/confirm` (`422 mapping_identity_violation`, `unmapped_threshold_exceeded`) |
 | Ratios | `POST /ratios/compute {period}` · `GET /ratios?period` · `GET /ratios/{key}/trace` |
-| Taxes | `GET/PUT /tax/profile` · `GET /tax/estimates` (with the resolved remittance-authority block, tax-engine.md §5.5) · `POST /tax/filings` · `POST /tax/filings/{id}/generate` (`422 tax_identity_incomplete` when identifiers are missing) · `GET /tax/filings`, `/submit` is v2/provider-gated, not mocked |
+| Taxes | `GET/PUT /tax/profile` · `GET /tax/estimates` (with the resolved remittance-authority block, tax-engine.md §5.5) · `POST /tax/filings` · `POST /tax/filings/{id}/generate` (`422 tax_identity_incomplete` when identifiers are missing) · `GET /tax/filings` — `/submit` is v2/provider-gated, not mocked |
 
 **Seed narrative, the docs-coherent Figma dataset.** The store seeds the
 design.md §8.3 synthetic demo datasets (freelancer / SME / company, the
@@ -693,7 +693,7 @@ boot looks like the designs:
 
 - **Seven months of simulated usage** ("today" is pinned to 20 Jul 2026):
   the company ledger runs Jan–Jul 2026 with realistic Nigerian-business
-  merchants and a coherent arc, revenue grows every month while an April
+  merchants and a coherent arc — revenue grows every month while an April
   staff-up and the June GA launch push Apr–Jun into a deliberate burn
   (runway 7.2 months by the ledger-burn rule). The verified math is
   invariant: July MTD sums, the Apr–Jun nets, VAT 2026-06 net ₦550,600
@@ -707,31 +707,31 @@ boot looks like the designs:
   role, mapped statements across ≥2 periods so trends render). Anomaly
   notes are computed from the seeded data, never invented.
 - Import jobs in every ImportJobRow status (processing / completed /
-  completed-empty / completed-bank / failed) telling one arc, the June
+  completed-empty / completed-bank / failed) telling one arc — the June
   GTB feed outage → an image-only PDF that parsed 0 rows → the CSV parked
   in staged review with the MI-3 counts ("Import 209 / discard 5
   duplicates"), whose 5 duplicates mirror the five June GTB ledger rows
   that synced before the outage; Access expired 12 Jul → a
   password-protected failure → a retry processing "now".
 - Bank links covering all five BANK_LINK states (pending / active /
-  reauth_required / degraded / paused, data-model.md §6.2), the re-auth
+  reauth_required / degraded / paused, data-model.md §6.2) — the re-auth
   Banner renders from seed; the personal org carries its own active link.
 - Statements: FY2025 confirmed in all three kinds (balance_sheet /
   income_statement / cash_flow, cash continuity ties the two balance
   sheets through the cash-flow statement) plus a confirmed FY2024 pair
   telling the turnaround story (strained ratios, small net loss), so the
   RatioGauge grid exercises healthy / warning / critical / n-a states,
-  growth rows render, including the documented sign-change suppression -
+  growth rows render, including the documented sign-change suppression,
   and one statement sits staged mid-review with a low-confidence unmapped
   row plus a parser-missed row to add.
-- Tax: the company profile complete (TIN + RC, its CIT FY2025 + monthly
+- Tax: the company profile complete (TIN + RC — its CIT FY2025 + monthly
   VAT filing history could not exist otherwise); the personal org missing
   its TIN so the `422 tax_identity_incomplete` wizard block is
   demonstrable (its `state_of_residence` still resolves LIRS). The filing
   calendar shows the monthly VAT cadence (June due 21 Jul at the T-1
   tint + July in progress due 21 Aug) and the CIT horizon; under the
   pinned clock and the ratified NG filing calendar no deadline can sit at
-  T-7/T-30 simultaneously with the T-1 hero, those escalation tints are
+  T-7/T-30 simultaneously with the T-1 hero — those escalation tints are
   covered by TaxCalendarRow unit tests and the Figma state frames.
   Estimates carry remit-to authority blocks; filing history is immutable
   with stamped receipts, its VAT nets rising with revenue month over
@@ -746,7 +746,7 @@ boot looks like the designs:
 
 | Layer | Tooling | Scope |
 | --- | --- | --- |
-| Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks, count-ups render final values, gauges jump-cut, design.md §5); model/repository parsing incl. error-envelope handling; controller hooks |
+| Unit | Vitest + Testing Library | every `components/ui/*` module (variant axes, states, both themes, reduced-motion fallbacks — count-ups render final values, gauges jump-cut, design.md §5); model/repository parsing incl. error-envelope handling; controller hooks |
 | Integration | Vitest | mock handlers (envelope, pagination, enum taxonomies, 202-job lifecycles, mapping state machine, flows/statement-mapping.md §4, and BANK_LINK transitions, data-model.md §6.2); controller ↔ mock-server flows (optimistic MI-11 inspector saves roll back on scripted failures) |
 | E2E | Playwright, TEST_MODE against the mock server | the design.md §8.4 prototype journeys: **Core journey, sign in** (`/signin` → B0 → AI-consent → B1 → the navigation mesh + drill-ins: import review MI-2/3, bank-link stepper MI-9, statement mapping, ratio traces, filing wizard MI-10, rights MI-15) and **Marketing site** (Part A scroll + CTA handoff into `/signin`); plus the keyboard-first path, ⌘K palette (MI-1) and table keyboard nav (↑↓/enter/`e`, design.md §5) asserted explicitly (design principle 3); plus the §1 mobile-responsiveness sweep (390 + 768 across home and every dashboard route) and the floating-layer viewport clamps |
 | CI | build-and-test workflow | lint + typecheck + Vitest + Playwright on every PR; X-6: CI itself never deploys |
@@ -764,13 +764,13 @@ The §1 policy, applied: **live paths carry zero dead code**.
 `web/src/legacy/` is the reserved quarantine path, excluded from the TS
 build, lint, and both test runners, and unrouted by construction (App
 Router is filesystem-based; nothing under `src/legacy/` would be a route)
-- standing ready for whenever a replacement needs it. The boundary gates
+— standing ready for whenever a replacement needs it. The boundary gates
 are the standing mechanism that keep it that way regardless of whether the
 tree currently holds anything: `scripts/check-boundaries.mjs` + the eslint
 `no-restricted-imports` rules (both wired into `npm run lint`) fail
 **styled-kit imports (`@mui/*`, `@emotion/*`) repo-wide**, the packages
 left package.json with the MUI retirement, and ban live code from
-importing `src/legacy/`. The tree does not exist in the current repo, the
+importing `src/legacy/`. The tree does not exist in the current repo — the
 app runs entirely on the token-layer registry (§1), and retired paths 404
 on the branded page rather than carrying redirect stubs forward (§4).
 
@@ -803,27 +803,27 @@ policy, when it opens.
 Fleet-uniform discoverability layer (same construction in all three
 products; per-product values only):
 
-- **`src/app/sitemap.ts`**, public marketing routes only: `/` and
+- **`src/app/sitemap.ts`** — public marketing routes only: `/` and
   `/docs/api`. No `/dashboard/*`, no `/signin`, no onboarding.
-- **`src/app/robots.ts`**, allow `/`, disallow `/dashboard` and `/api`;
+- **`src/app/robots.ts`** — allow `/`, disallow `/dashboard` and `/api`;
   references `https://expendit.cuesoft.io/sitemap.xml`.
-- **Canonical**, root layout sets
+- **Canonical** — root layout sets
   `metadataBase = https://expendit.cuesoft.io` and
   `alternates.canonical = "./"`, so every route emits its own path as the
   canonical URL.
-- **og/twitter card**, `src/app/opengraph-image.png` (1200×630, App Router
+- **og/twitter card** — `src/app/opengraph-image.png` (1200×630, App Router
   file convention): the "expendit·" wordmark + tagline on the editorial
   token canvas, sized to the 1.91:1 card aspect ratio; `twitter:card =
-  summary_large_image`. `/signin` title standardized to "Sign in -
+  summary_large_image`. `/signin` title standardized to "Sign in —
   Expendit" (fleet separator).
 - **Icons**, `src/app/favicon.ico` (16/32/48/256 PNG-in-ICO, was 16×16
   only) and `src/app/apple-icon.png` (180×180): the "e·" mark on the
   editorial tile.
-- **Provenance**, all three binaries are generated from the design tokens
+- **Provenance** — all three binaries are generated from the design tokens
   by `web/scripts/generate-brand-assets.mjs` (byte-identical across repos,
   config keyed by package name; Inter via `INTER_WOFF2` or the official
   distribution).
-- **Lock**, `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
+- **Lock** — `web/e2e/seo.spec.ts` (byte-identical across repos) asserts
   sitemap 200 + exact route set, robots policy + sitemap reference,
   canonical on `/`, og:image resolves 200 at 1200×630, twitter card, and
   the served favicon's sha256 equals expendit's mark while differing from

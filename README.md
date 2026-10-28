@@ -98,19 +98,19 @@ Run `make help` to see all available targets. For a detailed walkthrough, see
 
 
 ## Documentation
-- [Hosted docs](https://cuesoft.gitbook.io/expendit), the full documentation site (auto-synced from `docs/`)
+- [Hosted docs](https://cuesoft.gitbook.io/expendit) — the full documentation site (auto-synced from `docs/`)
 
 Full documentation lives in the [`docs/`](./docs) folder:
 
-- [Project overview](./docs/overview.md), architecture and components
-- [Local setup guide](./docs/setup.md), step-by-step development environment
+- [Project overview](./docs/overview.md) — architecture and components
+- [Local setup guide](./docs/setup.md) — step-by-step development environment
 
 Service-specific notes live in each workspace: [`api/common/README.md`](./api/common/README.md)
 and [`web/README.md`](./web/README.md).
 
 ## Contributing
 
-We welcome contributions of all kinds, bug fixes, features, documentation, and
+We welcome contributions of all kinds — bug fixes, features, documentation, and
 more. Please read the [Contribution Guide](./CONTRIBUTING.md) before opening a PR,
 and note our [Code of Conduct](./CODE_OF_CONDUCT.md).
 

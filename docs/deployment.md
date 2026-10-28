@@ -1,11 +1,11 @@
-# Deployment, Cloud Contract
+# Deployment — Cloud Contract
 
 > Implements decision X-3. Cloud deploys follow proven
 > patterns (workflows verified 2026-07-16); provisioning goes through the
 > **infrastructure-as-code** (Pulumi) stack, never ad-hoc gcloud. Self-hosting via
 > `deploy/` (compose/helm/terraform) is unchanged and shares only images.
 
-## 1. Topology **[Decided, system-design.md §10, S-12]**
+## 1. Topology **[Decided — system-design.md §10, S-12]**
 
 | Unit | Runs on | Scaling | Provisioned by |
 | --- | --- | --- | --- |
@@ -34,7 +34,7 @@ payload by pointer.
   per-product stack (`Pulumi.<product>.yaml`) added alongside existing ones.
 - Cloud Run services instantiate the shared Cloud Run service
   module; the GitHub→GCP deploy identity uses **Workload Identity
-  Federation**, no service-account keys in GitHub.
+  Federation** — no service-account keys in GitHub.
 - Secrets/env flow from **your secrets manager** (the product's `stg` config) into
   Cloud Run env; the repo's `.env.example` files document the variable
   names, your secrets manager owns values.
@@ -54,14 +54,14 @@ tags: images carry the commit sha and `latest`.
 
 Two hard-won rules, non-negotiable:
 
-1. **Deploy by digest, never by tag**, Cloud Run pulls Docker Hub images
+1. **Deploy by digest, never by tag** — Cloud Run pulls Docker Hub images
    through the `mirror.gcr.io` cache, which has served stale manifests for
    tags; the staging workflow threads `steps.build.outputs.digest` into the
    deploy step.
 2. **WIF only** (`google-github-actions/auth@v3` with
-   `workload_identity_provider` + `service_account`), no JSON keys.
+   `workload_identity_provider` + `service_account`) — no JSON keys.
 
-The single protected GitHub environment is **`Sandbox`** (X-6), required
+The single protected GitHub environment is **`Sandbox`** (X-6) — required
 reviewers + the sandbox variables (`GCP_PROJECT_ID`, `GCP_REGION`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_DEPLOY_SERVICE_ACCOUNT`). No other deploy
 environments exist.
 

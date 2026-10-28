@@ -1,6 +1,6 @@
-# Expendit, Design Language
+# Expendit — Design Language
 
-> Reference feel: **brex.com**, editorial financial-grade polish: confident
+> Reference feel: **brex.com** — editorial financial-grade polish: confident
 > typography, dark hero surfaces, precise data UI, keyboard-first workflows.
 > Markers: **[Specified]** = stated direction (2026-07-16), **[Proposed]**
 > = ratifiable decision. Pages/screens in [pages.md](pages.md) reference the
@@ -8,15 +8,15 @@
 
 ## 1. Design principles
 
-1. **Numbers are the product**, tabular numerals everywhere, right-aligned
+1. **Numbers are the product** — tabular numerals everywhere, right-aligned
    money columns, consistent decimal precision; charts austere, never
    decorative.
-2. **Editorial confidence**, Brex's trick: marketing surfaces read like a
+2. **Editorial confidence** — Brex's trick: marketing surfaces read like a
    finance magazine (huge serif-adjacent display type, generous whitespace,
    dark sections), while the app is dense, quiet, and fast.
-3. **Keyboard-first ops**, the dashboard behaves like a tool: ⌘K palette,
+3. **Keyboard-first ops** — the dashboard behaves like a tool: ⌘K palette,
    row-level shortcuts, inline edit. Mouse optional for the power path.
-4. **Trust through disclosure**, sensitive states (bank links, AI processing,
+4. **Trust through disclosure** — sensitive states (bank links, AI processing,
    tax filings) always show *what's happening and why*, inline, not in a help
    center.
 
@@ -33,22 +33,22 @@
 | `text` | #111113 | #F5F5F6 | primary |
 | `text-2` | #6E6E76 | #A0A0A8 | secondary |
 | `accent` | #F46A1F | #F46A1F | the Expendit orange (Brex-adjacent): primary CTAs, active nav, focus rings |
-| `on-accent` | #FFFFFF | #FFFFFF | text/icons on accent & destructive fills, [Decided 2026-07-16] white in **both** modes; primary/destructive button labels rebind to it from `bg` |
+| `on-accent` | #FFFFFF | #FFFFFF | text/icons on accent & destructive fills — [Decided 2026-07-16] white in **both** modes; primary/destructive button labels rebind to it from `bg` |
 | `income` | #1B7F4B | #34C77B | inflows, positive deltas |
 | `expense` | #C6373C | #FF6B6E | outflows, negative deltas |
 | `warn` | #B26A00 | #FFB020 | anomalies, tax deadlines |
 | `info` | #2456D6 | #7DA2FF | AI/insight chips |
-| `accent-text` | #AE4501 | #F46A1F | AA text variant, readable accent text (links, active nav, chip labels, toast/banner actions) binds this; fills/borders/icons/focus rings keep `accent`. Light value darkens `accent` in OKLCH (L only) until ≥4.5:1 on the tinted-chip recipe (`text-X` on `bg-X/10–20`) and both surfaces; the dark base already clears AA, so dark aliases it |
+| `accent-text` | #AE4501 | #F46A1F | AA text variant — readable accent text (links, active nav, chip labels, toast/banner actions) binds this; fills/borders/icons/focus rings keep `accent`. Light value darkens `accent` in OKLCH (L only) until ≥4.5:1 on the tinted-chip recipe (`text-X` on `bg-X/10–20`) and both surfaces; the dark base already clears AA, so dark aliases it |
 | `warn-text/income-text/expense-text` | #804C05 / #077542 / #BC2D34 | #FFB020 / #34C77B / #FF6B6E | AA text variants for warn/income/expense as readable text (tinted chips, deadline copy, statement flags); same OKLCH derivation, dark aliases the base. `info` needs no variant (base clears its /12 chip) |
-| Afrocentric pattern | 4% opacity line motif | n/a | dark editorial sections only |
+| Afrocentric pattern | 4% opacity line motif | —   | dark editorial sections only |
 
 ### Type
 
 - Display (marketing + dashboard page titles): **Inter Display** committed for
-  v1 [Decided, no commercial-font procurement now]; revisit at brand pass. Hero sizes 56–88px,
+  v1 [Decided — no commercial-font procurement now]; revisit at brand pass. Hero sizes 56–88px,
   tight leading (Brex scale), spanning Hero/56 through **Hero/88 Bold** (the
   A2 hero headline) [Decided 2026-07-16]. Inter Display remains unavailable in
-  Figma, the Inter Bold tight-tracked fallback stands until the brand pass.
+  Figma — the Inter Bold tight-tracked fallback stands until the brand pass.
 - UI/data: `Inter`; base 14, tables 13; **tabular figures always on for
   numeric columns**; money format `₦1,240,300.50` / `$…` with currency from
   org settings.
@@ -59,7 +59,7 @@
 - Marketing: 12-col, max 1200px; alternating light/dark full-bleed sections.
   **Container pin [Decided 2026-07-19]:** every landing section lays its inner
   content in the single centered 1200px container (x 120–1320 on the 1440
-  frame, min 24px gutters), editorial bands stay full-bleed with their
+  frame, min 24px gutters) — editorial bands stay full-bleed with their
   content aligned to it, and narrower blocks center within it. *As built:*
   the Figma `A, Home` frame was normalized to this rule on 2026-07-19, the
   pillar row, all five feature deep-dive splits, the demo stats/charts/table,
@@ -67,29 +67,29 @@
   all align to the single centered container; 3-up card rows share one
   384px-card / 24px-gutter rhythm.
 - Dashboard: left nav 240px (collapsible to 64px icon rail) · content
-  max 1440px · right inspector panel (400px) slides in for detail views -
+  max 1440px · right inspector panel (400px) slides in for detail views —
   tables never navigate away for a single record. **[Proposed]**
 - Density toggle (comfortable/compact) on all tables.
 - Radii 6px; shadows only on overlays; hairline-first like the sibling products.
 
 
-### Shared foundations (ecosystem parity, identical across the three products)
+### Shared foundations (ecosystem parity — identical across the three products)
 
 | Foundation | Value |
 | --- | --- |
-| Spacing scale | 4px base grid: `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64`, no off-scale values; component padding uses the scale, not arbitrary numbers |
+| Spacing scale | 4px base grid: `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64` — no off-scale values; component padding uses the scale, not arbitrary numbers |
 | Breakpoints | `sm 640 · md 768 · lg 1024 · xl 1280 · 2xl 1536` (Tailwind-aligned); mobile-first media queries |
-| Motion durations | `fast 120ms · base 200ms · slow 300ms · entrance 250ms`, MI specs quote exact values, these are the defaults |
+| Motion durations | `fast 120ms · base 200ms · slow 300ms · entrance 250ms` — MI specs quote exact values, these are the defaults |
 | Motion easing | standard `cubic-bezier(0.2, 0, 0, 1)`; exit `cubic-bezier(0.4, 0, 1, 1)`; springs only where an MI names one |
-| Z-index layers | `base 0 · sticky 10 · dropdown 20 · overlay 30 · sheet/modal 40 · toast 50`, nothing outside these six |
+| Z-index layers | `base 0 · sticky 10 · dropdown 20 · overlay 30 · sheet/modal 40 · toast 50` — nothing outside these six |
 | Iconography | **Lucide** (24px stroke default) everywhere; product-specific icons only as approved additions in the Figma Style Guide |
-| Focus states | 2px accent ring, 2px offset, `:focus-visible` only, identical rule all products |
+| Focus states | 2px accent ring, 2px offset, `:focus-visible` only — identical rule all products |
 | Radii (product) | 6px |
 | Product note | density toggle honors the compact row height 32px / comfortable 44px |
 
-- **Cursor affordance**: enabled interactive controls show `cursor: pointer`, one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Specified 2026-07-19]
+- **Cursor affordance**: enabled interactive controls show `cursor: pointer` — one base-layer rule on `button:not(:disabled)`, `[role="button"]:not([aria-disabled="true"])`, `select:not(:disabled)`, `summary`, `label[for]`; links use the native pointer; disabled controls keep the default cursor. [Specified 2026-07-19]
 
-These rows are standardized in the org SKILL.md, a change here is an
+These rows are standardized in the org SKILL.md — a change here is an
 ecosystem change, PR'd to all three design.md files together.
 
 ## 3. Component inventory
@@ -118,7 +118,7 @@ ecosystem change, PR'd to all three design.md files together.
 | MI-3 | **Staged-review commit** | confirm button shows count ("Import 209 / discard 5 duplicates"); on commit, staged rows cascade-collapse into the ledger toast (240ms stagger ≤10 rows, then batch) |
 | MI-4 | **Inline category edit** | click chip → combobox in-cell; enter commits with 80ms chip color crossfade; AI ✨ mark clears on human confirm; `e` on focused row opens it |
 | MI-5 | **Anomaly pulse** | new anomalies pulse twice on first render, then rest; count in nav badge |
-| MI-6 | **Row hover** | 60ms bg tint + action icon cluster fades in docked at the right edge of the description (flex-1) cell, overlaying only its truncation whitespace, the category chip and amount column keep their positions and the amount stays fully legible; no layout shift (cluster absolutely positioned) **[Revised 2026-07-19]** |
+| MI-6 | **Row hover** | 60ms bg tint + action icon cluster fades in docked at the right edge of the description (flex-1) cell, overlaying only its truncation whitespace — the category chip and amount column keep their positions and the amount stays fully legible; no layout shift (cluster absolutely positioned) **[Revised 2026-07-19]** |
 | MI-7 | **Number tick** | stat cards animate value changes with 300ms count-up (once per data refresh, not on scroll) |
 | MI-8 | **Ratio gauge** | needle eases to value 600ms cubic; benchmark band fades in after; hover shows formula tooltip ("Current ratio = current assets ÷ current liabilities") |
 | MI-9 | **Bank link flow** | provider modal (Mono/Plaid-style) inside `WizardShell`; status stepper: connect → consent → syncing (progress with live txn counter) → done; sync dot breathes while syncing |
@@ -144,7 +144,7 @@ ecosystem change, PR'd to all three design.md files together.
 | --- | --- | --- |
 | Home (public) | pages.md Part A Brex-editorial home, built on this system (W2) | shipped |
 | Dashboard | pages.md Part B suite, built on this system (W3) | shipped |
-| Mobile | responsive web shipped, below `md` the marketing nav collapses to the hamburger disclosure (Try Cloud stays in the bar) and the dashboard rides the 64px icon rail with an overlay drawer + scrim; the Figma Mobile page carries the @390 exemplars | native app later phase; ledger + receipt-capture first (pages.md Part C sketch), ecosystem parity **[Specified]** |
+| Mobile | responsive web shipped — below `md` the marketing nav collapses to the hamburger disclosure (Try Cloud stays in the bar) and the dashboard rides the 64px icon rail with an overlay drawer + scrim; the Figma Mobile page carries the @390 exemplars | native app later phase; ledger + receipt-capture first (pages.md Part C sketch) — ecosystem parity **[Specified]** |
 
 ## 7. Figma Style Guide (source of truth for tokens)
 
@@ -153,12 +153,12 @@ Guide** page, backed by a variable collection **`expendit/tokens`** with **true 
 variable (scopes: frame/shape/text fills + strokes) so designs bind to tokens,
 never raw hexes; the Style Guide page renders swatches (both modes), the type
 scale, and status/accent samples. Token changes happen in Figma first, then
-sync back into this document, the two must never diverge. The local text
+sync back into this document — the two must never diverge. The local text
 styles (10, through Hero/88 Bold) shipped with the completion pass; the
 rendered-page refresh below is the current sync debt.
 
 Completion-pass additions (2026-07-16): `on-accent` (#FFFFFF in both modes,
-§2) now exists in the `expendit/tokens` collection, primary/destructive
+§2) now exists in the `expendit/tokens` collection — primary/destructive
 button labels rebind to it from `bg`. One manual step the plugin cannot do:
 OpenType **tabular figures (`tnum`)** must be enabled by hand on numeric text
 styles in the Figma UI, the plugin API cannot set font features, so every
@@ -172,11 +172,11 @@ list stops at the original 11), replacing the stale
 `tokens: expendit/tokens (light/ + dark/ groups)` subtitle with the
 true-modes wording, correcting the type-scale sample labels to the built
 styles (the page shows "Title / 24 Bold" and "Heading / 20 Semi Bold" where
-the built styles are **Heading/24 Semi Bold** and **Title/20 Semi Bold** -
+the built styles are **Heading/24 Semi Bold** and **Title/20 Semi Bold** —
 names swapped, one weight wrong, and omits Hero/88, Body/14 Medium,
 Table/13 Medium, and Mono/13 samples), and rendering the z-index layers in
 Foundations (`z/base…z/toast` exist as variables, unrendered). The token
-collection itself is already in sync with §2/§7, the drift is page-render
+collection itself is already in sync with §2/§7 — the drift is page-render
 only. Per the rule above, the page and this doc must never diverge.
 
 ## 8. Figma component build plan (design phase)
@@ -188,11 +188,11 @@ only. Per the rule above, the page and this doc must never diverge.
 
 | Stage | Build | Unlocks |
 | --- | --- | --- |
-| 0 Foundations | type styles (§2 incl. editorial display sizes up to Hero/88) · Lucide icons (extended set, see note below) · table grid styles (compact 32 / comfortable 44 rows) | everything |
+| 0 Foundations | type styles (§2 incl. editorial display sizes up to Hero/88) · Lucide icons (extended set — see note below) · table grid styles (compact 32 / comfortable 44 rows) | everything |
 | 1 Atoms | Button, Input, MoneyCell, CategoryChip, AnomalyBadge, Toast/Banner + primitive kit (§8.2b): Checkbox, Radio, Switch, Tag/Badge, Tooltip, Avatar, Kbd, ProgressBar, Skeleton set | molecules |
 | 2 Molecules | StatCard, TxnTableRow, UploadDropzone, LinkAccountCard, RatioGauge, Inspector chrome, CommandPalette, WizardShell chrome, FormRow, ManualStatementRow, RemitToCard, TaxCalendarRow + form/overlay kit (§8.2b): Select/Menu, DatePicker/PeriodPicker, Modal/Dialog chrome, SegmentedControl, Tabs, Accordion, WizardStep, StampedCheck, ColorSwatchPicker · app chrome (AppNav/NavItem, OrgSwitcher) · GoogleAuthButton · product rows (MemberRow, ImportJobRow, ReportArtifactRow, FilingHistoryRow) | tables + flows |
 | 3 Assemblies | TxnTable (full), staged-review table, ratio grid, StatementView, filing wizard steps, EmptyState set + table chrome (TableHeader, BulkActionBar, StagedReviewHeader) · chart kit (Chart/Line, Chart/Donut) | screens |
-| 4 Screen templates | dashboard, transactions, import review, accounts, company statements+ratios, tax center+wizard, settings/rights, signin (the single X-1 auth screen), reports (B5), categories (B8, routed Active/Archive registry tabs) | dashboard design |
+| 4 Screen templates | dashboard, transactions, import review, accounts, company statements+ratios, tax center+wizard, settings/rights, signin (the single X-1 auth screen), reports (B5), categories (B8 — routed Active/Archive registry tabs) | dashboard design |
 | 5 Home page | A1–A11 Brex-editorial sections + marketing kit (§8.2b): MarketingNav, MarketingFooter, EditorialCard, CodeSnippet, ComparisonTable | landing redesign |
 
 **Stage 0 icon set (extended 2026-07-16).** The parity audit fixes the Lucide
@@ -224,13 +224,13 @@ and will not become, separate component sets. Note also that the
 Components-page canvas section labels ("Stage 2b, Financial Platform Kit",
 "Stage 3, App Chrome & Primitives", "Stage 3b, Rows, Charts & Marketing")
 are build-batch groupings that do **not** match the §8.1 stage numbering
-above (docs Stage 3 = Assemblies); the "Mode test, Dark" and "About -
+above (docs Stage 3 = Assemblies); the "Mode test — Dark" and "About —
 Component Library" frames on that page are QA/scaffolding artifacts, not
 stages or contract rows.
 
 **Screen-state rule [Specified 2026-07-18].** Every data-driven Stage-4
 screen template ships **three frames**: **default** (populated), **empty**
-(EmptyState + first-run copy; demo-data toggle where specced, MI-16), and
+(EmptyState + first-run copy; demo-data toggle where specced — MI-16), and
 **loading** (Skeleton set, MI-12). pages.md calls the rule out on B1/B2/B6/B7;
 it applies to every data-driven template in the Stage-4 row.
 
@@ -245,7 +245,7 @@ never on screens.
 > (incl. Kbd's "on light/dark") is satisfied by the `expendit/tokens` true
 > Light/Dark variable modes (§7), components carry **no** theme variant
 > axis; dark/light QA happens on the preview frames (the Components page's
-> "Mode test, Dark" frame).
+> "Mode test — Dark" frame).
 >
 > **Theme parity.** Runtime theme switching ships on the marketing nav,
 > the dashboard chrome (AppNav) and in settings via the ThemeToggle
@@ -262,18 +262,18 @@ never on screens.
 | MoneyCell | direction: income / expense / zero · size: table / stat |
 | CategoryChip | confirmed / AI-suggested (✨) / editing (combobox open) |
 | AnomalyBadge | large_transaction / spending_spike / abnormal_category / duplicate_charge · inline / feed |
-| StatCard | with/without delta chip · with/without sparkline · loading (as built: a single loading variant, delta + sparkline off, 5 of 8 combos, matching row intent) |
-| TxnTableRow | default / hover (actions revealed, cluster docks at the description cell's right edge, MI-6) / selected / editing / staged-duplicate · density ×2 |
+| StatCard | with/without delta chip · with/without sparkline · loading (as built: a single loading variant, delta + sparkline off — 5 of 8 combos, matching row intent) |
+| TxnTableRow | default / hover (actions revealed — cluster docks at the description cell's right edge, MI-6) / selected / editing / staged-duplicate · density ×2 |
 | UploadDropzone | idle / drag-over / per-file progress / AI-sweep / complete / error |
 | LinkAccountCard | pending / active (breathing dot) / reauth_required / degraded / paused |
-| RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band (as built: n-a ships band=off only, no benchmark band on missing input) |
+| RatioGauge | healthy / warning / critical / n-a ("missing input") · with/without benchmark band (as built: n-a ships band=off only — no benchmark band on missing input) |
 | Inspector | record / anomaly-explain / trace ("how we got this") |
 | Toast | kind: info / warn / error · transient (the toast half of §3's `Toast/Banner` atom; Banner below is the persistent half) |
 | Banner | info / warn (deadline T-30/T-7/T-1 tints) / error (reauth) |
 | FormRow | label + control + helper/error · state: default/focus/error/disabled (tax profile, org settings, manual entry) |
 | RemitToCard | tax: pit/cit/vat · resolved authority (State IRS e.g. LIRS / FIRS) + amount due + deadline + payment-channel chip (tax-engine §"Remittance & authorities" registry) |
 | StatementView | kind: balance_sheet / income_statement / cash_flow · derived rows flagged (formula note) · mapping-warning badges · period-selector header (pages.md B6 statement view) |
-| ManualStatementRow | canonical-key combobox + amount input · state: default / error (identity check), manual entry + mapping add-row |
+| ManualStatementRow | canonical-key combobox + amount input · state: default / error (identity check) — manual entry + mapping add-row |
 | TaxCalendarRow | tax kind + period + due date + T-30/T-7/T-1 escalation tint (MI-13 data source) |
 | EmptyState | transactions / imports / accounts / ratios / tax (each with demo-data toggle where specced) |
 
@@ -281,28 +281,28 @@ never on screens.
 
 > Parity audit of pages.md (A1–A11, B1–B9, Part C), MI-1..16, and the flow
 > docs against the built inventory: every §8.2 contract row is built, but the
-> matrix itself was not exhaustive, the gaps cluster in app chrome,
+> matrix itself was not exhaustive — the gaps cluster in app chrome,
 > form/overlay primitives, table chrome, charts, and marketing components.
 > Contract rows below, same conventions as §8.2; each row carries its need:
 > **blocking** (a Stage-4/5 template cannot assemble without it) ·
 > **important** (specced, assemblable later) · **nice-to-have**. `theme ×2`
 > (and Kbd's "on light/dark") is delivered by token modes, not a variant
-> axis, see the §8.2 theme note.
+> axis — see the §8.2 theme note.
 
 **App chrome**
 
 | Component | Variants × states |
 | --- | --- |
 | AppNav / NavItem | **blocking** · item: default / hover / active / with-badge-count (MI-5) · group label · expanded 240px / collapsed 64px icon rail · org-switcher slot top · theme ×2 · ThemeToggle instance in the chrome (expanded footer + collapsed rail) [Specified 2026-07-19] |
-| ThemeToggle | **blocking** · theme: light / dark / system, a single 28px icon button; the icon (sun / moon / lucide monitor) announces the applied state and each click advances the cycle light → dark → system; system follows live `prefers-color-scheme` · persisted at localStorage `expendit.theme` · token-bound (`bg-elev`/`border`/`bg`, icon strokes → `text`) so one master renders in both modes · instances pinned in MarketingNav and AppNav chrome per the cross-product canon · the three-way Light \| Dark \| System control in Settings → Organization (the appearance rows at the tab tail) is a SegmentedControl instance, not this component **[Reconciled 2026-07-20]** |
-| OrgSwitcher | **blocking** · closed / open (menu) · org kind: personal / company · current + list rows · theme ×2 (as built: `open` is modeled on kind=company only, 3 of 4 combos; the open menu is the company exemplar) |
+| ThemeToggle | **blocking** · theme: light / dark / system — a single 28px icon button; the icon (sun / moon / lucide monitor) announces the applied state and each click advances the cycle light → dark → system; system follows live `prefers-color-scheme` · persisted at localStorage `expendit.theme` · token-bound (`bg-elev`/`border`/`bg`, icon strokes → `text`) so one master renders in both modes · instances pinned in MarketingNav and AppNav chrome per the cross-product canon · the three-way Light \| Dark \| System control in Settings → Organization (the appearance rows at the tab tail) is a SegmentedControl instance, not this component **[Reconciled 2026-07-20]** |
+| OrgSwitcher | **blocking** · closed / open (menu) · org kind: personal / company · current + list rows · theme ×2 (as built: `open` is modeled on kind=company only — 3 of 4 combos; the open menu is the company exemplar) |
 | MobileTabBar + MobileHeader | **nice-to-have** (Part C, later phase) · 5 tabs Home/Transactions/Capture/Reports/Settings · active/inactive · Capture accent · header: title + back |
 
 **Form & overlay primitives**
 
 | Component | Variants × states |
 | --- | --- |
-| Select / Menu | **blocking** · trigger: default / focus / open / disabled / error · option: default / hover / selected · md/sm · searchable-combobox variant (MI-4, canonical-key mapping, as built: combobox md-only) |
+| Select / Menu | **blocking** · trigger: default / focus / open / disabled / error · option: default / hover / selected · md/sm · searchable-combobox variant (MI-4, canonical-key mapping — as built: combobox md-only) |
 | DatePicker / PeriodPicker | **blocking** · pick-or-type: every mode pairs the grammar input (`2026-06-01` · `2026-06-01..2026-06-30` · `2026-06` · `2026-Q2` · `FY2026`) with a picker panel, the input stays editable while the panel is open; Enter commits, Esc keeps the typed value · modes: day / range → day grid (Sunday-first, muted adjacent days, accent-ring today, accent-fill selected, range tint) · month → year nav + 12-month grid · quarter → year nav + Q1–Q4 row · year → FY#### list, newest first, no nav · trigger: closed / open (accent focus stroke) / error · preset chips: wrapped row above the panel (bg-elev fill + border stroke; selected = accent border + accent label) · panel: Cancel / Apply confirm row, collision-clamped, flips above when room below runs out, clamps at viewport edges, never covers the input **[Reconciled 2026-07-20]** |
 | Modal / Dialog chrome | **blocking** · sm/md/lg · header/body/footer slots · danger variant (type-to-confirm, MI-15) · sheet variant · overlay (z 40) |
 | Tooltip | **blocking** · placement: top / bottom / left / right · text / formula (mono body, MI-8) |
@@ -310,21 +310,21 @@ never on screens.
 | Checkbox | **blocking** · unchecked / checked / indeterminate × default / hover / focus / disabled · with label |
 | Radio | **important** · selected / unselected × default / hover / focus / disabled · with label+description (choice-card: unlink keep-or-purge, report format) |
 | Switch / Toggle | **blocking** · on/off × default / hover / focus / disabled · with label/helper |
-| SegmentedControl | **blocking** · preset: density (compact/comfortable) / direction (income/expense) / theme · state: default / disabled (disabled built for the density preset), as-built shape 2026-07-17: selection is preset content; no per-segment hover/selected variant axis |
-| Tabs | **blocking** · kind: underline (app) / pill (marketing) · items via **TabItem** sub-component set: default / hover / active / disabled · the underline kind carries the B9 settings tab bar, route-backed tabs Organization \| Members \| Data & privacy \| Notifications under the page title, each tab a real `/dashboard/settings/<tab>` sub-route **[Ratified 2026-07-20]** |
+| SegmentedControl | **blocking** · preset: density (compact/comfortable) / direction (income/expense) / theme · state: default / disabled (disabled built for the density preset) — as-built shape 2026-07-17: selection is preset content; no per-segment hover/selected variant axis |
+| Tabs | **blocking** · kind: underline (app) / pill (marketing) · items via **TabItem** sub-component set: default / hover / active / disabled · the underline kind carries the B9 settings tab bar — route-backed tabs Organization \| Members \| Data & privacy \| Notifications under the page title, each tab a real `/dashboard/settings/<tab>` sub-route **[Ratified 2026-07-20]** |
 | Accordion | **blocking** · closed / open · variant: "how we got this" line-item trace (mono formula body, MI-8/MI-10) |
 | WizardStep | **blocking** · state: todo / current / done / error · orientation: vertical rail (MI-10) / horizontal status stepper (MI-9) · with-progress slot ("syncing" live txn counter) |
 | ProgressBar | **important** · determinate / indeterminate · sm/md · label slot (live txn counter, MI-9; inline download progress, MI-14) |
 | Skeleton set | **important** · table row shimmer (density ×2) · chart axis-only · text/stat block (MI-12) |
 | Avatar | **important** · image / initials / icon fallback · xs/sm/md |
 | Kbd | **nice-to-have** · single key / chord (⌘K) · on light/dark (MI-1 shortcut hints) |
-| StampedCheck | **nice-to-have** · md/lg (MI-10 filing success, stamped receipts), as built: stamp-in is motion, not a variant axis; noted in the component description |
+| StampedCheck | **nice-to-have** · md/lg (MI-10 filing success, stamped receipts) — as built: stamp-in is motion, not a variant axis; noted in the component description |
 
 **Table chrome**
 
 | Component | Variants × states |
 | --- | --- |
-| TableHeader | **blocking** · density ×2 · sort: none / asc / desc (sort axis in build, 2026-07-17) · column labels render the ecosystem micro-label idiom, 11px uppercase, wide tracking, `text-2` · column alignment text / numeric-right set per instance (override, not a variant axis) · select-all checkbox slot · sticky **[Reconciled 2026-07-20]** |
+| TableHeader | **blocking** · density ×2 · sort: none / asc / desc (sort axis in build, 2026-07-17) · column labels render the ecosystem micro-label idiom — 11px uppercase, wide tracking, `text-2` · column alignment text / numeric-right set per instance (override, not a variant axis) · select-all checkbox slot · sticky **[Reconciled 2026-07-20]** |
 | BulkActionBar | **blocking** · hidden / visible ("n selected" + re-categorize / export / clear) · slide-in |
 | StagedReviewHeader | **blocking** · counts ("Import 209 / discard 5 duplicates") · state: reviewing / committing (MI-3 cascade) · warnings-banner slot |
 
@@ -332,7 +332,7 @@ never on screens.
 
 | Component | Variants × states |
 | --- | --- |
-| Chart/Line | **blocking** · state: loading (axis-first, MI-12) / data / empty, as built: content kinds (12mo cash-flow / ratio + line-item trend) via instance overrides; the data-table toggle (§5) attaches at screen assembly, not in the set |
+| Chart/Line | **blocking** · state: loading (axis-first, MI-12) / data / empty — as built: content kinds (12mo cash-flow / ratio + line-item trend) via instance overrides; the data-table toggle (§5) attaches at screen assembly, not in the set |
 | Chart/Donut | **blocking** · state: loading / data / empty · legend: right / bottom / none (as built: `none` pairs with loading/empty) · center total |
 
 **Product rows**
@@ -340,12 +340,12 @@ never on screens.
 | Component | Variants × states |
 | --- | --- |
 | GoogleAuthButton | **blocking** · default / hover / pressed / loading / disabled · Google mark + "Continue with Google" (the single X-1 auth CTA) · theme ×2 (canonical name in every product) |
-| MappingReviewRow | **blocking** · state: suggested / confirmed / unmapped · source text → mono canonical-key chip + confidence Tag (✨ n% / Confirmed / Unmapped <60%) + tabular amount (in build 2026-07-18, the B6 mapping-review screen, flows/statement-mapping.md) |
+| MappingReviewRow | **blocking** · state: suggested / confirmed / unmapped · source text → mono canonical-key chip + confidence Tag (✨ n% / Confirmed / Unmapped <60%) + tabular amount (in build 2026-07-18 — the B6 mapping-review screen, flows/statement-mapping.md) |
 | MemberRow | **important** · avatar + name + email + role select + remove · default / hover / pending-invite / owner |
-| ImportJobRow | **important** · status: processing / completed / completed-empty / completed-bank / failed · counts + anomalies-found, as built: the source axis folds into status (`completed-bank` = bank_sync; processing/failed render as upload-source) |
+| ImportJobRow | **important** · status: processing / completed / completed-empty / completed-bank / failed · counts + anomalies-found — as built: the source axis folds into status (`completed-bank` = bank_sync; processing/failed render as upload-source) |
 | ReportArtifactRow | **important** · kind icon + name + period + format · state: generating (inline progress) / ready / NEW (≤24h, MI-14) / expired (TTL) |
 | FilingHistoryRow | **important** · tax kind + period + authority + deadline columns · stamped-✓ receipt download · immutable |
-| ColorSwatchPicker | **nice-to-have** · preset swatch grid (category color, B8), as built: a single component with internal swatch / swatch-hover / swatch-selected frames, not a variant set |
+| ColorSwatchPicker | **nice-to-have** · preset swatch grid (category color, B8) — as built: a single component with internal swatch / swatch-hover / swatch-selected frames, not a variant set |
 
 **Marketing (Stage 5)**
 
@@ -354,7 +354,7 @@ never on screens.
 | MarketingNav | **blocking** · surface: on-dark (over hero) / dark-on-light (post-hero scroll, sticky) × breakpoint: desktop / mobile / mobile-open · 4 text links pinned to the cross-product canon: Features · Pricing · Docs (GitBook root) · GitHub, the GitHub item renders as a compact star badge (GitHub mark + star glyph + neutral "Star" label; no count on canvas, the live star count is runtime behavior) · ThemeToggle instance · "Sign in" text link (`/signin`) + "Try Cloud" accent primary CTA · no Solutions dropdown · breakpoint=mobile is the 390 bar, Wordmark · Try Cloud · icon/menu hamburger (the conversion CTA never hides behind the menu); breakpoint=mobile-open adds the disclosure panel, Features / Pricing / Docs / star badge, then divider + ThemeToggle + Sign in, and the bar swaps to icon/x (matching @390 exemplars on the Figma Mobile page) **[Reconciled 2026-07-20]** |
 | MarketingFooter | **blocking** · brand block (wordmark + tagline) + 4 link columns pinned to the cross-product canon, Product (Features · Pricing · Try Cloud · Self Host) · Docs (Docs · Quickstart · API reference · Self-host guide) · Community (GitHub · Discord · Roadmap · CueLABS™) · Legal (Privacy · Terms · Status), column headers render the 11px uppercase micro-label idiom (same treatment as TableHeader labels), legal bar verbatim "© Cuesoft Inc. 2026. Expendit. CueLABS™ Division. MIT License." ("Cuesoft Inc." → cuesoft.io, "CueLABS™ Division" → cuelabs.cuesoft.io, "MIT License" → repo LICENSE) · "View Security Policy" CTA (repo SECURITY.md) · English language selector · dark editorial band in both themes [Specified 2026-07-19] |
 | EditorialCard | **important** · pillar (A4) / community (A9) · default / hover (2px lift + accent underline draw) · light/dark section |
-| CodeSnippet | **important** · Mono/13 block on dark · copy: idle / copied (✓ morph) · tabs: none / docker / helm, the A8a self-host pair renders mirrored two-line commands (only the final command differs: `docker compose up --build -d` vs `helm install expendit deploy/helm`) with a muted BYO-datastores caption under the block, tab-independent **[Ratified 2026-07-20]** |
+| CodeSnippet | **important** · Mono/13 block on dark · copy: idle / copied (✓ morph) · tabs: none / docker / helm — the A8a self-host pair renders mirrored two-line commands (only the final command differs: `docker compose up --build -d` vs `helm install expendit deploy/helm`) with a muted BYO-datastores caption under the block, tab-independent **[Ratified 2026-07-20]** |
 | ComparisonTable | **important** · 2 columns (Cloud vs Self-host) · cell: check / x / text · per-column CTA footer row, as built 2026-07-18: the price row reads "Announced at GA" / "Free forever", captioned "Cloud pricing is announced at GA, self-hosting is free forever" |
 
 > **Marketing accuracy (as built 2026-07-18).** The two as-built notes above
@@ -364,15 +364,15 @@ never on screens.
 > **As built [2026-07-18 QA loop].** Four adjustments from QA'ing the built
 > screens while wiring the prototype (§8.4):
 >
-> - **CategoryChip**, the editing-state menu is absolutely positioned; the
+> - **CategoryChip** — the editing-state menu is absolutely positioned; the
 >   open combobox no longer inflates the row height (the MI-6 no-layout-shift
 >   rule now holds in the editing state too).
-> - **Combobox contents**, the CategoryChip editing menu carries registry
+> - **Combobox contents** — the CategoryChip editing menu carries registry
 >   categories only (the B8 category registry), no ad-hoc entries.
-> - **WizardShell on B7b**, detached on the filing-wizard frames (pages.md
+> - **WizardShell on B7b** — detached on the filing-wizard frames (pages.md
 >   B7b: data-review + submit-confirm) in favor of anchored "how we got
 >   this" trace rows.
-> - **A5 demo strip**, carries a per-persona (Freelancer) internally
+> - **A5 demo strip** — carries a per-persona (Freelancer) internally
 >   consistent dataset (the §8.3 synthetic-dataset work).
 
 ### 8.3 Design-prep needed from content
@@ -380,7 +380,7 @@ never on screens.
 Synthetic demo datasets ×3 (freelancer / SME / company) for realistic
 tables+charts; the Afrocentric line motif for dark editorial sections; the A2
 hero device-frame visual and the A8 architecture mini-diagram (illustration
-assets, parity audit 2026-07-16).
+assets — parity audit 2026-07-16).
 
 ### 8.4 Prototype (2026-07-18 QA loop)
 
@@ -388,7 +388,7 @@ The built screens are wired into named click-through flows in the Figma
 file. The conventions here are the prototype standard; the flows listed are
 as built.
 
-**Flows, named starting points, one per page.**
+**Flows — named starting points, one per page.**
 
 - Dashboard page, **"Core journey, sign in"**: `/signin` → onboarding
   (B0) → AI-consent sheet → B1 overview → the full navigation mesh (every
@@ -404,7 +404,7 @@ as built.
 - Transitions: `DISSOLVE` ~150–200ms for nav/tab switches; `SMART_ANIMATE`
   for pushes/backs (wizard steps, drill-in/return pairs); `AFTER_TIMEOUT`
   for async verification states (e.g. syncing → done, MI-9).
-- Empty, loading, QA, and index frames stay **out** of the flow by design -
+- Empty, loading, QA, and index frames stay **out** of the flow by design —
   the prototype walks the default (populated) frames only; state frames
   document the screen-state rule (§8.1), they are not navigation
   destinations.
@@ -413,7 +413,7 @@ as built.
 is reachable from its flow's starting point, and there are no dead ends
 besides intended terminals.
 
-**Cross-page links, the move-wire-restore technique.** The Figma API
+**Cross-page links — the move-wire-restore technique.** The Figma API
 rejects creating a cross-page `NAVIGATE` reaction, but reactions persist if
 the source frame is temporarily moved to the destination page, wired there,
 and moved back. The Home → `/signin` CTAs are wired this way.

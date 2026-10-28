@@ -17,7 +17,7 @@ flowchart TD
     VAL --> CREATE[POST /import → 201 job_id + upload_ticket]
     CREATE -->|403 consent · 413 · 415 · 429| E0
     CREATE --> SEND[POST /uploads with Upload-Ticket → 202]
-    SEND --> POLL[GET /import/:jobId, processing]
+    SEND --> POLL[GET /import/:jobId — processing]
     POLL --> DONE{completed?}
     DONE -->|failed| FAIL[job error state + guidance]
     DONE -->|completed| REVIEW[staged review table]
@@ -34,8 +34,8 @@ flowchart TD
 | Create | `POST /import {file_name, size}` + `Idempotency-Key` (UUID per file selection). api/common checks role, `ai_processing` consent (images), the 10/hr and 30/day limits and the daily byte quota **before any bytes move**, then returns `201 {job_id, upload_ticket}`. The same key returns the same `job_id` **while the job is pending, processing or completed; a `failed` job releases its key**. Keys are stored in Postgres, so this holds across replicas. |
 | Upload | `POST /uploads` (multipart `file`) with `Upload-Ticket`: a single-use, 5-minute Ed25519 ticket (S-5). The gateway checks the signature and size before reading the body, then the magic bytes against the declared type. It writes the file to `tmp/` and answers `202`. |
 | Processing | api/analytics consumes `import.ready` (a pointer plus reference data) over Kafka. Job status goes `processing → completed \| failed`; poll every 2s with backoff, or SSE later. The UI shows the MI-2 AI-sparkle stage. The raw file is deleted once api/common stores the result (S-4). |
-| Staged review | duplicates pre-flagged (`is_duplicate`) and excluded from the confirm count by default, user can re-include (false positives happen with recurring identical payments); AI categories carry the ✨ mark until touched |
-| Confirm | `POST /import/:jobId/confirm` idempotent (second call → 200 no-op); writes ledger rows atomically, partial confirm is impossible: all-or-error |
+| Staged review | duplicates pre-flagged (`is_duplicate`) and excluded from the confirm count by default — user can re-include (false positives happen with recurring identical payments); AI categories carry the ✨ mark until touched |
+| Confirm | `POST /import/:jobId/confirm` idempotent (second call → 200 no-op); writes ledger rows atomically — partial confirm is impossible: all-or-error |
 | Discard | purges staging + job summary immediately |
 
 ## 3. Failure taxonomy **[Built 2026-10-05]**
@@ -49,10 +49,10 @@ flowchart TD
 | `503 ai_unavailable` | AI provider unavailable (Vertex in cloud, X-4; BYO Groq/Gemini self-host) and the file type needs AI (image; PDF after regex fallback fails) | "AI processing is temporarily unavailable" + retry later; CSV path unaffected |
 | `403 consent_required` | `ai_processing` consent declined + file type needs AI (images always; PDFs proceed regex-only without AI, with a "reduced accuracy" banner) | consent sheet re-offer |
 | `409 job_already_confirmed` | double confirm race | treat as success (idempotent) |
-| worker crash mid-job | job auto-marked `failed` by timeout reaper (10 min) | "Something went wrong, nothing was imported" + retry (new job) |
+| worker crash mid-job | job auto-marked `failed` by timeout reaper (10 min) | "Something went wrong — nothing was imported" + retry (new job) |
 
 Partial AI extraction (some pages parse, some don't): job completes with
-`warnings: ["3 of 12 pages could not be parsed"]`, surfaced as a banner on
+`warnings: ["3 of 12 pages could not be parsed"]` — surfaced as a banner on
 the review table, never silent.
 
 ## 4. Duplicate semantics
@@ -60,7 +60,7 @@ the review table, never silent.
 - Detector compares staged rows against **ledger + other staged jobs** on
   (date ±1d, amount exact, normalized description similarity).
 - Re-uploading the same statement month → most rows flagged; confirm imports
-  only the unflagged remainder, the "overlapping statements" case just works.
+  only the unflagged remainder — the "overlapping statements" case just works.
 - Confirmed duplicates are the user's explicit choice (re-included manually).
 
 ## 5. Bank-sync convergence
@@ -68,12 +68,12 @@ the review table, never silent.
 Bank-synced batches (flows/bank-link.md) enter this same pipeline as jobs
 with `source: bank_sync`; per-account **auto-confirm** (opt-in, after ≥3
 manually-confirmed clean syncs **[Decided default]**) skips review for
-duplicate-free jobs only, any anomaly or duplicate forces review.
+duplicate-free jobs only — any anomaly or duplicate forces review.
 
 ## 6. Instrumentation & acceptance
 
 Events: `upload_success{file_type}` (job completed), `import_confirmed`,
-`import_discarded`, counters + file_type only (ECO-ANALYTICS constraint).
+`import_discarded` — counters + file_type only (ECO-ANALYTICS constraint).
 
 - [ ] Retry-storm on upload yields exactly one job
 - [ ] Confirm is atomic + idempotent under double-click and race
@@ -85,17 +85,17 @@ Events: `upload_success{file_type}` (job completed), `import_confirmed`,
 ## 7. Anomaly rules registry **[Built 2026-10-05 in api/analytics `extract/anomaly/rules.py`, rule_version v1]**
 
 The computational contract behind the anomaly vocabulary (data-model.md §1,
-architecture.md §4.1), rules-as-data like line-items.md §5, so a threshold
+architecture.md §4.1) — rules-as-data like line-items.md §5, so a threshold
 change is a docs PR, not a code change. Severity drives the AnomalyBadge
 tint (design.md §3) and escalates `info → warn` when the flagging value
 exceeds 2× its rule threshold.
 
 | rule_id | Formula | Params (v1 constants) | Base severity |
 | --- | --- | --- | --- |
-| `large_transaction` | flag when `\|amount\| > max(k × median_90d, floor)`, median of trailing-90d confirmed transactions, same direction | `k = 5` · `floor = ₦50,000` | warn |
+| `large_transaction` | flag when `\|amount\| > max(k × median_90d, floor)` — median of trailing-90d confirmed transactions, same direction | `k = 5` · `floor = ₦50,000` | warn |
 | `spending_spike` | category month total `> μ + z·σ` of the trailing window; rule skipped below the history minimum | `window = 6 months` · `z = 2` · `min history = 3 months` | warn |
 | `abnormal_category` | flag when `\|amount\| > k ×` trailing mean of its category (same direction); rule skipped below the sample minimum | `k = 3` · `min = 5 prior transactions` | info |
-| `duplicate_charge` | same normalized counterpart + exact amount within `N` days **post-confirm**, distinct from staged-import dedup (§4, which prevents re-imports); this catches double-billing already in the ledger | `N = 3 days` | warn |
+| `duplicate_charge` | same normalized counterpart + exact amount within `N` days **post-confirm** — distinct from staged-import dedup (§4, which prevents re-imports); this catches double-billing already in the ledger | `N = 3 days` | warn |
 
-Any anomaly on a bank-synced job forces review, §5's auto-confirm override
+Any anomaly on a bank-synced job forces review — §5's auto-confirm override
 consumes these rules.

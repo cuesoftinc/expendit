@@ -17,10 +17,10 @@ repositories, which share a common structure and conventions.
 
 CueLABS™ repositories follow a shared standard:
 
-- `api/common`, Go backend (auth + core API)
-- `api/<service>`, additional services, named by function
-- `web`, Next.js web + dashboard
-- `mobile/flutter`, Flutter mobile app
+- `api/common` — Go backend (auth + core API)
+- `api/<service>` — additional services, named by function
+- `web` — Next.js web + dashboard
+- `mobile/flutter` — Flutter mobile app
 - `deploy`, `docs`, `scripts`
 
 ## Commit messages

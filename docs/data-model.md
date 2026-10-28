@@ -1,4 +1,4 @@
-# Expendit, Data Model
+# Expendit — Data Model
 
 > Companion to [prd.md](prd.md) / [architecture.md](architecture.md).
 > Markers: **[Current]**, **[PRD]**, **[Proposed]**.
@@ -149,7 +149,7 @@ the same Google subject, so no further migration.
 
 | Class | Data | Rules |
 | --- | --- | --- |
-| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address`, X-10 tier-1/tier-2 fields, §5) | Never in logs (the old monolith's `[pdf] sample:` line did not carry over); TLS in transit; third-party AI processing disclosed; raw files at rest only until parsed (S-4) |
+| High-sensitivity | Transactions (all), import staging, summaries, AI narratives, uploaded file bytes (in flight), tax identity & location (`tin`, `rc_number`, `nin`, `state_of_residence`, `registered_address` — X-10 tier-1/tier-2 fields, §5) | Never in logs (the old monolith's `[pdf] sample:` line did not carry over); TLS in transit; third-party AI processing disclosed; raw files at rest only until parsed (S-4) |
 | Sensitive | User identity, consent, purge requests | Standard PII handling; consent/purge rows immutable audit records |
 | Operational | Job status/counters, event counters to the monitoring service | Safe for logs/metrics; monitoring-service events are **counters only, never amounts or descriptions** |
 
@@ -252,17 +252,17 @@ erDiagram
 Notes: existing per-user collections become org-scoped (`org_id`) with a
 personal org auto-created per user (migration: `userid` → personal org). The
 `canonical_key` vocabulary is the closed mapping target for AI-suggested
-line mapping (pages.md B6), same schema-as-boundary pattern as elsewhere.
+line mapping (pages.md B6) — same schema-as-boundary pattern as elsewhere.
 Ratio formulas persist **with their inputs** so every gauge is auditable
 (MI-8 trace). Tax computed fields carry input traces for the wizard's
 "how we got this" expanders; filings are immutable once submitted.
-Bank credentials are never stored, only provider tokens, encrypted, with
+Bank credentials are never stored — only provider tokens, encrypted, with
 provider-side revocation honored (BNK-002 unlink offers keep-or-purge for
 already-imported transactions).
 
 **Who uses which org kind [Decided 2026-07-16]:** individuals and
 unincorporated freelancers use their auto-created **personal org** (ledger
-capture, imports, PIT, no financial statements); any business entity that
+capture, imports, PIT — no financial statements); any business entity that
 wants statement capture / ratios / CIT creates a **company org regardless of
 incorporation status**, with `TAX_PROFILE.taxpayer_kind`
 (`individual | company`) deciding PIT-vs-CIT treatment (tax-engine.md §2's
@@ -278,7 +278,7 @@ historical records survive registry changes.
 ### 6.1 Import-job provenance
 
 `IMPORT_JOB` gains `source: upload | bank_sync` and staged/ledger
-transactions gain `source_link_id` (nullable), the column the unlink
+transactions gain `source_link_id` (nullable) — the column the unlink
 `purge=true` path deletes by (flows/bank-link.md §3).
 
 ### 6.2 BANK_LINK state transitions
@@ -290,7 +290,7 @@ consecutive sync failures; resets on first success) | `paused` (user) ·
 
 ### 6.3 Mongo→Postgres + org migration runbook (E-4/X-5, "one migration")
 
-1. **Freeze window** (not dual-write **[Decided]**, volumes allow a short
+1. **Freeze window** (not dual-write **[Decided]** — volumes allow a short
    freeze): announce in-app 48h ahead; writes disabled ≤ 30 min.
 2. Schema pre-created in managed Postgres (this doc's entities as DDL).
 3. Copy with transform: `userid` scoping → auto-created personal `ORG` per

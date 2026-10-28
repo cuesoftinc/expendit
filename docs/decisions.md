@@ -1,13 +1,13 @@
-# Expendit, Decision Sheet
+# Expendit — Decision Sheet
 
 > Ratify by checking a box; each decision flips its **[Proposed]** tags to
 > **[Decided]** and unblocks the listed phases. Status: ☐ open · ☑ ratified.
 
-> **RATIFIED 2026-07-16**, all recommendations approved wholesale ("decisions
+> **RATIFIED 2026-07-16** — all recommendations approved wholesale ("decisions
 > look solid"). Where other docs still carry **[Proposed]** on these topics,
 > this sheet governs; tags flip to **[Decided]** as docs are next touched.
 
-## E-1 · Bank aggregator, gates Phase 3 (Bank linking)
+## E-1 · Bank aggregator — gates Phase 3 (Bank linking)
 
 | Option | For | Against |
 | --- | --- | --- |
@@ -21,36 +21,36 @@ store only provider tokens (encrypted) + masked metadata; sync cadence default
 
 ☑ Ratified: option (a) Mono NG-first, Plaid later
 
-## E-2 · Tax jurisdiction & filing path, gates Phase 5 (Tax center)
+## E-2 · Tax jurisdiction & filing path — gates Phase 5 (Tax center)
 
 **Recommendation ⭐: Nigeria-first.** v1 computes **PIT (personal), CIT
 (company estimate), VAT summary** from the categorized ledger + mapped
 statements, and generates **filing-ready documents** (guided handoff). Direct
-e-filing (TAX-003) only lands where a credible API/partner exists, evaluated
+e-filing (TAX-003) only lands where a credible API/partner exists — evaluated
 after v1 ships. Other jurisdictions = explicit later scope, config-driven via
 the tax-profile model.
 
 ☑ Ratified (jurisdiction: Nigeria)
 
 **Scope note (2026-07-16) [Decided]:** PAYE (employer payroll remittance),
-WHT tracking/credits, and state-specific levies are **out of v1 scope** -
+WHT tracking/credits, and state-specific levies are **out of v1 scope** —
 considered and excluded, not overlooked; the rule-set mechanism
 (`kind: paye | wht`) is the extension point when they land (tax-engine.md §1).
 
-## E-3 · AI processing of financial data, gates the privacy hub copy (Phase 0)
+## E-3 · AI processing of financial data — gates the privacy hub copy (Phase 0)
 
 | Option | For | Against |
 | --- | --- | --- |
 | **(a) Keep Groq→Gemini with explicit disclosure + `ai_processing` consent; self-hosted model as a roadmap item for cloud** ⭐ | Works today; honest; consent recorded per user | Financial data transits third parties (disclosed) |
 | (b) Self-hosted extraction model before launch | Strongest privacy story | Big ML lift now; blocks everything on it |
-| (c) Drop AI features | n/a | Guts EXP-003 |
+| (c) Drop AI features | —   | Guts EXP-003 |
 
-☑ Ratified: option (a), **revised by X-4 (2026-07-16): cloud uses Vertex AI
+☑ Ratified: option (a) — **revised by X-4 (2026-07-16): cloud uses Vertex AI
 (Gemini, ADC) instead of consumer Groq/Gemini APIs; financial data stays in
 GCP. Disclosure + `ai_processing` consent still apply; Groq/Gemini env keys
 remain the self-host fallback.**
 
-## E-4 · Org model migration, gates Phase 4 (Company financials)
+## E-4 · Org model migration — gates Phase 4 (Company financials)
 
 **Recommendation ⭐:** introduce `ORG` with **auto-created personal org per
 user** (migration maps `userid` scoping → personal org); company orgs with
@@ -59,7 +59,7 @@ the start of Phase 4, not before (personal features don't need it).
 
 ☑ Ratified
 
-## E-5 · Retention defaults, published in the privacy hub (Phase 0)
+## E-5 · Retention defaults — published in the privacy hub (Phase 0)
 
 **Recommendation ⭐:** raw uploads **never at rest** (parse in-memory, keep
 the current behavior) · import jobs + staging **90 days** after
@@ -86,12 +86,12 @@ until a real customer needs it.
 
 - **X-1 account.cuesoft.io / identity (RATIFIED)**: interim + sandbox identity
   is **Google sign-in run by each product's API**: the API completes the
-  Google OAuth code flow and issues its own session JWT, which services verify. `account.cuesoft.io` **is not built yet**, each app replicates the
+  Google OAuth code flow and issues its own session JWT, which services verify. `account.cuesoft.io` **is not built yet** — each app replicates the
   sign-in/sign-up screens **in-app** (own UI per its design system,
   Google sign-in underneath). The
   central facade fronts the same Google identity later without contract
   changes; in-app screens then become optional, not obsolete. **HARDENED
-  2026-07-16: Google sign-in is the ONLY method, no username/password
+  2026-07-16: Google sign-in is the ONLY method — no username/password
   signup or login, product-wide.** The API exposes no other sign-in
   route; UI ships exactly one auth CTA. Full contract:
   [flows/auth.md](flows/auth.md). Environment/secrets live in **your secrets manager**
@@ -104,19 +104,19 @@ until a real customer needs it.
   footer Docs column's "API reference" links it (was the GitBook
   api-surface page). ☑
 - **X-3 Cloud deployment target (RATIFIED)**: all backend
-  services run on **Google Cloud Run** (per-service containers, the same
+  services run on **Google Cloud Run** (per-service containers — the same
   `cuesoft/<repo>-<service>` images), provisioned through your infrastructure-as-code
-  stack; frontends deploy to **Firebase App Hosting**. Helm + terraform in `deploy/` remain the **self-host** path -
+  stack; frontends deploy to **Firebase App Hosting**. Helm + terraform in `deploy/` remain the **self-host** path —
   cloud and self-host share images, not manifests. ☑
 - **X-4 AI platform (RATIFIED 2026-07-16)**: AI features use
   **Vertex AI** (Gemini via `{region}-aiplatform.googleapis.com`, ADC from the
   calling service's own service account;
   reference model `gemini-2.5-flash-lite`, region `us-central1`). No
-  consumer-API keys to third-party AI vendors in cloud deployments, data
+  consumer-API keys to third-party AI vendors in cloud deployments — data
   stays inside GCP, which strengthens every privacy disclosure. Self-host
   fallback: bring-your-own Gemini/Groq key via env (existing code path). ☑
 - **X-5 Data plane (RATIFIED 2026-07-16, per-product DB decided by delegation)**:
-  **managed Postgres** as the system of record, financial aggregation, audit
+  **managed Postgres** as the system of record — financial aggregation, audit
   trails, ratio/tax traces, and org joins are SQL-shaped. Mongo→Postgres
   migration is scheduled WITH the E-4 org migration (one migration, not two);
   self-host compose keeps Mongo until then, then switches to a Postgres
@@ -133,7 +133,7 @@ until a real customer needs it.
   stores. ☑
 - **X-6 Environments & deploy gating (RATIFIED 2026-07-16, deliberate
   deviation from the norm)**: `stg` = **sandbox** and is the ONLY
-  environment, no production deployment exists for these products. Secrets
+  environment — no production deployment exists for these products. Secrets
   live in your secrets manager (`stg` config). Because these repos are **open-source**,
   merge-to-main must NOT deploy: main-merge runs build+test only. **Deploys
   happen exclusively on tag creation (`v*`)**, treated as production-grade:
@@ -144,7 +144,7 @@ until a real customer needs it.
   `v*` tags, since the open-source products cut no releases yet.
 - **X-7 Transactional email (RATIFIED 2026-07-16)**: **Brevo REST
   API** for all product email (alert emails, money-event receipts, purge
-  confirmations…), `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
+  confirmations…) — `BREVO_API_KEY`, `BREVO_FROM_EMAIL`,
   `BREVO_FROM_NAME` in your secrets manager. **No SMTP anywhere**, existing SMTP/gomail
   plumbing retires when next touched. Revises U-4's Resend pick where it
   applied. ☑
@@ -152,38 +152,38 @@ until a real customer needs it.
   **HTTP/JSON**. gRPC exists ONLY where the monitoring service needs it: **OTLP/gRPC ingest**
   (OTel industry standard, OBS-001), internal s2s (observability↔common),
   and the existing monitor control plane until monitors-v2. Cloud Run runs
-  gRPC fine with end-to-end HTTP/2 (h2c), already how api/common works.
+  gRPC fine with end-to-end HTTP/2 (h2c) — already how api/common works.
   **Browser gRPC-Web is a sunset path**: no new surface uses it
   (U-5); at monitors-v2 (OBS-006) the dashboard goes fully HTTP. expendit and the sibling products never adopt gRPC. ☑
 - **X-9 Telemetry standard (RATIFIED 2026-07-16)**: **OpenTelemetry
-  everywhere**, traces, custom metrics, and logs from every service via OTel
+  everywhere** — traces, custom metrics, and logs from every service via OTel
   SDKs (Go: otel-go + slog bridge; Python: opentelemetry-python + logging
   handler; Next: @opentelemetry/sdk-node), W3C `traceparent` propagation
   across HTTP and gRPC. **Export: direct OTLP from the SDK in v1** (batch
   processors; collector sidecar on Cloud Run is the documented upgrade path
   for tail sampling/fan-out). **Receiver: the monitoring service's OTLP ingest gateway**
   (OBS-001; gRPC 4317 + HTTP 4318, an ingest-key header via
-  OTEL_EXPORTER_OTLP_HEADERS), sibling products are its first-party
+  OTEL_EXPORTER_OTLP_HEADERS) — sibling products are its first-party
   customers. **Sibling exporters default to OTLP/HTTP (4318)**, the sibling products
   and expendit remain 100% HTTP in practice; only the monitoring service hosts gRPC (X-8). Until OBS-001 ships, services instrument NOW with export
   env-gated (unset OTEL_EXPORTER_OTLP_ENDPOINT = no-op). Logs dual-emit:
   JSON stdout stays (Cloud Run native logging) + OTLP to the monitoring service. Operational
   telemetry (X-9) is SEPARATE from product analytics events (the monitoring service
-  /v1/events counters), never mix the pipelines. Env names standard:
+  /v1/events counters) — never mix the pipelines. Env names standard:
   OTEL_SERVICE_NAME, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_OTLP_HEADERS,
   OTEL_RESOURCE_ATTRIBUTES. ☑
 - **X-10 Identity, profile & KYC tiers (RATIFIED 2026-07-16)**: layered on
-  X-1, Google-only sign-in stays the sole credential; tiers add profile data and
-  verification, never alternative logins. **Tier 0, Google identity** (all
+  X-1 — Google-only sign-in stays the sole credential; tiers add profile data and
+  verification, never alternative logins. **Tier 0 — Google identity** (all
   products): google_sub + Google-verified email; grants all read/basic use.
   **Tier 1, self-attested profile & location** (captured in product
   profile/settings; sensitive PII, never logged): a sibling product = bio + profile
   location {city, state, country} powering proximity-ranked designer
   recommendations ("near me") and delivery-address pre-fill (delivery address
-  itself stays frozen per order); expendit = tax-jurisdiction location -
-  state_of_residence for individuals, registered_address for company orgs -
+  itself stays frozen per order); expendit = tax-jurisdiction location
+  (state_of_residence for individuals, registered_address for company orgs),
   which resolves the remittance authority (State IRS vs FIRS); the monitoring service = org
-  timezone (IANA) only, for accurate report rendering and time-bucketing -
+  timezone (IANA) only, for accurate report rendering and time-bucketing —
   deliberately the entire requirement for the monitoring service. **Tier 2, provider-verified
   financial identity** (only where money moves or government filings
   generate; store provider refs + verification state, never raw government
@@ -196,7 +196,7 @@ until a real customer needs it.
   **Rules**: tiers gate capabilities, never sign-in; KYC state machines +
   error codes live in flow docs (a sibling product's kyc_incomplete/post_unavailable is
   the template); tier-2 fields are high-sensitivity in every data-model §4
-  classification; verification is delegated to the money/filing provider -
+  classification; verification is delegated to the money/filing provider —
   no in-house document review. ☑
 - **X-11 Shared message bus (RATIFIED, boss 2026-10-13)**: expendit and its sibling products
   share **one managed Kafka service** under the CueLABS delivery
