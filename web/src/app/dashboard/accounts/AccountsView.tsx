@@ -294,7 +294,7 @@ export const AccountsView: React.FC = () => {
                       ) : null}
                       {/* Danger ladder: row-level destructive = quiet
                           danger text; the confirm modal keeps the filled
-                          Unlink (B4 frame + SKILL.md, ratified 2026-07-20). */}
+                          Unlink (B4 frame, ratified 2026-07-20). */}
                       <Button
                         kind="quiet-danger"
                         size="sm"

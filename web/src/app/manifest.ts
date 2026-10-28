@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 /**
- * Web app manifest (SEO plumbing, fleet canon): product identity for
+ * Web app manifest (SEO plumbing): product identity for
  * installs/add-to-home-screen, served at /manifest.webmanifest. Identity
  * mirrors the root layout metadata; colors are the design tokens
  * (design.md §2) — background is the default dark canvas (`--color-bg`,

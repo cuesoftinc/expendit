@@ -3,8 +3,8 @@ Optional Ingress, off by default so existing consumers of this chart are
 unaffected. Enable it to publish ONE service under a hostname; everything else
 stays cluster-internal.
 
-Why hostname routing rather than a NodePort per service: several products in this
-fleet listen on the same ports (web on 3000, common on 8080), so exposing
+Why hostname routing rather than a NodePort per service: several products can
+listen on the same ports (web on 3000, common on 8080), so exposing
 them by port reintroduces the collision that in-cluster DNS already solved. One
 ingress controller on :80 keeps the host side to a single port no matter how many
 services or releases exist.

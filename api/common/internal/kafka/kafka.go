@@ -38,9 +38,9 @@ const (
 	EventHeartbeat = "expendit.system.heartbeat"
 )
 
-// Topics are the lanes of the CueLABS shared message bus, which every
-// product reads and writes (system-design.md §16 I-18; the CueLABS delivery
-// standard's shared-messaging.md). The event type says whose message it is.
+// Topics are the lanes of the shared message bus, which every product reads
+// and writes (system-design.md §16 I-18). The event type says whose message
+// it is.
 const (
 	TopicUploads  = "cuelabs.uploads"  // upload gateways -> control planes
 	TopicRequests = "cuelabs.requests" // control planes -> processing

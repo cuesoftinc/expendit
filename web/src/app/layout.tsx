@@ -16,10 +16,10 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   // Absolute base for og/twitter images, canonicals and other metadata
-  // URLs (SEO plumbing, fleet canon).
+  // URLs (SEO plumbing).
   metadataBase: new URL("https://expendit.cuesoft.io"),
   // Brand line — same title the home og/twitter card already carries
-  // (page.tsx), so routes without their own metadata (fleet fallback)
+  // (page.tsx), so routes without their own metadata (fallback)
   // never regress to the bare product name.
   title: "Expendit — See every naira. File every tax.",
   // The ratified tagline (web/scripts/generate-brand-assets.mjs, the
@@ -43,7 +43,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
-        {/* First focusable on every route (fleet canon P15) — every
+        {/* First focusable on every route — every
             page's <main> carries id="main" + tabIndex={-1}. */}
         <SkipLink />
         <ThemeProvider>{children}</ThemeProvider>

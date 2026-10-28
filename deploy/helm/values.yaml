@@ -2,7 +2,7 @@
 # images run in cloud; this chart is the self-host and cluster path.
 #
 # The chart does NOT deploy Postgres, Kafka, Redis or object storage. Point
-# them at managed services (Aiven, GCS) or at in-cluster charts, through a
+# them at managed services (a managed Kafka, GCS) or at in-cluster charts, through a
 # Kubernetes Secret per service (envFrom). Secrets never go in plain values:
 #   common:     DATABASE_URL (a NON-superuser role: superusers bypass RLS),
 #               UPLOAD_TICKET_PRIVATE_KEY, KAFKA_*, REDIS_PASSWORD,

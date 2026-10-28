@@ -1,4 +1,4 @@
-// Overlay focus-restore canon (2026-07-21 a11y audit, fleet finding P4):
+// Overlay focus-restore lock (2026-07-21 a11y audit):
 // closing any Modal/command-palette must return focus to the element that
 // opened it. The palette opens programmatically (⌘K) and modals are
 // controlled Radix dialogs without a Radix Trigger, so before the fix
@@ -68,7 +68,7 @@ test("merge modal returns focus to its trigger on Escape", async ({ page }) => {
 
   const dialog = page.getByRole("dialog", { name: /^Merge/ });
   await expect(dialog).toBeVisible();
-  // Announced as modal (fleet parity with the apparule Sheet fix).
+  // Announced as modal.
   await expect(dialog).toHaveAttribute("aria-modal", "true");
 
   await page.keyboard.press("Tab");

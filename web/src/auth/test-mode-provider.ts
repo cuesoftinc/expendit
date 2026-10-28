@@ -3,9 +3,9 @@
  * resolves instantly with the seeded test user and the app goes straight
  * to /dashboard (web standard — TEST_MODE).
  *
- * Session key convention (fleet P16, dictated canon 2026-07-21):
+ * Session key convention:
  * `<product>.test-session` in **sessionStorage** — per-tab, gone on
- * close, one shape across the fleet's e2e tooling.
+ * close, one shape across e2e tooling.
  */
 
 import type { AuthProvider, AuthUser } from "./types";

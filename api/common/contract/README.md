@@ -39,20 +39,19 @@ keeps the first result per `request_id`.
 ## Events and topics
 
 `type` names the **event**, and each event has its own schema. Expendit's
-events travel on the three lanes of the CueLABS shared message bus, which
-Apparule and Upstat use too (system-design.md §5.3, §16 I-18; the rules are
-in the CueLABS delivery standard's `shared-messaging.md`). A consumer reads
+events travel on the three lanes of the shared message bus, which
+Apparule and Upstat use too (system-design.md §5.3, §16 I-18). A consumer reads
 `type` first and skips, without validating, anything that isn't an Expendit
 event it handles.
 
-| Event (schema) | Lane | Key | Producer → consumer |
-| --- | --- | --- | --- |
-| [upload.received](upload.received.schema.json) | `cuelabs.uploads` | ticket id | statements → common |
-| [import.ready](import.ready.schema.json), [statement.ready](statement.ready.schema.json) | `cuelabs.requests` | job / statement id | common (outbox) → analytics extract |
-| [compute.requested](compute.requested.schema.json) | `cuelabs.requests` | org id | common (outbox) → analytics compute |
-| [system.heartbeat](system.heartbeat.schema.json) | `cuelabs.requests` | `heartbeat` | common's reaper → nobody (I-17) |
-| [import.processed](import.processed.schema.json), [statement.mapped](statement.mapped.schema.json) | `cuelabs.results` | job / statement id | analytics extract → common |
-| [compute.results](compute.results.schema.json) | `cuelabs.results` | org id | analytics compute → common |
+| Event (schema)                                                                                     | Lane               | Key                | Producer → consumer                 |
+| -------------------------------------------------------------------------------------------------- | ------------------ | ------------------ | ----------------------------------- |
+| [upload.received](upload.received.schema.json)                                                     | `cuelabs.uploads`  | ticket id          | statements → common                 |
+| [import.ready](import.ready.schema.json), [statement.ready](statement.ready.schema.json)           | `cuelabs.requests` | job / statement id | common (outbox) → analytics extract |
+| [compute.requested](compute.requested.schema.json)                                                 | `cuelabs.requests` | org id             | common (outbox) → analytics compute |
+| [system.heartbeat](system.heartbeat.schema.json)                                                   | `cuelabs.requests` | `heartbeat`        | common's reaper → nobody (I-17)     |
+| [import.processed](import.processed.schema.json), [statement.mapped](statement.mapped.schema.json) | `cuelabs.results`  | job / statement id | analytics extract → common          |
+| [compute.results](compute.results.schema.json)                                                     | `cuelabs.results`  | org id             | analytics compute → common          |
 
 Every payload except the heartbeat's goes by `data_ref`: other products can
 read the lanes, and storage permissions keep Expendit's data to itself.

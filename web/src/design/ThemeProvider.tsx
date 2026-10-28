@@ -2,8 +2,7 @@
 
 /**
  * Theme provider — tri-state light | dark | system (web-implementation.md
- * §3; theme contract ratified 2026-07-20, identical across apparule,
- * expendit and upstat):
+ * §3; theme contract ratified 2026-07-20, shared across products):
  *
  * - `preference` is what the user chose; persisted at `expendit.theme`
  *   ("light"/"dark"/"system" all stored explicitly; KEY ABSENT = dark,

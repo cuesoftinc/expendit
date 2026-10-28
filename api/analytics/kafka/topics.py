@@ -2,8 +2,8 @@
 event live in api/common/contract.
 
 An event names the envelope's `type` and its schema. Topics are the three
-lanes of the CueLABS shared message bus (the delivery standard's
-shared-messaging.md): every product reads and writes them, so a consumer
+lanes of the shared message bus (api/common/contract/README.md): every
+product reads and writes them, so a consumer
 reads the type first and skips whatever isn't one of its own events.
 """
 

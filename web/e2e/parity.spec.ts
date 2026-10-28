@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * Marketing nav/footer & theme parity canon (org SKILL.md, 2026-07-19):
+ * Marketing nav/footer & theme parity canon (2026-07-19):
  * canonical link inventory on the A1 nav + A11 footer, and the
  * ThemeProvider contract (2026-07-20 tri-state: data-theme on <html>
  * always carries the RESOLVED theme; localStorage `expendit.theme`, key
@@ -114,7 +114,7 @@ test("footer carries the 4-column canonical inventory + legal bar", async ({
 test("mobile (390w): the footer stacks brand → 2-col link grid → legal bar with grouped utilities", async ({
   page,
 }) => {
-  // Footer mobile-structure canon (org SKILL.md, 2026-07-19): brand block
+  // Footer mobile-structure canon (2026-07-19): brand block
   // full-width first · link columns in a 2-col grid · divider · legal bar
   // with © first and the utilities as one grouped wrapping cluster.
   await page.setViewportSize({ width: 390, height: 844 });

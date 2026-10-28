@@ -48,7 +48,7 @@ import {
 } from "./links";
 
 // A1 nav — the canonical 4 text links (nav/footer parity canon,
-// org SKILL.md 2026-07-19).
+// 2026-07-19).
 const NAV_LINKS = [
   { label: "Features", href: `#${ANCHORS.product}` },
   { label: "Pricing", href: `#${ANCHORS.compare}` },
@@ -153,7 +153,7 @@ export const HomeView: React.FC = () => {
       ) : null}
 
       {/* The page's one main landmark — everything but the nav + footer.
-          id/tabIndex: the SkipLink target (fleet canon P15). */}
+          id/tabIndex: the SkipLink target. */}
       <main id="main" tabIndex={-1}>
         <div ref={heroRef}>
           <HeroSection

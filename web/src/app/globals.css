@@ -53,7 +53,7 @@
   --text-4xl--line-height: 2.5rem;
 
   /* radii — product radius is 6px (`rounded` → --radius); rounded-md is
-     the same 6px under the fleet-shared utility name (byte-identical
+     the same 6px under the shared utility name (identical
      shared files like SkipLink use it); rounded-lg is the marketing hero
      device frame; rounded-full for pills/discs/dots. */
   --radius-*: initial;
@@ -165,7 +165,7 @@
 
 /*
  * Widget-frame reserve heights (perf pass 2026-07-21, CLS budget —
- * fleet P14 pattern from upstat): the B1 overview loading frame reserves
+ * pattern): the B1 overview loading frame reserves
  * every slot's hydrated size so the skeleton → data swap never moves
  * layout (desktop CLS 0.071; probe-attributed to the loading → loaded
  * swap and the rail's org-switcher slot mounting late). Values are the
