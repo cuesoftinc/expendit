@@ -33,7 +33,7 @@ const (
 	EventStatementMapped  = "expendit.statement.mapped"
 	EventComputeRequested = "expendit.compute.requested"
 	EventComputeResults   = "expendit.compute.results"
-	// EventHeartbeat keeps the shared Aiven Kafka from powering off when idle
+	// EventHeartbeat keeps the shared managed Kafka from powering off when idle
 	// (§16 I-17). Consumers drop it.
 	EventHeartbeat = "expendit.system.heartbeat"
 )
@@ -107,7 +107,7 @@ func dialer(cfg config.Kafka) (*kgo.Dialer, *kgo.Transport, error) {
 	if cfg.Username == "" {
 		return d, t, nil
 	}
-	// Aiven: SASL/SCRAM over TLS, one user per service (S-11).
+	// SASL/SCRAM over TLS, one user per service (S-11).
 	mechanism, err := scram.Mechanism(scram.SHA256, cfg.Username, cfg.Password)
 	if err != nil {
 		return nil, nil, err

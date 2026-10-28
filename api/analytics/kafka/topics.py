@@ -17,7 +17,7 @@ IMPORT_PROCESSED = "expendit.import.processed"
 STATEMENT_MAPPED = "expendit.statement.mapped"
 COMPUTE_REQUESTED = "expendit.compute.requested"
 COMPUTE_RESULTS = "expendit.compute.results"
-# Sent by common's reaper every 6 hours so the shared Aiven Kafka never idles
+# Sent by common's reaper every 6 hours so the shared managed Kafka never idles
 # for 24 hours (system-design.md §16 I-17). The compute pool drops it.
 HEARTBEAT = "expendit.system.heartbeat"
 

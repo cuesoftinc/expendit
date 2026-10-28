@@ -85,7 +85,7 @@ def test_other_products_messages_are_not_ours():
 
 
 async def test_heartbeat_rides_cuelabs_requests(contract, store):
-    """common's reaper keeps the shared Aiven Kafka awake (system-design.md §16 I-17)."""
+    """common's reaper keeps the shared managed Kafka awake (system-design.md §16 I-17)."""
     data = {"sent_at": "2026-10-13T06:00:00Z", "source": "reaper"}
     message = await envelope.wrap(topics.HEARTBEAT, data, contract, store, "expendit/test")
     assert await envelope.unwrap(topics.TOPIC_REQUESTS, message, contract, store, "expendit/test") == (
