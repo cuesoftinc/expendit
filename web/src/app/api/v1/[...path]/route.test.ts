@@ -92,6 +92,21 @@ describe("/api/v1 proxy (system-design.md §7.1)", () => {
     ]);
   });
 
+  it("answers 502 without calling out when production has no API URL", async () => {
+    delete process.env.API_URL;
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      const response = await GET(
+        new Request("http://web.local/api/v1/health"),
+        params(["health"]),
+      );
+      expect(response.status).toBe(502);
+      expect(calls).toHaveLength(0);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("never sends the session cookie to the upload gateway", async () => {
     await POST(
       new Request("http://web.local/api/v1/uploads", {

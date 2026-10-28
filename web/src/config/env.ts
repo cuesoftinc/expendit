@@ -28,11 +28,16 @@ export const env = {
   testMode,
 } as const;
 
+// A production server listens on 8080 itself, so a localhost default there loops back into this proxy.
+const localDefault = (url: string) =>
+  process.env.NODE_ENV === "production" ? undefined : url;
+
 /**
  * Server-only: where the /api/v1 proxy forwards. Read per request so the
  * same build serves compose (http://common:8080) and cloud.
  */
 export const serverEnv = () => ({
-  apiOrigin: process.env.API_URL ?? "http://localhost:8080",
-  uploadsOrigin: process.env.UPLOADS_URL ?? "http://localhost:8081",
+  apiOrigin: process.env.API_URL ?? localDefault("http://localhost:8080"),
+  uploadsOrigin:
+    process.env.UPLOADS_URL ?? localDefault("http://localhost:8081"),
 });
