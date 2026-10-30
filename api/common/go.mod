@@ -13,7 +13,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	github.com/segmentio/kafka-go v0.4.51
 	golang.org/x/sync v0.24.0
-	google.golang.org/api v0.307.0
+	google.golang.org/api v0.309.0
 )
 
 require (
