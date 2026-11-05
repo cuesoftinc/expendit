@@ -96,3 +96,37 @@ func TestLoadReadsTheSessionSettings(t *testing.T) {
 		t.Fatalf("want a secret error, got %v", err)
 	}
 }
+
+func TestLoadReadsTheSettleSettings(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://x")
+	t.Setenv("GOOGLE_CLIENT_ID", "id")
+	t.Setenv("GOOGLE_CLIENT_SECRET", "secret")
+	t.Setenv("JWT_SECRET", strings.Repeat("j", 32))
+	t.Setenv("SESSION_SECRET", "session")
+	t.Setenv("KAFKA_BROKERS", "a:9092")
+	t.Setenv("STORAGE_DRIVER", "s3")
+	t.Setenv("STORAGE_ENDPOINT", "localhost:9000")
+	t.Setenv("STORAGE_BUCKET", "b")
+	t.Setenv("STORAGE_PREFIX", "expendit/local")
+	t.Setenv("UPLOAD_TICKET_PRIVATE_KEY", "k1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	t.Setenv("K_SERVICE", "")
+	t.Setenv("SETTLE_INVOKERS", "")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.OnCloudRun || len(cfg.SettleInvokers) != 0 {
+		t.Fatalf("defaults: onCloudRun=%v invokers=%v", cfg.OnCloudRun, cfg.SettleInvokers)
+	}
+
+	t.Setenv("K_SERVICE", "expendit-api-common")
+	t.Setenv("SETTLE_INVOKERS", " a@p.iam.gserviceaccount.com, b@p.iam.gserviceaccount.com ")
+	cfg, err = Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.OnCloudRun || len(cfg.SettleInvokers) != 2 || cfg.SettleInvokers[1] != "b@p.iam.gserviceaccount.com" {
+		t.Fatalf("settings: onCloudRun=%v invokers=%v", cfg.OnCloudRun, cfg.SettleInvokers)
+	}
+}

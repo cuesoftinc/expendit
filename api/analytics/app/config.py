@@ -27,9 +27,11 @@ class Settings(BaseSettings):
     kafka_ssl_ca: str = ""
     kafka_group_prefix: str = "expendit-analytics"
 
-    # api/common's base URL, woken after each result sent for it (scale to
-    # zero, system-design.md §16 I-16). Empty where common always runs.
-    wake_common_url: str = ""
+    # POST /internal/settle accepts a Google ID token for this audience (the
+    # service's own URL) from these service accounts (comma-separated; api/common's).
+    # Unset, the route answers 503.
+    internal_audience: str = ""
+    internal_invokers: str = ""
 
     # Object storage (S-3). gcs in cloud (ADC); s3 for MinIO in compose/self-host.
     storage_driver: Literal["gcs", "s3"] = "gcs"
@@ -52,6 +54,10 @@ class Settings(BaseSettings):
     @property
     def kafka_broker_list(self) -> list[str]:
         return [b.strip() for b in self.kafka_brokers.split(",") if b.strip()]
+
+    @property
+    def internal_invoker_list(self) -> list[str]:
+        return [i.strip() for i in self.internal_invokers.split(",") if i.strip()]
 
     @property
     def runs_extract(self) -> bool:

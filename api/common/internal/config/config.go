@@ -33,6 +33,13 @@ type Config struct {
 	// Unset, /internal/jobs answers 503.
 	SchedulerAudience     string
 	SchedulerInvokerEmail string
+	// SettleInvokers are the service accounts besides the scheduler's that
+	// may call /internal/settle with an ID token for SchedulerAudience.
+	SettleInvokers []string
+
+	// OnCloudRun is true in a Cloud Run service, where CPU is allocated only
+	// while a request runs.
+	OnCloudRun bool
 
 	// Limits enforced before a ticket exists (engineering.md §3).
 	UploadsPerHour  int
@@ -64,11 +71,10 @@ type Kafka struct {
 	SSLCA    string
 }
 
-// Wake holds the base URLs of the services to wake after publishing for
+// Wake holds the base URLs of the services to settle after publishing for
 // them (scale to zero, system-design.md §16 I-16). Empty where every
 // service always runs (compose, Helm).
 type Wake struct {
-	Common  string // used by the jobs: they wake common while work is pending
 	Extract string
 	Compute string
 }
@@ -157,7 +163,6 @@ func Load() (*Config, error) {
 			UseSSL:    os.Getenv("STORAGE_USE_SSL") != "false",
 		},
 		Wake: Wake{
-			Common:  strings.TrimSpace(os.Getenv("WAKE_COMMON_URL")),
 			Extract: strings.TrimSpace(os.Getenv("WAKE_EXTRACT_URL")),
 			Compute: strings.TrimSpace(os.Getenv("WAKE_COMPUTE_URL")),
 		},
@@ -168,6 +173,8 @@ func Load() (*Config, error) {
 		},
 		SchedulerAudience:     strings.TrimRight(strings.TrimSpace(os.Getenv("SCHEDULER_AUDIENCE")), "/"),
 		SchedulerInvokerEmail: strings.TrimSpace(os.Getenv("SCHEDULER_INVOKER_EMAIL")),
+		SettleInvokers:        split(os.Getenv("SETTLE_INVOKERS")),
+		OnCloudRun:            os.Getenv("K_SERVICE") != "",
 		UploadsPerHour:        atoi(os.Getenv("UPLOADS_PER_HOUR"), 10),
 		UploadsPerDay:         atoi(os.Getenv("UPLOADS_PER_DAY"), 30),
 		UploadBytesDay:        int64(atoi(os.Getenv("UPLOAD_BYTES_PER_DAY"), 200<<20)),

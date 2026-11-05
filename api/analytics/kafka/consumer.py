@@ -9,9 +9,10 @@ import asyncio
 import contextlib
 import json
 import logging
+import time
 from collections.abc import Awaitable, Callable, Sequence
 
-from aiokafka import AIOKafkaConsumer
+from aiokafka import AIOKafkaConsumer, TopicPartition
 
 from app.config import Settings
 from contract import Contract, ContractError
@@ -26,6 +27,12 @@ Handler = Callable[[dict], Awaitable[None]]
 
 # Three attempts per message.
 BACKOFF: Sequence[float] = (1.0, 4.0)
+
+# Wait before the loop resumes after the consumer itself failed.
+RESUME_SECONDS = 2.0
+
+# Wait between lag checks.
+POLL_SECONDS = 0.25
 
 
 def _decode(value: bytes) -> object:
@@ -84,14 +91,56 @@ class Consumer:
                 await self._task
         await self._consumer.stop()
 
+    async def caught_up(self) -> bool:
+        """Whether the group has committed every message now on its topics,
+        across all partitions: on request-based CPU a consumer makes progress
+        only while a request runs, so a settle waits for this."""
+        partitions: list[TopicPartition] = []
+        for topic in self._topics:
+            ids = self._consumer.partitions_for_topic(topic)
+            if not ids:
+                return False  # metadata not fetched yet: still joining
+            partitions += [TopicPartition(topic, p) for p in ids]
+        ends = await self._consumer.end_offsets(partitions)
+        firsts = await self._consumer.beginning_offsets(partitions)
+        for tp in partitions:
+            committed = await self._consumer.committed(tp)
+            if committed is None:
+                committed = firsts[tp]  # never committed: the group starts at the first offset
+            if committed < ends[tp]:
+                return False
+        return True
+
+    async def wait_caught_up(self, budget: float) -> bool:
+        """Polls caught_up until it holds or budget seconds pass."""
+        deadline = time.monotonic() + budget
+        while True:
+            try:
+                if await self.caught_up():
+                    return True
+            except Exception as exc:  # noqa: BLE001 - a failed check is a not-yet
+                log.warning("lag check failed", extra={"group": self.group, "error": type(exc).__name__})
+            if time.monotonic() >= deadline:
+                return False
+            await asyncio.sleep(POLL_SECONDS)
+
     async def _run(self) -> None:
-        async for record in self._consumer:
-            event = envelope.event_of(record.value)
-            if event in self._handlers:
-                await self.handle(record.topic, record.offset, record.value)
-            # Another product's event, or one another pool handles, is
-            # skipped without a word: the lanes are shared.
-            await self._consumer.commit()
+        while True:
+            try:
+                async for record in self._consumer:
+                    event = envelope.event_of(record.value)
+                    if event in self._handlers:
+                        await self.handle(record.topic, record.offset, record.value)
+                    # Another product's event, or one another pool handles, is
+                    # skipped without a word: the lanes are shared.
+                    try:
+                        await self._consumer.commit()
+                    except Exception:  # noqa: BLE001 - redelivered, handlers are idempotent
+                        log.warning("commit failed; the message may be redelivered", extra={"group": self.group, "topic": record.topic, "offset": record.offset})
+                return
+            except Exception:  # noqa: BLE001 - the loop must outlive a failed fetch or rebalance
+                log.exception("consumer error; resuming", extra={"group": self.group})
+                await asyncio.sleep(RESUME_SECONDS)
 
     async def handle(self, topic: str, offset: int, value: dict) -> None:
         """Handles one of this pool's messages; returns once it may be

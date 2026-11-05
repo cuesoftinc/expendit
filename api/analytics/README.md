@@ -15,9 +15,12 @@ Two worker pools from one image (D8), selected by `ANALYTICS_POOL`:
 
 The lanes belong to the CueLABS shared bus (system-design.md §16 I-18):
 a pool skips every message that isn't an Expendit event it handles, and
-sends every payload by pointer. In cloud both pools scale to zero: api/common wakes a pool with `GET /health`
-after publishing for it, and the pool wakes common (`WAKE_COMMON_URL`) after
-sending a result (system-design.md §16 I-16).
+sends every payload by pointer. In cloud both pools scale to zero on request-based CPU: api/common calls
+`POST /internal/settle` on a pool after publishing for it, and the pool
+handles everything waiting (within 25 s) before it answers, so its results are
+in Kafka when common reads them (system-design.md §16 I-16). The route checks
+a Google ID token for `INTERNAL_AUDIENCE` from `INTERNAL_INVOKERS` and answers
+503 when they are unset.
 
 `all` runs both in one process (compose, Helm).
 

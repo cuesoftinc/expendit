@@ -18,7 +18,8 @@ func TestInternalJobsRouteSkipsUserAuth(t *testing.T) {
 		w.Header().Set("X-Job", r.PathValue("name"))
 		w.WriteHeader(http.StatusOK)
 	})
-	h := New(&handler.Handlers{}, &handler.SSO{}, reject, nil, func(context.Context) error { return nil }, jobs)
+	settle := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusAccepted) })
+	h := New(&handler.Handlers{}, &handler.SSO{}, reject, nil, func(context.Context) error { return nil }, jobs, settle)
 
 	cases := []struct {
 		name   string
@@ -28,6 +29,8 @@ func TestInternalJobsRouteSkipsUserAuth(t *testing.T) {
 		want   int
 	}{
 		{"scheduler post", http.MethodPost, "/internal/jobs/reaper", "", http.StatusOK},
+		{"settle post", http.MethodPost, "/internal/settle", "", http.StatusAccepted},
+		{"get is not a settle", http.MethodGet, "/internal/settle", "", http.StatusNotFound},
 		{"get is not a job", http.MethodGet, "/internal/jobs/reaper", "", http.StatusNotFound},
 		{"sso exchange skips user auth", http.MethodPost, "/api/v1/auth/sso/exchange", "{}", http.StatusBadRequest},
 		{"api still authenticated", http.MethodGet, "/api/v1/me", "", http.StatusUnauthorized},
