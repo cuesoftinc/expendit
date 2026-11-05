@@ -64,6 +64,245 @@ spec:
     - service:expendit-website
 ---
 apiVersion: v3
+kind: service
+metadata:
+  name: expendit-api-common
+  displayName: expendit-api-common
+  description: "Expendit core API: auth, ledger, orgs, uploads authorisation, outbox"
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - go
+  dependsOn:
+    - datastore:expendit-postgres
+    - datastore:expendit-redis
+    - datastore:expendit-storage
+    - datastore:cuelabs-kafka
+    - service:expendit-api-analytics-extract
+    - service:expendit-api-analytics-compute
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: expendit-api-statements
+  displayName: expendit-api-statements
+  description: Expendit upload gateway for receipts and statement files
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:api
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - typescript
+  dependsOn:
+    - datastore:expendit-storage
+    - datastore:cuelabs-kafka
+    - service:expendit-api-common
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: expendit-api-analytics-extract
+  displayName: expendit-api-analytics-extract
+  description: "Expendit analytics extract pool: parsing, AI extraction, categorisation"
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:worker
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - python
+  dependsOn:
+    - datastore:expendit-storage
+    - datastore:cuelabs-kafka
+    - service:expendit-api-common
+---
+apiVersion: v3
+kind: service
+metadata:
+  name: expendit-api-analytics-compute
+  displayName: expendit-api-analytics-compute
+  description: "Expendit analytics compute pool: statement derivations, ratios, tax"
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:worker
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: web
+  languages:
+    - python
+  dependsOn:
+    - datastore:expendit-storage
+    - datastore:cuelabs-kafka
+    - service:expendit-api-common
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: expendit-postgres
+  displayName: expendit-postgres
+  description: Expendit database on the shared managed Postgres
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:datastore
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: postgres
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: expendit-redis
+  displayName: expendit-redis
+  description: "Expendit rate-limit keys (expendit: prefix) on the shared managed Valkey"
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:datastore
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: redis
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: expendit-storage
+  displayName: expendit-storage
+  description: Expendit prefix expendit/stg/ in the shared Cloud Storage bucket
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:datastore
+    - provider:google
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: gcs
+---
+apiVersion: v3
+kind: datastore
+metadata:
+  name: cuelabs-kafka
+  displayName: cuelabs-kafka
+  description: Shared CueLABS Kafka bus (cuelabs.uploads, requests, results)
+  owner: cuesoft
+  tags:
+    - app:expendit
+    - component:datastore
+    - provider:aiven
+  contacts:
+    - type: email
+      contact: cuelabs@cuesoft.io
+  additionalOwners:
+    - name: platform
+      type: SRE
+  links:
+    - name: Repository
+      type: repo
+      provider: github
+      url: https://github.com/cuesoftinc/expendit
+spec:
+  lifecycle: production
+  tier: "1"
+  type: kafka
+---
+apiVersion: v3
 kind: system
 metadata:
   name: expendit
@@ -92,3 +331,11 @@ spec:
   tier: "1"
   components:
     - service:expendit-website
+    - service:expendit-api-common
+    - service:expendit-api-statements
+    - service:expendit-api-analytics-extract
+    - service:expendit-api-analytics-compute
+    - datastore:expendit-postgres
+    - datastore:expendit-redis
+    - datastore:expendit-storage
+    - datastore:cuelabs-kafka
