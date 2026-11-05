@@ -10,17 +10,17 @@
 | Unit | Runs on | Scaling | Provisioned by |
 | --- | --- | --- | --- |
 | `api/common` (Go) `./server` | Cloud Run **service** (also serves `POST /internal/jobs/<name>`) | **0**–2, woken over HTTP (system-design.md §16 I-16) | infrastructure-as-code stack |
-| Sweeps `expendit-reaper`, `expendit-tmp-cleanup`, `expendit-retention` | Cloud Scheduler, `POST /internal/jobs/<name>` on common with an OIDC token | reaper every 5 min (also wakes services while work is pending), tmp-cleanup every 15 min, retention daily; created paused until the handlers deploy | infrastructure-as-code stack |
+| Sweeps `expendit-reaper`, `expendit-tmp-cleanup`, `expendit-retention` | Cloud Scheduler, `POST /internal/jobs/<name>` on common with an OIDC token | reaper every 5 min (also settles the consumers while work is pending), tmp-cleanup every 15 min, retention daily; created paused until the handlers deploy | infrastructure-as-code stack |
 | `api/statements` (Node) | Cloud Run **service** | 0–5 | infrastructure-as-code stack |
-| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run service, authenticated only (common wakes it) | **0**–2, capped by the Vertex quota | infrastructure-as-code stack |
+| `api/analytics` (Python), `ANALYTICS_POOL=extract` | Cloud Run service, authenticated only (common settles it) | **0**–2, capped by the Vertex quota | infrastructure-as-code stack |
 | `api/analytics`, `ANALYTICS_POOL=compute` | Cloud Run service, authenticated only | **0**–2 | infrastructure-as-code stack |
 | `web` (Next.js) | **Firebase App Hosting** | managed | App Hosting backend |
 | Postgres, Kafka, Valkey | managed services, shared | n/a | infrastructure-as-code stack |
 | Object storage | shared storage bucket, `expendit/stg/…`, 1-day lifecycle rule on `tmp/` and `compute/` | n/a | infrastructure-as-code stack |
 
 Services hand data to each other only over managed Kafka (D4); the one
-direct call is a `GET /health`, carrying no data, that wakes a scaled-to-zero
-consumer after something was published for it (system-design.md §16 I-16). Each service has its own SASL user with topic-level ACLs, and
+direct call is a `POST /internal/settle`, carrying no data, that starts a scaled-to-zero
+consumer after something was published for it and waits while it handles the work (system-design.md §16 I-16). Each service has its own SASL user with topic-level ACLs, and
 each has Storage IAM on its prefixes only (S-11): `statements` can write
 `tmp/`, `analytics` can read `tmp/` and `compute/`, and `common` can do
 everything. Kafka is the CueLABS shared bus (system-design.md §16 I-18):
@@ -71,8 +71,8 @@ environments exist.
 | --- | --- | --- | --- | --- |
 | api/common | 1 vCPU / 512 MiB | 80 | 0–2 | 300 s |
 | api/statements | 1 vCPU / 1 GiB | 20 (15 MB bodies in memory) | 0–5 | 60 s |
-| api/analytics extract | 1 vCPU / 1 GiB | 80 (only wake-ups arrive) | 0–2 | 60 s |
-| api/analytics compute | 1 vCPU / 512 MiB | 80 (only wake-ups arrive) | 0–2 | 60 s |
+| api/analytics extract | 1 vCPU / 1 GiB | 80 (only settle calls arrive) | 0–2 | 60 s |
+| api/analytics compute | 1 vCPU / 512 MiB | 80 (only settle calls arrive) | 0–2 | 60 s |
 
 **[Decided defaults]** for common; the other rows are **[Proposed]** until
 the first load test.

@@ -1,22 +1,28 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CONFIG, type Config } from '../config/config';
 
-/** An instance that answered moments ago is still up. */
-const DEBOUNCE_MS = 10_000;
+/** Covers a cold start, a consumer-group join and common's own settle budget; stays inside the 60 s request timeout. */
+const SETTLE_TIMEOUT_MS = 45_000;
+
+const METADATA_IDENTITY = 'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity';
 
 /**
- * Wakes api/common after upload.received is sent (scale to zero,
- * docs/system-design.md §16 I-16). Cloud Run starts an instance only for an
- * HTTP request, so a GET /health brings common up and its consumer reads the
- * message. Awaited inside the upload request, because this service's CPU is
- * only allocated while a request runs. Best-effort: a missed wake leaves the
- * message in Kafka, and the reaper job wakes common while work is pending.
+ * Settles api/common after upload.received is sent (scale to zero,
+ * docs/system-design.md §16 I-16). Cloud Run allocates CPU only while a
+ * request is open, so a GET /health would start common but its consumer would
+ * stall once the answer is sent. POST /internal/settle is answered only after
+ * common has handled what is waiting, and it is awaited inside the upload
+ * request, because this service's CPU is also allocated only while a request
+ * runs. Best-effort: a missed settle leaves the message in Kafka, and the
+ * reaper job settles common while work is pending.
  */
 @Injectable()
 export class WakeService {
   private readonly logger = new Logger(WakeService.name);
   private readonly base: string;
-  private last = 0;
+  /** On Cloud Run the call carries this service account's ID token for common. */
+  onCloudRun = Boolean(process.env.K_SERVICE);
+  metadataIdentity = METADATA_IDENTITY;
 
   constructor(@Inject(CONFIG) config: Config) {
     this.base = config.wakeCommonUrl.replace(/\/+$/, '');
@@ -24,16 +30,30 @@ export class WakeService {
 
   async common(reason: string): Promise<void> {
     // No URL: compose and Helm run common all the time.
-    if (!this.base || Date.now() - this.last < DEBOUNCE_MS) return;
-    this.last = Date.now();
+    if (!this.base) return;
     const target = new URL(this.base).host;
     try {
-      const res = await fetch(`${this.base}/health`, { signal: AbortSignal.timeout(10_000) });
+      const headers: Record<string, string> = {};
+      if (this.onCloudRun) headers.Authorization = `Bearer ${await this.idToken(this.base)}`;
+      const res = await fetch(`${this.base}/internal/settle`, {
+        method: 'POST',
+        headers,
+        signal: AbortSignal.timeout(SETTLE_TIMEOUT_MS),
+      });
       if (!res.ok) throw new Error(`status ${res.status}`);
-      this.logger.log({ message: 'woke service', step: 'wake', target, reason });
+      this.logger.log({ message: 'settled service', step: 'settle', target, reason });
     } catch (error) {
-      this.last = 0; // a failed wake must not hold back the next one
-      this.logger.warn({ message: 'wake failed', step: 'wake', target, reason, error: (error as Error).message });
+      this.logger.warn({ message: 'settle failed', step: 'settle', target, reason, error: (error as Error).message });
     }
+  }
+
+  /** An ID token whose audience is common's URL, which is what its settle route checks. */
+  private async idToken(audience: string): Promise<string> {
+    const res = await fetch(`${this.metadataIdentity}?audience=${encodeURIComponent(audience)}`, {
+      headers: { 'Metadata-Flavor': 'Google' },
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) throw new Error(`id token: metadata status ${res.status}`);
+    return (await res.text()).trim();
   }
 }

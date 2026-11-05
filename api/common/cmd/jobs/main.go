@@ -50,7 +50,7 @@ func run(args []string) error {
 	}
 	defer producer.Close()
 
-	all := jobs.New(a, producer)
+	all := jobs.New(a, producer, nil)
 	all["migrate"] = func(ctx context.Context) error { return migrations.Apply(ctx, a.DB.Pool) }
 
 	names := make([]string, 0, len(all))

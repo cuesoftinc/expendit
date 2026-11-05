@@ -15,10 +15,12 @@ import (
 )
 
 // New returns every sweep job plus heartbeat (check the Kafka connection, or
-// wake an idle Kafka service); migrate is added by cmd/jobs only.
-func New(a *app.App, producer *kafka.Producer) map[string]func(context.Context) error {
+// wake an idle Kafka service); migrate is added by cmd/jobs only. settle
+// drains common's own consumers for the reaper; nil where they run on their
+// own.
+func New(a *app.App, producer *kafka.Producer, settle func(context.Context) error) map[string]func(context.Context) error {
 	cfg := a.Config
-	sweeper := &sweep.Sweeper{DB: a.DB, Store: a.Store, Now: time.Now, Wake: wake.New(), WakeURLs: cfg.Wake,
+	sweeper := &sweep.Sweeper{DB: a.DB, Store: a.Store, Now: time.Now, Wake: wake.New(), WakeURLs: cfg.Wake, Settle: settle,
 		Aiven:     aiven.New(cfg.Aiven.APIToken, cfg.Aiven.Project, cfg.Aiven.KafkaService),
 		Heartbeat: func(ctx context.Context) error { return producer.Heartbeat(ctx, "reaper") },
 		Resend: func(ctx context.Context) (int, error) {

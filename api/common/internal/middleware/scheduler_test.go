@@ -57,3 +57,33 @@ func TestSchedulerAuth(t *testing.T) {
 		})
 	}
 }
+
+func TestInternalAuthAdmitsEveryListedInvoker(t *testing.T) {
+	const scheduler, statements = "scheduler@p.iam.gserviceaccount.com", "statements@p.iam.gserviceaccount.com"
+	cases := []struct {
+		name     string
+		audience string
+		invokers []string
+		email    string
+		want     int
+	}{
+		{"audience unset", "", []string{scheduler}, scheduler, http.StatusServiceUnavailable},
+		{"no invokers", "https://svc", []string{""}, scheduler, http.StatusServiceUnavailable},
+		{"first invoker", "https://svc", []string{scheduler, statements}, scheduler, http.StatusOK},
+		{"second invoker", "https://svc", []string{scheduler, statements}, statements, http.StatusOK},
+		{"stranger", "https://svc", []string{scheduler, statements}, "other@x.io", http.StatusForbidden},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			v := &fakeVerifier{claims: SchedulerClaims{Email: tc.email, EmailVerified: true}}
+			next := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
+			req := httptest.NewRequest(http.MethodPost, "/internal/settle", nil)
+			req.Header.Set("Authorization", "Bearer t")
+			rec := httptest.NewRecorder()
+			InternalAuth(v, tc.audience, tc.invokers...)(next).ServeHTTP(rec, req)
+			if rec.Code != tc.want {
+				t.Fatalf("status = %d, want %d", rec.Code, tc.want)
+			}
+		})
+	}
+}

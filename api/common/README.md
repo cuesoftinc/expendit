@@ -10,7 +10,7 @@ One image, two entry points:
 
 | Binary | Runs | Where |
 | --- | --- | --- |
-| `server` | HTTP API, Kafka consumers, outbox publisher | Cloud Run service, min 0; woken over HTTP (system-design.md §16 I-16). Also serves `POST /internal/jobs/<name>` |
+| `server` | HTTP API, Kafka consumers, outbox publisher | Cloud Run service, min 0; settled over HTTP (system-design.md §16 I-16). Also serves `POST /internal/jobs/<name>` |
 | `jobs <name>` | one sweep, then exits | by hand or compose; Cloud Scheduler uses the HTTP route (§6.7) |
 
 ## Layout
@@ -84,11 +84,17 @@ token's audience is `SCHEDULER_AUDIENCE` and that its verified `email` is
 | `cuelabs.results`: `statement.mapped` | stores line items and the v1 validation; deletes the raw file |
 | `cuelabs.results`: `compute.results` | stores validation, ratio reports and tax estimates if computed from the current data version |
 
-After the outbox publishes, `internal/wake` sends a `GET /health` to the
-analytics pool that consumes it (`WAKE_EXTRACT_URL`, `WAKE_COMPUTE_URL`,
-with a Cloud Run ID token), so a pool scaled to zero starts. The reaper does
-the same, and wakes common (`WAKE_COMMON_URL`), while work is pending. Tax
-compute requests carry the rule sets from `tax_ruleset`.
+On Cloud Run (request-based CPU) a request publishes the outbox rows it
+queued before the first byte of its response, then `internal/wake` sends
+`POST /internal/settle` to the analytics pool that consumes them
+(`WAKE_EXTRACT_URL`, `WAKE_COMPUTE_URL`, with a Cloud Run ID token) and waits
+for it, and common reads the results it sent back. `POST /internal/settle` on
+common itself drains the consumers, publishes the outbox and drains again; it
+admits an ID token for `SCHEDULER_AUDIENCE` from the scheduler's account or
+`SETTLE_INVOKERS` (statements calls it after each upload). The reaper settles
+the pools while work is pending, then common's own consumers. Off Cloud Run
+the publisher and consumers run on their own. Tax compute requests carry the
+rule sets from `tax_ruleset`.
 
 For the shared Aiven Kafka (system-design.md §16 I-17) the reaper also powers
 Kafka back on through the Aiven API (`internal/aiven`, optional), sends a

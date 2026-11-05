@@ -1,7 +1,8 @@
 // Command server is api/common: the HTTP API, the Kafka consumers and the
 // outbox publisher in one process (system-design.md §4). In cloud it scales
-// to zero: whatever publishes for it wakes it
-// (§16 I-16), and it wakes analytics in turn.
+// to zero on request-based CPU: a write publishes its outbox rows before it
+// answers, whatever publishes for it settles it (POST /internal/settle,
+// §16 I-16), and it settles analytics in turn.
 package main
 
 import (
@@ -65,13 +66,13 @@ func run() error {
 	}
 	defer producer.Close()
 	waker := wake.New()
-	wakeFor := map[string]string{
+	settleFor := map[string]string{
 		kafka.EventImportReady:      cfg.Wake.Extract,
 		kafka.EventStatementReady:   cfg.Wake.Extract,
 		kafka.EventComputeRequested: cfg.Wake.Compute,
 	}
 	publisher := &outbox.Publisher{DB: a.DB, Producer: producer, Interval: time.Second,
-		Wake: func(event string) { waker.Async(wakeFor[event], event) }}
+		Wake: settleConsumers(waker, settleFor)}
 
 	consumers := map[string]map[string]kafka.Handler{
 		kafka.TopicUploads: {
@@ -94,6 +95,7 @@ func run() error {
 		},
 	}
 	var running []*kafka.Consumer
+	var waiters []waiter
 	for topic, handlers := range consumers {
 		c, err := kafka.NewConsumer(cfg.Kafka, "expendit-common", topic, handlers, a.Contract, a.Store)
 		if err != nil {
@@ -101,7 +103,11 @@ func run() error {
 		}
 		c.Failures = failures[topic]
 		running = append(running, c)
+		waiters = append(waiters, c)
 	}
+	drain := drainAll(waiters)
+	publish := publishOutbox(publisher)
+	settle := settler{drain: drain, publish: publish, budget: settleBudget}
 
 	sso := &handler.SSO{
 		Settings: handler.SSOSettings{
@@ -128,16 +134,28 @@ func run() error {
 		}
 		return nil
 	}
-	scheduled := middleware.SchedulerAuth(middleware.GoogleVerifier{}, cfg.SchedulerAudience, cfg.SchedulerInvokerEmail)(
-		handler.RunJob(jobs.New(a, producer)))
-	srv := &http.Server{
-		Addr:              ":" + cfg.Port,
-		Handler:           router.New(h, sso, middleware.Authenticate(session, a.Identity), cfg.CORSOrigins, ready, scheduled),
-		ReadHeaderTimeout: 10 * time.Second,
+	reaperSettle := func(ctx context.Context) error {
+		if !settle.run(ctx) {
+			return errors.New("consumers still behind")
+		}
+		return nil
 	}
+	scheduled := middleware.SchedulerAuth(middleware.GoogleVerifier{}, cfg.SchedulerAudience, cfg.SchedulerInvokerEmail)(
+		handler.RunJob(jobs.New(a, producer, reaperSettle)))
+	settleCallers := append([]string{cfg.SchedulerInvokerEmail}, cfg.SettleInvokers...)
+	settled := middleware.InternalAuth(middleware.GoogleVerifier{}, cfg.SchedulerAudience, settleCallers...)(
+		handler.Settle(settle.run))
+	var api http.Handler = router.New(h, sso, middleware.Authenticate(session, a.Identity), cfg.CORSOrigins, ready, scheduled, settled)
+	if cfg.OnCloudRun {
+		// Request-based CPU: publish before the first byte, never after it.
+		api = flushBeforeResponse(api, flushOutbox(publish, drain))
+	}
+	srv := &http.Server{Addr: ":" + cfg.Port, Handler: api, ReadHeaderTimeout: 10 * time.Second}
 
 	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error { publisher.Run(gctx); return nil })
+	if !cfg.OnCloudRun {
+		g.Go(func() error { publisher.Run(gctx); return nil })
+	}
 	for _, c := range running {
 		g.Go(func() error { return c.Run(gctx) })
 	}

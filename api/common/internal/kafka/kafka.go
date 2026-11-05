@@ -256,10 +256,21 @@ type Consumer struct {
 	blobs    Blobs
 	backoff  []time.Duration
 	running  bool
+	// group and lag answer CaughtUp; poll is the wait between checks.
+	group string
+	lag   lagClient
+	poll  time.Duration
+}
+
+// lagClient is the slice of the broker client a lag check needs.
+type lagClient interface {
+	Metadata(ctx context.Context, req *kgo.MetadataRequest) (*kgo.MetadataResponse, error)
+	ListOffsets(ctx context.Context, req *kgo.ListOffsetsRequest) (*kgo.ListOffsetsResponse, error)
+	OffsetFetch(ctx context.Context, req *kgo.OffsetFetchRequest) (*kgo.OffsetFetchResponse, error)
 }
 
 func NewConsumer(cfg config.Kafka, group, topic string, handlers map[string]Handler, contract *Contract, blobs Blobs) (*Consumer, error) {
-	d, _, err := dialer(cfg)
+	d, transport, err := dialer(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -273,10 +284,86 @@ func NewConsumer(cfg config.Kafka, group, topic string, handlers map[string]Hand
 			MaxWait:     time.Second,
 		}),
 		topic: topic, handlers: handlers, contract: contract, blobs: blobs, backoff: defaultBackoff,
+		group: group, lag: &kgo.Client{Addr: kgo.TCP(cfg.Brokers...), Transport: transport, Timeout: 10 * time.Second},
 	}, nil
 }
 
 func (c *Consumer) Running() bool { return c.running }
+
+// CaughtUp reports whether the group has committed every message now on the
+// topic, across all partitions and whichever instance holds them. On
+// request-based CPU a consumer makes progress only while a request runs, so a
+// request that must see its messages handled waits for this.
+func (c *Consumer) CaughtUp(ctx context.Context) (bool, error) {
+	meta, err := c.lag.Metadata(ctx, &kgo.MetadataRequest{Topics: []string{c.topic}})
+	if err != nil {
+		return false, err
+	}
+	if len(meta.Topics) != 1 || meta.Topics[0].Error != nil {
+		return false, fmt.Errorf("metadata for %s: %v", c.topic, meta.Topics)
+	}
+	ids := make([]int, 0, len(meta.Topics[0].Partitions))
+	reqs := make([]kgo.OffsetRequest, 0, 2*len(meta.Topics[0].Partitions))
+	for _, p := range meta.Topics[0].Partitions {
+		ids = append(ids, p.ID)
+		reqs = append(reqs, kgo.FirstOffsetOf(p.ID), kgo.LastOffsetOf(p.ID))
+	}
+	offsets, err := c.lag.ListOffsets(ctx, &kgo.ListOffsetsRequest{Topics: map[string][]kgo.OffsetRequest{c.topic: reqs}})
+	if err != nil {
+		return false, err
+	}
+	committed, err := c.lag.OffsetFetch(ctx, &kgo.OffsetFetchRequest{GroupID: c.group, Topics: map[string][]int{c.topic: ids}})
+	if err != nil {
+		return false, err
+	}
+	if committed.Error != nil {
+		return false, committed.Error
+	}
+	at := map[int]int64{}
+	for _, p := range committed.Topics[c.topic] {
+		if p.Error != nil {
+			return false, p.Error
+		}
+		at[p.Partition] = p.CommittedOffset
+	}
+	for _, p := range offsets.Topics[c.topic] {
+		if p.Error != nil {
+			return false, p.Error
+		}
+		next, ok := at[p.Partition]
+		if !ok || next < 0 {
+			next = p.FirstOffset // never committed: the group starts at the first offset
+		}
+		if next < p.LastOffset {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
+// WaitCaughtUp polls CaughtUp until it holds or within passes.
+func (c *Consumer) WaitCaughtUp(ctx context.Context, within time.Duration) error {
+	ctx, cancel := context.WithTimeout(ctx, within)
+	defer cancel()
+	poll := c.poll
+	if poll == 0 {
+		poll = 250 * time.Millisecond
+	}
+	for {
+		ok, err := c.CaughtUp(ctx)
+		if ok {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf("%s: group %s still behind after %s", c.topic, c.group, within)
+		case <-time.After(poll):
+		}
+	}
+}
 
 // Run blocks until ctx ends or Kafka fails. A message that ctx interrupts
 // is left uncommitted and redelivered.

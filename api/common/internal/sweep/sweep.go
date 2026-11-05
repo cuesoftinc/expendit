@@ -22,10 +22,13 @@ type Sweeper struct {
 	DB    *repository.DB
 	Store storage.Store
 	Now   func() time.Time
-	// Wake and WakeURLs let the reaper restart scaled-to-zero services
-	// while work is pending (§16 I-16). Nil/empty: nothing to wake.
+	// Wake and WakeURLs let the reaper settle the scaled-to-zero services
+	// while work is pending (§16 I-16). Nil/empty: nothing to settle.
 	Wake     *wake.Waker
 	WakeURLs config.Wake
+	// Settle drains common's own consumers, publishes what they queued and
+	// drains again; nil where the consumers run on their own (cmd/jobs).
+	Settle func(context.Context) error
 
 	// Keeping the shared managed Kafka usable (§16 I-17); each is optional.
 	// Aiven powers Kafka back on when Aiven powered it off.
@@ -54,11 +57,13 @@ func (s *Sweeper) Jobs() map[string]func(context.Context) error {
 //  3. re-sends, once, items processing and compute requests pending for
 //     over 4 minutes, keeping their request_id (I-17);
 //  4. every 6 hours, a Kafka heartbeat (I-17);
-//  5. wakes the services while work is pending, the backstop for a
-//     missed wake (I-16).
+//  5. settles extract and compute while work is pending, then common's own
+//     consumers, within settleBudget of the job's start: the backstop for a
+//     missed settle (I-16).
 //
 // Only the database steps can fail the job; the rest log and carry on.
 func (s *Sweeper) Reaper(ctx context.Context) error {
+	start := time.Now()
 	s.ensureKafka(ctx)
 	if err := s.reap(ctx); err != nil {
 		return err
@@ -75,8 +80,12 @@ func (s *Sweeper) Reaper(ctx context.Context) error {
 			slog.Info("kafka heartbeat sent", "step", "kafka.heartbeat")
 		}
 	}
-	return s.wakePending(ctx)
+	return s.settlePending(ctx, start)
 }
+
+// settleBudget ends the reaper's settles inside Cloud Scheduler's 60 s
+// attempt deadline.
+const settleBudget = 55 * time.Second
 
 // HeartbeatDue is true in the first 5 minutes of every 6th UTC hour: one
 // reaper run in each window, four heartbeats a day, well inside Aiven's
@@ -132,14 +141,12 @@ func (s *Sweeper) reap(ctx context.Context) error {
 	})
 }
 
-// wakePending wakes common when the outbox has unsent rows, common plus
-// extract while an import or statement is processing, and common plus
-// compute while a compute request is pending (its request or its result
-// may be waiting in Kafka). A failed wake is logged, not fatal.
-func (s *Sweeper) wakePending(ctx context.Context) error {
-	if s.Wake == nil {
-		return nil
-	}
+// settlePending settles extract while an import or statement is processing
+// or the outbox holds unsent rows, and compute while a compute request is
+// pending, then common's own consumers (which publish the outbox and read the
+// results). Each settle drains what is waiting inside this request, which is
+// what gives the instances CPU. A failed settle is logged, not fatal.
+func (s *Sweeper) settlePending(ctx context.Context, start time.Time) error {
 	var outbox, extract, compute bool
 	err := s.DB.AsSystem(ctx, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx, `SELECT
@@ -151,16 +158,33 @@ func (s *Sweeper) wakePending(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if outbox || extract || compute {
-		_ = s.Wake.Now(ctx, s.WakeURLs.Common, "pending work")
-	}
-	if extract {
-		_ = s.Wake.Now(ctx, s.WakeURLs.Extract, "pending work")
-	}
-	if compute {
-		_ = s.Wake.Now(ctx, s.WakeURLs.Compute, "pending work")
-	}
+	s.settle(ctx, start, outbox, extract, compute)
 	return nil
+}
+
+// settle runs the settles inside settleBudget of start: the consumer services
+// first, so what they send back is waiting when common drains.
+func (s *Sweeper) settle(ctx context.Context, start time.Time, outbox, extract, compute bool) {
+	ctx, cancel := context.WithDeadline(ctx, start.Add(settleBudget))
+	defer cancel()
+	if s.Wake != nil {
+		var bases []string
+		if extract {
+			bases = append(bases, s.WakeURLs.Extract)
+		}
+		if compute {
+			bases = append(bases, s.WakeURLs.Compute)
+		}
+		// Half of what is left, so common's own settle still has time.
+		half, cancelHalf := context.WithTimeout(ctx, time.Until(start.Add(settleBudget))/2)
+		s.Wake.SettleAll(half, "pending work", bases...)
+		cancelHalf()
+	}
+	if s.Settle != nil {
+		if err := s.Settle(ctx); err != nil {
+			slog.Warn("common settle incomplete; the next pass continues", "step", "settle", "outbox_pending", outbox, "error", err)
+		}
+	}
 }
 
 // TmpCleanup deletes uploads older than 1 hour from tmp/ (S-4) and

@@ -4,15 +4,38 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync/atomic"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
+type queuedKey struct{}
+
+// Queued counts the outbox rows a request queued; the server publishes them
+// before it answers.
+type Queued struct{ n atomic.Int64 }
+
+func (q *Queued) Any() bool { return q.n.Load() > 0 }
+
+// WithQueued returns a context whose Enqueue calls count on the Queued.
+func WithQueued(ctx context.Context) (context.Context, *Queued) {
+	q := &Queued{}
+	return context.WithValue(ctx, queuedKey{}, q), q
+}
+
+// NoteQueued counts one queued row against ctx's Queued, if it has one.
+func NoteQueued(ctx context.Context) {
+	if q, ok := ctx.Value(queuedKey{}).(*Queued); ok {
+		q.n.Add(1)
+	}
+}
+
 // Enqueue writes an event in the caller's transaction (§6.6): it is sent
 // if and only if the business write commits. requestID rides in the
 // envelope; empty sends none. Returns the outbox row id.
 func Enqueue(ctx context.Context, tx pgx.Tx, event, key, requestID string, data any) (int64, error) {
+	NoteQueued(ctx)
 	var id int64
 	err := tx.QueryRow(ctx, `INSERT INTO outbox (event, message_key, request_id, payload)
 		VALUES ($1, $2, nullif($3, '')::uuid, $4) RETURNING id`, event, key, requestID, mustJSON(data)).Scan(&id)

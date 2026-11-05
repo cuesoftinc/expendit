@@ -190,6 +190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Outbox publishes before responses and consumers drain through `POST /internal/settle`.
 - Release deploys retry while Cloud Run cannot pull a fresh image.
 - Root metadata carries the brand positioning instead of placeholder copy:
   `layout.tsx`'s title now matches the home og/twitter card

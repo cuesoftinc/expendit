@@ -27,11 +27,11 @@ flag in §9.
 | Unit | Runs on | Image / source | Notes |
 | --- | --- | --- | --- |
 | `web` | Firebase App Hosting | `web/` from `main` | Proxies `/api/v1/*` to the API services (no browser CORS) |
-| `expendit-api-common` | Cloud Run service | `cuesoft/expendit-api-common` | Go. The only Postgres client. Kafka consumers + outbox run while an instance is up. Also serves `POST /internal/jobs/<name>` for the sweeps |
+| `expendit-api-common` | Cloud Run service | `cuesoft/expendit-api-common` | Go. The only Postgres client. A write publishes its outbox rows before it answers; Kafka consumers are driven by `POST /internal/settle`. Also serves `POST /internal/jobs/<name>` for the sweeps |
 | `expendit-api-statements` | Cloud Run service | `cuesoft/expendit-api-statements` | Node upload gateway (`POST /api/v1/uploads`) |
-| `expendit-api-analytics-extract` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only; reached only by common's wake-ups |
+| `expendit-api-analytics-extract` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=extract`. Kafka only; reached only by common's settle calls (`POST /internal/settle`) |
 | `expendit-api-analytics-compute` | Cloud Run service | `cuesoft/expendit-api-analytics` | Python, `ANALYTICS_POOL=compute` |
-| `expendit-{reaper,tmp-cleanup,retention}` | Cloud Scheduler | n/a | `POST /internal/jobs/<name>` on common with an OIDC token |
+| `expendit-{reaper,tmp-cleanup,retention}` | Cloud Scheduler | n/a | `POST /internal/jobs/<name>` on common with an OIDC token; the reaper also settles the consumers (§1.1) |
 | Postgres, Kafka, Valkey | managed services, shared | n/a | |
 | Object storage | the shared storage bucket | n/a | prefix `expendit/stg/` |
 
@@ -46,23 +46,31 @@ the workflow only swaps their image digests.**
 ### 1.1 Everything scales to zero
 
 No service runs while nobody uses the app ([system-design.md §16
-I-16](system-design.md)). Kafka needs a running consumer, and Cloud Run
-starts one only for an HTTP request, so each service that publishes wakes
-the one that consumes with a `GET /health`:
+I-16](system-design.md)). Every service has `min-instances 0` and
+request-based CPU: an instance gets CPU only while it serves a request, so
+no work runs after a response. Kafka needs a running consumer, so each
+service that publishes **settles** the one that consumes: a
+`POST /internal/settle` that the target answers only after it has handled
+what is waiting for it (within a 25 to 40 s budget), awaited inside the
+request that caused it:
 
 ```
 browser → common (creates the import) → statements (upload)
-statements ──upload.received──▶ Kafka, then wakes common
-common ──import.ready on cuelabs.requests──▶ Kafka, then wakes analytics-extract
-analytics-extract ──import.processed on cuelabs.results──▶ Kafka, then wakes common
+statements ──upload.received──▶ Kafka, then settles common
+common (settle) reads upload.received, publishes import.ready ──▶ Kafka, then settles analytics-extract
+analytics-extract (settle) handles import.ready, sends import.processed ──▶ Kafka, answers
+common (settle) reads import.processed, then answers statements
 (compute works the same way with compute.requested / compute.results)
 ```
 
-Every service has `min-instances 0` and request-based CPU. Once woken, a
-service consumes while Cloud Run keeps the instance, until it retires the
-idle instance (up to about 15 minutes). The reaper is the safety net:
-every 5 minutes Cloud Scheduler calls it on common, and it wakes common and
-analytics-extract if work is still pending.
+A request on common that queues messages (a write, or a read that asks for
+a computation) publishes them before the first byte of its response, then
+settles the consumer and reads what comes back. Settling is best-effort: a
+failed settle leaves the message in Kafka. The reaper is the safety net:
+every 5 minutes Cloud Scheduler calls it on common, and inside its 60 s
+attempt deadline it settles analytics-extract and analytics-compute while
+work is pending, then common's own consumers (drain, publish the outbox,
+drain again).
 The first import after a quiet period takes about 5–10 seconds (cold start
 plus Kafka consumer-group join); later ones take 1–2 seconds.
 
@@ -190,14 +198,19 @@ fail open.
 
 | Service account | Used by | Roles |
 | --- | --- | --- |
-| `expendit-common` | common (including the sweeps) | `roles/storage.objectAdmin` on the bucket, condition below (A); `roles/run.invoker` on **both analytics services** (to wake them) |
+| `expendit-common` | common (including the sweeps) | `roles/storage.objectAdmin` on the bucket, condition below (A); `roles/run.invoker` on **both analytics services** (to settle them) |
 | `expendit-statements` | statements | `roles/storage.objectCreator` on the bucket, condition (B) |
 | `expendit-analytics` | both analytics services | `roles/storage.objectViewer`, condition (C); `roles/storage.objectCreator`, condition (D); `roles/aiplatform.user` on the project (Vertex AI) |
 | `expendit-deploy` | GitHub Actions (WIF) | `roles/run.developer` on the project; `roles/iam.serviceAccountUser` on the four runtime accounts |
 
 Cloud Scheduler signs its OIDC token as the account named in
 `SCHEDULER_INVOKER_EMAIL` (§6), and common checks that email and the
-audience `SCHEDULER_AUDIENCE` on every `POST /internal/jobs/<name>`.
+audience `SCHEDULER_AUDIENCE` on every `POST /internal/jobs/<name>`. The same
+audience and these accounts may call `POST /internal/settle` on common: the
+scheduler's, and `expendit-statements` (listed in `SETTLE_INVOKERS`, §6).
+Common is open at the Cloud Run layer, so no extra `run.invoker` binding is
+needed. Each analytics service checks the ID token that `expendit-common`
+sends for its own URL (`INTERNAL_AUDIENCE`, `INTERNAL_INVOKERS`).
 
 IAM conditions (`B` = the bucket name):
 
@@ -236,16 +249,19 @@ cd api/common && go run ./cmd/ticketkey 2026-10
 | `KAFKA_USERNAME`, `KAFKA_PASSWORD` 🔒 | ✓ `expendit` | ✓ `expendit` | ✓ `expendit` |
 | `REDIS_HOST/PORT/USERNAME`, `REDIS_PASSWORD` 🔒, `REDIS_TLS=true`, `REDIS_DB`, `REDIS_KEY_PREFIX=expendit` | ✓ | | |
 | `SCHEDULER_AUDIENCE` (the `expendit-api-common` URL), `SCHEDULER_INVOKER_EMAIL` (the account Cloud Scheduler signs as) | ✓ | | |
+| `SETTLE_INVOKERS` (the `expendit-statements` account email, comma-separated: callers of `POST /internal/settle` besides the scheduler) | ✓ | | |
 | `STORAGE_DRIVER=gcs`, `STORAGE_BUCKET`, `STORAGE_PREFIX=expendit/stg` | ✓ | ✓ | ✓ |
 | `CORS_ORIGINS` (the website origin) | ✓ | ✓ | |
-| `WAKE_COMMON_URL` (the `expendit-api-common` URL) | | ✓ | ✓ |
-| `WAKE_EXTRACT_URL`, `WAKE_COMPUTE_URL` (the two analytics URLs) | ✓ | | |
+| `WAKE_COMMON_URL` (the `expendit-api-common` URL, settled after each upload) | | ✓ | |
+| `WAKE_EXTRACT_URL`, `WAKE_COMPUTE_URL` (the two analytics URLs, settled after publishing for them) | ✓ | | |
+| `INTERNAL_AUDIENCE` (the service's own `run.app` URL), `INTERNAL_INVOKERS` (the `expendit-common` account email) | | | ✓ |
 | `AIVEN_API_TOKEN` 🔒, `AIVEN_PROJECT`, `AIVEN_KAFKA_SERVICE` (lets the reaper power the shared Kafka back on; a token that can update that one service) | ✓ | | |
 | `ANALYTICS_POOL` | | | `extract` / `compute` |
 | `GOOGLE_CLOUD_PROJECT`, `VERTEX_LOCATION` (e.g. `us-central1`) | | | ✓ |
 
 The `WAKE_*` values are the services' own `https://…run.app` URLs, without a
-path; `SCHEDULER_AUDIENCE` is the same URL as common's. Create the services first, then fill these in and redeploy.
+path; `SCHEDULER_AUDIENCE` is the same URL as common's, and each analytics
+service's `INTERNAL_AUDIENCE` is its own. Create the services first, then fill these in and redeploy.
 
 Never set in cloud: `GROQ_API_KEY`,
 `GEMINI_API_KEY` (cloud AI is Vertex, X-4), `STORAGE_ENDPOINT` and the
@@ -266,7 +282,7 @@ from Docker Hub, because every release replaces it by digest.
 
 | Name | Kind | Account | Port | Instances | CPU / memory | CPU allocation | Ingress / auth |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `expendit-api-common` | service | `expendit-common` | 8080 | **0**–2 | 1 / 512 MiB, timeout 300 s | request-based | all · allow unauthenticated (the app checks its own session JWT; `/internal/jobs/*` checks the scheduler OIDC token) |
+| `expendit-api-common` | service | `expendit-common` | 8080 | **0**–2 | 1 / 512 MiB, timeout 300 s | request-based | all · allow unauthenticated (the app checks its own session JWT; `/internal/jobs/*` checks the scheduler OIDC token; `/internal/settle` checks an ID token from the scheduler or `SETTLE_INVOKERS`) |
 | `expendit-api-statements` | service | `expendit-statements` | 8081 | 0–5 | 1 / 1 GiB, concurrency 20 (uploads up to 15 MB are held in memory), timeout 60 s | request-based | all · allow unauthenticated (auth is the upload ticket) |
 | `expendit-api-analytics-extract` | service | `expendit-analytics` | 8082 | **0**–2 | 1 / 1 GiB | request-based | all · **authenticated only** (invoker: `expendit-common`) |
 | `expendit-api-analytics-compute` | service | `expendit-analytics` | 8082 | **0**–2 | 1 / 512 MiB | request-based | all · **authenticated only** (invoker: `expendit-common`) |
@@ -290,15 +306,15 @@ run inside the request (attempt deadline 60 s).
 In gcloud terms: `--min-instances 0` everywhere with the default
 request-based CPU.
 
-Why analytics ingress is **all** rather than internal: common wakes them
+Why analytics ingress is **all** rather than internal: common settles them
 over their `run.app` URL, and a call from another Cloud Run service only
 counts as internal through a VPC. Requiring authentication (no
 `allUsers` invoker) keeps them private: only `expendit-common`, which
 holds `roles/run.invoker` on them, can reach them, and it sends an ID
-token on every wake.
+token on every settle, which the service checks again.
 
-**Idle.** While nobody uses the app nothing is running. Each wake-up keeps
-an instance for up to ~15 minutes. The only things that run regardless are
+**Idle.** While nobody uses the app nothing is running. Each request or settle
+keeps an instance for up to ~15 minutes. The only things that run regardless are
 the managed data services (Postgres, Valkey and the shared Kafka) and Cloud Scheduler's reaper
 request every 5 minutes, which starts common for a moment.
 
@@ -333,8 +349,8 @@ On `cuesoftinc/expendit`:
    and roll out.
 7. Smoke test on the site: sign in with Google, add a transaction, import a
    small CSV, confirm it. Each import leaves a trail in the logs: filter on
-   `jsonPayload.step` and the job id (`upload.received` → `wake` →
-   `outbox` → `wake` → `import.ready` → `import.processed` → `upload
+   `jsonPayload.step` and the job id (`upload.received` → `settle` →
+   `outbox` → `settle` → `import.ready` → `import.processed` → `upload
    deleted`).
 8. Leave the app alone for 20 minutes and check that every service shows
    0 instances (Cloud Run → service → Metrics → Instance count). Then
@@ -351,7 +367,7 @@ On `cuesoftinc/expendit`:
 | Kafka powered off (idle) | The reaper requests power-on within 5 minutes if the `AIVEN_*` values are set (§3.2), and Kafka is back once the provider finishes starting it (log step `kafka.power`); otherwise power it on in the provider console. Uploads fail until it is back; imports already processing are re-sent from Postgres. Nothing is lost from Postgres |
 | Check Kafka by hand | Run `./jobs heartbeat` locally against the stg config: it sends one message and fails loudly if Kafka is unreachable |
 | Run a sweep by hand | Resume the Scheduler job's `Force run`, or `POST /internal/jobs/<name>` on common with an OIDC token |
-| An import stuck in "processing" | Wait for the reaper (≤ 5 minutes): it wakes common and analytics-extract while work is pending. If it still sticks, check the `wake` log lines for `wake failed` |
+| An import stuck in "processing" | Wait for the reaper (≤ 5 minutes): it settles analytics-extract while work is pending, then common. If it still sticks, check the `settle` log lines for `settle failed` or `consumers still behind` |
 
 ## 11. Not built yet
 
