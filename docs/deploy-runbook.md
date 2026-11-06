@@ -39,8 +39,8 @@ Staging is your GCP project, region `us-central1`, created by
 your infrastructure-as-code stack.
 Service URLs are `https://<service>-<project-number>.us-central1.run.app`.
 
-Images are built and deployed by `.github/workflows/release.yml` on every merge
-to `main` that touches `api/**` (§7). **Your infrastructure code creates the resources;
+Images are built and deployed by `.github/workflows/release.yml` only after
+`build-and-test` passes on `main` (§8). **Your infrastructure code creates the resources;
 the workflow only swaps their image digests.**
 
 ### 1.1 Everything scales to zero
@@ -337,7 +337,7 @@ On `cuesoftinc/expendit`:
 ## 9. First deploy and switching the website over
 
 1. Create the infrastructure (§2–§7, your infrastructure-as-code PR) and fill your secrets manager (§6).
-2. Merge to `main`; the merge deploys the API services. Confirm the site
+2. Merge to `main`; `build-and-test` runs and, on success, triggers `release.yml` to deploy the API services. Confirm the site
    still works (TEST_MODE, §0).
 3. To redeploy without a code change, re-run the latest `release` run.
 4. The workflow fails unless every service's newest revision is Ready and
