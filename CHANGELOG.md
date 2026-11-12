@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `gitbook-docs.yaml` for GitBook's site-wide Git Sync, and `web/.gitignore` ignores the `AGENTS.md` that `next dev` writes (#528).
 - `POST /internal/jobs/<name>` on api/common, guarded by scheduler OIDC token.
 - Rate limiter keys carry the `REDIS_KEY_PREFIX` product prefix.
 - Staging estate documented: Cloud Run, Cloud Scheduler, managed Kafka and the `stg` secrets config.
