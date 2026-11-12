@@ -76,3 +76,11 @@ cd web && NEXT_PUBLIC_TEST_MODE=true npm run dev
 | api/statements | `npm run typecheck && npm run lint && npm test`                                |
 | api/analytics  | `pytest && ruff check .`                                                       |
 | web            | `npm run lint && npm run typecheck && npm test`; e2e: `npm run test:e2e`       |
+
+## Docs site
+
+The docs in this folder are published with GitBook's Git Sync. Two files at
+the repository root configure it: `gitbook-docs.yaml` names the site and
+maps its space to the repository, and `.gitbook.yaml` points that space at
+`docs/`, with `overview.md` as the first page and `SUMMARY.md` as the
+navigation.
