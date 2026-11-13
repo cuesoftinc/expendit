@@ -44,7 +44,7 @@ payload by pointer.
 | Workflow | Trigger | Does |
 | --- | --- | --- |
 | `build-and-test.yml` | PRs **and** push to `main` | build + tests per service; **no deploy, no image push** (`release.yml` deploys) |
-| `release.yml` | **push to `main` touching `api/**`** | buildx (GHA cache) → push `cuesoft/expendit-api-{common,statements,analytics}` (tags: sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready. The website is not in it: App Hosting rolls out from `main`. Step-by-step setup: [deploy-runbook.md](deploy-runbook.md) |
+| `release.yml` | **workflow_run on successful `build-and-test` (`main`)** | buildx (GHA cache) → push `cuesoft/expendit-api-{common,statements,analytics}` (tags: sha, `latest`) → Cloud Run services updated **by image digest** via WIF in the `Sandbox` environment → fails unless every newest revision is Ready. The website is not in it: App Hosting rolls out from `main`. Step-by-step setup: [deploy-runbook.md](deploy-runbook.md) |
 
 **Gating (X-6, revised 2026-10-27):** `stg` (sandbox) is the only
 environment. A merge to `main` that touches `api/**` deploys the API services
