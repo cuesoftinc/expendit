@@ -1,5 +1,22 @@
 version: 2
 updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions-dependencies:
+        patterns: ["*"]
+
+  # Cover Compose at the root and each service's Dockerfile.
+  - package-ecosystem: docker
+    directories: ["/", "/api/common", "/api/statements", "/api/analytics", "/web"]
+    schedule:
+      interval: weekly
+    groups:
+      docker-dependencies:
+        patterns: ["*"]
+
   - package-ecosystem: gomod
     directory: /api/common
     schedule:
