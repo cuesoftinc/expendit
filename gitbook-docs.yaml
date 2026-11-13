@@ -1,0 +1,17 @@
+# GitBook site-wide Git Sync: names the site and maps its one space to this
+# repository. The space is mapped to the repository root, where
+# .gitbook.yaml points GitBook at docs/ (overview.md and SUMMARY.md).
+#
+# Keep `key` as it is: GitBook matches the space by key, and changing it
+# makes GitBook create a new space.
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: Expendit
+  structure:
+    - type: space
+      key: expendit
+      title: Expendit
+      path: docs
+      default: true
+      content:
+        directory: ./
