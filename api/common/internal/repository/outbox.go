@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sort"
 	"sync/atomic"
 	"time"
 
@@ -63,23 +64,34 @@ type OutboxRow struct {
 	CreatedAt time.Time
 }
 
-// ClaimOutbox locks up to limit unsent rows; concurrent publishers skip
-// each other's rows (SKIP LOCKED).
-func ClaimOutbox(ctx context.Context, tx pgx.Tx, limit int) ([]OutboxRow, error) {
-	rows, err := tx.Query(ctx, `SELECT id, event, message_key, coalesce(request_id::text, ''), payload, created_at
-		FROM outbox WHERE published_at IS NULL
-		ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED`, limit)
+// LeaseOutbox takes up to limit unsent rows whose lease is free or lapsed and
+// leases them for `lease`; concurrent publishers skip each other's rows
+// (SKIP LOCKED) and the statement holds no lock after it returns.
+func LeaseOutbox(ctx context.Context, tx pgx.Tx, limit int, lease time.Duration) ([]OutboxRow, error) {
+	rows, err := tx.Query(ctx, `UPDATE outbox SET lease_until = now() + make_interval(secs => $2)
+		WHERE id IN (SELECT id FROM outbox WHERE published_at IS NULL AND (lease_until IS NULL OR lease_until < now())
+			ORDER BY id LIMIT $1 FOR UPDATE SKIP LOCKED)
+		RETURNING id, event, message_key, coalesce(request_id::text, ''), payload, created_at`, limit, lease.Seconds())
 	if err != nil {
 		return nil, err
 	}
-	return collect(rows, func(r pgx.Row) (*OutboxRow, error) {
+	out, err := collect(rows, func(r pgx.Row) (*OutboxRow, error) {
 		var o OutboxRow
 		return &o, r.Scan(&o.ID, &o.Event, &o.Key, &o.RequestID, &o.Payload, &o.CreatedAt)
 	})
+	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+	return out, err
+}
+
+// ReleaseOutbox frees the lease on rows that were not sent, so the next pass
+// retries them in order.
+func ReleaseOutbox(ctx context.Context, tx pgx.Tx, ids []int64) error {
+	_, err := tx.Exec(ctx, `UPDATE outbox SET lease_until = NULL WHERE id = ANY($1) AND published_at IS NULL`, ids)
+	return err
 }
 
 func MarkPublished(ctx context.Context, tx pgx.Tx, ids []int64) error {
-	_, err := tx.Exec(ctx, `UPDATE outbox SET published_at = now() WHERE id = ANY($1)`, ids)
+	_, err := tx.Exec(ctx, `UPDATE outbox SET published_at = now(), lease_until = NULL WHERE id = ANY($1)`, ids)
 	return err
 }
 

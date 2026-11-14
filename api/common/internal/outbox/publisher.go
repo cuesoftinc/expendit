@@ -1,5 +1,5 @@
 // Package outbox publishes rows written by business transactions (§6.6).
-// Every instance publishes; SKIP LOCKED keeps them off each other's rows, and
+// Every instance publishes; a short lease keeps them off each other's rows, and
 // a row is marked published only after Kafka acknowledged it. A flush ends by
 // settling the services that consume what it sent (§16 I-16).
 package outbox
@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -18,16 +19,33 @@ import (
 	"github.com/cuesoftinc/expendit/api/common/internal/repository"
 )
 
-const batchSize = 100
+const (
+	batchSize = 100
+	// publishLease outlives sendBudget, so a batch still being sent is never
+	// leased to another pass.
+	publishLease   = 2 * time.Minute
+	sendBudget     = publishLease - 20*time.Second
+	releaseTimeout = 5 * time.Second
+)
+
+// Sender is the part of kafka.Producer the publisher uses.
+type Sender interface {
+	Message(ctx context.Context, out kafka.Outgoing) (kgo.Message, error)
+	Write(ctx context.Context, msgs ...kgo.Message) error
+}
 
 type Publisher struct {
 	DB       *repository.DB
-	Producer *kafka.Producer
+	Producer Sender
 	Interval time.Duration
 	// Wake is called once per flush with the events it published, and
 	// returns once the services that consume them have answered.
 	Wake    func(ctx context.Context, sent map[string]int)
 	healthy bool
+	// mu runs one batch at a time in this process, holding no connection while
+	// a second caller waits, so a request that flushes still finds its rows
+	// published when it answers.
+	mu sync.Mutex
 	// batch publishes one batch; tests replace it.
 	batch func(ctx context.Context) (map[string]int, int, error)
 }
@@ -80,51 +98,82 @@ func (p *Publisher) Flush(ctx context.Context) (int, error) {
 	return total, err
 }
 
+// publishBatch leases, sends and marks one batch; the lease and the mark each
+// hold the connection for one statement and the storage and Kafka calls in
+// between hold none.
 func (p *Publisher) publishBatch(ctx context.Context) (map[string]int, int, error) {
-	var n int
-	perEvent := map[string]int{}
-	err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error {
-		rows, err := repository.ClaimOutbox(ctx, tx, batchSize)
-		if err != nil || len(rows) == 0 {
-			return err
-		}
-		msgs := make([]kgo.Message, 0, len(rows))
-		ids := make([]int64, 0, len(rows))
-		for _, row := range rows {
-			msg, err := p.Producer.Message(ctx, kafka.Outgoing{Event: row.Event, Key: row.Key, RequestID: row.RequestID,
-				ClaimKey: ClaimKey(row), Data: row.Payload})
-			if errors.Is(err, kafka.ErrContract) {
-				// A row that fails its schema can never be sent; park it
-				// as published so it doesn't block the queue, and say so.
-				slog.Error("outbox row violates the contract; skipped", "id", row.ID, "event", row.Event, "error", err)
-				ids = append(ids, row.ID)
-				continue
-			} else if err != nil {
-				// Storage for the claim-check is unavailable: retry the batch.
-				return err
-			}
-			msgs = append(msgs, msg)
-			ids = append(ids, row.ID)
-		}
-		if err := p.Producer.Write(ctx, msgs...); err != nil {
-			return err
-		}
-		n = len(rows)
-		if err := repository.MarkPublished(ctx, tx, ids); err != nil {
-			return err
-		}
-		for _, row := range rows {
-			perEvent[row.Event]++
-		}
-		for event, count := range perEvent {
-			slog.Info("published to Kafka", "step", "outbox", "event", event, "topic", kafka.TopicFor[event], "messages", count)
-		}
-		return nil
-	})
-	if err != nil {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	var rows []repository.OutboxRow
+	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
+		rows, err = repository.LeaseOutbox(ctx, tx, batchSize, publishLease)
+		return err
+	}); err != nil || len(rows) == 0 {
 		return nil, 0, err
 	}
-	return perEvent, n, nil
+	ids, err := p.send(ctx, rows)
+	if err != nil {
+		p.release(ctx, rows)
+		return nil, 0, err
+	}
+	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.MarkPublished(ctx, tx, ids) }); err != nil {
+		return nil, 0, err
+	}
+	perEvent := map[string]int{}
+	for _, row := range rows {
+		perEvent[row.Event]++
+	}
+	for event, count := range perEvent {
+		slog.Info("published to Kafka", "step", "outbox", "event", event, "topic", kafka.TopicFor[event], "messages", count)
+	}
+	return perEvent, len(rows), nil
+}
+
+// send builds and writes the leased rows within the lease and returns the ids
+// to mark published. A crash before the mark re-sends after the lease; the
+// claim-check object is reused (ClaimKey) and the consumers are idempotent
+// (system-design.md §9.2).
+func (p *Publisher) send(ctx context.Context, rows []repository.OutboxRow) ([]int64, error) {
+	ctx, cancel := context.WithTimeout(ctx, sendBudget)
+	defer cancel()
+	msgs := make([]kgo.Message, 0, len(rows))
+	ids := make([]int64, 0, len(rows))
+	for _, row := range rows {
+		msg, err := p.Producer.Message(ctx, kafka.Outgoing{Event: row.Event, Key: row.Key, RequestID: row.RequestID,
+			ClaimKey: ClaimKey(row), Data: row.Payload})
+		if errors.Is(err, kafka.ErrContract) {
+			// A row that fails its schema can never be sent; park it
+			// as published so it doesn't block the queue, and say so.
+			slog.Error("outbox row violates the contract; skipped", "id", row.ID, "event", row.Event, "error", err)
+			ids = append(ids, row.ID)
+			continue
+		} else if err != nil {
+			// Storage for the claim-check is unavailable: retry the batch.
+			return nil, err
+		}
+		msgs = append(msgs, msg)
+		ids = append(ids, row.ID)
+	}
+	if len(msgs) > 0 {
+		if err := p.Producer.Write(ctx, msgs...); err != nil {
+			return nil, err
+		}
+	}
+	return ids, nil
+}
+
+// release frees the lease of a batch that was not sent so the next pass
+// retries it at once and in order; a failed release leaves the lease to lapse.
+func (p *Publisher) release(ctx context.Context, rows []repository.OutboxRow) {
+	ids := make([]int64, len(rows))
+	for i, row := range rows {
+		ids[i] = row.ID
+	}
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), releaseTimeout)
+	defer cancel()
+	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.ReleaseOutbox(ctx, tx, ids) }); err != nil {
+		slog.Warn("outbox lease not released; it lapses on its own", "error", err)
+	}
 }
 
 // ClaimKey names a row's claim-check object, so every publish attempt of
