@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	kgo "github.com/segmentio/kafka-go"
 
@@ -23,10 +24,33 @@ const (
 	batchSize = 100
 	// publishLease outlives sendBudget, so a batch still being sent is never
 	// leased to another pass.
-	publishLease   = 2 * time.Minute
+	publishLease   = time.Minute
 	sendBudget     = publishLease - 20*time.Second
 	releaseTimeout = 5 * time.Second
+	// lockWait bounds how long a caller waits for the batch another caller is
+	// sending.
+	lockWait     = sendBudget + releaseTimeout
+	markAttempts = 3
 )
+
+// gate lets one caller in at a time and gives up when its context ends, which
+// a sync.Mutex cannot; the zero value is ready.
+type gate struct {
+	once sync.Once
+	ch   chan struct{}
+}
+
+func (g *gate) acquire(ctx context.Context) error {
+	g.once.Do(func() { g.ch = make(chan struct{}, 1) })
+	select {
+	case g.ch <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (g *gate) release() { <-g.ch }
 
 // Sender is the part of kafka.Producer the publisher uses.
 type Sender interface {
@@ -44,8 +68,8 @@ type Publisher struct {
 	healthy bool
 	// mu runs one batch at a time in this process, holding no connection while
 	// a second caller waits, so a request that flushes still finds its rows
-	// published when it answers.
-	mu sync.Mutex
+	// published when it answers; a waiter stops when its context or lockWait ends.
+	mu gate
 	// batch publishes one batch; tests replace it.
 	batch func(ctx context.Context) (map[string]int, int, error)
 }
@@ -102,21 +126,29 @@ func (p *Publisher) Flush(ctx context.Context) (int, error) {
 // hold the connection for one statement and the storage and Kafka calls in
 // between hold none.
 func (p *Publisher) publishBatch(ctx context.Context) (map[string]int, int, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	waitCtx, cancel := context.WithTimeout(ctx, lockWait)
+	err := p.mu.acquire(waitCtx)
+	cancel()
+	if err != nil {
+		return nil, 0, err
+	}
+	defer p.mu.release()
+	// The owner token keeps a pass whose lease lapsed from freeing or marking
+	// rows another pass has leased since.
+	owner := uuid.NewString()
 	var rows []repository.OutboxRow
 	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
-		rows, err = repository.LeaseOutbox(ctx, tx, batchSize, publishLease)
+		rows, err = repository.LeaseOutbox(ctx, tx, batchSize, publishLease, owner)
 		return err
 	}); err != nil || len(rows) == 0 {
 		return nil, 0, err
 	}
 	ids, err := p.send(ctx, rows)
 	if err != nil {
-		p.release(ctx, rows)
+		p.release(ctx, rows, owner)
 		return nil, 0, err
 	}
-	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.MarkPublished(ctx, tx, ids) }); err != nil {
+	if err := p.mark(ctx, ids, owner); err != nil {
 		return nil, 0, err
 	}
 	perEvent := map[string]int{}
@@ -127,6 +159,25 @@ func (p *Publisher) publishBatch(ctx context.Context) (map[string]int, int, erro
 		slog.Info("published to Kafka", "step", "outbox", "event", event, "topic", kafka.TopicFor[event], "messages", count)
 	}
 	return perEvent, len(rows), nil
+}
+
+// mark records the sent rows, retrying at once: a mark that fails would leave
+// sent rows leased until the lease lapses and then send them again. The mark
+// does not stop when ctx does, or a sent batch would go out twice.
+func (p *Publisher) mark(ctx context.Context, ids []int64, owner string) (err error) {
+	for attempt := 0; attempt < markAttempts; attempt++ {
+		if attempt > 0 {
+			time.Sleep(time.Duration(attempt) * 250 * time.Millisecond)
+		}
+		mctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), releaseTimeout)
+		err = p.DB.AsSystem(mctx, func(tx pgx.Tx) error { return repository.MarkPublished(mctx, tx, ids, owner) })
+		cancel()
+		if err == nil {
+			return nil
+		}
+		slog.Warn("outbox mark failed; retrying", "attempt", attempt+1, "error", err)
+	}
+	return err
 }
 
 // send builds and writes the leased rows within the lease and returns the ids
@@ -164,14 +215,14 @@ func (p *Publisher) send(ctx context.Context, rows []repository.OutboxRow) ([]in
 
 // release frees the lease of a batch that was not sent so the next pass
 // retries it at once and in order; a failed release leaves the lease to lapse.
-func (p *Publisher) release(ctx context.Context, rows []repository.OutboxRow) {
+func (p *Publisher) release(ctx context.Context, rows []repository.OutboxRow, owner string) {
 	ids := make([]int64, len(rows))
 	for i, row := range rows {
 		ids[i] = row.ID
 	}
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), releaseTimeout)
 	defer cancel()
-	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.ReleaseOutbox(ctx, tx, ids) }); err != nil {
+	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) error { return repository.ReleaseOutbox(ctx, tx, ids, owner) }); err != nil {
 		slog.Warn("outbox lease not released; it lapses on its own", "error", err)
 	}
 }

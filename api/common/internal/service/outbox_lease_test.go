@@ -21,6 +21,9 @@ type sender struct {
 	t    *testing.T
 	sent []string
 	fail error
+	// stall, when set, makes Write signal on entered and wait for stall to close.
+	stall   chan struct{}
+	entered chan struct{}
 }
 
 func (s *sender) Message(_ context.Context, out kafka.Outgoing) (kgo.Message, error) {
@@ -30,6 +33,10 @@ func (s *sender) Message(_ context.Context, out kafka.Outgoing) (kgo.Message, er
 
 func (s *sender) Write(_ context.Context, msgs ...kgo.Message) error {
 	s.held("write")
+	if s.stall != nil {
+		s.entered <- struct{}{}
+		<-s.stall
+	}
 	if s.fail != nil {
 		return s.fail
 	}
@@ -120,7 +127,7 @@ func TestOutboxLeaseSkipsLeasedAndRetakesLapsed(t *testing.T) {
 	e.enqueue(t, "a", "b")
 	lease := func(d time.Duration) (rows []repository.OutboxRow) {
 		if err := e.db.AsSystem(ctx, func(tx pgx.Tx) (err error) {
-			rows, err = repository.LeaseOutbox(ctx, tx, 10, d)
+			rows, err = repository.LeaseOutbox(ctx, tx, 10, d, "t")
 			return err
 		}); err != nil {
 			t.Fatal(err)
@@ -143,5 +150,84 @@ func TestOutboxLeaseSkipsLeasedAndRetakesLapsed(t *testing.T) {
 	}
 	if retaken := lease(time.Hour); len(retaken) != 2 {
 		t.Fatalf("lapsed lease not retaken: %+v", retaken)
+	}
+}
+
+func TestOutboxOwnerTokenGuardsReleaseAndMark(t *testing.T) {
+	e := setup(t)
+	ctx := context.Background()
+	e.enqueue(t, "a")
+	lease := func(owner string) []repository.OutboxRow {
+		var rows []repository.OutboxRow
+		if err := e.db.AsSystem(ctx, func(tx pgx.Tx) (err error) {
+			rows, err = repository.LeaseOutbox(ctx, tx, 10, time.Hour, owner)
+			return err
+		}); err != nil {
+			t.Fatal(err)
+		}
+		return rows
+	}
+	system := func(fn func(tx pgx.Tx) error) {
+		if err := e.db.AsSystem(ctx, fn); err != nil {
+			t.Fatal(err)
+		}
+	}
+	first := lease("old")
+	if len(first) != 1 {
+		t.Fatalf("lease: %+v", first)
+	}
+	// The old pass stalls; its lease lapses and a new pass takes the row.
+	system(func(tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `UPDATE outbox SET lease_until = now() - interval '1 second'`)
+		return err
+	})
+	if got := lease("new"); len(got) != 1 {
+		t.Fatalf("new pass lease: %+v", got)
+	}
+	ids := []int64{first[0].ID}
+	system(func(tx pgx.Tx) error { return repository.ReleaseOutbox(ctx, tx, ids, "old") })
+	if again := lease("third"); len(again) != 0 {
+		t.Fatalf("a late release freed another pass's lease: %+v", again)
+	}
+	system(func(tx pgx.Tx) error { return repository.MarkPublished(ctx, tx, ids, "old") })
+	if got := e.unsent(t); got != 1 {
+		t.Fatalf("a late mark published another pass's row: %d unsent", got)
+	}
+	system(func(tx pgx.Tx) error { return repository.MarkPublished(ctx, tx, ids, "new") })
+	if got := e.unsent(t); got != 0 {
+		t.Fatalf("the owner's mark did not publish: %d unsent", got)
+	}
+}
+
+// A caller waiting behind a stuck send stops when its context ends instead of
+// waiting out the send.
+func TestOutboxWaiterStopsWithItsContext(t *testing.T) {
+	e := setup(t)
+	snd := &sender{e: e, t: t, stall: make(chan struct{}), entered: make(chan struct{}, 1)}
+	pub := &outbox.Publisher{DB: e.db, Producer: snd, Interval: time.Hour}
+	e.enqueue(t, "a")
+
+	done := make(chan error, 1)
+	go func() { _, err := pub.Flush(context.Background()); done <- err }()
+	<-snd.entered
+
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	waited := make(chan error, 1)
+	go func() { _, err := pub.Flush(ctx); waited <- err }()
+	select {
+	case err := <-waited:
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Fatalf("waiter error: %v", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("a waiting flush ignored its context while another send was stuck")
+	}
+	close(snd.stall)
+	if err := <-done; err != nil {
+		t.Fatalf("stalled flush: %v", err)
+	}
+	if got := e.unsent(t); got != 0 {
+		t.Fatalf("%d rows unsent", got)
 	}
 }
