@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -41,6 +42,10 @@ type Publisher struct {
 	// returns once the services that consume them have answered.
 	Wake    func(ctx context.Context, sent map[string]int)
 	healthy bool
+	// mu runs one batch at a time in this process, holding no connection while
+	// a second caller waits, so a request that flushes still finds its rows
+	// published when it answers.
+	mu sync.Mutex
 	// batch publishes one batch; tests replace it.
 	batch func(ctx context.Context) (map[string]int, int, error)
 }
@@ -97,6 +102,8 @@ func (p *Publisher) Flush(ctx context.Context) (int, error) {
 // hold the connection for one statement and the storage and Kafka calls in
 // between hold none.
 func (p *Publisher) publishBatch(ctx context.Context) (map[string]int, int, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	var rows []repository.OutboxRow
 	if err := p.DB.AsSystem(ctx, func(tx pgx.Tx) (err error) {
 		rows, err = repository.LeaseOutbox(ctx, tx, batchSize, publishLease)
