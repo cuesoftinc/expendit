@@ -366,6 +366,7 @@ On `cuesoftinc/expendit`:
 | Sign off a tax rule set | After a licensed practitioner's review, set `signed_off = true, signed_off_by = '<name>'` on the row in `tax_ruleset`. The next tax computation picks it up. Until then estimates are labelled estimate-only and filings are refused (tax-engine.md) |
 | Kafka powered off (idle) | The reaper requests power-on within 5 minutes if the `AIVEN_*` values are set (§3.2), and Kafka is back once the provider finishes starting it (log step `kafka.power`); otherwise power it on in the provider console. Uploads fail until it is back; imports already processing are re-sent from Postgres. Nothing is lost from Postgres |
 | Check Kafka by hand | Run `./jobs heartbeat` locally against the stg config: it sends one message and fails loudly if Kafka is unreachable |
+| First deploy of the outbox lease | The previous revision's publisher ignores `lease_until`, so while both revisions run it can send a batch the new one is sending: a consumer may see one repeated message, never a lost one, and every consumer here tolerates a repeat. Keep `maxScale` 1 and let the old revision drain |
 | Run a sweep by hand | Resume the Scheduler job's `Force run`, or `POST /internal/jobs/<name>` on common with an OIDC token |
 | An import stuck in "processing" | Wait for the reaper (≤ 5 minutes): it settles analytics-extract while work is pending, then common. If it still sticks, check the `settle` log lines for `settle failed` or `consumers still behind` |
 
