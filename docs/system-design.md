@@ -380,8 +380,8 @@ and renders the filing pack PDFs from the returned figures.
 ### 6.6 Config propagation (outbox)
 
 A `common` write and its outbox row commit in one transaction. The
-publisher (every instance, `SKIP LOCKED` batches) sends rows to Kafka,
-stamps `published_at`, and settles the service that consumes them (§16
+publisher (every instance) leases a batch (`lease_until`, `SKIP LOCKED`), holds
+no connection while it sends the rows to Kafka, stamps `published_at`, and settles the service that consumes them (§16
 I-16). On Cloud Run a request publishes its own rows before the first
 byte of its response, so nothing waits for CPU the instance no longer has. Rule sets live only in Postgres: each tax `compute.requested`
 carries the stored sets, so a sign-off applies from the next request.
