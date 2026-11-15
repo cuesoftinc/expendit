@@ -1,4 +1,5 @@
 import React from "react";
+import { SUPPORT_URL } from "@/components/home/links";
 import RouteTabs from "@/components/ui/RouteTabs";
 import PageHeader from "../PageHeader";
 import { SETTINGS_TABS } from "./tabs";
@@ -20,6 +21,16 @@ export default function SettingsLayout({
         title="Settings"
         description="Workspace, people, privacy, and appearance."
         className="mb-4"
+        actions={
+          <a
+            href={SUPPORT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded px-3 py-2 text-[13px] font-medium text-text-2 hover:text-text focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            Contact support
+          </a>
+        }
       />
       <RouteTabs
         tabs={[...SETTINGS_TABS]}

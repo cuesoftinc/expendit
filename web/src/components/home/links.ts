@@ -25,6 +25,7 @@ export const CUELABS_URL = "https://cuelabs.cuesoft.io";
 export const CUESOFT_URL = "https://cuesoft.io";
 export const PRIVACY_HUB_URL = "https://privacy.cuesoft.io";
 export const TERMS_URL = "https://terms.cuesoft.io";
+export const SUPPORT_URL = "https://clients.cuesoft.io";
 export const STATUS_URL = "https://status.cuesoft.io";
 
 /** Smooth-scrolls to a section anchor (no-op where unimplemented). */
