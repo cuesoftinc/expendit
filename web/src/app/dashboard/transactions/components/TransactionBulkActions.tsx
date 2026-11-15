@@ -10,6 +10,7 @@ import React from "react";
 import type { SelectOption } from "@/components/ui/Select";
 
 interface TransactionBulkActionsProps {
+  bulkPending: boolean;
   selected: Set<string>;
   setSelected: React.Dispatch<React.SetStateAction<Set<string>>>;
   bulkCategoryApplies: boolean;
@@ -31,6 +32,7 @@ interface TransactionBulkActionsProps {
 }
 
 export default function TransactionBulkActions({
+  bulkPending,
   selected,
   setSelected,
   bulkCategoryApplies,
@@ -55,7 +57,10 @@ export default function TransactionBulkActions({
           selection showed no affordance at all). z-sticky per the §2
           layer registry; the component's own slide-in animates entry. */}
       {selected.size > 0 ? (
-        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-sticky flex justify-center">
+        <div
+          className="pointer-events-none fixed inset-x-0 bottom-6 z-sticky flex justify-center"
+          inert={bulkPending}
+        >
           <BulkActionBar
             className="pointer-events-auto"
             selectedCount={selected.size}
