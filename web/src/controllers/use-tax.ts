@@ -5,40 +5,89 @@
  * (pages.md B7/B7b; tax-engine.md §5/§5.5).
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { TaxEstimate, TaxFiling, TaxKind, TaxProfile } from "@/models";
 import { taxRepo } from "@/models/repositories";
 
-export const useTaxController = (orgId?: string) => {
-  const [profile, setProfile] = useState<TaxProfile | null>(null);
-  const [estimates, setEstimates] = useState<TaxEstimate[]>([]);
-  const [filings, setFilings] = useState<TaxFiling[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+function useTaxSection<T>(
+  orgId: string | undefined,
+  load: (options: { orgId: string; signal: AbortSignal }) => Promise<T>,
+) {
+  const [state, setState] = useState<{
+    orgId: string;
+    data?: T;
+    loading: boolean;
+    error: string | null;
+  }>();
+  const request = useRef<AbortController | null>(null);
+  const activeOrg = useRef<string | undefined>(undefined);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    if (!orgId || activeOrg.current !== orgId) return;
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
+    setState({ orgId, loading: true, error: null });
     try {
-      const [profileData, estimatesData, filingsData] = await Promise.all([
-        taxRepo.profile({ orgId }),
-        taxRepo.estimates({ orgId }),
-        taxRepo.filings({ orgId }),
-      ]);
-      setProfile(profileData);
-      setEstimates(estimatesData.items);
-      setFilings(filingsData.items);
+      const data = await load({ orgId, signal: controller.signal });
+      if (!controller.signal.aborted) {
+        setState({ orgId, data, loading: false, error: null });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load taxes");
-    } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setState({
+          orgId,
+          loading: false,
+          error: err instanceof Error ? err.message : "Request failed",
+        });
+      }
     }
-  }, [orgId]);
+  }, [orgId, load]);
 
   useEffect(() => {
-    // Defer to a microtask — effects must not set state synchronously.
-    if (orgId) queueMicrotask(() => void refresh());
+    activeOrg.current = orgId;
+    let active = true;
+    queueMicrotask(() => {
+      if (active) void refresh();
+    });
+    return () => {
+      active = false;
+      activeOrg.current = undefined;
+      request.current?.abort();
+    };
   }, [orgId, refresh]);
+
+  const current = state?.orgId === orgId ? state : undefined;
+  const setData = useCallback(
+    (data: T) => {
+      if (!orgId) return;
+      setState((previous) =>
+        previous?.orgId === orgId
+          ? { orgId, data, loading: false, error: null }
+          : previous,
+      );
+    },
+    [orgId],
+  );
+
+  return {
+    data: current?.data,
+    loading: current?.loading ?? Boolean(orgId),
+    error: current?.error ?? null,
+    refresh,
+    setData,
+  };
+}
+
+const NO_ESTIMATES: TaxEstimate[] = [];
+const NO_FILINGS: TaxFiling[] = [];
+
+export const useTaxController = (orgId?: string) => {
+  const profileSection = useTaxSection(orgId, taxRepo.profile);
+  const estimatesSection = useTaxSection(orgId, taxRepo.estimates);
+  const filingsSection = useTaxSection(orgId, taxRepo.filings);
+  const { setData: setProfile } = profileSection;
+  const { refresh: refreshFilings } = filingsSection;
 
   const updateProfile = useCallback(
     async (patch: Partial<TaxProfile>) => {
@@ -46,36 +95,36 @@ export const useTaxController = (orgId?: string) => {
       setProfile(updated);
       return updated;
     },
-    [orgId],
+    [orgId, setProfile],
   );
 
   /** Wizard step 1: draft (422 period_incomplete surfaces to the view). */
   const startFiling = useCallback(
     async (kind: TaxKind, period: string) => {
       const filing = await taxRepo.createFiling({ kind, period }, { orgId });
-      await refresh();
+      await refreshFilings();
       return filing;
     },
-    [orgId, refresh],
+    [orgId, refreshFilings],
   );
 
   /** Wizard final step: generate documents incl. the remittance sheet. */
   const generateFiling = useCallback(
     async (filingId: string) => {
       const filing = await taxRepo.generate(filingId, { orgId });
-      await refresh();
+      await refreshFilings();
       return filing;
     },
-    [orgId, refresh],
+    [orgId, refreshFilings],
   );
 
   return {
-    profile,
-    estimates,
-    filings,
-    loading,
-    error,
-    refresh,
+    profile: profileSection.data ?? null,
+    estimates: estimatesSection.data?.items ?? NO_ESTIMATES,
+    filings: filingsSection.data?.items ?? NO_FILINGS,
+    profileSection,
+    estimatesSection,
+    filingsSection,
     updateProfile,
     startFiling,
     generateFiling,
