@@ -35,6 +35,37 @@ const NG_STATES = [
   { value: "NG-OY", label: "Oyo" },
 ];
 
+function TaxSectionState({
+  section,
+  label,
+  children,
+}: {
+  section: {
+    loading: boolean;
+    error: string | null;
+    refresh: () => Promise<void>;
+  };
+  label: string;
+  children: React.ReactNode;
+}) {
+  if (section.loading) return <Skeleton variant="stat" />;
+  if (section.error !== null) {
+    return (
+      <Banner
+        kind="error"
+        action={
+          <Button kind="quiet" size="sm" onClick={() => void section.refresh()}>
+            Retry {label}
+          </Button>
+        }
+      >
+        Could not load {label}. {section.error}
+      </Banner>
+    );
+  }
+  return children;
+}
+
 export const TaxesView: React.FC = () => {
   const router = useRouter();
   const { activeOrg, activeOrgId } = useOrg();
@@ -88,34 +119,7 @@ export const TaxesView: React.FC = () => {
     }
   };
 
-  if (tax.loading && !profile) {
-    return (
-      <>
-        <PageHeader title="Taxes" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} variant="stat" />
-          ))}
-        </div>
-      </>
-    );
-  }
-
-  if (!tax.loading && !profile) {
-    return (
-      <>
-        <PageHeader title="Taxes" />
-        {tax.error ? (
-          <div className="mb-4">
-            <Banner kind="error">{tax.error}</Banner>
-          </div>
-        ) : null}
-        <EmptyState kind="tax" className="mx-auto mt-16 max-w-md" />
-      </>
-    );
-  }
-
-  const values = { ...profile, ...(draft ?? {}) } as TaxProfile;
+  const values = { ...profile, ...draft };
 
   return (
     <>
@@ -131,12 +135,6 @@ export const TaxesView: React.FC = () => {
           </Button>
         }
       />
-
-      {tax.error ? (
-        <div className="mb-4">
-          <Banner kind="error">{tax.error}</Banner>
-        </div>
-      ) : null}
 
       {nearest && !snoozedBanner ? (
         <div className="mb-4">
@@ -180,109 +178,120 @@ export const TaxesView: React.FC = () => {
             <h2 className="text-[13px] font-medium text-text">
               Jurisdiction profile · NG
             </h2>
-            {draft ? (
-              <div className="flex gap-2">
-                <Button kind="quiet" size="sm" onClick={() => setDraft(null)}>
-                  Cancel
+            {profile &&
+              (draft ? (
+                <div className="flex gap-2">
+                  <Button kind="quiet" size="sm" onClick={() => setDraft(null)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    loading={savingProfile}
+                    onClick={() => void saveProfile()}
+                  >
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <Button kind="quiet" size="sm" onClick={() => setDraft({})}>
+                  Edit
                 </Button>
-                <Button
-                  size="sm"
-                  loading={savingProfile}
-                  onClick={() => void saveProfile()}
-                >
-                  Save
-                </Button>
+              ))}
+          </header>
+          <TaxSectionState section={tax.profileSection} label="tax profile">
+            {profile ? (
+              <div className="space-y-3">
+                <FormRow label="Taxpayer">
+                  {() => (
+                    <p className="text-[13px] text-text">
+                      {isCompany ? "Company (CIT · VAT)" : "Individual (PIT)"}
+                    </p>
+                  )}
+                </FormRow>
+                <FormRow label="TIN" required>
+                  {(id) =>
+                    draft ? (
+                      <Input
+                        id={id}
+                        value={values.tin ?? ""}
+                        onChange={(event) =>
+                          setDraft((prev) => ({
+                            ...prev,
+                            tin: event.target.value,
+                          }))
+                        }
+                        placeholder="Tax identification number"
+                      />
+                    ) : (
+                      <p className="font-mono text-[13px] text-text">
+                        {values.tin ?? (
+                          <span className="text-warn-text">missing</span>
+                        )}
+                      </p>
+                    )
+                  }
+                </FormRow>
+                {isCompany ? (
+                  <FormRow label="RC number" required>
+                    {(id) =>
+                      draft ? (
+                        <Input
+                          id={id}
+                          value={values.rc_number ?? ""}
+                          onChange={(event) =>
+                            setDraft((prev) => ({
+                              ...prev,
+                              rc_number: event.target.value,
+                            }))
+                          }
+                          placeholder="CAC registration number"
+                        />
+                      ) : (
+                        <p className="font-mono text-[13px] text-text">
+                          {values.rc_number ?? (
+                            <span className="text-warn-text">missing</span>
+                          )}
+                        </p>
+                      )
+                    }
+                  </FormRow>
+                ) : (
+                  <FormRow
+                    label="State of residence"
+                    helper="Determines your State IRS for PIT."
+                    required
+                  >
+                    {() =>
+                      draft ? (
+                        <Select
+                          options={NG_STATES}
+                          value={values.state_of_residence ?? null}
+                          onValueChange={(value) =>
+                            setDraft((prev) => ({
+                              ...prev,
+                              state_of_residence: value,
+                            }))
+                          }
+                          placeholder="Select state"
+                        />
+                      ) : (
+                        <p className="text-[13px] text-text">
+                          {NG_STATES.find(
+                            (state) =>
+                              state.value === values.state_of_residence,
+                          )?.label ?? (
+                            <span className="text-warn-text">missing</span>
+                          )}
+                        </p>
+                      )
+                    }
+                  </FormRow>
+                )}
               </div>
             ) : (
-              <Button kind="quiet" size="sm" onClick={() => setDraft({})}>
-                Edit
-              </Button>
+              <EmptyState kind="tax" />
             )}
-          </header>
-          <div className="space-y-3">
-            <FormRow label="Taxpayer">
-              {() => (
-                <p className="text-[13px] text-text">
-                  {isCompany ? "Company (CIT · VAT)" : "Individual (PIT)"}
-                </p>
-              )}
-            </FormRow>
-            <FormRow label="TIN" required>
-              {(id) =>
-                draft ? (
-                  <Input
-                    id={id}
-                    value={values.tin ?? ""}
-                    onChange={(event) =>
-                      setDraft((prev) => ({ ...prev, tin: event.target.value }))
-                    }
-                    placeholder="Tax identification number"
-                  />
-                ) : (
-                  <p className="font-mono text-[13px] text-text">
-                    {values.tin ?? (
-                      <span className="text-warn-text">missing</span>
-                    )}
-                  </p>
-                )
-              }
-            </FormRow>
-            {isCompany ? (
-              <FormRow label="RC number" required>
-                {(id) =>
-                  draft ? (
-                    <Input
-                      id={id}
-                      value={values.rc_number ?? ""}
-                      onChange={(event) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          rc_number: event.target.value,
-                        }))
-                      }
-                      placeholder="CAC registration number"
-                    />
-                  ) : (
-                    <p className="font-mono text-[13px] text-text">
-                      {values.rc_number ?? (
-                        <span className="text-warn-text">missing</span>
-                      )}
-                    </p>
-                  )
-                }
-              </FormRow>
-            ) : (
-              <FormRow
-                label="State of residence"
-                helper="Determines your State IRS for PIT."
-                required
-              >
-                {() =>
-                  draft ? (
-                    <Select
-                      options={NG_STATES}
-                      value={values.state_of_residence}
-                      onValueChange={(value) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          state_of_residence: value,
-                        }))
-                      }
-                      placeholder="Select state"
-                    />
-                  ) : (
-                    <p className="text-[13px] text-text">
-                      {NG_STATES.find(
-                        (state) => state.value === values.state_of_residence,
-                      )?.label ?? (
-                        <span className="text-warn-text">missing</span>
-                      )}
-                    </p>
-                  )
-                }
-              </FormRow>
-            )}
-          </div>
+          </TaxSectionState>
         </section>
 
         {/* Calendar */}
@@ -290,21 +299,26 @@ export const TaxesView: React.FC = () => {
           <h2 className="mb-2 text-[13px] font-medium text-text">
             Filing calendar
           </h2>
-          {calendar.length === 0 ? (
-            <p className="rounded border border-border bg-bg px-4 py-6 text-center text-[13px] text-text-2">
-              No upcoming deadlines computed yet.
-            </p>
-          ) : (
-            <ul className="list-none space-y-2">
-              {calendar.map((entry) => (
-                <TaxCalendarRow
-                  key={`${entry.kind}-${entry.period}`}
-                  entry={entry}
-                  daysToDue={entry.daysToDue}
-                />
-              ))}
-            </ul>
-          )}
+          <TaxSectionState
+            section={tax.estimatesSection}
+            label="filing calendar"
+          >
+            {calendar.length === 0 ? (
+              <p className="rounded border border-border bg-bg px-4 py-6 text-center text-[13px] text-text-2">
+                No upcoming deadlines computed yet.
+              </p>
+            ) : (
+              <ul className="list-none space-y-2">
+                {calendar.map((entry) => (
+                  <TaxCalendarRow
+                    key={`${entry.kind}-${entry.period}`}
+                    entry={entry}
+                    daysToDue={entry.daysToDue}
+                  />
+                ))}
+              </ul>
+            )}
+          </TaxSectionState>
         </section>
       </div>
 
@@ -313,42 +327,47 @@ export const TaxesView: React.FC = () => {
         <h2 className="mb-2 text-[13px] font-medium text-text">
           Estimated liabilities
         </h2>
-        {tax.estimates.length === 0 ? (
-          <p className="rounded border border-border bg-bg px-4 py-6 text-center text-[13px] text-text-2">
-            No estimates yet — they compute from your categorized ledger and
-            confirmed statements.
-          </p>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {tax.estimates.map((estimate) => (
-                <RemitToCard
-                  key={estimate.id}
-                  kind={estimate.kind}
-                  authority={estimate.authority}
-                  amountDue={estimate.amount_due}
-                  currency={currency}
-                  dueDate={estimate.due_date}
-                  daysToDue={daysUntil(estimate.due_date)}
-                />
-              ))}
-            </div>
-            {tax.estimates.flatMap((estimate) => estimate.banners).length >
-            0 ? (
-              <div className="mt-3 space-y-2">
-                {[
-                  ...new Set(
-                    tax.estimates.flatMap((estimate) => estimate.banners),
-                  ),
-                ].map((note) => (
-                  <Banner key={note} kind="info">
-                    {note}
-                  </Banner>
+        <TaxSectionState
+          section={tax.estimatesSection}
+          label="estimated liabilities"
+        >
+          {tax.estimates.length === 0 ? (
+            <p className="rounded border border-border bg-bg px-4 py-6 text-center text-[13px] text-text-2">
+              No estimates yet — they compute from your categorized ledger and
+              confirmed statements.
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {tax.estimates.map((estimate) => (
+                  <RemitToCard
+                    key={estimate.id}
+                    kind={estimate.kind}
+                    authority={estimate.authority}
+                    amountDue={estimate.amount_due}
+                    currency={currency}
+                    dueDate={estimate.due_date}
+                    daysToDue={daysUntil(estimate.due_date)}
+                  />
                 ))}
               </div>
-            ) : null}
-          </>
-        )}
+              {tax.estimates.flatMap((estimate) => estimate.banners).length >
+              0 ? (
+                <div className="mt-3 space-y-2">
+                  {[
+                    ...new Set(
+                      tax.estimates.flatMap((estimate) => estimate.banners),
+                    ),
+                  ].map((note) => (
+                    <Banner key={note} kind="info">
+                      {note}
+                    </Banner>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          )}
+        </TaxSectionState>
       </section>
 
       {/* Filing history — immutable records */}
@@ -356,39 +375,41 @@ export const TaxesView: React.FC = () => {
         <h2 className="mb-2 text-[13px] font-medium text-text">
           Filing history
         </h2>
-        {tax.filings.length === 0 ? (
-          <p className="rounded border border-border bg-bg px-4 py-6 text-center text-[13px] text-text-2">
-            No filings yet — start one from the wizard.
-          </p>
-        ) : (
-          <ul className="list-none rounded border border-border">
-            {tax.filings.map((filing) => (
-              <FilingHistoryRow
-                key={filing.id}
-                filing={filing}
-                currency={currency}
-                onDownloadReceipt={() => {
-                  const lines = [
-                    `Expendit filing receipt (mock)`,
-                    `${filing.kind.toUpperCase()} ${filing.period} — ${filing.status}`,
-                    `Authority: ${filing.authority.name} (${filing.authority.code})`,
-                    `Amount due: ${filing.amount_due}`,
-                    `Due date: ${filing.due_date}`,
-                  ];
-                  const url = URL.createObjectURL(
-                    new Blob([lines.join("\n")], { type: "text/plain" }),
-                  );
-                  const link = document.createElement("a");
-                  link.href = url;
-                  link.download = `${filing.kind}-${filing.period}-receipt.txt`;
-                  link.click();
-                  URL.revokeObjectURL(url);
-                  setToast("Receipt downloaded");
-                }}
-              />
-            ))}
-          </ul>
-        )}
+        <TaxSectionState section={tax.filingsSection} label="filing history">
+          {tax.filings.length === 0 ? (
+            <p className="rounded border border-border bg-bg px-4 py-6 text-center text-[13px] text-text-2">
+              No filings yet — start one from the wizard.
+            </p>
+          ) : (
+            <ul className="list-none rounded border border-border">
+              {tax.filings.map((filing) => (
+                <FilingHistoryRow
+                  key={filing.id}
+                  filing={filing}
+                  currency={currency}
+                  onDownloadReceipt={() => {
+                    const lines = [
+                      `Expendit filing receipt (mock)`,
+                      `${filing.kind.toUpperCase()} ${filing.period} — ${filing.status}`,
+                      `Authority: ${filing.authority.name} (${filing.authority.code})`,
+                      `Amount due: ${filing.amount_due}`,
+                      `Due date: ${filing.due_date}`,
+                    ];
+                    const url = URL.createObjectURL(
+                      new Blob([lines.join("\n")], { type: "text/plain" }),
+                    );
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `${filing.kind}-${filing.period}-receipt.txt`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    setToast("Receipt downloaded");
+                  }}
+                />
+              ))}
+            </ul>
+          )}
+        </TaxSectionState>
       </section>
 
       <ToastLayer message={toast} onDismiss={() => setToast(null)} />
