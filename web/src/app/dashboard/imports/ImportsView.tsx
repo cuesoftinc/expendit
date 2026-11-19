@@ -7,7 +7,7 @@
  * found). Jobs open the staged-review detail (B3b). Render-only.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useImportsController, useOrg } from "@/controllers";
 import { ApiError } from "@/models/repositories";
@@ -61,6 +61,17 @@ export const ImportsView: React.FC = () => {
   const [uploads, setUploads] = useState<UploadFileItem[]>([]);
   const [uploadJobs, setUploadJobs] = useState<Record<string, string>>({});
   const highlightUpload = searchParams.get("upload") === "1";
+  const [uploadNotice, setUploadNotice] = useState<string | null>(null);
+  const uploadSectionRef = useRef<HTMLElement>(null);
+
+  // The empty-state "Upload statement" button lives outside the dropzone, so
+  // it opens the dropzone's own hidden file input (user-initiated click, so
+  // the browser allows the picker).
+  const openFilePicker = () => {
+    uploadSectionRef.current
+      ?.querySelector<HTMLInputElement>('input[type="file"]')
+      ?.click();
+  };
 
   // MI-2 lifecycle sync: as the controller polls jobs, per-file chips
   // advance progress → AI-sweep → complete (row count) / error.
@@ -106,6 +117,12 @@ export const ImportsView: React.FC = () => {
   }, [imports.jobs, imports.activeJob, uploadJobs]);
 
   const onFiles = (files: File[]) => {
+    if (!activeOrgId) {
+      // Never fail silently: tell the user why nothing happened.
+      setUploadNotice("Select an organization before uploading a statement.");
+      return;
+    }
+    setUploadNotice(null);
     for (const file of files) {
       const id = `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -164,7 +181,13 @@ export const ImportsView: React.FC = () => {
         </div>
       ) : null}
 
-      <section aria-label="Upload">
+      {uploadNotice ? (
+        <div className="mb-4">
+          <Banner kind="error">{uploadNotice}</Banner>
+        </div>
+      ) : null}
+
+      <section aria-label="Upload" ref={uploadSectionRef}>
         <UploadDropzone
           files={uploads}
           onFiles={onFiles}
@@ -186,7 +209,11 @@ export const ImportsView: React.FC = () => {
             ))}
           </div>
         ) : sortedJobs.length === 0 ? (
-          <EmptyState kind="imports" className="mx-auto mt-8 max-w-md" />
+          <EmptyState
+            kind="imports"
+            onAction={openFilePicker}
+            className="mx-auto mt-8 max-w-md"
+          />
         ) : (
           <ul className="list-none rounded border border-border">
             {sortedJobs.map((job) => (
