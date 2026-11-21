@@ -508,8 +508,8 @@ with `?archived=1` for the archive; idempotent `POST
 /categories/{id}/archive` / `.../unarchive`; merge refuses an archived
 target (`422 merge_target_archived`). Seed: "Conferences & travel" +
 "Print & stationery" archived on the Cuesoft org (the B8b narrative).
-Unit: `routes-categories.test.ts`, `use-categories.test.ts`,
-`CategoriesArchiveView.test.tsx`, and a RouteTabs nested-href case; e2e:
+Unit: `use-categories.test.ts`, `CategoriesArchiveView.test.tsx`, and a
+RouteTabs nested-href case; e2e:
 `categories-archive.spec.ts` (archive → Archive tab → unarchive →
 delete-cleanup, plus the deep-link) and the 390 sweep gains the archive
 route.

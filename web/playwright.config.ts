@@ -15,7 +15,7 @@ export default defineConfig({
   timeout: 60_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,

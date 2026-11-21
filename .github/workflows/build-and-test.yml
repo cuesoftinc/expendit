@@ -114,7 +114,7 @@ jobs:
         run: pytest
 
   web:
-    name: web · lint + typecheck + unit + build
+    name: web · lint + typecheck + unit + build + Playwright
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -141,31 +141,6 @@ jobs:
 
       - name: Unit & integration tests
         run: npm test
-
-      - name: Build (TEST_MODE)
-        run: npm run build
-        env:
-          NEXT_PUBLIC_TEST_MODE: "true"
-
-  web-e2e:
-    name: web · Playwright (TEST_MODE)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Build (TEST_MODE)
         run: npm run build
