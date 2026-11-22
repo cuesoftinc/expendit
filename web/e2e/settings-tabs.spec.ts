@@ -137,3 +137,29 @@ test("mobile: the tab bar scrolls horizontally inside the viewport", async ({
   await last.scrollIntoViewIfNeeded();
   await expect(last).toBeVisible();
 });
+
+test("dashboard Help and Settings link to the support portal in a new tab", async ({
+  page,
+}) => {
+  await signIn(page);
+
+  const helpLink = page.getByRole("link", {
+    name: "Contact support (opens in a new tab)",
+  });
+  await expect(helpLink).toBeVisible();
+  await expect(helpLink).toHaveAttribute("href", "https://clients.cuesoft.io");
+  await expect(helpLink).toHaveAttribute("target", "_blank");
+  await expect(helpLink).toHaveAttribute("rel", "noopener noreferrer");
+
+  await page.goto("/dashboard/settings/organization");
+  const settingsLink = page.getByRole("main").getByRole("link", {
+    name: "Contact support",
+  });
+  await expect(settingsLink).toBeVisible();
+  await expect(settingsLink).toHaveAttribute(
+    "href",
+    "https://clients.cuesoft.io",
+  );
+  await expect(settingsLink).toHaveAttribute("target", "_blank");
+  await expect(settingsLink).toHaveAttribute("rel", "noopener noreferrer");
+});

@@ -40,6 +40,7 @@ import CommandPalette, {
   type CommandItem,
 } from "@/components/ui/CommandPalette";
 import OrgSwitcher from "@/components/ui/OrgSwitcher";
+import HelpMenu from "./HelpMenu";
 
 const COLLAPSED_KEY = "expendit.nav-collapsed";
 
@@ -333,6 +334,7 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {/* Theme parity canon (2026-07-19): the toggle lives in the
                 dashboard chrome too, same ThemeProvider contract. */}
             <ThemeToggle className="p-1" />
+            <HelpMenu />
             <button
               type="button"
               aria-label="Sign out"
@@ -396,6 +398,7 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <span className="min-w-0 flex-1 truncate text-[13px] text-text-2">
                     {user?.name}
                   </span>
+                  <HelpMenu />
                   <ThemeToggle className="p-1" />
                   <button
                     type="button"
