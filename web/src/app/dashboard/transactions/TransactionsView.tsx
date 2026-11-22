@@ -42,6 +42,7 @@ import TransactionFilters from "./components/TransactionFilters";
 import TransactionInspector from "./components/TransactionInspector";
 import TransactionLedger from "./components/TransactionLedger";
 import type { InspectorState, TxnDraft } from "./components/types";
+import { transactionsCsv } from "./transactions-csv";
 
 const draftFrom = (txn?: TxnEntry): TxnDraft => ({
   description: txn?.description ?? "",
@@ -231,20 +232,7 @@ export const TransactionsView: React.FC = () => {
 
   const exportSelection = () => {
     const rows = sorted.filter((txn) => selected.has(txn.id));
-    const header = "date,description,category,direction,amount,currency";
-    const csv = [
-      header,
-      ...rows.map((txn) =>
-        [
-          txn.txn_date,
-          `"${txn.description.replace(/"/g, '""')}"`,
-          categoryById.get(txn.category_id)?.name ?? txn.category_id,
-          txn.direction,
-          txn.amount,
-          currency,
-        ].join(","),
-      ),
-    ].join("\n");
+    const csv = transactionsCsv(rows, categoryById, currency);
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const link = document.createElement("a");
     link.href = url;
