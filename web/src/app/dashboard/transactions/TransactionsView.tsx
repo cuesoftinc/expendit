@@ -38,6 +38,7 @@ import ToastLayer from "../ToastLayer";
 import SaveTransactionViewModal from "./components/SaveTransactionViewModal";
 import TransactionAnomalyInspector from "./components/TransactionAnomalyInspector";
 import TransactionBulkActions from "./components/TransactionBulkActions";
+import { executeBulkAction } from "./bulk-action";
 import TransactionFilters from "./components/TransactionFilters";
 import TransactionInspector from "./components/TransactionInspector";
 import TransactionLedger from "./components/TransactionLedger";
@@ -71,6 +72,7 @@ export const TransactionsView: React.FC = () => {
   } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkCategory, setBulkCategory] = useState<string | null>(null);
+  const [bulkPending, setBulkPending] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [saveViewOpen, setSaveViewOpen] = useState(false);
@@ -251,26 +253,39 @@ export const TransactionsView: React.FC = () => {
     selectedDirection !== null &&
     categoryTypeById.get(bulkCategory) === selectedDirection;
 
+  const runBulkAction = async (
+    action: "re-categorized" | "deleted",
+    mutate: (id: string) => Promise<unknown>,
+  ) => {
+    if (bulkPending || selected.size === 0) return;
+    const ids = [...selected];
+    setBulkPending(true);
+    setBulkOpen(false);
+    setBulkDeleteOpen(false);
+    setToast(null);
+
+    const outcome = await executeBulkAction(ids, action, mutate);
+    setSelected((previous) => {
+      const remaining = new Set(previous);
+      for (const id of outcome.succeeded) remaining.delete(id);
+      return remaining;
+    });
+
+    setToast(outcome.message);
+    setBulkPending(false);
+  };
+
   const bulkRecategorize = async () => {
     if (!bulkCategoryApplies || !bulkCategory) return;
-    const ids = [...selected];
-    await Promise.all(
-      ids.map((id) => txns.update(id, { category_id: bulkCategory })),
-    );
-    setBulkOpen(false);
+    const targetCategory = bulkCategory;
     setBulkCategory(null);
-    setSelected(new Set());
-    setToast(`${ids.length} transactions re-categorized`);
+    await runBulkAction("re-categorized", (id) =>
+      txns.update(id, { category_id: targetCategory }),
+    );
   };
 
   // Bulk delete (Figma master 123:1126) — always behind the confirm.
-  const bulkDelete = async () => {
-    const ids = [...selected];
-    setBulkDeleteOpen(false);
-    await Promise.all(ids.map((id) => txns.remove(id)));
-    setSelected(new Set());
-    setToast(`${ids.length} transaction${ids.length === 1 ? "" : "s"} deleted`);
-  };
+  const bulkDelete = () => runBulkAction("deleted", txns.remove);
 
   const activeTxn =
     inspector.kind === "record" || inspector.kind === "anomaly"
@@ -453,6 +468,7 @@ export const TransactionsView: React.FC = () => {
       />
 
       <TransactionBulkActions
+        bulkPending={bulkPending}
         selected={selected}
         setSelected={setSelected}
         bulkCategoryApplies={bulkCategoryApplies}
