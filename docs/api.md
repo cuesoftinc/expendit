@@ -1,4 +1,4 @@
-cd# Expendit — API Surface
+# Expendit — API Surface
 
 > **Rewritten 2026-10-05** from the ratified [system design](system-design.md)
 > §7 and verified against `api/common/internal/router/router.go` and
