@@ -143,11 +143,13 @@ test("dashboard Help and Settings link to the support portal in a new tab", asyn
 }) => {
   await signIn(page);
 
-  await page.getByLabel("Help", { exact: true }).click();
-  const helpLink = page.getByRole("link", { name: "Contact support" });
+  const helpLink = page.getByRole("link", {
+    name: "Contact support (opens in a new tab)",
+  });
   await expect(helpLink).toBeVisible();
   await expect(helpLink).toHaveAttribute("href", "https://clients.cuesoft.io");
   await expect(helpLink).toHaveAttribute("target", "_blank");
+  await expect(helpLink).toHaveAttribute("rel", "noopener noreferrer");
 
   await page.goto("/dashboard/settings/organization");
   const settingsLink = page.getByRole("main").getByRole("link", {
@@ -159,4 +161,5 @@ test("dashboard Help and Settings link to the support portal in a new tab", asyn
     "https://clients.cuesoft.io",
   );
   await expect(settingsLink).toHaveAttribute("target", "_blank");
+  await expect(settingsLink).toHaveAttribute("rel", "noopener noreferrer");
 });

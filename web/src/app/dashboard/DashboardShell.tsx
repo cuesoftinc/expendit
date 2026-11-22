@@ -333,8 +333,8 @@ const ShellChrome: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             ) : null}
             {/* Theme parity canon (2026-07-19): the toggle lives in the
                 dashboard chrome too, same ThemeProvider contract. */}
-            <HelpMenu />
             <ThemeToggle className="p-1" />
+            <HelpMenu />
             <button
               type="button"
               aria-label="Sign out"
