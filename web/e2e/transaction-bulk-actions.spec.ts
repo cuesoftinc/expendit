@@ -17,13 +17,8 @@ for (const action of [
       requests.push(route.request().url());
       if (requests.length === 1) {
         await route.fulfill({ status: 500, json: { message: "Try again" } });
-      } else if (action.method === "DELETE") {
-        await route.fulfill({ status: 204 });
       } else {
-        const response = await page.request.get(route.request().url(), {
-          headers: await route.request().allHeaders(),
-        });
-        await route.fulfill({ response });
+        await route.continue();
       }
     });
 

@@ -38,6 +38,7 @@ import ToastLayer from "../ToastLayer";
 import SaveTransactionViewModal from "./components/SaveTransactionViewModal";
 import TransactionAnomalyInspector from "./components/TransactionAnomalyInspector";
 import TransactionBulkActions from "./components/TransactionBulkActions";
+import { executeBulkAction } from "./bulk-action";
 import TransactionFilters from "./components/TransactionFilters";
 import TransactionInspector from "./components/TransactionInspector";
 import TransactionLedger from "./components/TransactionLedger";
@@ -275,29 +276,23 @@ export const TransactionsView: React.FC = () => {
     setBulkDeleteOpen(false);
     setToast(null);
 
-    const results = await Promise.allSettled(ids.map(async (id) => mutate(id)));
-    const succeeded = ids.filter(
-      (_, index) => results[index].status === "fulfilled",
-    );
+    const outcome = await executeBulkAction(ids, action, mutate);
     setSelected((previous) => {
       const remaining = new Set(previous);
-      for (const id of succeeded) remaining.delete(id);
+      for (const id of outcome.succeeded) remaining.delete(id);
       return remaining;
     });
 
-    const count = succeeded.length;
-    const message =
-      count === ids.length
-        ? `${count} transaction${count === 1 ? "" : "s"} ${action}`
-        : `${count} of ${ids.length} transactions ${action}. Retry the failed transactions.`;
-    setToast(message);
+    setToast(outcome.message);
     setBulkPending(false);
   };
 
   const bulkRecategorize = async () => {
     if (!bulkCategoryApplies || !bulkCategory) return;
+    const targetCategory = bulkCategory;
+    setBulkCategory(null);
     await runBulkAction("re-categorized", (id) =>
-      txns.update(id, { category_id: bulkCategory }),
+      txns.update(id, { category_id: targetCategory }),
     );
   };
 
