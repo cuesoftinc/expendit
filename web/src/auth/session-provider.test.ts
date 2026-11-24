@@ -111,6 +111,37 @@ describe("SessionAuthProvider", () => {
     );
   });
 
+  it("clears the cached session without a logout request or another restore", async () => {
+    fetchMock.mockResolvedValueOnce(me());
+    const provider = new SessionAuthProvider();
+    await provider.ready();
+
+    provider.clearSession();
+    await provider.ready();
+
+    expect(provider.currentUser()).toBeNull();
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("does not restore a stale user when a pending session read finishes after expiry", async () => {
+    let complete!: (response: Response) => void;
+    fetchMock.mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        complete = resolve;
+      }),
+    );
+    const provider = new SessionAuthProvider();
+    const restoring = provider.ready();
+    // Let the client await its bearer-token lookup and start the request.
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+
+    provider.clearSession();
+    complete(me());
+    await restoring;
+
+    expect(provider.currentUser()).toBeNull();
+  });
+
   it("sends no bearer token", async () => {
     expect(await new SessionAuthProvider().getBearerToken()).toBeNull();
   });

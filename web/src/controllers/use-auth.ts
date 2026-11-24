@@ -9,6 +9,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuthProvider } from "@/auth";
+import {
+  rememberSignInDestination,
+  sessionSignInUrl,
+  signInDestination,
+} from "@/lib/auth/session-redirect";
 import type { AuthUser } from "@/auth/types";
 
 export interface AuthController {
@@ -58,9 +63,10 @@ export const useAuthController = (): AuthController => {
     setLoading(true);
     setError(null);
     try {
+      rememberSignInDestination();
       const signedIn = await getAuthProvider().signInWithGoogle();
       setUser(signedIn);
-      router.push("/dashboard");
+      router.push(signInDestination());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
       setLoading(false);
@@ -95,7 +101,7 @@ export const useRequireAuth = (): {
       if (cancelled) return;
       setUser(current);
       setChecked(true);
-      if (!current) router.replace("/signin");
+      if (!current) router.replace(sessionSignInUrl());
     });
     return () => {
       cancelled = true;
@@ -127,7 +133,7 @@ export const useRedirectAuthed = (): {
       if (cancelled) return;
       setUser(current);
       setChecked(true);
-      if (current) router.replace("/dashboard");
+      if (current) router.replace(signInDestination());
     });
     return () => {
       cancelled = true;

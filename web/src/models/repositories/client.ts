@@ -6,6 +6,7 @@
  */
 
 import { getAuthProvider } from "@/auth";
+import { redirectExpiredSession } from "@/lib/auth/session-redirect";
 import { env } from "@/config/env";
 
 export class ApiError extends Error {
@@ -90,6 +91,15 @@ const request = async <T>(
     signal: options.signal,
     credentials: "include",
   });
+
+  if (
+    response.status === 401 &&
+    env.apiBase === "/api/v1" &&
+    !path.startsWith("/auth/") &&
+    !headers["Upload-Ticket"]
+  ) {
+    redirectExpiredSession();
+  }
 
   if (response.status === 204) return undefined as T;
 
