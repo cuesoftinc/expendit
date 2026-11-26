@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   kafka:
-    image: apache/kafka:4.0.0
+    image: apache/kafka:4.3.1
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
 
   kafka-init:
-    image: apache/kafka:4.0.0
+    image: apache/kafka:4.3.1
     depends_on:
       kafka:
         condition: service_healthy
@@ -57,7 +57,7 @@ services:
     restart: "no"
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -69,7 +69,7 @@ services:
   # stands in for MinIO, whose community images are no longer published.
   # No identities are configured, so it accepts any local credentials.
   seaweedfs:
-    image: chrislusf/seaweedfs:4.48
+    image: chrislusf/seaweedfs:4.54
     # Local-only credentials (the same minioadmin pair the services use), so
     # every S3 signing style is accepted, as on a real bucket.
     command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=1024
