@@ -36,7 +36,7 @@ const SELF_HOST_TABS = [
 ];
 
 const SELF_HOST_CAPTION =
-  "Compose ships Postgres, Kafka, Redis + MinIO — the Helm chart expects reachable instances (DATABASE_URL, KAFKA_BROKERS).";
+  "Compose ships Postgres, Kafka, Redis + SeaweedFS — the Helm chart expects reachable instances (DATABASE_URL, KAFKA_BROKERS, REDIS_HOST, STORAGE_ENDPOINT).";
 
 export const SelfHostSection: React.FC = () => {
   const { track } = useAnalyticsController();
@@ -64,9 +64,9 @@ export const SelfHostSection: React.FC = () => {
         </div>
         <p className="mx-auto mt-8 max-w-3xl text-sm leading-relaxed text-text-2">
           Built for firms and accountants who can’t ship financial data to
-          someone else’s cloud. One command brings up the API, web app, Mongo
-          and Redis — bring your own Groq or Gemini key, or run without AI
-          entirely.
+          someone else’s cloud. One command brings up the APIs, web app,
+          Postgres, Kafka, Redis and SeaweedFS — bring your own Groq or Gemini
+          key, or run without AI entirely.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-6">
           <a

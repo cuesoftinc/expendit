@@ -350,7 +350,7 @@ test.describe("public home `/` (Part A)", () => {
     const block = page.getByTestId("selfhost-snippet");
     await block.scrollIntoViewIfNeeded();
     const caption = block.getByText(
-      "Compose ships Postgres, Kafka, Redis + MinIO — the Helm chart expects reachable instances (DATABASE_URL, KAFKA_BROKERS).",
+      "Compose ships Postgres, Kafka, Redis + SeaweedFS — the Helm chart expects reachable instances (DATABASE_URL, KAFKA_BROKERS, REDIS_HOST, STORAGE_ENDPOINT).",
     );
     await expect(caption).toBeVisible();
     const tablist = block.getByRole("tablist", { name: "Install method" });
