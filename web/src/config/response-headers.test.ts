@@ -1,7 +1,11 @@
 // @vitest-environment node
 
 import { describe, expect, it } from "vitest";
-import nextConfig from "../../next.config";
+import type { NextConfig } from "next";
+import * as nextConfigModule from "../../next.config";
+
+const nextConfig = (nextConfigModule as unknown as { default: NextConfig })
+  .default;
 
 describe("production response headers", () => {
   it("restricts framing, script origins, and third-party resource loading", async () => {
