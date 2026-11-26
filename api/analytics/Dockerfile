@@ -1,7 +1,7 @@
 # api/analytics. Build context = the repository root, so the image can copy
 # the Kafka JSON Schemas from api/common/contract:
 #   docker build -f api/analytics/Dockerfile .
-FROM python:3.12-slim
+FROM python:3.15-slim
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 CONTRACT_DIR=/app/contract
 WORKDIR /app
 

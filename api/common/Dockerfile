@@ -2,7 +2,7 @@
 # outbox) and ./jobs <name> (by hand; Scheduler uses POST /internal/jobs/<name>, §6.7).
 # Build context = this directory (the contract is embedded from contract/).
 # ---- build stage ----
-FROM golang:1.26-alpine AS builder
+FROM golang:1.27-alpine AS builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/serve
  && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/jobs ./cmd/jobs
 
 # ---- runtime stage ----
-FROM alpine:3.22
+FROM alpine:3.24
 RUN apk add --no-cache ca-certificates && adduser -D -u 10001 appuser
 WORKDIR /app
 COPY --from=builder /out/server /out/jobs ./
