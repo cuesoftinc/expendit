@@ -23,7 +23,7 @@ cmd/jobs/              reaper | tmp-cleanup | retention | migrate | heartbeat
 cmd/ticketkey/         generates an upload-ticket key pair
 internal/config/       typed env config, fails fast on missing settings
 internal/kafka/        topics, envelope + claim-check, producer, consumers, contract validation
-internal/storage/      object store: gcs (cloud) | s3 (MinIO)
+internal/storage/      object store: gcs (cloud) | s3 (S3-compatible; SeaweedFS in compose)
 contract/              JSON Schemas for every Kafka message (owned here; embedded)
 
 internal/app/          wiring shared by the binaries
@@ -113,7 +113,7 @@ go run ./cmd/server
 ```
 
 From the repo root, `docker compose up common` runs it with Postgres,
-Kafka, Redis and MinIO.
+Kafka, Redis and SeaweedFS.
 
 Use a **non-superuser** database role: superusers bypass row-level security.
 

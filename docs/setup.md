@@ -37,7 +37,7 @@ make down      # stop and remove
 | analytics  | http://localhost:8082 | health only; works over Kafka                           |
 | postgres   | localhost:5432        | app role `expendit_app` / `expendit_app`, db `expendit` |
 | kafka      | localhost:9094        | topics created by `kafka-init`                          |
-| minio      | http://localhost:9001 | console (`minioadmin` / `minioadmin`)                   |
+| seaweedfs  | http://localhost:8333 | S3-compatible object storage (`minioadmin` / `minioadmin`) |
 
 A `jobs` container runs the sweeps (reaper, tmp-cleanup, retention) on a
 loop. Cloud Scheduler calls them as `POST /internal/jobs/<name>` on `common`.
@@ -48,7 +48,7 @@ CSV and PDF (regex) imports still work.
 
 ## Running a service natively
 
-Start the dependencies with `docker compose up -d postgres kafka kafka-init redis minio`, then:
+Start the dependencies with `docker compose up -d postgres kafka kafka-init redis seaweedfs`, then:
 
 ```bash
 # api/common, :8080 (migrations run at start)

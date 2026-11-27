@@ -482,8 +482,8 @@ compose up --build -d` (the repo's `make up`) vs `cd expendit && helm
 install expendit deploy/helm` (the real chart path). The rendered `$ `
 prompts are decorative (select-none) and stay out of the payload. The
 shared muted caption renders once under the block, "Compose ships
-Postgres, Kafka, Redis + MinIO, the Helm chart expects reachable instances
-(DATABASE_URL, KAFKA_BROKERS).", visible in both tab states, so switching
+Postgres, Kafka, Redis + SeaweedFS — the Helm chart expects reachable instances
+(DATABASE_URL, KAFKA_BROKERS, REDIS_HOST, STORAGE_ENDPOINT).", visible in both tab states, so switching
 never shifts layout. The section eyebrow reads method-neutral "self-host".
 Unit: `CodeSnippet.test.tsx` tabbed cases
 (tab state, per-tab copy payload, Radix roving focus, copied-morph
