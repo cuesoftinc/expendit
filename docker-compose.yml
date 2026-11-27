@@ -4,7 +4,7 @@
 # Usage: cp .env.example .env  &&  make up
 services:
   postgres:
-    image: postgres:18-alpine
+    image: postgres:19-alpine
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
@@ -69,7 +69,7 @@ services:
   # stands in for MinIO, whose community images are no longer published.
   # No identities are configured, so it accepts any local credentials.
   seaweedfs:
-    image: chrislusf/seaweedfs:4.54
+    image: chrislusf/seaweedfs:4.55
     # Local-only credentials (the same minioadmin pair the services use), so
     # every S3 signing style is accepted, as on a real bucket.
     command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=1024
