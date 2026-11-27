@@ -56,9 +56,23 @@ func Logger(next http.Handler) http.Handler {
 		if r.URL.Path == "/health" || r.URL.Path == "/ready" {
 			return
 		}
-		slog.Info("request", "method", r.Method, "path", r.URL.Path, "status", sw.status,
+		slog.Log(r.Context(), requestLevel(r.Method, sw.status), "request", "method", r.Method, "path", r.URL.Path, "status", sw.status,
 			"ms", time.Since(start).Milliseconds(), "request_id", r.Context().Value(requestIDKey))
 	})
+}
+
+// requestLevel: a 5xx is an error, a 4xx a warning, a CORS preflight debug and any other request info.
+func requestLevel(method string, status int) slog.Level {
+	switch {
+	case status >= http.StatusInternalServerError:
+		return slog.LevelError
+	case status >= http.StatusBadRequest:
+		return slog.LevelWarn
+	case method == http.MethodOptions:
+		return slog.LevelDebug
+	default:
+		return slog.LevelInfo
+	}
 }
 
 func Recover(next http.Handler) http.Handler {
