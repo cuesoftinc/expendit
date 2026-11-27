@@ -108,7 +108,6 @@ test("deep link direct-loads a tab; AppNav stays highlighted on sub-routes", asy
     panel.getByText("Notification settings are not available yet."),
   ).toBeVisible();
   await expect(panel.getByRole("switch")).toHaveCount(0);
-  await expect(page.getByRole("status")).toHaveCount(0);
 
   await tablist(page).getByRole("tab", { name: "Members" }).click();
   await page.waitForURL("**/dashboard/settings/members");

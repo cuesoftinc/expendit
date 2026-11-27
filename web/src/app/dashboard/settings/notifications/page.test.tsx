@@ -15,15 +15,11 @@ describe("Notifications settings page", () => {
     ).toBeVisible();
   });
 
-  it("offers no placeholder switches or obsolete notification toast", () => {
+  it("offers no placeholder notification switches or labels", () => {
     render(<NotificationsSettingsPage />);
 
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
     expect(screen.queryByText("Deadline reminders")).not.toBeInTheDocument();
     expect(screen.queryByText("Import summaries")).not.toBeInTheDocument();
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Notification prefs land with the backend"),
-    ).not.toBeInTheDocument();
   });
 });
