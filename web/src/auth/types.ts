@@ -31,6 +31,8 @@ export interface AuthProvider {
   /** The single X-1 sign-in path. Resolves with the signed-in user. */
   signInWithGoogle(): Promise<AuthUser>;
   signOut(): Promise<void>;
+  /** Invalidates the local snapshot without making a logout request. */
+  clearSession(): void;
   /** Bearer token for API calls; null when the session is a cookie or signed out. */
   getBearerToken(): Promise<string | null>;
 }

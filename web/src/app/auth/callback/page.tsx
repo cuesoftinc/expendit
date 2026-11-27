@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { signInDestination } from "@/lib/auth/session-redirect";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { resetAuthProvider } from "@/auth";
@@ -99,7 +100,7 @@ const AuthCallbackPage = () => {
         return;
       }
       resetAuthProvider();
-      router.replace("/dashboard");
+      router.replace(signInDestination());
     },
     [router, showRecoveryError],
   );

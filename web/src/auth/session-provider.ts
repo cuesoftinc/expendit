@@ -22,6 +22,7 @@ const toAuthUser = (me: MeResponse): AuthUser => ({
 
 export class SessionAuthProvider implements AuthProvider {
   private user: AuthUser | null = null;
+  private generation = 0;
   private restored: Promise<void> | null = null;
 
   ready(): Promise<void> {
@@ -39,9 +40,14 @@ export class SessionAuthProvider implements AuthProvider {
     return new Promise<AuthUser>(() => {});
   }
 
-  async signOut(): Promise<void> {
+  clearSession(): void {
+    this.generation += 1;
     this.user = null;
     this.restored = Promise.resolve();
+  }
+
+  async signOut(): Promise<void> {
+    this.clearSession();
     try {
       await api.post<void>("/auth/logout");
     } catch (error) {
@@ -55,11 +61,13 @@ export class SessionAuthProvider implements AuthProvider {
   }
 
   private async restore(): Promise<void> {
+    const generation = this.generation;
     try {
       // A failed session read is signed out (flows/auth.md §2).
-      this.user = toAuthUser(await api.get<MeResponse>("/me"));
+      const me = await api.get<MeResponse>("/me");
+      if (generation === this.generation) this.user = toAuthUser(me);
     } catch {
-      this.user = null;
+      if (generation === this.generation) this.user = null;
     }
   }
 }

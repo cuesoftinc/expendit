@@ -43,6 +43,10 @@ export class TestModeAuthProvider implements AuthProvider {
   }
 
   async signOut(): Promise<void> {
+    this.clearSession();
+  }
+
+  clearSession(): void {
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(SESSION_KEY);
     }

@@ -44,11 +44,12 @@ test("TEST_MODE: Continue with Google goes straight to /dashboard", async ({
  * resolves before either surface routes, and each surface guards its
  * wrong-state visitor.
  */
-test("cold start signed out: /dashboard replaces to /signin with no dashboard paint", async ({
+test("cold start signed out: redirects to sign-in with the return destination", async ({
   page,
 }) => {
   await page.goto("/dashboard");
-  await page.waitForURL("**/signin");
+  await page.waitForURL((url) => url.pathname === "/signin");
+  expect(new URL(page.url()).searchParams.get("next")).toBe("/dashboard");
   await expect(
     page.getByRole("button", { name: "Continue with Google" }),
   ).toBeVisible();
