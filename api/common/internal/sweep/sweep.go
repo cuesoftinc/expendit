@@ -135,7 +135,8 @@ func (s *Sweeper) reap(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		slog.Info("reaper", "jobs_failed", failed.RowsAffected(), "jobs_expired", stale.RowsAffected(), "statements_failed", statements.RowsAffected(),
+		slog.Log(ctx, idleLevel(failed.RowsAffected(), stale.RowsAffected(), statements.RowsAffected(), compute), "reaper",
+			"jobs_failed", failed.RowsAffected(), "jobs_expired", stale.RowsAffected(), "statements_failed", statements.RowsAffected(),
 			"compute_expired", compute)
 		return nil
 	})
@@ -187,6 +188,16 @@ func (s *Sweeper) settle(ctx context.Context, start time.Time, outbox, extract, 
 	}
 }
 
+// idleLevel is debug for a frequent pass that changed nothing and info once it changed something.
+func idleLevel(counts ...int64) slog.Level {
+	for _, n := range counts {
+		if n != 0 {
+			return slog.LevelInfo
+		}
+	}
+	return slog.LevelDebug
+}
+
 // TmpCleanup deletes uploads older than 1 hour from tmp/ (S-4) and
 // claim-check payloads older than 1 day from compute/ (I-18). The bucket's
 // 1-day lifecycle rules are the backstop. Every 15 minutes.
@@ -209,7 +220,7 @@ func (s *Sweeper) TmpCleanup(ctx context.Context) error {
 				deleted++
 			}
 		}
-		slog.Info("storage cleanup", "prefix", sweep.prefix, "deleted", deleted, "kept", len(objects)-deleted)
+		slog.Log(ctx, idleLevel(int64(deleted)), "storage cleanup", "prefix", sweep.prefix, "deleted", deleted, "kept", len(objects)-deleted)
 	}
 	return nil
 }

@@ -9,7 +9,8 @@ import logging
 import sys
 from datetime import UTC, datetime
 
-_RESERVED = set(logging.LogRecord("", 0, "", 0, "", None, None).__dict__) | {"message", "asctime"}
+# uvicorn adds color_message, an ANSI-coloured copy of the message.
+_RESERVED = set(logging.LogRecord("", 0, "", 0, "", None, None).__dict__) | {"message", "asctime", "color_message"}
 
 
 class JSONFormatter(logging.Formatter):

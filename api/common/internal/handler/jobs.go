@@ -23,7 +23,7 @@ func RunJob(jobs map[string]func(context.Context) error) http.HandlerFunc {
 			return
 		}
 		ms := time.Since(start).Milliseconds()
-		slog.InfoContext(r.Context(), "job done", "job", name, "ms", ms)
+		slog.DebugContext(r.Context(), "job done", "job", name, "ms", ms)
 		writeJSON(w, http.StatusOK, map[string]any{"job": name, "ms": ms})
 	}
 }

@@ -20,11 +20,12 @@ import (
 	"github.com/cuesoftinc/expendit/api/common/internal/config"
 	"github.com/cuesoftinc/expendit/api/common/internal/jobs"
 	"github.com/cuesoftinc/expendit/api/common/internal/kafka"
+	"github.com/cuesoftinc/expendit/api/common/internal/logging"
 	"github.com/cuesoftinc/expendit/api/common/migrations"
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	slog.SetDefault(logging.New(os.Stdout, os.Getenv("LOG_LEVEL")))
 	if err := run(os.Args[1:]); err != nil {
 		slog.Error("job failed", "error", err)
 		os.Exit(1)

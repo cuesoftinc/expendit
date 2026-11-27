@@ -3,6 +3,7 @@ package sweep
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -113,4 +114,15 @@ func TestReaperSettlesEndInsideTheAttemptDeadline(t *testing.T) {
 func TestReaperGoesOnWhenACommonSettleFails(t *testing.T) {
 	s := &Sweeper{Settle: func(context.Context) error { return errors.New("still behind") }}
 	s.settle(context.Background(), time.Now(), true, false, false)
+}
+
+func TestAPassThatChangedNothingIsDebug(t *testing.T) {
+	if got := idleLevel(0, 0, 0, 0); got != slog.LevelDebug {
+		t.Fatalf("idle pass level %v, want debug", got)
+	}
+	for _, counts := range [][]int64{{1, 0, 0, 0}, {0, 0, 0, 2}, {5}} {
+		if got := idleLevel(counts...); got != slog.LevelInfo {
+			t.Fatalf("pass %v level %v, want info", counts, got)
+		}
+	}
 }
