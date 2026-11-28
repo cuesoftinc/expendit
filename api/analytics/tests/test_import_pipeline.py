@@ -1,5 +1,6 @@
 import copy
 
+from extract.ai.enhancer import AIEnhancer
 from extract.pipeline import ImportPipeline
 from kafka import topics
 from tests.conftest import example
@@ -93,4 +94,48 @@ async def test_bank_sync_rows_skip_storage(contract, store):
     contract.validate_data(topics.IMPORT_READY, msg)
     result = await ImportPipeline(store, ai=None).run(msg)
     contract.validate_data(topics.IMPORT_PROCESSED, result)
+    assert result["transactions"][0]["category_name"] == "Utility"
+
+
+class RecordingAI(AIEnhancer):
+    def __init__(self):
+        super().__init__("groq", api_key="test")
+        self.sent: list[str] = []
+
+    async def batch_categorize(self, txns, valid_categories):
+        self.sent += [t.description for t in txns]
+        return ["AI Picked"] * len(txns)
+
+    async def generate_text(self, prompt: str) -> str:
+        return "summary"
+
+
+def bank_sync_ready(descriptions: list[str], **overrides) -> dict:
+    msg = copy.deepcopy(example("import.ready")["data"])
+    for key in ("file", "file_type", "file_name"):
+        msg.pop(key)
+    msg |= {
+        "source": "bank_sync",
+        "rows": [{"txn_date": "2026-09-10", "amount": 2500, "direction": "expense", "description": d} for d in descriptions],
+    }
+    return msg | overrides
+
+
+async def test_ai_categorizes_only_rows_the_keywords_left_on_fallback(contract):
+    ai = RecordingAI()
+    msg = bank_sync_ready(["MTN AIRTIME", "ZQX VENDOR 77"], ai_allowed=True)
+    result = await ImportPipeline(None, ai=ai).run(msg)
+    contract.validate_data(topics.IMPORT_PROCESSED, result)
+    by_desc = {t["description"]: t for t in result["transactions"]}
+    assert ai.sent == ["ZQX VENDOR 77"]
+    assert by_desc["MTN AIRTIME"]["category_name"] == "Utility"
+    assert by_desc["MTN AIRTIME"]["ai_categorized"] is False
+    assert by_desc["ZQX VENDOR 77"]["category_name"] == "AI Picked"
+    assert by_desc["ZQX VENDOR 77"]["ai_categorized"] is True
+
+
+async def test_ai_is_not_called_when_every_row_matched_a_keyword(contract):
+    ai = RecordingAI()
+    result = await ImportPipeline(None, ai=ai).run(bank_sync_ready(["MTN AIRTIME"], ai_allowed=True))
+    assert ai.sent == []
     assert result["transactions"][0]["category_name"] == "Utility"

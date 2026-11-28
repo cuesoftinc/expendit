@@ -58,7 +58,7 @@ the review table, never silent.
 ## 4. Duplicate semantics
 
 - Detector compares staged rows against **ledger + other staged jobs** on
-  (date ±1d, amount exact, normalized description similarity).
+  (date ±1d, amount exact, same direction, normalized description similarity).
 - Re-uploading the same statement month → most rows flagged; confirm imports
   only the unflagged remainder — the "overlapping statements" case just works.
 - Confirmed duplicates are the user's explicit choice (re-included manually).

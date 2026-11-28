@@ -77,7 +77,7 @@ class ImportPipeline:
         reference = msg["reference"]
         detector = DuplicateDetector(
             [
-                LedgerRow(date.fromisoformat(r["txn_date"]), abs(r["amount"]), r["description"])
+                LedgerRow(date.fromisoformat(r["txn_date"]), abs(r["amount"]), r["description"], r["direction"])
                 for r in reference["ledger"]
             ]
         )
@@ -93,7 +93,7 @@ class ImportPipeline:
                     "description": txn.description,
                     "category_name": engine.by_keywords(txn.description),
                     "ai_categorized": False,
-                    "is_duplicate": detector.check(LedgerRow(txn.date.date(), abs(txn.amount), txn.description)),
+                    "is_duplicate": detector.check(LedgerRow(txn.date.date(), abs(txn.amount), txn.description, txn.type)),
                 }
             )
 
@@ -156,13 +156,26 @@ class ImportPipeline:
                     warnings.append("Parsed without AI (no ai_processing consent); accuracy may be reduced.")
                 return parse_pdf(data)
             text = extract_pdf_text(data)
-            txns: list[RawTransaction] = []
+            extraction = None
             if len(text) > 50:
                 try:
-                    txns = await ai.extract_transactions(trim_pdf_text(text, len(text)))
+                    extraction = await ai.extract_transactions(trim_pdf_text(text, len(text)))
                 except Exception:  # noqa: BLE001 - fall back to the regex parser
                     log.warning("ai pdf extraction failed; using regex parser")
-            return txns or parse_pdf(data)
+            if extraction is not None and extraction.transactions:
+                if extraction.chunks_failed:
+                    log.warning(
+                        "ai pdf extraction incomplete",
+                        extra={"chunks_failed": extraction.chunks_failed, "chunks_total": extraction.chunks_total},
+                    )
+                    warnings.append(
+                        f"{extraction.chunks_failed} of {extraction.chunks_total} parts of this statement could not be read; "
+                        "transactions are missing. Check the statement before importing."
+                    )
+                return extraction.transactions
+            if len(text) > 50:
+                warnings.append("AI could not read this statement; it was read with the basic parser and may be incomplete.")
+            return parse_pdf(data)
 
         if file_type == "image":
             # common refuses image jobs without consent before a ticket exists;
@@ -180,9 +193,12 @@ class ImportPipeline:
 
     async def _ai_categorize(self, ai: AIEnhancer, engine: CategorizationEngine, rows: list[dict]) -> None:
         try:
+            unmatched = [r for r in rows if r["category_name"] == FALLBACK]
+            if not unmatched:
+                return
             names = sorted(set(engine.names("expense")) | set(engine.names("income")) | {FALLBACK})
-            inputs = [TransactionInput(description=r["description"], type=r["direction"]) for r in rows]
-            for row, category in zip(rows, await ai.batch_categorize(inputs, names), strict=False):
+            inputs = [TransactionInput(description=r["description"], type=r["direction"]) for r in unmatched]
+            for row, category in zip(unmatched, await ai.batch_categorize(inputs, names), strict=False):
                 if isinstance(category, str) and category.strip():
                     row["category_name"] = category.strip()
                     row["ai_categorized"] = True

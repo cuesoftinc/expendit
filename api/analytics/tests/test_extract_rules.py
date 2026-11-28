@@ -11,16 +11,16 @@ def test_normalize_and_similarity():
 
 
 def test_duplicate_needs_exact_amount_and_date_within_one_day():
-    base = LedgerRow(date(2026, 9, 2), 4500, "CHICKEN REPUBLIC IKEJA")
+    base = LedgerRow(date(2026, 9, 2), 4500, "CHICKEN REPUBLIC IKEJA", "expense")
     detector = DuplicateDetector([base])
-    assert detector.check(LedgerRow(date(2026, 9, 3), 4500, "Chicken Republic - Ikeja"))
-    assert not detector.check(LedgerRow(date(2026, 9, 5), 4500, "CHICKEN REPUBLIC IKEJA"))
-    assert not detector.check(LedgerRow(date(2026, 9, 2), 4501, "CHICKEN REPUBLIC IKEJA"))
+    assert detector.check(LedgerRow(date(2026, 9, 3), 4500, "Chicken Republic - Ikeja", "expense"))
+    assert not detector.check(LedgerRow(date(2026, 9, 5), 4500, "CHICKEN REPUBLIC IKEJA", "expense"))
+    assert not detector.check(LedgerRow(date(2026, 9, 2), 4501, "CHICKEN REPUBLIC IKEJA", "expense"))
 
 
 def test_duplicate_within_the_same_batch():
     detector = DuplicateDetector([])
-    row = LedgerRow(date(2026, 9, 2), 100, "NETFLIX.COM")
+    row = LedgerRow(date(2026, 9, 2), 100, "NETFLIX.COM", "expense")
     assert not detector.check(row)
     assert detector.check(row)
 

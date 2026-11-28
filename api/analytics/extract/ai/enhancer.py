@@ -31,8 +31,12 @@ VERTEX_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"]
 GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro"]
 GEMINI_VISION_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-flash-latest"]
 
+_MAX_OUTPUT_TOKENS = 4096
+_SUMMARY_MAX_OUTPUT_TOKENS = 512
+_GEMINI_THINKING_TOKENS = 4096  # Gemini 2.5 reasoning tokens count against maxOutputTokens
 _PDF_CHUNK_SIZE = 10_000  # chars per chunk, keeps requests under Groq's TPM limit
 _CATEGORIZE_CHUNK_SIZE = 50
+_CHUNK_ATTEMPTS = 2
 
 _IMAGE_TRANSACTION_PROMPT = (
     "Extract all financial transactions from this bank statement image.\n"
@@ -50,6 +54,13 @@ _IMAGE_TRANSACTION_PROMPT = (
 class TransactionInput:
     description: str
     type: str
+
+
+@dataclass
+class PdfExtraction:
+    transactions: list[RawTransaction]
+    chunks_total: int
+    chunks_failed: int
 
 
 class AIEnhancer:
@@ -101,13 +112,13 @@ class AIEnhancer:
     async def generate_text(self, prompt: str) -> str:
         """Short-summary variant (lower max_tokens)."""
         if self.provider == "groq":
-            return await self._generate_groq(prompt, max_tokens=512)
-        return await self._generate_gemini(prompt)
+            return await self._generate_groq(prompt, max_tokens=_SUMMARY_MAX_OUTPUT_TOKENS)
+        return await self._generate_gemini(prompt, max_tokens=_SUMMARY_MAX_OUTPUT_TOKENS)
 
     async def _generate(self, prompt: str) -> str:
         if self.provider == "groq":
-            return await self._generate_groq(prompt, max_tokens=4096)
-        return await self._generate_gemini(prompt)
+            return await self._generate_groq(prompt, max_tokens=_MAX_OUTPUT_TOKENS)
+        return await self._generate_gemini(prompt, max_tokens=_MAX_OUTPUT_TOKENS)
 
     # -- Groq (OpenAI-compatible) --------------------------------------------
 
@@ -153,7 +164,7 @@ class AIEnhancer:
                     }
                 ],
                 "temperature": 0.1,
-                "max_tokens": 4096,
+                "max_tokens": _MAX_OUTPUT_TOKENS,
             }
             try:
                 resp = await self._client.post(
@@ -176,8 +187,11 @@ class AIEnhancer:
 
     # -- Gemini (REST) --------------------------------------------------------
 
-    async def _generate_gemini(self, prompt: str) -> str:
-        payload = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.1}}
+    async def _generate_gemini(self, prompt: str, max_tokens: int) -> str:
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": max_tokens + _GEMINI_THINKING_TOKENS},
+        }
         for model in VERTEX_MODELS if self.provider == "vertex" else GEMINI_MODELS:
             url, headers = await self._gemini_target(model)
             try:
@@ -201,7 +215,7 @@ class AIEnhancer:
             "contents": [
                 {"parts": [{"inlineData": {"mimeType": mime_type, "data": b64}}, {"text": prompt}]}
             ],
-            "generationConfig": {"temperature": 0.1},
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": _MAX_OUTPUT_TOKENS + _GEMINI_THINKING_TOKENS},
         }
         for model in VERTEX_MODELS if self.provider == "vertex" else GEMINI_VISION_MODELS:
             url, headers = await self._gemini_target(model, beta=True)
@@ -229,7 +243,7 @@ class AIEnhancer:
             else await self._generate_gemini_vision(image_data, mime_type, _IMAGE_TRANSACTION_PROMPT)
         )
         ai_txns = json.loads(_extract_json(text))
-        return _dedupe_ai_transactions(ai_txns)
+        return _to_raw_transactions(ai_txns)
 
     async def batch_categorize(self, txns: list[TransactionInput], valid_categories: list[str]) -> list[str]:
         """Sends transactions to the AI in chunks and returns a category per entry."""
@@ -258,11 +272,12 @@ class AIEnhancer:
                 result[start + i] = cats[i]
         return result
 
-    async def extract_transactions(self, raw_text: str) -> list[RawTransaction]:
-        """Splits large PDF text into chunks and merges results."""
+    async def extract_transactions(self, raw_text: str) -> PdfExtraction:
+        """Splits large PDF text into chunks and merges results. A chunk that
+        still fails after one retry is counted, never silently skipped."""
         chunks = _split_text_into_chunks(raw_text, _PDF_CHUNK_SIZE)
         all_txns: list[dict] = []
-        seen: set[str] = set()
+        failed = 0
 
         for i, chunk in enumerate(chunks):
             if i > 0:
@@ -278,42 +293,46 @@ class AIEnhancer:
                 "If there are no transactions in this section return an empty array [].\n\n"
                 f"Text:\n{chunk}"
             )
-            try:
-                text = await self._generate(prompt)
-                ai_txns = json.loads(_extract_json(text))
-            except (httpx.HTTPError, RuntimeError, json.JSONDecodeError):
-                continue
-            for t in ai_txns:
-                key = f"{t.get('date')}|{t.get('amount'):.2f}|{t.get('description')}" if _valid_ai_txn(t) else None
-                if key is None or key in seen:
+            ai_txns = None
+            for attempt in range(_CHUNK_ATTEMPTS):
+                if attempt > 0:
+                    await asyncio.sleep(2)
+                try:
+                    ai_txns = json.loads(_extract_json(await self._generate(prompt)))
+                except (httpx.HTTPError, RuntimeError, json.JSONDecodeError):
                     continue
-                seen.add(key)
-                all_txns.append(t)
+                if isinstance(ai_txns, list):
+                    break
+                ai_txns = None
+            if ai_txns is None:
+                failed += 1
+                continue
+            all_txns.extend(t for t in ai_txns if isinstance(t, dict) and _valid_ai_txn(t))
 
-        return _dedupe_ai_transactions(all_txns, already_deduped=True)
+        return PdfExtraction(_to_raw_transactions(all_txns), len(chunks), failed)
 
 
 def _valid_ai_txn(t: dict) -> bool:
     return isinstance(t.get("amount"), (int, float)) and isinstance(t.get("date"), str)
 
 
-def _dedupe_ai_transactions(ai_txns: list[dict], already_deduped: bool = False) -> list[RawTransaction]:
+def _to_raw_transactions(ai_txns: list[dict]) -> list[RawTransaction]:
+    """Every parsed row is kept, repeated ones included: two real same-day,
+    same-value purchases look identical, so the duplicate detector flags them
+    for review instead of dropping them here."""
     from datetime import datetime
 
-    seen: set[str] = set()
     result: list[RawTransaction] = []
     for t in ai_txns:
         try:
             txn_date = datetime.strptime(t["date"], "%Y-%m-%d")
-        except (KeyError, ValueError):
+            amount = t["amount"]
+            if not isinstance(amount, (int, float)):
+                continue
+        except (KeyError, ValueError, TypeError):
             continue
         txn_type = t.get("type") if t.get("type") in ("income", "expense") else "expense"
-        key = f"{t['date']}|{t['amount']:.2f}|{t.get('description', '')}"
-        if not already_deduped:
-            if key in seen:
-                continue
-            seen.add(key)
-        result.append(RawTransaction(date=txn_date, amount=t["amount"], description=t.get("description", ""), type=txn_type))
+        result.append(RawTransaction(date=txn_date, amount=amount, description=t.get("description", ""), type=txn_type))
     return result
 
 
