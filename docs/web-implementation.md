@@ -238,8 +238,8 @@ usability/accuracy/interaction pass over the W0–W3 app. Fixes of record:
   results, the bank-link "Auto-confirm clean syncs" toggle now commits
   clean syncs straight to the ledger vs staging them (it was never read),
   and image uploads 403 `consent_required` without the `ai_processing`
-  consent record (flows/import.md §3; the Settings notification switches
-  remain explicitly backend-deferred by copy); (c) derived-metric
+  consent record (flows/import.md §3; the Settings Notifications tab shows
+  a not-available message until #487–#489 are implemented); (c) derived-metric
   semantics under bucket changes were already correct (quarterly ×4
   annualization, actual day counts) and are now pinned by a regression
   test. The wizard's profile gate and the generate endpoint now share one
@@ -611,7 +611,7 @@ the ⌘K palette (MI-1) is a global overlay, not a route.
 | B9                                      | `/dashboard/settings/organization`                          | Organization tab — org profile (name, registered address, fiscal year end) + Appearance card tail (theme control)                                                                                                                                                                                         |
 | B9                                      | `/dashboard/settings/members`                               | Members tab — members & roles (invite → pending until first sign-in)                                                                                                                                                                                                                                      |
 | B9/B9b                                  | `/dashboard/settings/data-privacy`                          | Data & privacy tab — AI consent + bank-link permissions; USR-001 export card (determinate strip) above the bordered danger card (USR-002 purge, MI-15 typed confirm + 7-day grace)                                                                                                                        |
-| B9                                      | `/dashboard/settings/notifications`                         | Notifications tab — deadline reminders + import summaries                                                                                                                                                                                                                                                 |
+| B9                                      | `/dashboard/settings/notifications`                         | Notifications tab — not-available message until #487–#489 are implemented                                                                                                                                                                                                                                                 |
 
 Part C (mobile) has no web routes — it is a later phase (§8). Legacy
 flat paths (`/expense`, `/income`, `/history`, `/import`, `/reports`,

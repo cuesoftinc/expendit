@@ -68,7 +68,9 @@ test("tab click changes the URL and swaps the pane; back/forward retrace", async
 
   await tablist(page).getByRole("tab", { name: "Notifications" }).click();
   await page.waitForURL("**/dashboard/settings/notifications");
-  await expect(page.getByText("Deadline reminders")).toBeVisible();
+  await expect(
+    page.getByText("Notification settings are not available yet."),
+  ).toBeVisible();
 
   // browser history retraces the tab trail
   await page.goBack();
@@ -98,7 +100,18 @@ test("deep link direct-loads a tab; AppNav stays highlighted on sub-routes", asy
   await expect(
     tablist(page).getByRole("tab", { name: "Notifications" }),
   ).toHaveAttribute("aria-current", "page");
-  await expect(page.getByText("Import summaries")).toBeVisible();
+  const panel = page.getByRole("tabpanel", { name: "Notifications" });
+  await expect(
+    panel.getByRole("region", { name: "Notifications" }),
+  ).toBeVisible();
+  await expect(
+    panel.getByText("Notification settings are not available yet."),
+  ).toBeVisible();
+  await expect(panel.getByRole("switch")).toHaveCount(0);
+
+  await tablist(page).getByRole("tab", { name: "Members" }).click();
+  await page.waitForURL("**/dashboard/settings/members");
+  await expect(page.getByRole("tabpanel", { name: "Members" })).toBeVisible();
 
   // AppNav's Settings entry marks the current page across sub-routes
   await expect(

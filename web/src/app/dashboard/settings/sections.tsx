@@ -674,31 +674,11 @@ export const AppearanceSection: React.FC = () => {
 /* ------------------------------------------------------------------ */
 
 export const NotificationsSection: React.FC = () => {
-  const [toast, setToast] = useState<string | null>(null);
   return (
-    <>
-      <Section title="Notifications">
-        <div className="space-y-4">
-          <Switch
-            label="Deadline reminders"
-            helper="T-30/T-7/T-1 tax deadline notifications."
-            checked
-            onCheckedChange={() =>
-              setToast("Notification prefs land with the backend")
-            }
-          />
-          <Switch
-            label="Import summaries"
-            helper="Email when a staged import is ready for review."
-            checked={false}
-            onCheckedChange={() =>
-              setToast("Notification prefs land with the backend")
-            }
-          />
-        </div>
-      </Section>
-
-      <ToastLayer message={toast} onDismiss={() => setToast(null)} />
-    </>
+    <Section title="Notifications">
+      <p className="text-[13px] text-text-2">
+        Notification settings are not available yet.
+      </p>
+    </Section>
   );
 };
