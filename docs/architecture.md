@@ -15,7 +15,7 @@ flowchart LR
     WEB -->|proxy everything else| CM[api/common · Go<br/>CRUD owner]
     CM --> PG[(Postgres)]
     CM -.-> R[(Valkey<br/>rate limits)]
-    ST -->|tmp/| OS[(Object storage<br/>GCS · MinIO)]
+    ST -->|tmp/| OS[("Object storage<br/>GCS · S3-compatible (SeaweedFS in compose)")]
     AN -.->|read tmp/| OS
     CM -->|delete after parse| OS
     ST -->|pointer| K[[Kafka]]

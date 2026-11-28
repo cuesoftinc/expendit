@@ -79,13 +79,13 @@ health, kafka, storage, contract, telemetry).
 
 - [Docker](https://www.docker.com/) & Docker Compose (recommended path)
 - For native development: [Go](https://go.dev/) 1.26, [Node.js](https://nodejs.org/) 24,
-  [Python](https://www.python.org/) 3.12 (compose provides Postgres, Kafka, Redis and MinIO)
+  [Python](https://www.python.org/) 3.12 (compose provides Postgres, Kafka, Redis and SeaweedFS)
 
 ### Quick start
 
 ```bash
 cp .env.example .env   # ships a local-only upload-ticket key pair
-make up      # build + start the full stack (postgres, kafka, redis, minio, 3 APIs, web)
+make up      # build + start the full stack (postgres, kafka, redis, seaweedfs, 3 APIs, web)
 make logs    # follow logs
 make down    # stop
 ```
